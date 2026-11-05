@@ -125,13 +125,22 @@ async def add_related(conn: asyncpg.Connection, loan_id: UUID, party_id: UUID, s
     )
 
 
-async def add_exposure(conn: asyncpg.Connection, customer_id: UUID, amount: Decimal) -> None:
+async def add_exposure(
+    conn: asyncpg.Connection,
+    customer_id: UUID,
+    amount: Decimal,
+    *,
+    exposure_type: str = "GUARANTEE",
+    days_ago: int = 0,
+) -> None:
     await conn.execute(
         "INSERT INTO credit.customer_exposure (id, customer_id, exposure_type, amount,"
-        " as_of_date) VALUES ($1, $2, 'GUARANTEE', $3, CURRENT_DATE)",
+        " as_of_date) VALUES ($1, $2, $3, $4, CURRENT_DATE - $5::int)",
         uuid4(),
         customer_id,
+        exposure_type,
         amount,
+        days_ago,
     )
 
 
@@ -348,6 +357,30 @@ async def test_exposure_counts_confirmed_related_party_only(mig: asyncpg.Connect
     loan_id = await group_case_95_2(mig)
 
     assert await exposure_as_rm(mig, loan_id) == Decimal("95200000000")
+
+
+async def test_exposure_uses_latest_snapshot_per_type(mig: asyncpg.Connection) -> None:
+    customer_id, _ = await new_customer(mig)
+    loan_id = await new_loan(mig, customer_id, 10 * BILLION)
+    # Cung loai, hai ngay chup: chi anh moi nhat (3 ty) duoc cong.
+    await add_exposure(mig, customer_id, 9 * BILLION, exposure_type="GUARANTEE", days_ago=30)
+    await add_exposure(mig, customer_id, 3 * BILLION, exposure_type="GUARANTEE", days_ago=0)
+    # Loai khac: cong rieng theo anh moi nhat cua no (2 ty), du ngay chup cu hon.
+    await add_exposure(mig, customer_id, 2 * BILLION, exposure_type="LC", days_ago=10)
+    await add_exposure(mig, customer_id, 6 * BILLION, exposure_type="LC", days_ago=40)
+
+    assert await exposure_as_rm(mig, loan_id) == 15 * BILLION
+
+
+async def test_exposure_sums_all_rows_of_latest_snapshot(mig: asyncpg.Connection) -> None:
+    """Hai bao lanh cung ngay chup moi nhat deu duoc cong."""
+    customer_id, _ = await new_customer(mig)
+    loan_id = await new_loan(mig, customer_id, 10 * BILLION)
+    await add_exposure(mig, customer_id, 1 * BILLION, days_ago=0)
+    await add_exposure(mig, customer_id, 4 * BILLION, days_ago=0)
+    await add_exposure(mig, customer_id, 8 * BILLION, days_ago=5)
+
+    assert await exposure_as_rm(mig, loan_id) == 15 * BILLION
 
 
 async def test_exposure_adds_own_outstanding_and_off_balance(mig: asyncpg.Connection) -> None:
