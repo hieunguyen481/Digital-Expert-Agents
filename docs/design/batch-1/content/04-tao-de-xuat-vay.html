@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tạo đề xuất vay · SHB AI Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!--
+  TRANG 3 · TẠO ĐỀ XUẤT VAY (wizard 5 bước) – dựng từ shell.html.
+  Quy tắc: ../design-system.md · Khuôn gốc: content/02b-ho-so-vay-task.html
+  Thay: PAGE_ID, header trang, mục lục (SECS), các <section class="sec">.
+  Giữ nguyên: tokens, rail, topbar, Trợ lý AI, drawer, toast, JS dùng chung.
+  Deep link: #draft=DX-2026-00412 · #sec=s1..s5 (sai → s4) · #role=qhkh|httd|tdinh|ruiro|pheduyet|kiemtoan|quantri · #ai=open · #pol=6-4 · #ready=1 · #err=1 · #consent=0|ai · #cicdown=1
+-->
+<style>
+/* ===================== TOKENS (không thêm màu mới) ===================== */
+:root{
+  --orange-50:#FFF7F0; --orange-100:#FEEBDD; --orange-200:#FDD3B5; --orange-500:#F37021; --orange-600:#DD5A12; --orange-700:#B9450C;
+  --cta:#C44D0E; --cta-hover:#A9410B;
+  --navy-50:#F3F3FA; --navy-100:#E1E1F3; --navy-200:#C0BFE7; --navy-500:#4F4DB0; --navy-600:#3C3A96; --navy-700:#2F2E79; --navy-800:#23224F; --navy-900:#1B1A46;
+  --canvas:#F6F4F0; --surface:#FFFFFF; --soft:#FAF8F5; --soft-2:#F3F0EB;
+  --border:#EAE3DA; --border-strong:#D9D0C5; --divider:#F0EBE4;
+  --text:#18212B; --text-2:#475467; --text-3:#5F6B7A; --text-disabled:#98A2B3;
+  --success:#11734F; --success-bg:#ECFAF4;
+  --warning:#94560A; --warning-bg:#FFF6E5;
+  --error:#B42318; --error-bg:#FEF3F2;
+  --info:#226189; --info-bg:#EFF8FC;
+  --ai:#5B3FA8; --ai-strong:#4A3191; --ai-bg:#F4F1FC; --ai-border:#CFC3EE;
+  --r:6px; --r-md:8px; --r-lg:12px;
+  --shadow-sm:0 1px 2px rgba(35,34,79,.06),0 1px 1px rgba(35,34,79,.03);
+  --shadow-md:0 8px 30px rgba(35,34,79,.10);
+  --shadow-lg:0 16px 48px rgba(35,34,79,.18);
+  --rail-w:64px; --toc-w:256px; --ai-w:408px; --topbar-h:56px;
+  --sticky-foot-h:0px; /* trang có chân dính đặt bằng chiều cao chân → đệm đáy nội dung và toast nằm trên chân */
+  --font:"Be Vietnam Pro", Inter, "Segoe UI", system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);font-size:14px;line-height:1.55;color:var(--text);background:var(--canvas);min-width:1280px;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0;text-align:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--navy-600);outline-offset:2px;border-radius:4px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--text-3)}
+small{font-size:12px} /* G8: không chữ < 12px (small mặc định của trình duyệt ≈ 11,7px) */
+svg.i{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+svg.i.sm{width:14px;height:14px} svg.i.xs{width:12px;height:12px} svg.i.lg{width:20px;height:20px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ===================== APP SHELL ===================== */
+.app{display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr);height:100vh}
+.rail{background:var(--navy-900);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px}
+.brand-mark{width:36px;height:36px;border-radius:8px;background:var(--orange-500);display:grid;place-items:center;font-weight:700;color:#fff;font-size:12px;letter-spacing:.5px;margin-bottom:14px}
+.rail nav{display:flex;flex-direction:column;gap:4px}
+.rail .rail-bottom{margin-top:auto}
+.rail a{width:44px;height:44px;display:grid;place-items:center;border-radius:8px;color:#C9C8E6;position:relative;text-decoration:none}
+.rail a:hover{background:rgba(255,255,255,.07);color:#fff}
+.rail a.active{background:rgba(255,255,255,.13);color:#fff}
+.rail a.active::before{content:"";position:absolute;left:-10px;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--orange-500)}
+.rail a .badge{position:absolute;top:4px;right:3px;min-width:18px;height:18px;border-radius:9px;background:rgba(255,255,255,.2);color:#fff;font-size:11px;line-height:1;font-weight:600;display:grid;place-items:center;padding:0 4px}
+.rail a svg.i{width:20px;height:20px}
+
+.main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.main > .topbar{height:var(--topbar-h);flex:none}
+.main > .ws{flex:1}
+.topbar{display:flex;align-items:center;gap:14px;padding:0 20px 0 24px;background:var(--surface);border-bottom:1px solid var(--divider)}
+.topbar .app-name{flex:none;font-weight:600;color:var(--navy-800);white-space:nowrap}
+.search{flex:0 1 300px;min-width:160px;display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:8px;background:var(--soft-2);color:var(--text-3);margin-left:16px}
+.search input{border:0;background:transparent;outline:0;flex:1;font:inherit;color:var(--text);min-width:0}
+/* Viền focus ô tìm kiếm: input bỏ outline nên vòng focus nằm trên cả ô. --navy-600 trên --soft-2 và --surface ≥ 3:1 (§2.2) */
+.search:focus-within{outline:2px solid var(--navy-600);outline-offset:0}
+.spacer{flex:1}
+.demo{flex:none;white-space:nowrap;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-3);padding:4px 6px 4px 10px;border:1px dashed var(--border-strong);border-radius:8px}
+/* Xem thử vai trò: select rộng CỐ ĐỊNH 200px (đổi vai trò không làm topbar nhảy) */
+.demo select{flex:none;width:200px;min-height:28px;text-overflow:ellipsis;font:inherit;font-size:13px;border:0;background:transparent;color:var(--navy-700);font-weight:600;cursor:pointer}
+.seg{display:inline-flex;background:var(--soft-2);border-radius:6px;padding:2px}
+.seg button{padding:2px 10px;border-radius:5px;font-size:13px;color:var(--text-2);line-height:24px;min-height:28px} /* G7: vùng bấm ≥ 28px */
+.seg button[aria-pressed="true"]{background:#fff;color:var(--ai);font-weight:600;box-shadow:var(--shadow-sm)}
+.icon-btn{position:relative;width:36px;height:36px;display:grid;place-items:center;border-radius:8px;color:var(--text-2)}
+.icon-btn:hover{background:var(--soft-2)}
+.icon-btn .dot{position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--error);box-shadow:0 0 0 2px #fff}
+.icon-btn,.user{flex:none}
+.user{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--navy-100);color:var(--navy-700);display:grid;place-items:center;font-weight:600;font-size:12px}
+.user b{white-space:nowrap;display:block;font-size:13px;line-height:1.25;font-weight:600}
+.user small{white-space:nowrap;color:var(--text-3)}
+
+/* Header trang: tối đa 2 dòng */
+.page-head{min-width:0;background:var(--surface);padding:12px 32px;border-bottom:1px solid var(--divider)}
+.h1row{display:flex;align-items:center;gap:14px;min-width:0}
+.h1row h1{margin:0;font-size:20px;line-height:1.3;font-weight:600;color:var(--navy-800);white-space:nowrap;flex:0 1 auto;min-width:0;max-width:55%;overflow:hidden;text-overflow:ellipsis}
+/* meta co lại trước (ellipsis), cụm nút phải không bao giờ bị ép */
+.facts{flex:1 1 auto;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.facts b{color:var(--text);font-weight:600}
+.h-acts{margin-left:auto;display:flex;gap:8px;flex:none;align-items:center}
+.h-acts .btn{flex:none}
+.h2row{display:flex;align-items:center;gap:20px;margin-top:10px;min-width:0}
+.h2row .right{margin-left:auto;display:flex;gap:16px;align-items:center;flex:none}
+.stepper{display:flex;align-items:center;list-style:none;margin:0;padding:0}
+.stepper li{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text-3);white-space:nowrap}
+.stepper li+li::before{content:"";width:16px;height:2px;border-radius:1px;background:var(--border);margin:0 8px}
+.stepper li.done+li::before{background:#9BD3BC}
+.sd{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:600;background:var(--soft-2);color:var(--text-3)}
+.stepper .done{color:var(--text-2)} .stepper .done .sd{background:var(--success-bg);color:var(--success)}
+.stepper .cur{color:var(--text);font-weight:600} .stepper .cur .sd{background:var(--orange-500);color:#fff;box-shadow:0 0 0 4px rgba(243,112,33,.16)}
+.stepper .who{font-weight:400;color:var(--text-3)}
+.sla{display:inline-flex;align-items:center;gap:6px;color:var(--warning);font-weight:500;white-space:nowrap}
+.link{color:var(--navy-700);display:inline-flex;align-items:center;gap:4px;font-weight:500;white-space:nowrap;min-height:28px;margin-block:-3px;text-decoration:none} /* G7 · margin âm giữ nguyên chiều cao dòng · không gạch chân (chỉ khi hover) */
+.link:hover{text-decoration:underline}
+.role-banner{display:none;align-items:center;gap:8px;padding:8px 32px;background:var(--info-bg);color:var(--info);font-size:13px}
+.role-banner.show{display:flex}
+
+/* Workspace: mục lục | nội dung | AI (đẩy) */
+.ws{display:grid;grid-template-columns:var(--toc-w) minmax(0,1fr) 0px;min-height:0;transition:grid-template-columns .3s cubic-bezier(.22,1,.36,1)}
+.ws.no-toc{grid-template-columns:0px minmax(0,1fr) 0px}
+body.ai-open .ws{grid-template-columns:212px minmax(0,1fr) var(--ai-w)}
+body.ai-open .ws.no-toc{grid-template-columns:0px minmax(0,1fr) var(--ai-w)}
+/* D5: AI mở + viewport < 1360px → ẨN HẲN mục lục (mọi trang). Chọn mục bằng deep link / khối việc. */
+@media (max-width:1359.98px){
+  body.ai-open .ws{grid-template-columns:0px minmax(0,1fr) var(--ai-w)}
+  body.ai-open .ws>.toc{display:none}
+}
+/* Ngoại lệ §13.1: trang có trình xem tài liệu (.ws.has-viewer) ẩn hẳn mục lục khi AI mở ở MỌI viewport */
+body.ai-open .ws.has-viewer{grid-template-columns:0px minmax(0,1fr) var(--ai-w)}
+body.ai-open .ws.has-viewer>.toc{display:none}
+body.ai-open .sec{padding-left:28px;padding-right:28px}
+body.ai-open .toc .cnt{display:none}
+.toc{overflow:auto;padding:16px 12px 24px 16px;background:var(--canvas)}
+.ws.no-toc .toc{display:none}
+/* fix: khi ẩn mục lục, ghim cột để nội dung không rơi vào cột 0px */
+.ws>.content{grid-column:2}
+.ws>.aipanel{grid-column:3}
+.toc-grp{font-size:12px;color:var(--text-3);font-weight:600;padding:16px 12px 6px}
+.toc-grp:first-child{padding-top:4px}
+.toc a{white-space:nowrap;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;color:var(--text-2);text-decoration:none;margin-bottom:1px}
+.toc a:hover{background:rgba(35,34,79,.05);color:var(--text)}
+.toc a[aria-current="page"]{background:var(--surface);color:var(--navy-800);font-weight:600;box-shadow:var(--shadow-sm)}
+.toc .cnt{white-space:nowrap;margin-left:auto;font-size:12.5px;font-weight:400;color:var(--text-3)}
+.toc .cnt.hot{color:var(--error);font-weight:600} .toc .cnt.ai{color:var(--ai)}
+.toc .fdot{width:7px;height:7px;border-radius:50%;background:var(--error);margin-left:-4px}
+.content{overflow:auto;background:var(--surface);min-width:0;scroll-behavior:smooth}
+.content:focus{outline:0} /* tabindex=-1: chỉ là đích trả focus cuối cùng */
+.sec{padding:24px 40px calc(40px + var(--sticky-foot-h));max-width:1080px}
+.sec[hidden]{display:none}
+.sec-h{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.sec-h h2{margin:0;font-size:16px;font-weight:600;color:var(--navy-800)}
+.sec-h .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.sec-desc{color:var(--text-3);margin:0 0 20px}
+/* §0: trang công cụ (không có .hero) nêu việc đầu tiên bằng đúng 1 dòng chữ, không viền, không thẻ */
+.next-line{display:flex;align-items:center;gap:8px;min-width:0;margin:0 0 12px;color:var(--text-2);white-space:nowrap}
+.next-line b{color:var(--text);font-weight:600}
+
+/* ===================== THÀNH PHẦN ===================== */
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--border-strong);background:var(--surface);font-weight:500;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--cta);border-color:var(--cta);color:#fff}
+.btn.primary:hover{background:var(--cta-hover)}
+/* Nút khóa: chữ --text-3 (KHÔNG --text-disabled: không đạt tương phản). Đè cả hover của .primary */
+.btn[aria-disabled="true"],.btn[aria-disabled="true"]:hover{background:var(--soft-2);border-color:transparent;color:var(--text-3);cursor:not-allowed}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--navy-700)}
+.btn.ghost:hover{background:var(--navy-50)}
+.btn.ai{color:var(--ai);border-color:transparent;background:var(--ai-bg)}
+.btn.ai:hover{background:#ECE6FA}
+.btn.ok{color:var(--success);border-color:transparent;background:var(--success-bg)}
+.btn.ok:hover{background:#DDF4EA}
+.btn.sm{height:30px;padding:0 10px;font-size:13px}
+.lock-line{font-size:13px;color:var(--text-3);display:inline-flex;gap:6px;align-items:center}
+
+/* Thanh công cụ (lọc, tìm, nút): luôn được xuống dòng, không đẩy tràn ngang */
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-width:0;margin-bottom:12px}
+.toolbar>*{min-width:0}
+.toolbar .grow{flex:1 1 200px}
+
+/* Bộ lọc segmented trên bảng/danh sách: .filters > button[aria-pressed] (+ <span class="n">số</span>). Cao 28px. */
+.filters{display:inline-flex;flex-wrap:wrap;gap:2px;background:var(--soft-2);border-radius:8px;padding:3px;min-width:0}
+.filters button{display:inline-flex;align-items:center;min-height:28px;padding:0 12px;border-radius:6px;font-size:13px;color:var(--text-2);white-space:nowrap}
+.filters button:hover{color:var(--text)}
+.filters button[aria-pressed="true"]{background:#fff;color:var(--navy-800);font-weight:600;box-shadow:var(--shadow-sm)}
+.filters .n{color:var(--text-3);font-weight:400;margin-left:4px}
+
+/* BẢNG CHUẨN table.t (D5): KHÔNG table-layout:fixed. Ô 12px, canh giữa theo chiều dọc. Cột tên .nm min-width 200px.
+   Cột phụ: <th/td class="col-aux"> ẩn khi AI mở; giá trị lặp lại trong <span class="aux-sub"> ở dòng phụ (.sub) của cột tên.
+   Dòng bấm được: tr.row (+ .open) · dòng mở rộng: tr.exp · nhóm dòng: tr.grp · cột tiện ích: td.util (120px, "Hỏi AI" hiện khi hover/focus/mở). */
+table.t{width:100%;border-collapse:collapse}
+.t th{text-align:left;font-weight:500;font-size:13px;color:var(--text-3);padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+.t td{padding:12px;border-bottom:1px solid var(--divider);vertical-align:middle}
+.t th.r,.t td.r{text-align:right}
+.t .nm{min-width:200px}
+.t .sub{display:block;font-size:13px;color:var(--text-3)}
+.t .val{font-weight:600}
+.t .u{color:var(--text-3);font-size:13px}
+.t tr.row{cursor:pointer}
+.t tr.row:hover td,.t tr.row.open td{background:var(--soft)}
+.t tr.row.open td{border-bottom-color:transparent}
+.t tr.grp td{padding:18px 12px 6px;font-size:13px;font-weight:600;color:var(--navy-800);border-bottom:1px solid var(--border);background:none;cursor:default}
+.t tr.exp td{background:var(--soft);padding:0 12px 16px}
+.t td.util{width:120px;text-align:right;white-space:nowrap}
+.t td.util .askai{opacity:0;transition:opacity .15s}
+.t tr.row:hover .askai,.t tr.row:focus-within .askai,.t tr.row.open .askai{opacity:1}
+.chev{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:6px;color:var(--text-3);margin-left:10px;transition:transform .2s}
+tr.open .chev{transform:rotate(180deg)}
+.t tr.target td{background:var(--orange-50)!important}
+.t tr.target td:first-child{box-shadow:inset 3px 0 0 var(--orange-500)}
+.t .aux-sub{display:none}
+body.ai-open .t .col-aux{display:none}
+body.ai-open .t .aux-sub{display:inline}
+.t-empty{font-size:13px;color:var(--text-3);padding:12px}
+
+/* Trạng thái số liệu – chữ + icon, không phải pill */
+.st{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:13px}
+.st.ai{color:var(--ai)} .st.ok{color:var(--success)} .st.verify{color:var(--warning)}
+.v-unconf{border-bottom:1.5px dashed var(--ai-border);padding-bottom:1px}
+.v-verify{border-bottom:1.5px dashed #E8B566;padding-bottom:1px}
+.cflag{color:var(--warning);font-weight:600;display:inline-flex;align-items:center;gap:3px}
+/* Pill: CHỈ 2 loại */
+.res{display:inline-flex;align-items:center;gap:4px;font-weight:600;white-space:nowrap}
+.res.pass{color:var(--success)}
+.res.fail{color:var(--error);background:var(--error-bg);padding:1px 8px;border-radius:4px}
+.sev{display:inline-block;font-size:12px;font-weight:600;line-height:20px;text-align:center;border-radius:4px;padding:0 8px}
+.sev.high{color:var(--error);background:var(--error-bg)} .sev.med{color:var(--warning);background:var(--warning-bg)} .sev.low{color:var(--text-3);background:var(--soft-2)}
+
+/* G7: link hành động, nguồn, "Hỏi AI" tại chỗ: vùng bấm ≥ 28px (padding/margin âm giữ nguyên bố cục dòng) */
+.src{display:inline-flex;align-items:center;justify-content:center;gap:4px;color:var(--navy-700);font-size:13px;min-height:28px;min-width:28px;margin-block:-3px}
+.src:hover{text-decoration:underline}
+.askai{display:inline-flex;align-items:center;gap:4px;color:var(--ai);font-size:13px;font-weight:500;min-height:28px;padding:4px 8px;margin:-4px -8px;border-radius:6px}
+.askai:hover,.askai:focus-visible{background:var(--ai-bg)}
+/* Link quay lại trong nội dung (màn phụ, so sánh…) */
+.back{display:inline-flex;align-items:center;gap:4px;min-height:28px;padding:0 8px 0 4px;margin-block:-3px;margin-left:-4px;border-radius:6px;color:var(--navy-700);font-weight:500;white-space:nowrap}
+.back:hover{background:var(--navy-50)}
+.back svg{transform:rotate(180deg)}
+/* .cite: nhìn 18px, chữ 12px; vùng bấm nới bằng ::after inset -5px = 28px (đo bằng elementFromPoint, §1.3) */
+.cite{position:relative;display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;margin:0 1px;font-size:12px;font-weight:600;line-height:1;border-radius:4px;background:var(--ai-bg);color:var(--ai);vertical-align:1px}
+.cite::after{content:"";position:absolute;inset:-5px}
+.cite:hover{background:var(--ai);color:#fff}
+.note{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:var(--r-md);background:var(--soft);color:var(--text-2)}
+.note svg{color:var(--text-3);margin-top:3px}
+.target{background:var(--orange-50)!important;box-shadow:inset 3px 0 0 var(--orange-500)}
+.flash{animation:flash 2.4s ease-out}
+@keyframes flash{0%,40%{background-color:var(--orange-100)}100%{background-color:transparent}}
+
+/* KHÔNG CÓ QUYỀN (D3) – một component cho mọi trang, nền --canvas, chiếm cả vùng làm việc */
+.noaccess{flex:1;background:var(--canvas);display:flex;justify-content:center;align-items:flex-start;padding:72px 24px;overflow:auto}
+.noaccess .state{margin:0}
+.noaccess .state p{max-width:460px;margin:0 auto 20px}
+
+/* Trạng thái khối (.state): rỗng / không có quyền. Icon 40px · h2 16/600 · 1 câu · ≤ 1 nút (icon trong nút 16px) */
+.state{margin:48px auto;max-width:520px;text-align:center;color:var(--text-2)}
+.state > svg.i{width:40px;height:40px;color:var(--text-3)}
+.state .btn svg.i{width:16px;height:16px;color:inherit}
+.state h2{color:var(--navy-800);font-size:16px;margin:12px 0 4px}
+.state p{margin:0 0 16px}
+
+/* ===================== KHỐI VIỆC CÒN LẠI (hero) – số đo chuẩn ===================== */
+/* .hero: nền navy-50, bo 12, padding 20/24/12. Biến thể .hero.ready (đủ điều kiện) nền success-bg. */
+.hero{background:var(--navy-50);border-radius:var(--r-lg);padding:20px 24px 12px}
+.hero.ready{background:var(--success-bg)}
+.hero-top{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap;min-width:0}
+.hero-top h2{margin:0;font-size:20px;line-height:1.35;font-weight:600;color:var(--navy-800)}
+.hero-top .muted{font-size:14px}
+.hero-top .right{margin-left:auto;flex:none}
+.prog{display:flex;align-items:center;gap:12px;margin:12px 0 14px}
+.bar{flex:1;height:8px;border-radius:4px;background:#fff;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--navy-600);border-radius:4px;transition:width .4s}
+.prog span{font-size:13px;color:var(--text-2);white-space:nowrap}
+.prog span b{color:var(--navy-800)}
+/* .task: <button>/<a> nền trắng, bo 10, grid 32px 1fr auto 20px, padding 10/14. Số thứ tự .tn 28px. */
+.tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.task{width:100%;display:grid;grid-template-columns:32px minmax(0,1fr) auto 20px;gap:14px;align-items:center;padding:10px 14px;border-radius:10px;background:#fff;color:inherit;text-decoration:none;transition:box-shadow .15s}
+.task:hover{box-shadow:var(--shadow-md)}
+.task .tn{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:13px;background:var(--orange-50);color:var(--orange-700)}
+.task.done .tn{background:var(--success-bg);color:var(--success)}
+.task b{display:block;font-weight:600;font-size:15px;color:var(--text)}
+.task .ts{display:block;color:var(--text-3);font-size:13px}
+.task .tp{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);white-space:nowrap}
+.mbar{width:72px;height:4px;border-radius:2px;background:var(--soft-2);overflow:hidden}
+.mbar i{display:block;height:100%;background:var(--success)}
+.task .go{color:var(--text-3)}
+.task:hover .go{color:var(--navy-700)}
+.task.done b{color:var(--text-3);text-decoration:line-through;text-decoration-color:var(--border-strong)}
+.hero-foot{font-size:13px;color:var(--text-3);margin-top:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+/* ===================== WIZARD ===================== */
+/* Chân wizard (D4): chỉ "Quay lại" (.btn.ghost) + gợi ý; KHÔNG primary (primary "Tiếp: …" ở header phải) */
+.wz-foot{display:flex;align-items:center;gap:12px;margin-top:40px}
+.wz-foot .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.wz-foot .hint{font-size:13px;color:var(--text-3)}
+.wz-foot:empty{display:none}
+/* Wizard trong mục lục: số bước là CHỮ --text-3 (không chấm màu, không trùng stepper header).
+   Trạng thái "hiện tại" (aria-current) THẮNG "đã xong": mục đang mở luôn hiện số, không hiện ✓. */
+.toc .wz-n{flex:none;min-width:14px;font-size:13px;font-weight:500;color:var(--text-3);font-variant-numeric:tabular-nums}
+.toc a.wz-done:not([aria-current]) .wz-n{color:var(--success)}
+.toc a[aria-current="page"] .wz-n{color:var(--navy-800);font-weight:600}
+.wz-left{font-size:13px;color:var(--error);display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap} /* "Còn n mục bắt buộc trước khi gửi" + link */
+.skel{height:14px;border-radius:6px;background:linear-gradient(90deg,var(--soft-2) 25%,var(--soft) 50%,var(--soft-2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;margin:10px 0}
+@keyframes shimmer{to{background-position:-200% 0}}
+.err{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:var(--error-bg);color:var(--error)}
+.err .btn{margin-left:auto}
+
+/* ===================== TRỢ LÝ AI ===================== */
+.aipanel{background:var(--surface);border-left:1px solid var(--divider);display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;box-shadow:-12px 0 32px -24px rgba(35,34,79,.35)}
+.ai-in{width:var(--ai-w);display:flex;flex-direction:column;height:100%;min-height:0;position:relative}
+.ai-h{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 18px}
+.ai-logo{width:30px;height:30px;border-radius:8px;background:var(--ai-bg);color:var(--ai);display:grid;place-items:center}
+.ai-h b{font-size:15px;color:var(--navy-800);display:block;line-height:1.2;font-weight:600}
+.ai-h small{color:var(--text-3);white-space:nowrap}
+.ai-h .right{margin-left:auto;display:flex;gap:2px}
+.ai-ctx{display:flex;align-items:center;gap:8px;padding:8px 18px 10px;font-size:13px;color:var(--text-3);border-bottom:1px solid var(--divider)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 10px;border-radius:6px;background:var(--orange-50);color:var(--orange-700);font-weight:500;max-width:280px}
+.chip.none{background:var(--soft-2);color:var(--text-2);padding-right:10px}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ✕ chip: hộp thật 28px (đo được), margin âm giữ chiều cao chip; nền hover chỉ tô 20px giữa */
+.chip button{flex:none;display:grid;place-items:center;width:28px;height:28px;padding:4px;margin:-4px -4px -4px -2px;border-radius:8px;background-clip:content-box}
+.chip button:hover{background-color:rgba(0,0,0,.06)}
+.chip.pulse{animation:pulse 1.2s ease-out}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(243,112,33,.55)}100%{box-shadow:0 0 0 10px rgba(243,112,33,0)}}
+.msgs{flex:1;overflow:auto;padding:14px 18px;display:flex;flex-direction:column;gap:12px}
+.m-user{align-self:flex-end;max-width:88%;background:var(--navy-50);border-radius:12px 12px 4px 12px;padding:8px 12px}
+.m-ai p{margin:0 0 8px}
+.m-ai .who{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);margin-bottom:6px}
+.m-ai .lead{font-size:15px;font-weight:600;color:var(--text);line-height:1.45}
+.assume{border-bottom:1px dashed var(--warning);color:var(--warning)}
+details.srcs{margin:0 0 10px;font-size:13px}
+details.srcs summary{cursor:pointer;color:var(--text-2);list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:28px}
+details.srcs summary::-webkit-details-marker{display:none}
+details.srcs .list{margin-top:6px;display:flex;flex-direction:column}
+details.srcs .list button{display:grid;grid-template-columns:22px 1fr;gap:6px;min-height:28px;padding:5px 6px;border-radius:6px}
+details.srcs .list button:hover{background:var(--soft)}
+details.srcs .list .n{color:var(--ai);font-weight:600;text-align:center}
+.action-card{display:grid;grid-template-columns:30px 1fr 16px;gap:10px;align-items:center;width:100%;text-align:left;background:var(--orange-50);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.action-card:hover{background:var(--orange-100)}
+.action-card .ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#fff;color:var(--orange-700)}
+.action-card b{display:block;font-weight:600;font-size:14px}
+.action-card small{color:var(--text-3)}
+/* G6: hàng gợi ý 1 dòng, cuộn ngang, mép phải mờ dần 24px (mask-image) để thấy còn gợi ý */
+.suggest{padding:8px 24px 0 18px;display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent)}
+.suggest::-webkit-scrollbar{display:none}
+.suggest button{flex:none;white-space:nowrap;background:var(--ai-bg);color:var(--ai-strong);border-radius:14px;min-height:28px;padding:0 12px;font-size:13px}
+.suggest button:hover{background:#ECE6FA}
+.composer{margin:10px 18px 8px;border:1px solid var(--border-strong);border-radius:12px;background:#fff;display:flex;align-items:flex-end;gap:6px;padding:6px 6px 6px 12px}
+.composer:focus-within{border-color:var(--navy-500);box-shadow:0 0 0 3px rgba(79,77,176,.15)}
+.composer textarea{flex:1;border:0;outline:0;resize:none;font:inherit;padding:5px 0;min-height:30px;background:transparent}
+.send{width:32px;height:32px;border-radius:8px;background:var(--navy-700);color:#fff;display:grid;place-items:center;flex:none}
+.send:hover{background:var(--navy-800)}
+/* G6: disclaimer ĐÚNG 1 dòng, câu cố định (không sửa theo trang) */
+.disclaim{font-size:12px;color:var(--text-3);padding:0 18px 12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Drawer · Toast */
+.drawer-mask{position:fixed;inset:0;background:rgba(27,26,70,.28);z-index:40;display:none}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:480px;background:#fff;box-shadow:var(--shadow-lg);z-index:41;transform:translateX(100%);transition:transform .28s cubic-bezier(.22,1,.36,1);display:flex;flex-direction:column}
+.drawer.open{transform:none}.drawer-mask.open{display:block}
+/* G2: drawer đóng = inert (không nhận Tab), ẩn hẳn sau khi trượt ra để không lộ bóng/viền */
+.drawer:not(.open){visibility:hidden;transition:transform .28s cubic-bezier(.22,1,.36,1),visibility 0s .28s}
+.drawer-h{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--divider)}
+.drawer-h h3{margin:0;font-size:16px;color:var(--navy-800)}
+.drawer-b{padding:14px 20px;overflow:auto;line-height:1.65}
+.clause{padding:8px 12px;border-radius:var(--r);margin:4px 0}
+.clause.hl{background:rgba(243,112,33,.12);box-shadow:inset 3px 0 0 var(--orange-500)}
+.toast{position:fixed;left:50%;bottom:calc(28px + var(--sticky-foot-h));transform:translateX(-50%) translateY(20px);background:var(--navy-900);color:#fff;padding:10px 16px;border-radius:var(--r-md);box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:.22s;z-index:60;display:flex;gap:8px;align-items:center;max-width:620px}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+/* Quản trị: không thấy nghiệp vụ, không có AI */
+body[data-role="quantri"] #segWrap{display:none!important}
+/* Không có quyền: h1 trung tính, KHÔNG meta, KHÔNG nút header, KHÔNG banner, KHÔNG AI */
+body[data-no-access] .ws,body[data-no-access] .page-head .h2row,body[data-no-access] .page-head .facts,
+body[data-no-access] .page-head .h-acts,body[data-no-access] .role-banner,body[data-no-access] #segWrap{display:none!important}
+body:not([data-no-access]) #noAccess{display:none}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+/* fix: bỏ vệt bóng / viền gây cuộn ngang khi panel AI và drawer đang đóng */
+body:not(.ai-open) .aipanel{box-shadow:none;border-left:0}
+.drawer:not(.open){box-shadow:none}
+
+/* ===================== TRANG 3 · TẠO ĐỀ XUẤT VAY ===================== */
+/* Tiêu đề bước dùng cấp 1 (§3.1). Ô nhập cao hết hộp để vùng bấm ≥ 28px (§1.3) */
+.sec-h h2{font-size:20px;line-height:1.3}
+.inp input,.search input{align-self:stretch}
+/* < 1440px: bỏ tên người ở bước hiện tại (vẫn có trong title) để thanh quy trình không tràn */
+@media (max-width:1439.98px){ .stepper .who{display:none} }
+.kv .acts .link{min-width:28px;justify-content:center}
+/* Tiêu đề giữ nguyên, chỉ meta co (§13.4) */
+.h1row h1{flex:none;max-width:none}
+/* Dòng "Còn n mục bắt buộc trước khi gửi" (thay thanh tiến độ mini) */
+.need{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-12px 0 20px;font-size:13px;color:var(--error);font-weight:500}
+.need .link{font-weight:500}
+.need.ok{color:var(--success)}
+/* Trình xem tài liệu trong trang (tài liệu khách nộp chưa có trên trang 05) */
+.vw-page{border:1px solid var(--border);border-radius:var(--r-md);background:var(--soft);padding:16px 18px;margin-top:6px}
+.vw-page h4{margin:0 0 4px;font-size:14px;color:var(--navy-800);text-align:center}
+.vw-page .vw-sub{font-size:12px;color:var(--text-3);text-align:center;margin-bottom:12px}
+.vw-row{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;padding:8px 10px;border-radius:var(--r);font-size:13px}
+.vw-row .k{color:var(--text-3)}
+.vw-row.hl{background:rgba(243,112,33,.12);box-shadow:inset 3px 0 0 var(--orange-500)}
+.vw-meta{font-size:12px;color:var(--text-3);margin:10px 0 0}
+/* Form đề xuất ngoại lệ tại dòng tài liệu */
+.excf{margin-top:10px;padding:12px 14px;border-radius:var(--r-md);background:var(--warning-bg)}
+.excf label{display:block;font-weight:500;font-size:13px;margin-bottom:6px;color:var(--text)}
+.excf .ta{min-height:60px}
+.excf .inp{height:36px;background:#fff}
+.excf .ta+label{margin-top:10px}
+.excf .row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.ferr{display:none;align-items:center;gap:6px;font-size:13px;color:var(--error);margin-top:6px}
+.excf.bad .ferr{display:flex}
+.excf.bad .ta{border-color:var(--error)}
+.exc .why{color:var(--text-2)}
+/* TSBĐ: bảng 3 cột (§3.4 biến thể wizard); select, cảnh báo, nút nằm ở dòng mở rộng */
+.t tr.has-exp td{background:var(--soft);border-bottom-color:transparent}
+.t tr.exp .exp-in{display:flex;flex-direction:column;gap:6px}
+.exp-l{display:block;font-size:12px;color:var(--text-3)}
+.exp-row{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;font-size:13px}
+.lease{font:inherit;font-size:13px;height:30px;border:1px solid var(--border-strong);border-radius:6px;background:#fff;padding:0 6px;color:var(--text)}
+.lease:disabled{background:var(--soft);color:var(--text-2)}
+/* Nhóm khách hàng liên quan (E4) */
+.rel-acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+/* Cảnh báo mềm tại trường (không chặn) */
+.field .warn{display:none;align-items:center;gap:6px;font-size:13px;color:var(--warning);margin-top:6px}
+.field.soft .warn{display:flex}
+.saved{display:inline-flex;align-items:center;gap:6px;color:var(--text-3);font-size:13px;white-space:nowrap}
+
+.wrap{max-width:860px}
+.sec-h .prog2{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-3);white-space:nowrap}
+.sec-h .prog2 b{color:var(--navy-800)}
+.sbar{width:120px;height:8px;border-radius:4px;background:var(--soft-2);overflow:hidden}
+.sbar i{display:block;height:100%;background:var(--navy-600);border-radius:4px;transition:width .4s}
+.eyebrow{font-size:13px;color:var(--text-3);margin:0 0 2px}
+
+/* Nhóm danh sách */
+.grp-h{display:flex;align-items:baseline;gap:10px;margin:32px 0 2px}
+.grp-h h3{margin:0;font-size:16px;font-weight:600;color:var(--navy-800)}
+.grp-h .muted{font-size:13px}
+.grp-h.ai h3{color:var(--ai-strong)}
+.rows{list-style:none;margin:0;padding:0}
+.drow{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:14px;align-items:start;padding:14px 0;border-bottom:1px solid var(--divider)}
+.rows .drow:last-child{border-bottom:0}
+.drow > svg.i{margin-top:3px}
+.drow .t1{font-weight:600}
+.drow .t2{font-size:13px;color:var(--text-3);margin-top:2px}
+.drow .t2 .fn{color:var(--text-2)}
+.drow .t3{font-size:13px;margin-top:6px}
+.drow .acts{display:flex;gap:10px;align-items:center;white-space:nowrap}
+.drow.busy .t2{color:var(--ai)}
+.c-ok{color:var(--success)} .c-err{color:var(--error)} .c-ai{color:var(--ai)} .c-warn{color:var(--warning)} .c-mute{color:var(--text-disabled)}
+
+/* Vùng kéo-thả */
+.drop{display:flex;align-items:center;gap:16px;padding:16px 20px;border:1.5px dashed var(--border-strong);border-radius:var(--r-lg);background:var(--soft);transition:background .15s,border-color .15s}
+.drop.over{background:var(--orange-50);border-color:var(--orange-500)}
+.drop .dz-ic{width:40px;height:40px;border-radius:10px;background:#fff;display:grid;place-items:center;color:var(--navy-700);flex:none}
+.drop .dz-t b{font-weight:600}
+.drop .dz-t div{font-size:13px;color:var(--text-3)}
+.drop .btn{margin-left:auto}
+
+details.more{margin-top:12px}
+details.more summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:8px;min-height:28px;color:var(--text-2);font-weight:500}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary svg.chev2{transition:transform .2s}
+details.more[open] summary svg.chev2{transform:rotate(180deg)}
+details.more .rows{margin-top:6px}
+
+/* Form */
+.field{margin-bottom:24px}
+.field > label.l,.field > .l{display:block;font-weight:500;margin-bottom:8px}
+.field .help{font-size:13px;color:var(--text-3);margin-top:6px}
+.field .msg{display:none;align-items:center;gap:6px;font-size:13px;color:var(--error);margin-top:6px}
+.field.bad .msg{display:flex}
+.field.bad .help{display:none}
+.inp{display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border:1px solid var(--border-strong);border-radius:8px;background:#fff}
+.inp:focus-within,textarea.ta:focus{border-color:var(--navy-500);box-shadow:0 0 0 3px rgba(79,77,176,.15);outline:0}
+.inp input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;color:var(--text)}
+.inp .suf{color:var(--text-3);white-space:nowrap}
+.field.bad .inp,.field.bad textarea.ta{border-color:var(--error)}
+textarea.ta{display:block;width:100%;min-height:76px;padding:10px 12px;border:1px solid var(--border-strong);border-radius:8px;font:inherit;color:var(--text);resize:vertical;background:#fff}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tiles.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tile{display:flex;flex-direction:column;justify-content:flex-start;padding:12px 14px;border-radius:10px;background:var(--soft);text-align:left;transition:background .15s,box-shadow .15s}
+.tile:hover{background:var(--soft-2)}
+.tile b{display:block;font-weight:600}
+.tile small{display:block;font-size:13px;color:var(--text-3);margin-top:2px}
+.tile[aria-checked="true"]{background:var(--navy-50);box-shadow:inset 0 0 0 1.5px var(--navy-600)}
+.tile[aria-checked="true"] b{color:var(--navy-800)}
+
+/* Bước 2: form + cột Cấp phê duyệt */
+.split{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start}
+body.ai-open .split{grid-template-columns:minmax(0,1fr)}
+.aside{background:var(--soft);border-radius:var(--r-lg);padding:20px;position:sticky;top:0}
+.aside .big{font-size:20px;font-weight:600;color:var(--navy-800);line-height:1.3;margin:2px 0 6px}
+.aside p{margin:0 0 14px;color:var(--text-2)}
+.tier{display:grid;grid-template-columns:52px minmax(0,1fr) auto;white-space:nowrap;gap:8px;padding:8px 0;font-size:13px;color:var(--text-3);border-top:1px solid var(--divider)}
+.tier.on{color:var(--navy-800);font-weight:600}
+.aside .foot{font-size:12px;color:var(--text-3);margin-top:12px;line-height:1.5}
+
+/* Bước 1: kết quả tìm khách */
+.res-list{background:var(--soft);border-radius:var(--r-lg);padding:4px 16px;margin-top:10px}
+.res-list .drow{padding:12px 0}
+.kv{display:grid;grid-template-columns:170px minmax(0,1fr) auto;gap:16px;align-items:start;padding:12px 0;border-bottom:1px solid var(--divider)}
+.kv:last-child{border-bottom:0}
+.kv .k{font-size:13px;color:var(--text-3);padding-top:1px}
+.kv .acts{display:flex;gap:8px;align-items:center;white-space:nowrap}
+
+.t td.nw{white-space:nowrap}
+.t td.nm{font-weight:500}
+.t .sub{font-weight:400}
+.drow .askai.hov{opacity:0;margin:-4px 0 -4px 6px;font-weight:500;transition:opacity .15s}
+.drow:hover .askai.hov,.drow:focus-within .askai.hov{opacity:1}
+
+/* Cấp phê duyệt: bảng cộng tổng cấp tín dụng (Q4) */
+.sumtbl{margin:4px 0 14px;font-size:13px;color:var(--text-2)}
+.sumtbl div{display:flex;gap:12px;padding:3px 0}
+.sumtbl div span:last-child{margin-left:auto;white-space:nowrap}
+.sumtbl .tot{border-top:1px solid var(--border);margin-top:4px;padding-top:6px;color:var(--navy-800);font-weight:600}
+.exc{font-size:13px;color:var(--warning);margin-top:6px;display:flex;gap:6px;align-items:flex-start}
+.exc svg{margin-top:3px}
+
+/* Sau khi gửi: bước 1–4 chỉ xem (khóa) */
+.ro-line{display:none;margin:0 0 16px;padding:10px 14px;border-radius:var(--r-md);background:var(--soft);font-size:13px;color:var(--text-3);align-items:center;gap:8px}
+body.submitted .ro-line{display:flex}
+body.submitted #drop,
+body.submitted :is([data-cf],[data-ef],[data-cd],[data-mv],[data-up],[data-cic],[data-cc],[data-addcoll],[data-pickcust],[data-exc],[data-excdel],[data-relok],[data-relout],[data-relundo],.excf){display:none!important}
+body.submitted .tile{pointer-events:none}
+body.submitted .tile[aria-checked="false"]{opacity:.55}
+.inp input[readonly],textarea.ta[readonly]{background:var(--soft);color:var(--text-2)}
+.inp:has(input[readonly]){background:var(--soft)}
+</style>
+</head>
+<body data-role="qhkh">
+
+<!-- ===================== BỘ ICON (SVG stroke 1.8 – không dùng emoji) ===================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-checkc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-filecheck" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-return" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5M12 3v12"/></symbol>
+</svg>
+
+<div class="app">
+  <aside class="rail" aria-label="Điều hướng chính">
+    <div class="brand-mark" title="SHB AI Assistant">SHB</div>
+    <nav id="nav"></nav>
+    <nav id="navBottom" class="rail-bottom"></nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <span class="app-name">SHB AI Assistant</span>
+      <label class="search"><svg class="i"><use href="#i-search"/></svg><span class="sr">Tìm kiếm</span><input placeholder="Tìm hồ sơ, khách hàng, MST, điều khoản…"></label>
+      <div class="spacer"></div>
+      <div class="demo" title="Chỉ có trong mockup">
+        <label for="roleSel">Vai trò:</label>
+        <select id="roleSel"></select>
+        <span id="segWrap" style="display:inline-flex;align-items:center;gap:8px"><span style="width:1px;height:18px;background:var(--border-strong)"></span><span>Trợ lý AI:</span>
+        <span class="seg" role="group" aria-label="Trạng thái trợ lý AI (mockup)"><button id="segOff" aria-pressed="true">Đóng</button><button id="segOn" aria-pressed="false">Mở</button></span></span>
+      </div>
+      <button class="icon-btn" aria-label="Thông báo, 3 chưa đọc"><svg class="i"><use href="#i-bell"/></svg><span class="dot"></span></button>
+      <div class="user"><div class="avatar" id="uAv"></div><div><b id="uName"></b><small id="uRole"></small></div></div>
+    </header>
+
+    <!-- HEADER: đối tượng = đề xuất đang soạn -->
+    <section class="page-head">
+      <div class="h1row">
+        <h1 id="pageH1">Đề xuất vay · Bao bì Mekong Flex</h1>
+        <span class="facts num" id="facts"></span>
+        <div class="h-acts" id="headActions"></div>
+      </div>
+      <div class="h2row">
+        <ol class="stepper" aria-label="Quy trình tín dụng">
+          <li class="cur" aria-current="step" id="st1" title="Nguyễn Thảo Vy · đang soạn từ 04/11/2026"><span class="sd">1</span>Tiếp nhận &amp; đề xuất <span class="who">· Nguyễn Thảo Vy</span></li>
+          <li id="st2"><span class="sd">2</span>Kiểm tra hồ sơ</li>
+          <li id="st3"><span class="sd">3</span>Thẩm định</li>
+          <li id="st4"><span class="sd">4</span>Ý kiến rủi ro</li>
+          <li id="stApprove"><span class="sd">5</span>Phê duyệt cấp 2</li>
+          <li title="Thông báo quyết định"><span class="sd">6</span>Quyết định</li>
+        </ol>
+        <div class="right"><span class="saved" id="savedAt"><svg class="i sm"><use href="#i-checkc"/></svg>Đã tự lưu nháp lúc 10:42</span></div>
+      </div>
+    </section>
+    <div class="role-banner" id="roleBanner"><svg class="i"><use href="#i-info"/></svg><span id="roleBannerText"></span></div>
+
+    <!-- KHÔNG CÓ QUYỀN (D3): chép nguyên shell, do renderNoAccess() điền -->
+    <div class="noaccess" id="noAccess" role="region" aria-labelledby="naTitle">
+      <div class="state"><svg class="i"><use href="#i-shield"/></svg><h2 id="naTitle"></h2><p id="naReason"></p><span id="naBtn"></span></div>
+    </div>
+
+    <div class="ws" id="ws">
+      <nav class="toc" id="toc" aria-label="Các bước soạn đề xuất"></nav>
+
+      <main class="content" id="content" tabindex="-1">
+
+        <!-- ============ BƯỚC 1 · KHÁCH HÀNG ============ -->
+        <section class="sec" data-sec="s1" hidden>
+          <div class="wrap">
+            <p class="eyebrow">Bước 1/5</p>
+            <div class="sec-h"><h2>Khách hàng</h2></div>
+            <p class="sec-desc">Tìm theo MST hoặc tên. Khách mới: tải giấy ĐKDN để AI điền sẵn, bạn xác nhận từng trường.</p>
+
+            <div class="field" style="margin-bottom:0">
+              <label class="l" for="custQ">Mã số thuế hoặc tên doanh nghiệp</label>
+              <div class="inp" style="max-width:520px"><svg class="i"><use href="#i-search"/></svg><input id="custQ" value="Mekong"></div>
+            </div>
+            <div class="res-list" id="custRes" style="max-width:860px"></div>
+
+            <div class="grp-h"><h3>Thông tin từ giấy ĐKDN</h3><span class="muted" id="fCount"></span>
+              <span style="margin-left:auto" class="muted"><button class="src" data-viewdoc="dkkd"><svg class="i xs"><use href="#i-file"/></svg>DKDN_MekongFlex_2023.pdf</button></span></div>
+            <div class="rows" id="fieldRows"></div>
+            <div class="grp-h" id="relGrp"><h3>Nhóm khách hàng liên quan</h3><span class="muted" id="relCount"></span></div>
+            <div id="relBox"></div>
+
+          </div>
+        </section>
+
+        <!-- ============ BƯỚC 2 · NHU CẦU VAY ============ -->
+        <section class="sec" data-sec="s2" hidden>
+          <p class="eyebrow">Bước 2/5</p>
+          <div class="sec-h"><h2>Nhu cầu vay</h2></div>
+          <p class="sec-desc">Hệ thống tự xác định cấp phê duyệt theo tổng cấp tín dụng. Bạn chỉ mô tả nhu cầu; thẩm định do bộ phận khác thực hiện.</p>
+          <div class="split">
+            <div>
+              <div class="field" id="fProd">
+                <span class="l" id="lProd">Sản phẩm</span>
+                <div class="tiles" role="radiogroup" aria-labelledby="lProd" id="prodTiles">
+                  <button class="tile" role="radio" aria-checked="true" data-prod="vld"><b>Hạn mức vốn lưu động</b><small>Ngắn hạn ≤ 12 tháng, rút từng lần</small></button>
+                  <button class="tile" role="radio" aria-checked="false" data-prod="tdh"><b>Vay trung dài hạn</b><small>Đầu tư máy móc, dự án · 1–7 năm</small></button>
+                  <button class="tile" role="radio" aria-checked="false" data-prod="tttm"><b>Tài trợ thương mại</b><small>L/C, bảo lãnh thanh toán</small></button>
+                </div>
+                <div class="help" style="margin-top:8px"><button class="askai" data-ask="customer|Chọn sản phẩm cho nhu cầu của Mekong Flex"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI về sản phẩm phù hợp</button></div>
+              </div>
+              <div class="pair">
+                <div class="field" id="fAmt">
+                  <label class="l" for="amt">Số tiền đề xuất</label>
+                  <div class="inp"><input id="amt" class="num" inputmode="decimal" value="80" aria-describedby="amtHelp amtMsg"><span class="suf">tỷ ₫</span></div>
+                  <div class="help" id="amtHelp">Tám mươi tỷ đồng</div>
+                  <div class="msg" id="amtMsg" role="alert"><svg class="i sm"><use href="#i-alert"/></svg><span></span></div>
+                  <div class="warn" id="amtWarn" role="status"><svg class="i sm"><use href="#i-alert"/></svg><span id="amtWarnTxt"></span></div>
+                </div>
+                <div class="field" id="fTerm">
+                  <label class="l" for="term">Thời hạn</label>
+                  <div class="inp"><input id="term" class="num" inputmode="numeric" value="12" aria-describedby="termHelp termMsg"><span class="suf">tháng</span></div>
+                  <div class="help" id="termHelp">Hạn mức vốn lưu động tối đa 12 tháng</div>
+                  <div class="msg" id="termMsg" role="alert"><svg class="i sm"><use href="#i-alert"/></svg><span></span></div>
+                </div>
+              </div>
+              <div class="field" id="fPur">
+                <label class="l" for="pur">Mục đích sử dụng vốn</label>
+                <textarea class="ta" id="pur" rows="2" aria-describedby="purMsg">Bổ sung vốn lưu động mua giấy cuộn, hạt nhựa PP/PE và màng in phục vụ đơn hàng bao bì năm 2027.</textarea>
+                <div class="msg" id="purMsg" role="alert"><svg class="i sm"><use href="#i-alert"/></svg><span></span></div>
+              </div>
+              <div class="field" id="fRep">
+                <label class="l" for="rep">Phương án trả nợ</label>
+                <textarea class="ta" id="rep" rows="2" aria-describedby="repHelp repMsg">Trả từ tiền thu bán hàng. Mỗi khoản giải ngân trả gốc trong tối đa 4 tháng theo vòng quay vốn lưu động; lãi trả hằng tháng.</textarea>
+                <div class="help" id="repHelp">Nêu nguồn trả và kỳ trả. Số liệu dòng tiền sẽ do Thẩm định kiểm chứng.</div>
+                <div class="msg" id="repMsg" role="alert"><svg class="i sm"><use href="#i-alert"/></svg><span></span></div>
+              </div>
+            </div>
+
+            <aside class="aside" aria-live="polite" id="tierBox"></aside>
+          </div>
+          <div class="wz-foot"><button class="btn ghost" data-go="s1"><svg class="i sm" style="transform:rotate(180deg)"><use href="#i-arrow"/></svg>Quay lại</button></div>
+        </section>
+
+        <!-- ============ BƯỚC 3 · TÀI SẢN BẢO ĐẢM ============ -->
+        <section class="sec" data-sec="s3" hidden>
+          <div class="wrap">
+            <p class="eyebrow">Bước 3/5</p>
+            <div class="sec-h"><h2>Tài sản bảo đảm</h2></div>
+            <p class="sec-desc">Khai báo tài sản và giá trị định giá hiện có. Thẩm định sẽ tính lại giá trị thu hồi.</p>
+            <div class="tiles two" role="radiogroup" aria-label="Hình thức bảo đảm" style="max-width:640px;margin-bottom:28px">
+              <button class="tile" role="radio" aria-checked="true" data-sec3="co"><b>Có tài sản bảo đảm</b><small>Nhà xưởng, máy móc, hàng hóa</small></button>
+              <button class="tile" role="radio" aria-checked="false" data-sec3="tc"><b>Tín chấp</b><small>Bỏ qua bước này</small></button>
+            </div>
+            <div class="need" id="p3" role="status"></div>
+            <div id="collBox"></div>
+            <div class="wz-foot"><button class="btn ghost" data-go="s2"><svg class="i sm" style="transform:rotate(180deg)"><use href="#i-arrow"/></svg>Quay lại</button></div>
+          </div>
+        </section>
+
+        <!-- ============ BƯỚC 4 · HỒ SƠ TÀI LIỆU (mặc định) ============ -->
+        <section class="sec" data-sec="s4">
+          <div class="wrap">
+            <p class="eyebrow">Bước 4/5</p>
+            <div class="sec-h"><h2>Hồ sơ tài liệu</h2></div>
+            <p class="sec-desc">Danh mục bắt buộc của <b style="font-weight:600;color:var(--text)" id="s4prod">Hạn mức vốn lưu động</b> <button class="src" data-policy="6-1"><svg class="i xs"><use href="#i-book"/></svg>§6.1</button>. Tải lên theo thứ tự bất kỳ — AI xếp vào đúng mục, bạn xác nhận.</p>
+            <div class="need" id="p4" role="status"></div>
+
+            <div class="drop" id="drop">
+              <span class="dz-ic"><svg class="i lg"><use href="#i-upload"/></svg></span>
+              <div class="dz-t"><b>Kéo thả tài liệu vào đây</b><div>PDF, ảnh chụp, Excel · nhiều tệp cùng lúc · AI tự phân loại và kiểm tra hiệu lực</div></div>
+              <button class="btn" id="pickBtn"><svg class="i sm"><use href="#i-plus"/></svg>Chọn tệp</button>
+              <input type="file" id="fileIn" multiple hidden>
+            </div>
+
+            <div id="docGroups"></div>
+
+            <div class="wz-foot"><button class="btn ghost" data-go="s3"><svg class="i sm" style="transform:rotate(180deg)"><use href="#i-arrow"/></svg>Quay lại</button><div class="right"><span class="hint" id="s4hint"></span></div></div>
+          </div>
+        </section>
+
+        <!-- ============ BƯỚC 5 · XEM LẠI & GỬI ============ -->
+        <section class="sec" data-sec="s5" hidden>
+          <div class="wrap">
+            <p class="eyebrow">Bước 5/5</p>
+            <div id="readyHero"></div>
+            <div class="grp-h"><h3>Tóm tắt đề xuất</h3></div>
+            <div class="rows" id="summary"></div>
+            <div class="wz-foot"><button class="btn ghost" data-go="s4"><svg class="i sm" style="transform:rotate(180deg)"><use href="#i-arrow"/></svg>Quay lại</button></div>
+          </div>
+        </section>
+      </main>
+
+      <!-- TRỢ LÝ AI -->
+      <aside class="aipanel" id="ai" aria-label="Trợ lý AI" aria-hidden="true" inert>
+        <div class="ai-in">
+          <div class="ai-h">
+            <span class="ai-logo"><svg class="i"><use href="#i-spark"/></svg></span>
+            <div><b>Trợ lý AI</b><small>Chỉ đề xuất · không ra quyết định</small></div>
+            <div class="right">
+              <button class="icon-btn" aria-label="Hội thoại của đề xuất"><svg class="i"><use href="#i-clock"/></svg></button>
+              <button class="icon-btn" aria-label="Hội thoại mới"><svg class="i"><use href="#i-plus"/></svg></button>
+              <button class="icon-btn" aria-label="Đóng Trợ lý AI" id="aiClose"><svg class="i"><use href="#i-x"/></svg></button>
+            </div>
+          </div>
+          <div class="ai-ctx" aria-live="polite"><span>Đang hỏi về</span><span id="ctxChip"></span></div>
+          <div class="msgs" id="msgs">
+            <div class="m-user">Hồ sơ còn thiếu gì?</div>
+            <div class="m-ai">
+              <div class="who"><svg class="i sm" style="color:var(--ai)"><use href="#i-spark"/></svg>Agent Tài liệu · 10:44 · <span style="color:var(--ai)">AI đề xuất – chưa xác nhận</span></div>
+              <p class="lead">Còn 3 mục bắt buộc chưa đủ để gửi: BCTC quý 3/2026, CIC còn hiệu lực và hợp đồng đầu ra thứ hai <button class="cite" data-cite="1" aria-label="Trích dẫn 1">1</button>.</p>
+              <p>CIC bạn tra cứu ngày 02/10/2026 chỉ có hiệu lực đến hết 31/10, đã hết hiệu lực từ 01/11. Bạn cần tra cứu lại trên hệ thống CIC <button class="cite" data-cite="2" aria-label="Trích dẫn 2">2</button> <button class="cite" data-cite="3" aria-label="Trích dẫn 3">3</button>. Ngoài ra 2 tài liệu AI đã xếp mục đang chờ bạn xác nhận.</p>
+              <p class="muted" style="font-size:13px"><span class="st verify"><svg class="i xs"><use href="#i-alert"/></svg>Cần xác nhận:</span> <span class="assume">giả định khách đã lập BCTC quý 3/2026 (kỳ kết thúc 30/09)</span> <button class="cite" data-cite="1" aria-label="Trích dẫn 1">1</button></p>
+              <details class="srcs"><summary>3 nguồn trích dẫn <svg class="i xs"><use href="#i-down"/></svg></summary>
+                <div class="list"><button data-cite="1"><span class="n">1</span><span>CS-TD-SME/2025 · §6.1 Danh mục hồ sơ</span></button><button data-cite="2"><span class="n">2</span><span>Kết quả tra cứu CIC trên hệ thống · ngày tra cứu 02/10/2026</span></button><button data-cite="3"><span class="n">3</span><span>CS-TD-SME/2025 · §6.3 Hiệu lực tài liệu</span></button></div></details>
+              <button class="action-card" data-action="mail"><span class="ico"><svg class="i"><use href="#i-edit"/></svg></span><span><b>Soạn thư yêu cầu khách bổ sung</b><small>AI soạn bản nháp thư · bạn sửa và tự gửi</small></span><svg class="i sm"><use href="#i-arrow"/></svg></button>
+            </div>
+          </div>
+          <div class="suggest" id="suggest"></div>
+          <div class="composer"><label class="sr" for="ask">Câu hỏi cho Trợ lý AI</label><textarea id="ask" rows="1" placeholder="Hỏi về đề xuất đang soạn…"></textarea><button class="send" aria-label="Gửi" id="sendBtn"><svg class="i sm"><use href="#i-send"/></svg></button></div>
+          <div class="disclaim">AI có thể sai. Chỉ đưa vào hồ sơ sau khi bạn xác nhận.</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+
+<div class="drawer-mask" id="dmask"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true" inert>
+  <div class="drawer-h"><svg class="i" style="color:var(--navy-700)" id="drawerIc"><use href="#i-book"/></svg><div style="min-width:0"><h3 id="drawerTitle">CS-TD-SME/2025 – Quy trình và chính sách cấp tín dụng KHDN SME</h3><small class="muted" id="drawerSub">Văn bản nội bộ (mô phỏng)</small></div><button class="icon-btn" style="margin-left:auto;flex:none" aria-label="Đóng (Esc)" id="drawerClose" data-close><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="drawer-b" id="polBody">
+    <div class="clause" id="pol-1-2"><b>§1.2 Phạm vi SME.</b> KHDN SME theo phân khúc nội bộ: doanh thu năm ≤ 1.000 tỷ đồng.</div>
+    <div class="clause" id="pol-2-3"><b>§2.3 SLA.</b> Kiểm tra hồ sơ 2 ngày LV · Thẩm định 5 · Ý kiến Rủi ro 3 · Phê duyệt 2.</div>
+    <div class="clause" id="pol-3-1"><b>§3.1 Thẩm quyền phê duyệt.</b> Cấp 1 – Giám đốc chi nhánh: tổng cấp tín dụng ≤ 20 tỷ đồng. Cấp 2 – Phê duyệt Hội sở: &gt; 20 đến ≤ 100 tỷ đồng. Cấp 3 – Hội đồng tín dụng: &gt; 100 tỷ đồng. Tổng cấp tín dụng = dư nợ hiện hữu tại ngân hàng + đề xuất mới, của khách và người có liên quan. Ngưỡng do Quản trị hệ thống cấu hình theo quyết định ủy quyền hiện hành.</div>
+    <div class="clause" id="pol-3-4"><b>§3.4 Tách bạch.</b> Chuyên viên QHKH tiếp nhận và lập đề xuất; không tham gia thẩm định. Không được phê duyệt hoặc bỏ phiếu nếu đã tham gia bất kỳ bước nào của hồ sơ, hoặc từng là QHKH quản lý khách hàng này trong 2 năm gần nhất.</div>
+    <div class="clause" id="pol-4-2"><b>§4.2 Khả năng trả nợ.</b> DSCR dự phóng ≥ 1,25 lần; Nợ vay/EBITDA sau cấp TD ≤ 3,5 lần; EBIT/chi phí lãi vay ≥ 2,0 lần.</div>
+    <div class="clause" id="pol-5-2"><b>§5.2 Tập trung ngành.</b> Dư nợ một ngành không vượt hạn mức tỷ trọng do Rủi ro cấu hình.</div>
+    <div class="clause" id="pol-6-1"><b>§6.1 Danh mục hồ sơ.</b> Đề nghị: giấy đề nghị cấp tín dụng có chữ ký người đại diện theo pháp luật. Pháp lý: giấy ĐKDN, điều lệ, danh sách thành viên góp vốn và bên liên quan, giấy tờ tùy thân người đại diện, Nghị quyết/Quyết định của Hội đồng thành viên, chủ sở hữu hoặc Hội đồng quản trị về việc vay vốn và thế chấp tài sản, văn bản đồng ý cho ngân hàng tra cứu thông tin tín dụng (CIC) của khách. Tài chính: BCTC năm gần nhất (bắt buộc đã kiểm toán khi <b>tổng cấp tín dụng</b> &gt; 20 tỷ đồng; từ 20 tỷ trở xuống chấp nhận BCTC đã nộp cơ quan thuế), BCTC quý gần nhất, bảng kê công nợ phải thu, phải trả và hàng tồn kho, sao kê tài khoản 12 tháng, tờ khai thuế GTGT 2 quý gần nhất. Kết quả tra cứu CIC do chuyên viên QHKH tra cứu trên hệ thống CIC sau khi có văn bản đồng ý của khách; bản CIC khách tự nộp không dùng để thẩm định. Phương án: phương án kinh doanh, tối thiểu 2 hợp đồng đầu ra còn hiệu lực, hồ sơ TSBĐ (nếu có).</div>
+    <div class="clause" id="pol-6-3"><b>§6.3 Hiệu lực tài liệu.</b> Kết quả tra cứu CIC có hiệu lực 30 ngày, tính cả ngày tra cứu; sao kê tài khoản và xác nhận dư nợ có hiệu lực 30 ngày tính từ ngày ngân hàng cấp. Hiệu lực xét tại ngày trình phê duyệt.</div>
+    <div class="clause" id="pol-6-4"><b>§6.4 Ngoại lệ.</b> Tài liệu thiếu hoặc hết hiệu lực chặn chuyển bước, trừ khi QHKH hoặc Hỗ trợ tín dụng đã lập "Đề xuất ngoại lệ" kèm lý do. Cờ ngoại lệ đi theo hồ sơ qua Thẩm định, Ý kiến rủi ro và Phê duyệt. Cấp phê duyệt chấp thuận hoặc từ chối ngoại lệ cùng lúc với quyết định; từ chối ngoại lệ thì hồ sơ bị trả lại bổ sung. CIC hết hiệu lực không được đề xuất ngoại lệ, trừ khi hệ thống CIC gián đoạn, và vẫn phải tra lại trước khi trình phê duyệt.</div>
+    <div class="clause" id="pol-7-1"><b>§7.1 LTV và TSBĐ.</b> Tỷ lệ cho vay trên giá trị TSBĐ theo loại tài sản.</div>
+  </div>
+  <div class="drawer-b" id="docBody" hidden></div>
+</aside>
+<div class="toast" id="toast" role="status"><svg class="i"><use href="#i-checkc"/></svg><span id="toastTxt"></span></div>
+
+<script src="common.js"></script>
+<script>
+/* ===================== CẤU HÌNH TRANG ===================== */
+const PAGE_ID = 3;          // Tạo đề xuất vay – chỉ Chuyên viên QHKH
+const RAIL_FROM = 2;
+const CTX_ALL = 'Đề xuất đang soạn DX-2026-00412';
+const AI_BTN = `<button class="btn ai" data-ask="case|${CTX_ALL}" title="Mở Trợ lý AI (Ctrl J)" aria-keyshortcuts="Control+J"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button>`;
+
+const PAGES = {
+  1:{n:'Chi tiết hồ sơ vay'}, 2:{n:'Việc của tôi',ic:'i-inbox'}, 3:{n:'Tạo đề xuất vay',ic:'i-plus'},
+  4:{n:'Khách hàng SME',ic:'i-building'}, 5:{n:'Đối chiếu tài liệu',ic:'i-filecheck'}, 6:{n:'Phiên Hội đồng tín dụng',ic:'i-users'},
+  7:{n:'Tra cứu chính sách',ic:'i-book'}, 8:{n:'Nhật ký kiểm toán',ic:'i-clock'}, 9:{n:'Quản trị',ic:'i-gear'}, 10:{n:'Trợ lý AI',ic:'i-spark'},
+};
+const ROLES = {
+  qhkh:{label:'Chuyên viên QHKH',name:'Nguyễn Thảo Vy',av:'TV',title:'Chuyên viên QHKH',
+    nav:[[2,'','B'],[3],[4],[7]], ai:true},
+  httd:{label:'Hỗ trợ tín dụng',name:'Võ Văn Tâm',av:'VT',title:'Hỗ trợ tín dụng',
+    nav:[[2,'','B'],[5],[4],[7]], ai:true},
+  tdinh:{label:'Chuyên viên Thẩm định',name:'Lê Quang Huy',av:'LH',title:'Chuyên viên Thẩm định',
+    nav:[[2,'','B'],[5],[4],[7]], ai:true},
+  ruiro:{label:'Quản lý rủi ro/Tuân thủ',name:'Đặng Hải Yến',av:'HY',title:'Quản lý rủi ro/Tuân thủ',
+    nav:[[2,'Hồ sơ chờ ý kiến','B'],[4],[7]], ai:true},
+  pheduyet:{label:'Cấp phê duyệt / Thành viên HĐTD',name:'Bùi Thanh Sơn',av:'TS',title:'Cấp phê duyệt · Hội sở',
+    nav:[[2,'Hồ sơ chờ phê duyệt','B'],[6],[7]], ai:true},
+  kiemtoan:{label:'Kiểm toán nội bộ',name:'Phan Minh Châu',av:'MC',title:'Kiểm toán nội bộ',
+    nav:[[2,'Hồ sơ vay (chỉ đọc)'],[8],[6,'Phiên HĐTD (chỉ đọc)'],[7]], ai:true, readOnly:true},
+  quantri:{label:'Quản trị hệ thống',name:'Trịnh Đức Anh',av:'ĐA',title:'Quản trị hệ thống',
+    nav:[[9],[8,'Nhật ký hệ thống']], ai:false, noBusiness:true},
+};
+/* D4: nút primary DUY NHẤT ở header phải ("Tiếp: <bước sau>" · bước 5 "Gửi Hỗ trợ tín dụng").
+   Cụm nút do renderHead() dựng: [Hỏi AI] [Lưu nháp] [primary]. Chân wizard chỉ còn "Quay lại". Chỉ QHKH vào được trang này. */
+const PAGE_ROLE = { _default:{banner:''} };
+const NO_ACCESS = {
+  quantri:{title:'Không có quyền xem nội dung nghiệp vụ',
+    reason:'Vai trò Quản trị hệ thống chỉ quản lý người dùng, phân quyền, ngưỡng phê duyệt và cấu hình AI. Nội dung tín dụng được ẩn theo chính sách phân quyền dữ liệu (RLS).',
+    page:9, label:'Mở Quản trị', icon:'i-gear'},
+  _default:{title:'Không có quyền xem trang này',
+    reason:r=>`Trang ${PAGES[PAGE_ID].n} không thuộc phạm vi công việc của vai trò ${ROLES[r].label}. Cần quyền thì liên hệ Quản trị hệ thống.`,
+    page:2, label:'Về Việc của tôi', icon:'i-inbox'},
+};
+const DRAFT_ID = 'DX-2026-00412';
+const NEXT = {s1:['s2','Nhu cầu vay'], s2:['s3','Tài sản bảo đảm'], s3:['s4','Hồ sơ tài liệu'], s4:['s5','Xem lại & gửi']};
+/* Mục lục = 5 bước, sinh lại theo trạng thái (buildSecs) */
+let SECS = [];
+let SUGGEST = [];
+const SUGG = {
+  s1:['Khách này liên quan khách hiện hữu nào?','Giấy ĐKDN còn khớp dữ liệu không?'],
+  s2:['Sản phẩm nào phù hợp nhu cầu này?','Vì sao đề xuất thuộc Cấp 2?','Gợi ý phương án trả nợ'],
+  s3:['TSBĐ này có đủ cho khoản vay không?','Quyền thuê đất KCN thế chấp được không?'],
+  s4:['Hồ sơ còn thiếu gì?','Soạn thư yêu cầu khách bổ sung','Vì sao CIC hết hiệu lực?'],
+  s5:['Hồ sơ còn thiếu gì?','Tóm tắt đề xuất trong 5 dòng'],
+};
+/* Nguồn trích dẫn của trang – số [n] hiển thị = khóa ở đây.
+   1–3: câu trả lời AI · 4: giấy ĐKDN (bước 1) · 5: chứng thư định giá (bước 3) · 6–7: nhóm khách hàng liên quan (bước 1).
+   Tài liệu của Mekong Flex chưa có trên trang 05 (05 chỉ có VinaNova) → mở trình xem trong trang (openDoc). */
+const CITES = {
+  1:()=>openPolicy('6-1'),
+  2:()=>{ go('s4'); setTimeout(()=>highlight(document.querySelector('[data-doc="cic"]')),60); },
+  3:()=>openPolicy('6-3'),
+  4:(t)=>openDoc('dkkd', t && t.dataset.field),
+  5:()=>openDoc('ct118','gtdg'),
+  6:()=>openDoc('tv','mekong'),
+  7:()=>openDoc('core','mekong'),
+};
+
+/* ===================== JS DÙNG CHUNG (theo shell.html) ===================== */
+const S = {role:'qhkh', sec:'s4', ai:false, ctx:null, ctxType:null, pol:null, doc:null, docField:null};
+const $ = s => document.querySelector(s);
+const ic = (id,c='sm') => `<svg class="i ${c}"><use href="#${id}"/></svg>`;
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const motion = () => matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
+
+/* ---------- Không mất cú bấm đầu tiên ----------
+   Lỗi cũ: blur của ô nhập gọi refresh(), thay innerHTML của #headActions và #toc giữa lúc nhấn và nhả chuột,
+   nên click không còn phần tử đích. Hai lớp chặn:
+   1) setHTML(): chỉ thay DOM khi nội dung đổi; có đổi thì trả focus và vị trí con trỏ về đúng phần tử.
+   2) PTR_DOWN: đang nhấn chuột thì refresh() chờ tới sau click (blur, hẹn giờ của CIC và phân loại tài liệu). */
+function focusKey(a){
+  if(a.id) return '#'+CSS.escape(a.id);
+  if(a.tagName==='SUMMARY' && a.parentElement.dataset.keep) return `details[data-keep="${a.parentElement.dataset.keep}"] > summary`;
+  for(const k of a.getAttributeNames()) if(k.startsWith('data-')) return `[${k}="${a.getAttribute(k).replace(/["\\]/g,'\\$&')}"]`;
+  return null;
+}
+function setHTML(el, html){
+  if(el._html===html) return false;
+  const a = document.activeElement, inside = !!a && a!==el && el.contains(a);
+  const key = inside ? focusKey(a) : null, sel = inside && a.selectionStart!=null ? [a.selectionStart, a.selectionEnd] : null;
+  el.innerHTML = html; el._html = html;
+  if(inside){
+    const n = key && el.querySelector(key);
+    if(n){ n.focus({preventScroll:true}); if(sel && n.setSelectionRange) n.setSelectionRange(sel[0], sel[1]); }
+    else $('#content').focus({preventScroll:true});   /* phần tử đang focus đã mất: không để focus rơi về body */
+  }
+  return true;
+}
+let PTR_DOWN = false, REFRESH_WAIT = false;
+function ptrRelease(){
+  if(!PTR_DOWN) return; PTR_DOWN = false;
+  setTimeout(()=>{ if(REFRESH_WAIT && !PTR_DOWN){ REFRESH_WAIT = false; refresh(); } },20);
+}
+addEventListener('pointerdown',()=>{ PTR_DOWN = true; },true);
+['pointerup','pointercancel','keydown','dragend'].forEach(ev=>addEventListener(ev,ptrRelease,true));
+/* Chỉ select: ô nhập có đổi giá trị cũng bắn change ngay trong lúc blur, tức lúc chuột còn đang nhấn */
+addEventListener('change',e=>{ if(e.target.tagName==='SELECT') ptrRelease(); },true);
+/* Nhả chuột mà trang không nhận pointerup (thanh cuộn, popup của select, rời cửa sổ) */
+addEventListener('pointermove',e=>{ if(PTR_DOWN && !e.buttons) ptrRelease(); },true);
+addEventListener('blur',e=>{ if(e.target===window) ptrRelease(); });
+
+function toast(t){ $('#toastTxt').textContent=t; const el=$('#toast'); el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2800); }
+
+/* Đổi vai trò: rail, người dùng, nút header, banner, quyền */
+function applyRole(r){
+  S.role = r; const R = ROLES[r]; document.body.dataset.role = r; $('#roleSel').value = r;
+  $('#uName').textContent=R.name; $('#uRole').textContent=R.title; $('#uAv').textContent=R.av;
+  const item = ([p,label,b]) => { const P = PAGES[p]; const n = label||P.n;
+    const badge = b==='B' ? BANK.BADGES[r] : null;
+    const al = badge ? `${n}, ${badge} hồ sơ chờ bạn` : n;
+    return `<a href="#" data-page="${p}" class="${p===PAGE_ID?'active':''}" title="${al}" aria-label="${al}">${ic(P.ic,'')}${badge?`<span class="badge">${badge}</span>`:''}</a>`; };
+  $('#nav').innerHTML = R.nav.map(item).join('');
+  $('#navBottom').innerHTML = R.ai ? item([10]) : '';
+  const allowed = R.nav.some(n=>n[0]===PAGE_ID);
+  renderNoAccess(r, allowed);
+  const PR = PAGE_ROLE[r] || PAGE_ROLE._default;
+  if(!allowed) setHTML($('#headActions'),'');
+  $('#roleBanner').classList.toggle('show', allowed && !!PR.banner); $('#roleBannerText').textContent = PR.banner||'';
+  if(S.ai && (!R.ai || !allowed)) setAI(false);
+  if(!allowed) closePolicy(false);
+  renderToc();
+  if(allowed) refresh();
+  syncHash();
+}
+/* D3: một component cho mọi trang (chép shell). h1 = tên trang trung tính; meta/stepper/nút header/banner/AI ẩn bằng CSS. */
+function renderNoAccess(r, allowed){
+  const h1 = $('#pageH1');
+  if(h1.dataset.orig === undefined) h1.dataset.orig = h1.textContent;
+  if(allowed){ delete document.body.dataset.noAccess; h1.textContent = h1.dataset.orig; return; }
+  document.body.dataset.noAccess = '1';
+  const N = NO_ACCESS[r] || NO_ACCESS._default;
+  h1.textContent = PAGES[PAGE_ID].n;
+  $('#naTitle').textContent = N.title;
+  $('#naReason').textContent = typeof N.reason==='function' ? N.reason(r) : N.reason;
+  $('#naBtn').innerHTML = `<button class="btn" data-page="${N.page}">${ic(N.icon)}${N.label}</button>`;
+}
+/* G10: trạng thái xem ghi vào hash bằng replaceState (không bắn hashchange); tải lại giữ nguyên.
+   Khóa khác (cờ kịch bản mockup, from…) được giữ. Dữ liệu nháp nằm ở sessionStorage, không ở hash. */
+let BOOTED = false;
+function syncHash(){
+  if(!BOOTED) return;
+  const h = new URLSearchParams(location.hash.slice(1));
+  const put = (k,v) => (v==null || v==='' || v===false) ? h.delete(k) : h.set(k, v);
+  const na = !!document.body.dataset.noAccess;
+  put('role', S.role); put('draft', na?null:DRAFT_ID); put('sec', na?null:S.sec); put('ai', S.ai?'open':null);
+  put('pol', S.pol); put('doc', S.doc); put('field', S.doc?S.docField:null);
+  if(!S.pol && !S.doc) h.delete('cite');
+  const s = h.toString();
+  if('#'+s !== location.hash) try{ history.replaceState(null, '', location.pathname + location.search + (s?'#'+s:'')); }catch(_){}
+}
+
+/* Mục lục + chuyển mục. Mục wizard: {id, n, wz:<số bước>, done:1, cnt}. "Hiện tại" thắng "đã xong". */
+function renderToc(){
+  setHTML($('#toc'), SECS.map(s=>{
+    if(s.grp) return `<div class="toc-grp">${s.grp}</div>`;
+    const cur = S.sec===s.id;
+    const n = (s.done && !cur) ? `<span class="wz-n" role="img" aria-label="Đã xong" title="Đã xong">${ic('i-check','xs')}</span>` : `<span class="wz-n">${s.wz}</span>`;
+    const right = s.cnt && s.cnt.t ? `<span class="cnt ${s.cnt.cls||''}" ${s.cnt.title?`title="${esc(s.cnt.title)}"`:''}>${s.cnt.t}</span>` : '';
+    return `<a href="#" data-go="${s.id}" class="${s.done?'wz-done':''}" ${cur?'aria-current="page"':''}>${n}${s.n}${right}</a>`;
+  }).join(''));
+}
+function go(sec){
+  /* #sec= không hợp lệ → về bước mặc định s4 (không để trang trắng) */
+  if(![...document.querySelectorAll('.sec')].some(s=>s.dataset.sec===sec)) sec = 's4';
+  S.sec = sec;
+  document.querySelectorAll('.sec').forEach(s=>s.hidden = s.dataset.sec!==sec);
+  typeof onSec==='function' && onSec(sec);
+  renderToc(); renderSuggest(); $('#content').scrollTo({top:0});
+  syncHash(); saveState();
+}
+function highlight(el){
+  if(!el) return;
+  document.querySelectorAll('.target').forEach(x=>x.classList.remove('target'));
+  el.classList.add('target'); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  setTimeout(()=>el.scrollIntoView({block:'center',behavior:motion()}),30);
+}
+
+/* Trợ lý AI. G2: đóng = inert. Mở: focus ô nhập. Đóng: trả focus về nút đã mở; không còn thì về "Hỏi AI" ở header (F1, §17). */
+let aiOpener = null;
+function setAI(open){
+  if(open && (!ROLES[S.role].ai || document.body.dataset.noAccess)){ toast('Vai trò của bạn không dùng Trợ lý AI ở trang này.'); return; }
+  const was = S.ai; S.ai = open; document.body.classList.toggle('ai-open', open);
+  const ai = $('#ai'); ai.setAttribute('aria-hidden', String(!open)); ai.inert = !open;
+  $('#segOn').setAttribute('aria-pressed', String(open)); $('#segOff').setAttribute('aria-pressed', String(!open));
+  if(open){
+    if(!was){ const a = document.activeElement; aiOpener = (a && a!==document.body && !ai.contains(a)) ? a : null; }
+    renderCtx(); setTimeout(()=>{ if(S.ai) $('#ask').focus({preventScroll:true}); },320);
+  } else if(was){
+    const a = document.activeElement;
+    if(!a || a===document.body || ai.contains(a)) focusBack(aiOpener, $('#headActions .btn.ai'), $('#content'));
+    aiOpener = null;
+  }
+  syncHash();
+}
+/* C-4: kiểm tra bằng getComputedStyle(...).display trên cả chuỗi cha, không dùng offsetParent, không xét opacity */
+function canFocus(e){
+  if(!e || !e.isConnected || e.closest('[inert]')) return false;
+  for(let n=e; n; n=n.parentElement) if(getComputedStyle(n).display==='none') return false;
+  return getComputedStyle(e).visibility!=='hidden';
+}
+function focusBack(...els){
+  const t = els.find(canFocus);
+  if(t) t.focus({preventScroll:true}); else if(document.activeElement) document.activeElement.blur();
+}
+function renderCtx(pulse){
+  setHTML($('#ctxChip'), S.ctx
+    ? `<span class="chip ${pulse?'pulse':''}" title="${esc(S.ctx)}">${ic('i-spark','xs')}<span>${esc(S.ctx)}</span><button aria-label="Bỏ ngữ cảnh này" title="Bỏ ngữ cảnh này" data-clearctx>${ic('i-x','xs')}</button></span>`
+    : `<span class="chip none"><span>${CTX_ALL}</span></span>`);
+}
+function renderSuggest(){ setHTML($('#suggest'), SUGGEST.map(x=>`<button data-suggest>${x}</button>`).join('')); }
+function askAI(type,label){ S.ctx=label; S.ctxType=type; setAI(true); renderCtx(true); }
+function send(){
+  const t = $('#ask').value.trim(); if(!t) return;
+  $('#msgs').insertAdjacentHTML('beforeend',`<div class="m-user">${esc(t)}</div><div class="m-ai"><div class="who">${ic('i-spark')}Trợ lý AI · đang phân tích…</div></div>`);
+  $('#ask').value=''; $('#msgs').scrollTop = $('#msgs').scrollHeight;
+}
+
+/* Drawer: điều khoản chính sách hoặc trình xem tài liệu trong trang.
+   G2: đóng = inert. Mở: nhớ nút đã mở, focus nút đóng. C-4: mở thì .app inert; đóng: bỏ inert TRƯỚC, trả focus SAU. */
+let drawerOpener = null;
+function syncMask(){ const on = !!$('.drawer.open'); $('#dmask').classList.toggle('open', on); $('.app').inert = on; }
+function showDrawer(mode){
+  const pol = mode==='policy';
+  $('#polBody').hidden = !pol; $('#docBody').hidden = pol;
+  $('#drawerIc').innerHTML = `<use href="#${pol?'i-book':'i-file'}"/>`;
+  const dr = $('#drawer');
+  if(!dr.classList.contains('open')){ const a = document.activeElement; drawerOpener = (a && a!==document.body && !dr.contains(a)) ? a : null; }
+  dr.classList.add('open'); dr.inert = false; dr.setAttribute('aria-hidden','false'); syncMask();
+  setTimeout(()=>{ if(drawerOpen()) $('#drawerClose').focus({preventScroll:true}); },30);
+}
+function openPolicy(sec){
+  S.pol = sec; S.doc = null; S.docField = null;
+  $('#drawerTitle').textContent = 'CS-TD-SME/2025 – Quy trình và chính sách cấp tín dụng KHDN SME';
+  $('#drawerSub').textContent = 'Văn bản nội bộ (mô phỏng)';
+  document.querySelectorAll('.clause').forEach(c=>c.classList.toggle('hl', c.id==='pol-'+sec));
+  showDrawer('policy'); syncHash();
+  const c = $('#pol-'+sec); c && setTimeout(()=>c.scrollIntoView({block:'nearest'}),40);
+}
+function drawerOpen(){ return $('#drawer').classList.contains('open'); }
+function closePolicy(restore=true){
+  const dr = $('#drawer'), was = drawerOpen();
+  dr.classList.remove('open'); dr.setAttribute('aria-hidden','true'); dr.inert = true; syncMask();
+  S.pol = null; S.doc = null; S.docField = null; syncHash();
+  if(was && restore) focusBack(drawerOpener, $('#content'));
+  drawerOpener = null;
+  return was;
+}
+/* Thứ tự Esc (§17): drawer → form của trang (ESC_HANDLERS) → panel AI. Mỗi lần đóng đúng một lớp. */
+const ESC_HANDLERS = [];
+function onEsc(){
+  if(drawerOpen()){ closePolicy(); return true; }
+  for(const h of ESC_HANDLERS){ if(h()) return true; }
+  if(S.ai){ setAI(false); return true; }
+  return false;
+}
+
+/* Nút khóa nào cũng có title = lý do (data-lock), theo dõi cả khi data-lock đổi */
+function syncLockTitles(){ document.querySelectorAll('[data-lock]').forEach(b=>{ if(b.title !== b.dataset.lock) b.title = b.dataset.lock; }); }
+new MutationObserver(syncLockTitles).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-lock']});
+
+/* Ủy quyền click tập trung */
+document.addEventListener('click',e=>{
+  const t = e.target.closest('[data-lock],[data-cite],[data-ask],[data-go],[data-policy],[data-page],[data-clearctx],[data-suggest],[data-action],[data-viewdoc],[data-close]');
+  if(!t) return; const d = t.dataset;
+  if(d.lock!==undefined && t.getAttribute('aria-disabled')==='true'){ e.preventDefault(); toast(d.lock); if(d.lockfocus!==undefined && typeof focusFirstTodo==='function') focusFirstTodo(); return; }
+  if(d.cite){ CITES[d.cite] && CITES[d.cite](t); return; }
+  if(d.viewdoc){ openDoc(d.viewdoc, d.field); return; }
+  if(d.ask){ e.stopPropagation(); const i=d.ask.indexOf('|'); askAI(d.ask.slice(0,i), d.ask.slice(i+1)); return; }
+  if(d.go){ e.preventDefault(); go(d.go); return; }
+  if(d.policy){ openPolicy(d.policy); return; }
+  if(d.page){ e.preventDefault(); const pg = +d.page;
+    /* C-8: chưa có trang 10 thì mục Trợ lý AI trên rail mở panel ngay trên trang đang xem */
+    if(pg===10 && !BANK.PAGE_FILE[10]){ setAI(true); return; }
+    let params = null; try{ params = d.params ? JSON.parse(d.params) : null; }catch(_){}
+    if(!BANK.navigate(pg, params, S.role)) toast('Trang '+PAGES[pg].n+' sẽ có ở đợt sau');
+    return; }
+  if(d.clearctx!==undefined){ S.ctx=null; renderCtx(); return; }
+  if(d.suggest!==undefined){ $('#ask').value=t.textContent; $('#ask').focus(); return; }
+  if(d.action){ toast('AI soạn bản nháp thư · bạn sửa và tự gửi'); return; }
+  if(d.close!==undefined){ closePolicy(); return; }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && onEsc()){ e.preventDefault(); return; }
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='j'){ e.preventDefault(); if(!drawerOpen() && !document.body.dataset.noAccess) setAI(!S.ai); }
+});
+$('#ask').addEventListener('keydown',e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } });
+$('#sendBtn').onclick = send;
+$('#aiClose').onclick = ()=>setAI(false);
+$('#segOn').onclick = ()=>setAI(true);
+$('#segOff').onclick = ()=>setAI(false);
+$('#dmask').onclick = ()=>onEsc();
+$('#roleSel').innerHTML = Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+$('#roleSel').addEventListener('change',e=>applyRole(e.target.value));
+
+/* ===================== TRANG 3 · DỮ LIỆU ĐỀ XUẤT (giữ trong bộ nhớ – quay lại bước trước không mất) ===================== */
+const D = {
+  submitted:false, savedAt:'', cicDown:false,
+  prod:'vld', amt:80, term:12, secured:true,
+  fields:[
+    {k:'Tên doanh nghiệp', v:'Công ty TNHH Bao bì Mekong Flex', st:'ok'},
+    {k:'Mã số thuế', v:'0317891234', st:'ok'},
+    {k:'Ngày đăng ký lần đầu', v:'15/06/2017 · thay đổi lần 2 ngày 20/03/2023', st:'ok'},
+    {k:'Trụ sở chính', v:'Lô B2-3, Đường số 7, KCN Tân Tạo, P. Tân Tạo A, Q. Bình Tân, TP. Hồ Chí Minh', st:'ai'},
+    {k:'Vốn điều lệ', v:'100 tỷ ₫', st:'ok'},
+    {k:'Ngành nghề chính', v:'1702 · Sản xuất bao bì bằng giấy và bìa', st:'ok'},
+    {k:'Ngành nghề khác', v:'2220 · Sản xuất sản phẩm từ plastic', st:'ok'},
+    {k:'Người đại diện', v:'Phạm Ngọc Mai · Giám đốc', st:'ai'},
+  ],
+  /* E4: nhóm khách hàng liên quan do AI đề xuất – QHKH phải xác nhận trước khi gửi */
+  relConfirmed:false, relOut:false, relWhy:'', relBasis:'',
+  coll:[
+    /* F9: dòng 78 tỷ tách 2 dòng; cách chia 50 + 28 là số minh họa (chứng thư chỉ có tổng).
+       lease: hình thức trả tiền thuê đất ('' chưa chọn, chặn Gửi · 'once' một lần · 'year' hằng năm) */
+    {id:'c1', n:'Nhà xưởng KCN Tân Tạo', d:'Lô B2-3, Q. Bình Tân · tách từ dòng 78 tỷ, số minh họa', t:'Bất động sản', v:50, owner:'Chính khách hàng', st:'ok'},
+    {id:'c1b', n:'Quyền thuê đất KCN Tân Tạo', d:'6.200 m² · tách từ dòng 78 tỷ, số minh họa', t:'Quyền thuê đất', v:28, owner:'Khách hàng (bên thuê)', st:'ok', lease:''},
+    {id:'c2', n:'Dây chuyền in flexo 8 màu & máy ghép màng', d:'Sản xuất 2022 · 3 máy', t:'Máy móc thiết bị', v:28, owner:'Chính khách hàng', st:'ai'},
+  ],
+  /* Danh mục §6.1. sec:true = chỉ bắt buộc khi có TSBĐ */
+  docs:[
+    {id:'denghi', g:'Đề nghị', n:'Giấy đề nghị cấp tín dụng có chữ ký người đại diện', st:'ok', f:'De_nghi_cap_TD_MekongFlex.pdf', m:'Ký bởi Phạm Ngọc Mai · 03/11/2026'},
+    {id:'dkkd', g:'Pháp lý', n:'Giấy chứng nhận đăng ký doanh nghiệp', st:'ok', f:'DKDN_MekongFlex_2023.pdf', m:'Thay đổi lần 2 · 20/03/2023'},
+    {id:'dieule', g:'Pháp lý', n:'Điều lệ công ty', st:'ok', f:'Dieu_le_2023.pdf'},
+    {id:'tv', g:'Pháp lý', n:'Danh sách thành viên góp vốn & bên liên quan', st:'ai', f:'Ho_so_thanh_vien_BLQ.pdf', conf:96,
+      warn:'MST trên tài liệu (0318997654) khác giấy ĐKDN (0317891234) – cần khách giải trình'},
+    {id:'cccd', g:'Pháp lý', n:'CCCD người đại diện', st:'ok', f:'CCCD_PhamNgocMai.jpg'},
+    {id:'nghiquyet', g:'Pháp lý', n:'Nghị quyết/Quyết định của HĐTV, chủ sở hữu hoặc HĐQT về vay vốn và thế chấp', st:'ok', f:'NQ_HDTV_vay_the_chap_2026.pdf', m:'NQ HĐTV số 05/2026 · 02/11/2026'},
+    /* E9: văn bản đồng ý tra cứu CIC bắt buộc; thiếu thì khóa "Tra cứu CIC mới" */
+    {id:'dongy', g:'Pháp lý', n:'Văn bản đồng ý tra cứu thông tin tín dụng (CIC)', st:'ok', f:'Dong_y_tra_cuu_CIC.pdf', m:'Khách ký 01/10/2026 · giá trị suốt quá trình xử lý hồ sơ'},
+    {id:'bctc25', g:'Tài chính', n:'BCTC năm 2025 đã kiểm toán', st:'ok', f:'BCTC_2025_kiemtoan.pdf'}, /* tên + lý do bắt buộc tính theo TỔNG cấp tín dụng (E5) trong docName() */
+    {id:'bctcq3', g:'Tài chính', n:'BCTC quý gần nhất (quý 3/2026)', st:'miss', m:'Kỳ gần nhất không quá 3 tháng'},
+    {id:'congno', g:'Tài chính', n:'Bảng kê công nợ phải thu, phải trả và hàng tồn kho', st:'ok', f:'Bang_ke_cong_no_ton_kho_30-09-2026.xlsx', m:'Tại 30/09/2026'},
+    /* E6: sao kê hiệu lực 30 ngày tính từ ngày ngân hàng cấp (cùng cách tính với CIC) */
+    {id:'saoke', g:'Tài chính', n:'Sao kê tài khoản 12 tháng', st:'ai', f:'Saoke_SongTien_11-2025_10-2026.pdf', conf:98, issued:new Date(2026,10,3), m:'NH TMCP Sông Tiền (hư cấu) · 01/11/2025 – 31/10/2026'},
+    {id:'thue', g:'Tài chính', n:'Tờ khai thuế GTGT 2 quý gần nhất', st:'ok', f:'To_khai_GTGT_Q2_Q3.pdf'},
+    /* Q2: CIC do QHKH tra cứu trên hệ thống CIC (khách không nộp). Q10: hiệu lực 30 ngày → BANK.cicValidUntil */
+    {id:'cic', g:'Tài chính', n:'Kết quả tra cứu CIC doanh nghiệp', st:'exp', lookup:new Date(2026,9,2), by:'Nguyễn Thảo Vy', f:'Hệ thống CIC'},
+    {id:'pa', g:'Phương án', n:'Phương án kinh doanh & sử dụng vốn', st:'ok', f:'Phuong_an_VLD_2027.docx'},
+    {id:'hd', g:'Phương án', n:'Hợp đồng đầu ra (tối thiểu 2)', st:'miss', m:'Mới có 1/2 · HĐ với CTCP Thực phẩm Đồng Xanh (hư cấu) đã tải'},
+    {id:'tsbd', g:'Phương án', n:'Hồ sơ pháp lý & chứng thư định giá TSBĐ', st:'ok', f:'Chung_thu_dinh_gia_CT-2026-118.pdf', sec:true},
+  ],
+};
+/* Trình xem tài liệu trong trang: bản dựng lại nội dung trang được trích dẫn (mockup, không phải ảnh scan) */
+const VIEW = {
+  dkkd:{t:'DKDN_MekongFlex_2023.pdf', sub:'Giấy chứng nhận đăng ký doanh nghiệp · khách nộp · trang 1/2', h:'GIẤY CHỨNG NHẬN ĐĂNG KÝ DOANH NGHIỆP – CÔNG TY TNHH', hs:'Mã số doanh nghiệp 0317891234 · Đăng ký thay đổi lần 2 ngày 20/03/2023',
+    rows:()=>D.fields.map(f=>[f.k, f.k, f.v])},
+  ct118:{t:'Chung_thu_dinh_gia_CT-2026-118.pdf', sub:'Chứng thư thẩm định giá · khách nộp · trang 3/6', h:'CHỨNG THƯ THẨM ĐỊNH GIÁ SỐ CT-2026-118', hs:'Phần III – Kết quả thẩm định giá',
+    rows:()=>[['ts','Tài sản','Dây chuyền in flexo 8 màu & máy ghép màng (3 máy, sản xuất 2022)'],['pp','Phương pháp','Chi phí và so sánh'],['gtdg','Giá trị thẩm định',`${D.coll.find(c=>c.id==='c2').v} tỷ đồng`],['ngay','Thời điểm thẩm định','28/10/2026']]},
+  tv:{t:'Ho_so_thanh_vien_BLQ.pdf', sub:'Danh sách thành viên góp vốn & bên liên quan · khách nộp · trang 1/1', h:'DANH SÁCH THÀNH VIÊN GÓP VỐN', hs:'Công ty TNHH Bao bì Mekong Flex · vốn điều lệ 100 tỷ đồng',
+    rows:()=>[['mekong','Công ty CP Đầu tư Mekong','Góp 60 tỷ đồng · 60% vốn điều lệ'],['ca1','Phạm Ngọc Mai','Góp 25 tỷ đồng · 25% vốn điều lệ'],['ca2','Trần Văn Lộc','Góp 15 tỷ đồng · 15% vốn điều lệ']]},
+  core:{t:'Dư nợ hiện hữu tại ngân hàng', sub:'Hệ thống ngân hàng lõi · dữ liệu hệ thống ngày 05/11/2026', h:'DƯ NỢ HIỆN HỮU THEO KHÁCH HÀNG', hs:'Khách hàng và người có liên quan',
+    rows:()=>[['flex','Công ty TNHH Bao bì Mekong Flex','0 tỷ đồng · khách mới'],['mekong','Công ty CP Đầu tư Mekong (MST 0301234567)','15,2 tỷ đồng · hạn mức VLĐ, nhóm nợ 1']]},
+};
+function openDoc(id, field){
+  const V = VIEW[id]; if(!V) return;
+  S.pol = null; S.doc = id; S.docField = field || null;
+  $('#drawerTitle').textContent = V.t; $('#drawerSub').textContent = V.sub;
+  $('#docBody').innerHTML = `<div class="vw-page"><h4>${esc(V.h)}</h4><div class="vw-sub">${esc(V.hs)}</div>
+    ${V.rows().map(([k,l,v])=>`<div class="vw-row ${k===field?'hl':''}" data-vf="${esc(k)}"><span class="k">${esc(l)}</span><span>${esc(v)}</span></div>`).join('')}</div>
+    <p class="vw-meta">Mockup: bản dựng lại nội dung trang tài liệu. Tài liệu của Mekong Flex chưa có trên trang Đối chiếu tài liệu nên mở tại đây.</p>`;
+  showDrawer('doc'); syncHash();
+  const hl = $('#docBody .vw-row.hl'); hl && setTimeout(()=>hl.scrollIntoView({block:'nearest'}),40);
+}
+/* Cấp phê duyệt: BANK.TIERS / BANK.tierOf trên TỔNG cấp tín dụng (Q4) */
+const RANGE = i => { const T = BANK.TIERS, lo = i ? T[i-1].max : 0, hi = T[i].max;
+  return i===0 ? `≤ ${hi} tỷ` : hi===Infinity ? `> ${lo} tỷ` : `> ${lo} – ≤ ${hi} tỷ`; };
+const tierOf = total => { const n = BANK.tierOf(total), T = BANK.TIERS[n-1], i = T.label.indexOf('·');
+  return [n, T.label.slice(i+1).trim(), null, null, RANGE(n-1)]; };
+/* Dư nợ hiện hữu tại ngân hàng (tỷ ₫): khách + người có liên quan. Mekong Flex là khách mới (0).
+   F10: QHKH ghi "Không thuộc nhóm" thì bên đó không còn tính vào tổng; chuyển kèm cờ cho Thẩm định rà lại. */
+const EXPOSURE = [
+  {n:'Dư nợ hiện hữu của Mekong Flex tại ngân hàng', v:0, note:'khách mới'},
+  {n:'Công ty CP Đầu tư Mekong (góp 60% vốn – bên liên quan)', v:15.2, note:'', rel:true},
+];
+const exposure = () => EXPOSURE.filter(x=>!(x.rel && D.relOut));
+const exposureSum = () => exposure().reduce((a,x)=>a+x.v,0);
+const totalCredit = () => exposureSum() + D.amt;
+const PROD = {vld:'Hạn mức VLĐ', tdh:'Vay trung dài hạn', tttm:'Tài trợ thương mại'};
+const fmt = n => Number(n).toLocaleString('vi-VN',{maximumFractionDigits:2});
+const vnWords = a => { const m={80:'Tám mươi tỷ đồng',120:'Một trăm hai mươi tỷ đồng',15:'Mười lăm tỷ đồng',50:'Năm mươi tỷ đồng'}; return m[a] || (fmt(a)+' tỷ đồng'); };
+const D_ = d => BANK.fmtDate(d);
+/* E5 (sửa Q5): BCTC kiểm toán bắt buộc khi TỔNG cấp tín dụng > 20 tỷ (cùng cách tính với Q4) */
+const AUDIT_MIN = 20;
+const needAudit = () => totalCredit() > AUDIT_MIN;
+function docName(d){
+  if(d.id==='bctc25') return needAudit() ? 'BCTC năm 2025 đã kiểm toán' : 'BCTC năm 2025 (đã nộp cơ quan thuế)';
+  return d.n;
+}
+/* Số kiểu Việt Nam: dấu chấm phân nhóm nghìn, dấu phẩy thập phân. "1.000" = một nghìn; "80,5" = 80,5. */
+function parseVN(raw){
+  const s = String(raw).trim().replace(/\s+/g,'');
+  if(!s || !/^[\d.,]+$/.test(s)) return NaN;
+  const grp = /^\d{1,3}(\.\d{3})+$/;
+  if(s.includes(',')){
+    const parts = s.split(','); if(parts.length!==2 || !parts[1]) return NaN;
+    if(parts[0].includes('.') && !grp.test(parts[0])) return NaN;
+    return Number(parts[0].replace(/\./g,'')+'.'+parts[1]);
+  }
+  if(grp.test(s)) return Number(s.replace(/\./g,''));
+  if((s.match(/\./g)||[]).length>1) return NaN;
+  return Number(s);
+}
+
+/* ---------- Kiểm tra lỗi tại trường (bước 2) ---------- */
+function validate(){
+  const errs = {};
+  const rawAmt = $('#amt').value, amt = parseVN(rawAmt);
+  const rawTerm = String($('#term').value).trim(), term = /^\d+$/.test(rawTerm) ? parseInt(rawTerm,10) : NaN;
+  if(rawAmt.trim() && isNaN(amt)) errs.amt = 'Số tiền không hợp lệ. Nhập theo tỷ ₫, dấu phẩy cho phần thập phân (ví dụ 80,5), dấu chấm để phân nhóm nghìn.';
+  else if(!(amt>0)) errs.amt = 'Nhập số tiền lớn hơn 0.';
+  if(!(term>0)) errs.term = 'Nhập thời hạn theo tháng (số nguyên).';
+  else if(D.prod==='vld' && term>12) errs.term = 'Hạn mức vốn lưu động tối đa 12 tháng. Chọn "Vay trung dài hạn" nếu cần dài hơn.';
+  else if(D.prod==='tdh' && (term<13 || term>84)) errs.term = 'Vay trung dài hạn từ 13 đến 84 tháng.';
+  if($('#pur').value.trim().length<20) errs.pur = 'Mô tả mục đích ít nhất 20 ký tự để Hỗ trợ tín dụng kiểm tra được.';
+  if($('#rep').value.trim().length<20) errs.rep = 'Nêu nguồn trả nợ và kỳ trả.';
+  return {errs, amt, term};
+}
+function showErrs(touchedOnly){
+  const {errs, amt, term} = validate();
+  [['fAmt','amt'],['fTerm','term'],['fPur','pur'],['fRep','rep']].forEach(([f,k])=>{
+    const el = $('#'+f); if(touchedOnly && !el.dataset.touched) return;
+    el.classList.toggle('bad', !!errs[k]); el.querySelector('.msg span').textContent = errs[k]||'';
+    el.querySelector('input,textarea').setAttribute('aria-invalid', String(!!errs[k]));
+  });
+  if(!errs.amt){ D.amt = amt; $('#amtHelp').textContent = vnWords(amt); }
+  $('#fAmt').classList.toggle('soft', !errs.amt && amt >= BANK.AMOUNT_WARN_BILLION);
+  if(!errs.term) D.term = term;
+  $('#termHelp').textContent = D.prod==='vld' ? 'Hạn mức vốn lưu động tối đa 12 tháng' : D.prod==='tdh' ? 'Từ 13 đến 84 tháng' : 'Theo thời hạn L/C hoặc bảo lãnh';
+  return Object.keys(errs).length;
+}
+function renderTier(){
+  const tot = totalCredit(), t = tierOf(tot);
+  const relNote = D.relOut ? 'Công ty CP Đầu tư Mekong được bạn ghi không thuộc nhóm, Thẩm định sẽ rà lại'
+    : D.relConfirmed ? 'Bên liên quan (Công ty CP Đầu tư Mekong) đã được bạn xác nhận ở bước 1'
+    : 'Bên liên quan (Công ty CP Đầu tư Mekong) theo đề xuất của AI ở bước 1 – <button class="link" data-go="s1">chưa xác nhận</button>';
+  setHTML($('#tierBox'), `
+    <p class="eyebrow">Cấp phê duyệt dự kiến</p>
+    <div class="big">Cấp ${t[0]} · ${t[1]}</div>
+    <p style="margin-bottom:6px">Tính theo <b>tổng cấp tín dụng</b> của khách và người có liên quan: <b class="num">${fmt(tot)} tỷ</b> thuộc khoảng ${t[4]}. <button class="src" data-policy="3-1"><svg class="i xs"><use href="#i-book"/></svg>§3.1</button></p>
+    <div class="sumtbl num">
+      ${exposure().map(x=>`<div><span>${x.n}${x.note?` <span class="muted">(${x.note})</span>`:''}</span><span>${fmt(x.v)} tỷ</span></div>`).join('')}
+      <div><span>Đề xuất này</span><span>${fmt(D.amt)} tỷ</span></div>
+      <div class="tot"><span>Tổng cấp tín dụng</span><span>${fmt(tot)} tỷ</span></div>
+    </div>
+    ${BANK.TIERS.map((x,i)=>`<div class="tier num ${i+1===t[0]?'on':''}"><span>Cấp ${i+1}</span><span>${x.label.split('·')[1].trim()}</span><span>${RANGE(i)}</span></div>`).join('')}
+    <div class="foot">Ngưỡng do Quản trị cấu hình. ${relNote}. BCTC năm ${needAudit()?'bắt buộc đã kiểm toán vì tổng &gt; '+AUDIT_MIN+' tỷ':'chấp nhận bản đã nộp cơ quan thuế vì tổng ≤ '+AUDIT_MIN+' tỷ'}. Nếu sau Thẩm định tổng tăng vượt ngưỡng, hồ sơ chuyển "Nâng cấp phê duyệt".</div>`);
+  setHTML($('#stApprove'), `<span class="sd">5</span>Phê duyệt cấp ${t[0]}`);
+  $('#stApprove').title = `${t[1]} · SLA ${BANK.SLA.pheduyet} ngày LV`;
+  $('#amtWarnTxt').textContent = `Số tiền từ ${fmt(BANK.AMOUNT_WARN_BILLION)} tỷ là bất thường, kiểm tra đơn vị (tỷ đồng). Không chặn.`;
+}
+
+/* ---------- Bước 1 ---------- */
+/* N6: trường chưa xác nhận lên đầu, phần còn lại gộp "Đã xác nhận (n)". OPEN giữ trạng thái mở khi vẽ lại */
+const OPEN = {};
+document.addEventListener('toggle',e=>{ const k = e.target.dataset && e.target.dataset.keep; if(k) OPEN[k] = e.target.open; },true);
+const CHEV = '<svg class="i sm chev2"><use href="#i-down"/></svg>';
+/* F10: form "Không thuộc nhóm", bắt buộc lý do và căn cứ */
+const RELF = {open:false, why:'', basis:'', bad:''};
+function fieldRow(f,i){
+  return `<div class="kv"><div class="k">${f.k}</div>
+    <div>${f.st==='ai'?`<span class="v-unconf">${f.v}</span> <button class="cite" data-cite="4" data-field="${esc(f.k)}" aria-label="Nguồn 4: giấy ĐKDN, trường ${esc(f.k)}" title="Nguồn: DKDN_MekongFlex_2023.pdf · ${esc(f.k)}">4</button>`:f.v}</div>
+    <div class="acts">${f.st==='ai'
+      ? `<span class="st ai"><svg class="i sm" aria-hidden="true"><use href="#i-spark"/></svg>AI đề xuất</span><button class="btn sm ok" data-cf="${i}"><svg class="i xs"><use href="#i-check"/></svg>Xác nhận</button><button class="btn sm ghost" data-ef="${i}">Sửa</button>`
+      : `<span class="st ok" title="Đã xác nhận bởi Nguyễn Thảo Vy · 05/11/2026"><svg class="i sm" aria-hidden="true"><use href="#i-checkc"/></svg>Đã xác nhận</span>`}</div></div>`;
+}
+function relForm(){
+  if(!RELF.open || D.relConfirmed) return '';
+  return `<div class="excf ${RELF.bad?'bad':''}" id="relForm">
+    <label for="relWhy">Lý do không thuộc nhóm (bắt buộc)</label>
+    <textarea class="ta" id="relWhy" aria-describedby="relErr">${esc(RELF.why)}</textarea>
+    <label for="relBasis">Căn cứ (bắt buộc)</label>
+    <div class="inp"><input id="relBasis" aria-describedby="relErr" value="${esc(RELF.basis)}" placeholder="Ví dụ: văn bản, số đăng ký, ngày"></div>
+    <div class="ferr" id="relErr" role="alert"><svg class="i sm" aria-hidden="true"><use href="#i-alert"/></svg><span>${RELF.bad||''}</span></div>
+    <div class="row"><button class="btn sm" data-relsave>Ghi không thuộc nhóm</button><button class="btn sm ghost" data-relcancel>Hủy</button><span class="muted" style="font-size:13px">Tổng và cấp tính lại, chuyển kèm cờ cho Thẩm định rà lại</span></div></div>`;
+}
+function renderS1(){
+  setHTML($('#custRes'), `
+    <div class="drow"><svg class="i c-mute"><use href="#i-building"/></svg>
+      <div><div class="t1">Công ty CP Đầu tư Mekong</div><div class="t2 num">MST 0301234567 · Khách hiện hữu · Hạng <b style="color:var(--text)">A</b> · Dư nợ hiện tại <b style="color:var(--text)">15,2 tỷ</b> · góp 60% vốn Mekong Flex</div></div>
+      <div class="acts"><button class="btn sm" data-pickcust>Chọn khách này</button></div></div>
+    <div class="drow"><svg class="i c-ok"><use href="#i-checkc"/></svg>
+      <div><div class="t1">Tạo khách mới: Công ty TNHH Bao bì Mekong Flex</div><div class="t2 num">MST 0317891234 chưa có trong hệ thống · thông tin lấy từ giấy ĐKDN đã tải</div></div>
+      <div class="acts"><span class="st ok">Đang chọn</span></div></div>`);
+  const rows = D.fields.map((f,i)=>({f,i})), pend = rows.filter(x=>x.f.st==='ai'), done = rows.filter(x=>x.f.st!=='ai');
+  $('#fCount').textContent = pend.length ? `${pend.length} chưa xác nhận` : `Đã xác nhận đủ ${rows.length} trường`;
+  setHTML($('#fieldRows'), pend.map(x=>fieldRow(x.f,x.i)).join('') +
+    (done.length ? `<details class="more" data-keep="fieldsOk" ${(OPEN.fieldsOk||!pend.length)?'open':''}><summary>Đã xác nhận (${done.length}) ${CHEV}</summary><div class="rows">${done.map(x=>fieldRow(x.f,x.i)).join('')}</div></details>` : ''));
+  /* E4, F10: nhóm khách hàng liên quan – QHKH xác nhận hoặc ghi "Không thuộc nhóm" trước khi gửi */
+  $('#relCount').textContent = !D.relConfirmed ? '1 chưa xác nhận' : D.relOut ? 'Không thuộc nhóm' : 'Đã xác nhận';
+  const cites = `<button class="cite" data-cite="6" aria-label="Nguồn 6: danh sách thành viên góp vốn" title="Nguồn: Ho_so_thanh_vien_BLQ.pdf">6</button>`;
+  const cite7 = `<button class="cite" data-cite="7" aria-label="Nguồn 7: hệ thống ngân hàng lõi" title="Nguồn: hệ thống ngân hàng lõi">7</button>`;
+  const body = D.relOut
+    ? `Công ty CP Đầu tư Mekong góp 60% vốn ${cites} · <b>không thuộc nhóm</b>, không cộng 15,2 tỷ vào tổng.
+       <div class="t2" style="margin-top:4px">Lý do: ${esc(D.relWhy)} · căn cứ: ${esc(D.relBasis)} · chuyển kèm cờ, Thẩm định rà lại <button class="link" data-relundo>Hoàn tác</button></div>`
+    : `<span class="${D.relConfirmed?'':'v-unconf'}">Công ty CP Đầu tư Mekong góp 60% vốn</span> ${cites} · dư nợ <b class="num">15,2 tỷ</b> ${cite7} cộng vào tổng cấp tín dụng.
+       ${D.relConfirmed ? `<div class="t2" style="margin-top:4px">Thẩm định sẽ rà lại nhóm khách hàng liên quan.</div>`
+         : `<div class="rel-acts"><button class="btn sm ghost" data-relout aria-expanded="${RELF.open}">Không thuộc nhóm</button><button class="askai" style="margin:0" data-ask="customer|Nhóm khách hàng liên quan Mekong">${ic('i-spark')}Hỏi AI về nhóm liên quan</button></div>${relForm()}`}`;
+  setHTML($('#relBox'), `<div class="kv"><div class="k">Bên liên quan</div><div>${body}</div>
+    <div class="acts">${!D.relConfirmed
+      ? `<span class="st ai"><svg class="i sm" aria-hidden="true"><use href="#i-spark"/></svg>AI đề xuất</span><button class="btn sm ok" data-relok><svg class="i xs"><use href="#i-check"/></svg>Xác nhận</button>`
+      : D.relOut ? `<span class="st verify"><svg class="i sm" aria-hidden="true"><use href="#i-alert"/></svg>Cần xác minh</span>`
+      : `<span class="st ok" title="Đã xác nhận bởi Nguyễn Thảo Vy"><svg class="i sm" aria-hidden="true"><use href="#i-checkc"/></svg>Đã xác nhận</span>`}</div></div>`);
+}
+ESC_HANDLERS.push(()=>{ if(!RELF.open) return false; RELF.open=false; RELF.bad=''; refresh(); const b=$('[data-relout]'); b && b.focus(); return true; });
+
+/* ---------- Bước 3 ---------- */
+/* F9: chưa chọn thì chặn Gửi; "Hằng năm" gắn cờ, Thẩm định tách phần giá trị; "Một lần" vẫn cần chứng từ. Giá trị không đổi ở bước QHKH. */
+const LEASE = {'':'Chưa chọn', once:'Trả một lần cho cả thời gian thuê', year:'Trả hằng năm'};
+const leaseBlank = () => D.secured ? D.coll.filter(c=>c.lease==='').length : 0;
+function leaseNote(c){
+  if(c.lease==='year') return '<span class="c-warn">Gắn cờ: Thẩm định tách phần giá trị, chỉ tính tài sản gắn liền với đất. Giá trị ở bước này giữ nguyên.</span>';
+  if(c.lease==='once') return '<span class="c-warn">Vẫn cần chứng từ trả tiền thuê một lần. Chuyển kèm cờ cho Thẩm định.</span>';
+  return '<span class="c-err">Chưa chọn thì chưa gửi được.</span>';
+}
+function collExp(c){
+  if(c.lease!==undefined) return `<tr class="exp"><td colspan="3"><div class="exp-in">
+    <label class="exp-l" for="lease-${c.id}">Hình thức trả tiền thuê đất</label>
+    <div class="exp-row"><select class="lease" id="lease-${c.id}" data-lease="${c.id}" ${D.submitted?'disabled':''}>${Object.entries(LEASE).map(([k,v])=>`<option value="${k}" ${c.lease===k?'selected':''}>${k?v:'— Chọn —'}</option>`).join('')}</select>${leaseNote(c)}</div>
+    <div class="exp-row muted">Điều kiện thế chấp quyền thuê đất: Pháp chế cần xác nhận.</div></div></td></tr>`;
+  if(c.st==='ai') return `<tr class="exp"><td colspan="3"><div class="exp-row"><button class="btn sm ok" data-cc="${c.id}"><svg class="i xs"><use href="#i-check"/></svg>Xác nhận</button><button class="askai" style="margin:0" data-ask="customer|Giá trị định giá ${esc(c.n)}">${ic('i-spark')}Hỏi AI về giá trị định giá</button></div></td></tr>`;
+  return '';
+}
+function renderS3(){
+  document.querySelectorAll('[data-sec3]').forEach(b=>b.setAttribute('aria-checked', String((b.dataset.sec3==='co')===D.secured)));
+  const cAi = D.secured ? D.coll.filter(c=>c.st==='ai').length : 0, lb = leaseBlank(), left = cAi + lb;
+  $('#p3').className = 'need' + (left?'':' ok');
+  setHTML($('#p3'), !D.secured ? '' : left
+    ? `<svg class="i sm" aria-hidden="true"><use href="#i-alert"/></svg>Còn ${left} mục: ${[cAi?`${cAi} chưa xác nhận`:'', lb?`${lb} chưa chọn hình thức trả tiền thuê đất`:''].filter(Boolean).join(' · ')}`
+    : `<svg class="i sm" aria-hidden="true"><use href="#i-checkc"/></svg>Đã xong các mục bắt buộc của bước này`);
+  if(!D.secured){
+    setHTML($('#collBox'), `<div class="note"><svg class="i"><use href="#i-info"/></svg><div><b>Khoản tín chấp – bước này được bỏ qua.</b> Thẩm định sẽ đánh giá theo điều kiện cấp tín chấp; mục "Hồ sơ TSBĐ" không còn bắt buộc ở bước 4.</div></div>`);
+    return;
+  }
+  const tot = D.coll.reduce((s,c)=>s+c.v,0);
+  setHTML($('#collBox'), `
+    <table class="t"><thead><tr><th class="nm">Tài sản</th><th class="r">Giá trị định giá</th><th>Trạng thái</th></tr></thead><tbody>
+    ${D.coll.map(c=>{ const x = collExp(c); return `<tr data-coll="${c.id}" class="${x?'has-exp':''}"><td class="nm">${c.n}<span class="sub">${c.d} · ${c.t} · ${c.owner}</span></td>
+      <td class="r num nw"><span class="val ${c.st==='ai'?'v-unconf':''}">${c.v}</span> <span class="u">tỷ</span>${c.st==='ai'?` <button class="cite" data-cite="5" aria-label="Nguồn 5: chứng thư định giá CT-2026-118, trang 3" title="Nguồn: Chung_thu_dinh_gia_CT-2026-118.pdf · tr.3 · Giá trị thẩm định">5</button>`:''}</td>
+      <td class="nw">${c.lease!==undefined ? `<span class="st verify"><svg class="i sm" aria-hidden="true"><use href="#i-alert"/></svg>Cần xác minh</span>`
+        : c.st==='ai' ? `<span class="st ai"><svg class="i sm" aria-hidden="true"><use href="#i-spark"/></svg>AI đề xuất</span>`
+        : `<span class="st ok"><svg class="i sm" aria-hidden="true"><use href="#i-checkc"/></svg>Đã xác nhận</span>`}</td></tr>${x}`; }).join('')}
+    </tbody></table>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:16px">
+      <button class="btn sm" data-addcoll><svg class="i xs"><use href="#i-plus"/></svg>Thêm tài sản</button>
+      <span class="muted num" style="margin-left:auto;font-size:13px">Tổng <b style="color:var(--text)">${tot} tỷ</b> · bằng ${fmt(tot/D.amt)} lần nhu cầu vay (tham khảo)</span>
+    </div>`);
+}
+
+/* ---------- Bước 4 ---------- */
+/* G4: trạng thái tài liệu "Thiếu" / "Hết hiệu lực" / "Đã đủ"; icon đứng một mình có aria-label + title */
+const DOC_ST = {
+  ok:  ['i-checkc','c-ok','Đã đủ'],
+  ai:  ['i-spark','c-ai','AI đề xuất'],
+  miss:['i-alert','c-err','Thiếu'],
+  exp: ['i-clock','c-err','Hết hiệu lực'],
+  busy:['i-spark','c-ai','AI đang phân loại…'],
+};
+/* E9, F11: chỉ tra cứu CIC khi văn bản đồng ý đã có và đã được người xác nhận; văn bản còn giá trị suốt quá trình xử lý */
+const consentDoc = () => D.docs.find(z=>z.id==='dongy') || {};
+const consentOk = () => consentDoc().st==='ok';
+const isBad = d => d.st==='miss' || d.st==='exp';
+/* F5: CIC hết hiệu lực không được đề xuất ngoại lệ vì QHKH tự tra lại được; ngoại lệ duy nhất là hệ thống CIC gián đoạn */
+/* F5: CIC chỉ được ngoại lệ khi hệ thống gián đoạn. Văn bản đồng ý tra cứu (E9) luôn bắt buộc, không có ngoại lệ */
+const canExc = d => d.id==='dongy' ? false : (d.id!=='cic' || D.cicDown);
+/* E6, Q10: sao kê hiệu lực 30 ngày từ ngày ngân hàng cấp, cùng mốc với CIC */
+function applyValidity(){ D.docs.forEach(d=>{ if(d.issued && d.st!=='busy' && BANK.docValidUntil(d.issued) < BANK.TODAY) d.st='exp'; }); }
+function docMeta(d){
+  if(d.id==='cic' && d.lookup) return `Tra cứu ${D_(d.lookup)} · ${d.by} · ${d.st==='exp' ? `hiệu lực đến hết ${D_(BANK.cicValidUntil(d.lookup))}` : `còn hiệu lực đến ${D_(BANK.cicValidUntil(d.lookup))}`}`;
+  if(d.id==='bctc25') return needAudit() ? `Bắt buộc đã kiểm toán vì tổng cấp tín dụng ${fmt(totalCredit())} tỷ > ${AUDIT_MIN} tỷ` : `Tổng cấp tín dụng ≤ ${AUDIT_MIN} tỷ: chấp nhận BCTC đã nộp cơ quan thuế`;
+  if(d.issued) return `${d.m} · cấp ${D_(d.issued)}, hiệu lực đến ${D_(BANK.docValidUntil(d.issued))}`;
+  if(d.id==='dongy' && d.st!=='ok') return 'Bắt buộc trước khi tra cứu CIC';
+  return d.m || '';
+}
+function cicLock(){
+  if(D.cicDown) return 'Chưa tra cứu CIC được: hệ thống CIC đang gián đoạn. Có thể đề xuất ngoại lệ, và vẫn phải tra lại trước khi trình phê duyệt (§6.4).';
+  const c = consentDoc();
+  if(consentOk()) return '';
+  return (c.st==='ai'||c.st==='busy')
+    ? 'Chưa tra cứu CIC được: văn bản đồng ý tra cứu CIC do AI phân loại, chưa được xác nhận. Xác nhận văn bản này trước (§6.1).'
+    : 'Chưa tra cứu CIC được: thiếu văn bản đồng ý tra cứu CIC của khách (§6.1). Tải và xác nhận văn bản này trước.';
+}
+function docRow(d){
+  const [icn,cls,lbl] = DOC_ST[d.st];
+  let sub = '', acts = '', m = docMeta(d);
+  /* N5: "Đề xuất ngoại lệ" và "Đổi mục" là link 13px ở dòng mô tả; bên phải chỉ giữ 1 nút */
+  const askBtn = ` <button class="askai hov" data-ask="doc|${esc(docName(d))}"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI về tài liệu này</button>`;
+  const excLink = (d.exc || !canExc(d)) ? '' : ` · <button class="link" data-exc="${d.id}" aria-expanded="${EXC_OPEN===d.id}">Đề xuất ngoại lệ</button>`;
+  if(d.st==='ok') sub = `<span class="fn">${d.f||''}</span>${m?' · '+m:''}`;
+  if(d.st==='busy') sub = d.id==='cic' ? 'Đang tra cứu trên hệ thống CIC…' : `${d.f} · AI đang đọc và đối chiếu danh mục…`;
+  if(d.st==='ai'){
+    sub = `<span class="fn">${d.f}</span>${m?' · '+m:''} · <span class="c-ai">AI xếp · tin cậy ${d.conf}%</span> · <button class="link" data-mv="${d.id}">Đổi mục</button>`;
+    acts = `<button class="btn sm ok" data-cd="${d.id}"><svg class="i xs"><use href="#i-check"/></svg>Xác nhận</button>`;
+  }
+  if(d.st==='miss'){ sub = `<span class="c-err" style="font-weight:500">Thiếu</span> · ${m}${excLink}`;
+    acts = `<button class="btn sm" data-up="${d.id}"><svg class="i xs"><use href="#i-plus"/></svg>Tải lên</button>`; }
+  if(d.st==='exp'){ sub = `<span class="c-err" style="font-weight:500">Hết hiệu lực</span> · ${m} <button class="src" data-policy="6-3"><svg class="i xs"><use href="#i-book"/></svg>§6.3</button>${excLink}`;
+    if(d.id==='cic'){ const lk = cicLock();
+      acts = lk ? `<button class="btn sm" data-cic aria-disabled="true" data-lock="${esc(lk)}"><svg class="i xs"><use href="#i-lock"/></svg>Tra cứu CIC mới</button>` : `<button class="btn sm" data-cic>Tra cứu CIC mới</button>`; }
+    else acts = `<button class="btn sm" data-up="${d.id}"><svg class="i xs"><use href="#i-plus"/></svg>Tải lên</button>`; }
+  const warn = d.warn && d.st!=='busy' ? `<div class="t3"><span class="st verify"><svg class="i sm" aria-hidden="true"><use href="#i-alert"/></svg>Cần xác minh:</span> <span class="c-warn">${d.warn}</span> <span class="muted">· không chặn Gửi, chuyển kèm thành cờ</span></div>` : '';
+  /* E1: đã đề xuất ngoại lệ có lý do → mục không chặn Gửi, chuyển kèm thành cờ ngoại lệ */
+  const exc = d.exc && isBad(d) ? `<div class="exc"><svg class="i sm" aria-hidden="true"><use href="#i-alert"/></svg><span>Đã đề xuất ngoại lệ · <span class="why">lý do: ${esc(d.excWhy||'')}</span> · không chặn Gửi, chuyển kèm thành cờ${d.id==='cic'?', vẫn phải tra lại trước khi trình phê duyệt':''} <button class="src" data-policy="6-4"><svg class="i xs"><use href="#i-book"/></svg>§6.4</button> <button class="link" data-excdel="${d.id}">Rút đề xuất</button></span></div>` : '';
+  const form = EXC_OPEN===d.id && isBad(d) && !d.exc && canExc(d) ? `<div class="excf" id="excf-${d.id}"><label for="excWhy">Lý do đề xuất ngoại lệ (bắt buộc)</label>
+    <textarea class="ta" id="excWhy" aria-describedby="excErr" placeholder="Ví dụ: khách cam kết nộp trước ngày trình phê duyệt…">${esc(EXC_DRAFT)}</textarea>
+    <div class="ferr" id="excErr" role="alert"><svg class="i sm" aria-hidden="true"><use href="#i-alert"/></svg><span>Nhập lý do để đề xuất ngoại lệ.</span></div>
+    <div class="row"><button class="btn sm" data-excsave="${d.id}">Ghi đề xuất ngoại lệ</button><button class="btn sm ghost" data-exccancel>Hủy</button><span class="muted" style="font-size:13px">Cờ ngoại lệ đi theo hồ sơ qua Thẩm định, Ý kiến rủi ro và Phê duyệt</span></div></div>` : '';
+  return `<div class="drow ${d.st==='busy'?'busy':''}" data-doc="${d.id}"><svg class="i ${cls}" role="img" aria-label="${lbl}"><title>${lbl}</title><use href="#${icn}"/></svg>
+    <div><div class="t1">${docName(d)} <span class="muted" style="font-weight:400;font-size:13px">· ${d.g}</span>${isBad(d)?askBtn:''}</div><div class="t2">${sub}</div>${warn}${exc}${form}</div>
+    <div class="acts">${acts}</div></div>`;
+}
+let EXC_OPEN = null, EXC_DRAFT = '';
+function docStats(){
+  const need = D.docs.filter(d=>D.secured || !d.sec);
+  return {need, ok:need.filter(d=>d.st==='ok').length, ai:need.filter(d=>d.st==='ai'||d.st==='busy'),
+    bad:need.filter(d=>isBad(d) && !d.exc), exc:need.filter(d=>isBad(d) && d.exc)};
+}
+/* N4: một cách đếm cho mục lục, dòng "Còn", nhóm và bước 5: thiếu · hết hiệu lực · chưa xác nhận */
+function docLeftParts(s){
+  const miss = s.bad.filter(d=>d.st==='miss').length, exp = s.bad.filter(d=>d.st==='exp').length;
+  return [miss?`${miss} thiếu`:'', exp?`${exp} hết hiệu lực`:'', s.ai.length?`${s.ai.length} chưa xác nhận`:''].filter(Boolean).join(' · ');
+}
+function renderS4(){
+  const s = docStats(), n = s.need.length;
+  $('#s4prod').textContent = {vld:'Hạn mức vốn lưu động', tdh:'Vay trung dài hạn', tttm:'Tài trợ thương mại'}[D.prod];
+  const left = s.bad.length + s.ai.length;
+  $('#p4').className = 'need' + (left?'':' ok');
+  setHTML($('#p4'), left
+    ? `<svg class="i sm" aria-hidden="true"><use href="#i-alert"/></svg>Còn ${left} mục bắt buộc trước khi gửi: ${docLeftParts(s)} <button class="link" data-jump="${s.bad.length?'grpBad':'grpAi'}">${s.bad.length?'Xem nhóm cần bổ sung':'Xem nhóm chưa xác nhận'}<svg class="i sm"><use href="#i-right"/></svg></button>`
+    : `<svg class="i sm" aria-hidden="true"><use href="#i-checkc"/></svg>${s.exc.length?`Không còn mục chặn Gửi · ${s.ok}/${n} đã đủ, ${s.exc.length} đề xuất ngoại lệ`:`Đủ ${n}/${n} mục bắt buộc`}`);
+  let h = '';
+  if(s.bad.length) h += `<div class="grp-h" id="grpBad"><h3>Cần bổ sung trước khi gửi</h3><span class="muted">${s.bad.length} mục bắt buộc</span></div><div class="rows">${s.bad.map(docRow).join('')}</div>`;
+  if(s.ai.length) h += `<div class="grp-h ai" id="grpAi"><h3>AI đã phân loại – chờ bạn xác nhận</h3><span class="muted">${s.ai.length} tài liệu</span></div><div class="rows">${s.ai.map(docRow).join('')}</div>`;
+  if(s.exc.length) h += `<div class="grp-h" id="grpExc"><h3>Đề xuất ngoại lệ – chuyển kèm</h3><span class="muted">${s.exc.length} mục · không chặn Gửi</span></div><div class="rows">${s.exc.map(docRow).join('')}</div>`;
+  if(!s.bad.length && !s.ai.length) h += `<div class="note" style="margin-top:28px;background:var(--success-bg);color:var(--success)"><svg class="i" style="color:var(--success)"><use href="#i-checkc"/></svg><div><b>${s.exc.length?`Không còn mục chặn Gửi: ${s.ok}/${n} tài liệu đã đủ, ${s.exc.length} đề xuất ngoại lệ.`:`Đủ ${n}/${n} tài liệu bắt buộc.`}</b> ${D.submitted?'Đã gửi Hỗ trợ tín dụng.':'Có thể sang bước Xem lại &amp; gửi.'}</div></div>`;
+  const okRows = s.need.filter(d=>d.st==='ok');
+  h += `<details class="more" data-keep="docsOk" ${(OPEN.docsOk||(!s.bad.length && !s.ai.length))?'open':''}><summary>Đã đủ (${okRows.length}) ${CHEV}</summary><div class="rows">${okRows.map(docRow).join('')}</div></details>`;
+  setHTML($('#docGroups'), h);
+  $('#s4hint').textContent = (s.bad.length||s.ai.length) ? 'Đi tiếp được – mục còn thiếu sẽ chặn ở bước Gửi' : '';
+}
+/* G2: Esc hủy form ngoại lệ (sau drawer, trước panel AI) */
+function closeOpenForm(){
+  if(!EXC_OPEN) return false;
+  const id = EXC_OPEN; EXC_OPEN = null; EXC_DRAFT = ''; renderS4();
+  const b = document.querySelector(`[data-exc="${id}"]`); b && b.focus();
+  return true;
+}
+ESC_HANDLERS.push(closeOpenForm);
+
+/* ---------- Bước 5 ---------- */
+/* E1 (sửa Q1), F5: thiếu/hết hiệu lực chặn Gửi, trừ khi đã "Đề xuất ngoại lệ" có lý do (CIC chỉ khi hệ thống gián đoạn)
+   Q7: AI chưa xác nhận chặn Gửi ("Cần xác minh" không chặn) · E4: nhóm liên quan · F9: hình thức trả tiền thuê đất
+   N7: tối đa 4 việc; các việc xác nhận gộp thành 1, bấm vào tới bước đầu tiên còn việc */
+function tasks(){
+  const s = docStats(), fAi = D.fields.filter(f=>f.st==='ai').length, cAi = D.secured ? D.coll.filter(c=>c.st==='ai').length : 0, rel = D.relConfirmed?0:1, lb = leaseBlank(), e2 = showErrs(true);
+  const conf = s.ai.length + fAi + rel + cAi;
+  const parts = [s.ai.length?`${s.ai.length} tài liệu`:'', fAi?`${fAi} thông tin khách hàng`:'', rel?'1 nhóm liên quan':'', cAi?`${cAi} giá trị định giá`:''].filter(Boolean).join(' · ');
+  const confGo = (fAi||rel) ? 's1' : cAi ? 's3' : 's4';
+  return [
+    {t:`Bổ sung ${s.bad.length} tài liệu bắt buộc`, d:s.bad.map(x=>docName(x).replace(/ \(.*\)/,'')+(x.st==='exp'?' (hết hiệu lực)':'')).join(' · ') || (s.exc.length?`Đã đủ hoặc đã đề xuất ngoại lệ (${s.exc.length})`:'Đã đủ'), left:s.bad.length, tot:Math.max(s.bad.length+s.exc.length, D.badTot||0, 1), go:'s4'},
+    {t:`Xác nhận ${conf} thông tin AI đề xuất`, d:parts || 'Đã xác nhận hết', left:conf, tot:Math.max(conf, (D.aiTot||0)+(D.fAiTot||0)+(D.cAiTot||0)+1, 1), go:confGo},
+    ...(D.secured?[{t:'Chọn hình thức trả tiền thuê đất', d:lb?'Quyền thuê đất KCN Tân Tạo, chưa chọn thì chưa gửi được':'Đã chọn', left:lb, tot:1, go:'s3'}]:[]),
+    ...(e2?[{t:`Sửa ${e2} lỗi ở Nhu cầu vay`, d:'Trường đang báo lỗi tại bước 2', left:e2, tot:e2, go:'s2'}]:[]),
+  ].map(x=>({...x, t: x.left? x.t : x.t.replace(/ \d+ /,' ')}));
+}
+function submitReason(){
+  const left = tasks().filter(x=>x.left>0);
+  return left.length ? `Chưa gửi được: còn ${left.length} việc – ${left.map(x=>x.t.charAt(0).toLowerCase()+x.t.slice(1)).join('; ')}.` : '';
+}
+/* Bấm nút Gửi đang khóa → về bước 5, đưa tới việc chưa xong đầu tiên */
+function focusFirstTodo(){
+  if(S.sec!=='s5') go('s5');
+  const el = document.querySelector('#readyHero .task:not(.done)');
+  if(el){ highlight(el); el.focus({preventScroll:true}); }
+}
+/* Lịch dự kiến nếu gửi hôm nay (BANK.SLA, ngày làm việc) – dùng cho SLA và kiểm tra hiệu lực (Q10, E6) */
+function plan(){
+  const sent = BANK.TODAY, kt = BANK.addWorkdays(sent, BANK.SLA.kiemtra), td = BANK.addWorkdays(kt, BANK.SLA.thamdinh), rr = BANK.addWorkdays(td, BANK.SLA.ruiro);
+  const cic = D.docs.find(z=>z.id==='cic'), until = cic.lookup ? BANK.cicValidUntil(cic.lookup) : null;
+  const sk = D.docs.find(z=>z.id==='saoke'), skUntil = sk && sk.issued ? BANK.docValidUntil(sk.issued) : null;
+  return {kt, td, rr, cicUntil:until, cicFlag: !!until && until < rr, skUntil, skFlag: !!skUntil && skUntil < rr};
+}
+/* Lưu ý chuyển kèm: {k:'verify'|'exc'|'cic', t} – ngoại lệ hiện dạng cờ ngoại lệ (E1) */
+function flagsCarried(){
+  const f = [];
+  D.docs.filter(d=>d.warn && (D.secured || !d.sec)).forEach(d=>f.push({k:'verify', t:`Cần xác minh: ${d.warn}`}));
+  if(D.secured) D.coll.filter(c=>c.lease).forEach(c=>f.push({k:'verify', t: c.lease==='year'
+    ? `Cần xác minh: ${c.n} trả tiền thuê hằng năm – Thẩm định tách phần giá trị, chỉ tính tài sản gắn liền với đất (Pháp chế cần xác nhận)`
+    : `Cần xác minh: ${c.n} trả tiền thuê một lần – cần chứng từ (Pháp chế cần xác nhận)`}));
+  if(D.relOut) f.push({k:'verify', t:`Nhóm liên quan: QHKH ghi Công ty CP Đầu tư Mekong không thuộc nhóm – lý do: ${D.relWhy}; căn cứ: ${D.relBasis}. Thẩm định rà lại; cộng lại mà vượt cấp thì "Nâng cấp phê duyệt"`});
+  docStats().exc.forEach(d=>f.push({k:'exc', t:`Cờ ngoại lệ: ${docName(d)} ${d.st==='exp'?'hết hiệu lực':'còn thiếu'} – lý do: ${d.excWhy}.${d.id==='cic'?' Vẫn phải tra lại trước khi trình phê duyệt.':''} Cấp phê duyệt chấp thuận hoặc từ chối cùng quyết định`}));
+  const P = plan();
+  if(P.cicFlag) f.push({k:'cic', t:`Cần tra cứu lại CIC trước khi trình (hết hiệu lực ${D_(P.cicUntil)})`});
+  if(P.skFlag) f.push({k:'cic', t:`Cần sao kê mới trước khi trình (sao kê hết hiệu lực ${D_(P.skUntil)})`});
+  return f;
+}
+function renderS5(){
+  const T = tasks(), left = T.filter(x=>x.left>0), s = docStats(), P = plan(), FL = flagsCarried();
+  /* Tổng hạng mục tính động: tài liệu bắt buộc (bỏ TSBĐ khi tín chấp) + trường AI + nhóm liên quan + giá trị TSBĐ (khi có TSBĐ) + lỗi bước 2 */
+  const errT = T.find(x=>/lỗi/.test(x.t));
+  const totItems = s.need.length + D.fields.length + 1 + (D.secured?D.coll.length:0) + (errT?errT.tot:0);
+  const doneItems = totItems - T.reduce((a,x)=>a+x.left,0);
+  const t = tierOf(totalCredit());
+  const slaTxt = `SLA ${BANK.SLA.kiemtra} ngày LV`;
+  let hero;
+  if(D.submitted){
+    hero = `<div class="hero ready"><div class="hero-top"><h2>Đã gửi Hỗ trợ tín dụng</h2><span class="muted">${D.submitted}</span></div>
+      <p style="margin:10px 0 0;color:var(--text-2)">Võ Văn Tâm kiểm tra tính đầy đủ hồ sơ · ${slaTxt} · hạn <b class="num">${D_(P.kt)} 17:00</b> (${BANK.dueText(P.kt)}). Đề xuất chỉ sửa được khi bị trả lại.</p>
+      <div class="hero-foot"><svg class="i sm"><use href="#i-lock"/></svg>Bạn không tham gia thẩm định và phê duyệt đề xuất này <button class="src" data-policy="3-4"><svg class="i xs"><use href="#i-book"/></svg>§3.4</button></div></div>`;
+  } else if(left.length){
+    hero = `<div class="hero"><div class="hero-top"><h2>Còn ${left.length} việc trước khi gửi Hỗ trợ tín dụng</h2><span class="muted">Nháp tự lưu · không có hạn</span></div>
+      <div class="prog"><span class="bar"><i style="width:${doneItems/totItems*100}%"></i></span><span><b>${Math.round(doneItems/totItems*100)}%</b> sẵn sàng · ${doneItems}/${totItems} hạng mục</span></div>
+      <ul class="tasks">${T.map((x,i)=>`<li><button class="task ${x.left?'':'done'}" data-go="${x.go}"><span class="tn">${x.left?i+1:'<svg class="i sm"><use href="#i-check"/></svg>'}</span>
+        <span><b>${x.t}</b><span class="ts">${x.d}</span></span>
+        <span class="tp"><span class="mbar"><i style="width:${(x.tot-Math.min(x.left,x.tot))/x.tot*100}%"></i></span>${x.tot-Math.min(x.left,x.tot)}/${x.tot}</span><svg class="i go"><use href="#i-right"/></svg></button></li>`).join('')}</ul>
+      <div class="hero-foot"><svg class="i sm"><use href="#i-lock"/></svg>Nút "Gửi Hỗ trợ tín dụng" mở khi xong các việc trên.</div></div>`;
+  } else {
+    const cicTxt = !P.cicUntil ? '' : P.cicUntil<BANK.TODAY
+      ? `CIC đã hết hiệu lực từ sau ${D_(P.cicUntil)} · chuyển kèm cờ ngoại lệ vì hệ thống CIC gián đoạn, vẫn phải tra lại trước khi trình phê duyệt`
+      : `CIC còn hiệu lực đến ${D_(P.cicUntil)}${P.cicFlag?' – sẽ hết trước khi xong Ý kiến rủi ro, hệ thống gắn cờ "Cần tra cứu lại trước khi trình"':` · đủ tới mốc dự kiến xong Ý kiến rủi ro ${D_(P.rr)}`}`;
+    hero = `<div class="hero ready"><div class="hero-top"><h2>Sẵn sàng gửi Hỗ trợ tín dụng</h2><span class="muted">${s.exc.length?`${s.ok}/${s.need.length} tài liệu đã đủ · ${s.exc.length} đề xuất ngoại lệ`:`${s.need.length}/${s.need.length} tài liệu`} · mọi thông tin đã xác nhận</span></div>
+      <p style="margin:10px 0 0;color:var(--text-2)">Người nhận: <b>Võ Văn Tâm</b> · Hỗ trợ tín dụng CN Sài Gòn · ${slaTxt} (gửi hôm nay → hạn ${D_(P.kt)} 17:00). Sau đó Thẩm định ${BANK.SLA.thamdinh} ngày LV → Ý kiến rủi ro ${BANK.SLA.ruiro} ngày LV → Phê duyệt cấp ${t[0]}: ${BANK.SLA.pheduyet} ngày LV.</p>
+      ${cicTxt?`<p style="margin:6px 0 0;font-size:13px" class="${P.cicFlag?'c-warn':'muted'}">${cicTxt}.</p>`:''}
+      <div class="hero-foot"><svg class="i sm"><use href="#i-info"/></svg>${FL.length} lưu ý chuyển kèm thành cờ cho Thẩm định${FL.some(x=>x.k==='exc')?` (có ${FL.filter(x=>x.k==='exc').length} cờ ngoại lệ)`:''}</div></div>`;
+  }
+  setHTML($('#readyHero'), hero);
+  const tot = D.coll.reduce((a,c)=>a+c.v,0);
+  const fAi = D.fields.filter(f=>f.st==='ai').length;
+  const row = (k,v,go)=>`<div class="kv"><div class="k">${k}</div><div>${v}</div><div class="acts">${D.submitted?'':`<button class="link" data-go="${go}">Sửa</button>`}</div></div>`;
+  setHTML($('#summary'),
+    row('Khách hàng', `Công ty TNHH Bao bì Mekong Flex · MST 0317891234 · khách mới${fAi?` · <span class="c-ai">${fAi} trường chưa xác nhận</span>`:''}`, 's1') +
+    row('Nhu cầu', `<span class="num">${PROD[D.prod]} <b>${fmt(D.amt)} tỷ</b> · ${D.term} tháng</span>`, 's2') +
+    row('Cấp phê duyệt', `<span class="num">Cấp ${t[0]} – ${t[1]} · tổng cấp tín dụng ${fmt(totalCredit())} tỷ (đề xuất ${fmt(D.amt)} + dư nợ hiện hữu của khách và bên liên quan ${fmt(exposureSum())})</span>`, 's2') +
+    row('Mục đích', esc($('#pur').value), 's2') +
+    row('Tài sản bảo đảm', D.secured ? `<span class="num">${D.coll.length} tài sản · ${tot} tỷ (${fmt(tot/D.amt)} lần nhu cầu, tham khảo)</span>${leaseBlank()?' · <span class="c-err">chưa chọn hình thức trả tiền thuê đất</span>':''}` : 'Tín chấp', 's3') +
+    row('Tài liệu', `<span class="num">${s.ok}/${s.need.length} đã đủ</span>${docLeftParts(s)?` · <span class="c-err">${docLeftParts(s)}</span>`:''}${s.exc.length?` · <span class="c-warn">${s.exc.length} đề xuất ngoại lệ</span>`:''}`, 's4') +
+    row('Nhóm khách hàng liên quan', 'Công ty CP Đầu tư Mekong (góp 60% vốn) · ' + (D.relOut ? '<span class="c-warn">Không thuộc nhóm</span>' : D.relConfirmed ? '<span class="c-ok">Đã xác nhận</span>' : '<span class="c-ai">AI đề xuất</span>'), 's1') +
+    row('Lưu ý chuyển kèm', FL.length ? FL.map(x=>`<div class="${x.k==='exc'?'c-err':'c-warn'}" style="display:flex;gap:6px;align-items:flex-start">${x.k==='exc'?`<span class="sev high" style="flex:none">Ngoại lệ</span>`:''}<span>${esc(x.t)}</span></div>`).join('') : '<span class="muted">Không có</span>', 's4'));
+}
+
+/* ---------- Mục lục (5 bước) + header ---------- */
+function buildSecs(){
+  const s = docStats(), fAi = D.fields.filter(f=>f.st==='ai').length, cAi = D.secured ? D.coll.filter(c=>c.st==='ai').length : 0, lb = leaseBlank();
+  const e2 = showErrs(true);
+  /* C-7: số ở mục lục = số dòng đếm được trong phần thân của bước đó */
+  const step = (id,i,n,cnt) => ({id, n, wz:i, done:cnt===null, cnt:cnt||undefined});
+  const ux = n => ({t:`${n} chưa XN`, cls:'ai', title:`${n} mục chưa xác nhận`});
+  const fS1 = fAi + (D.relConfirmed?0:1), docLeft = s.bad.length + s.ai.length;
+  SECS = [
+    {grp:'Soạn đề xuất · 5 bước'},
+    step('s1',1,'Khách hàng', fS1?ux(fS1):null),
+    step('s2',2,'Nhu cầu vay', e2?{t:`${e2} lỗi`,cls:'hot',title:`${e2} trường đang báo lỗi`}:null),
+    step('s3',3,'Tài sản bảo đảm', lb?{t:`${cAi+lb} còn lại`,cls:'',title:[cAi?`${cAi} chưa xác nhận`:'',`${lb} chưa chọn hình thức trả tiền thuê đất`].filter(Boolean).join(' · ')}:cAi?ux(cAi):null),
+    step('s4',4,'Hồ sơ tài liệu', s.bad.length?{t:`${docLeft} còn lại`,cls:'hot',title:docLeftParts(s)}:s.ai.length?ux(s.ai.length):null),
+    {id:'s5', n:'Xem lại &amp; gửi', wz:5, cnt:D.submitted?{t:'Đã gửi'}:undefined},
+  ];
+}
+function renderFacts(){
+  const tot = totalCredit(), t = tierOf(tot);
+  setHTML($('#facts'), `Nháp ${DRAFT_ID} · ${PROD[D.prod]} <b>${fmt(D.amt)} tỷ</b> · ${D.term} tháng · <span title="Tổng cấp tín dụng ${fmt(tot)} tỷ (${t[4]}) → Cấp ${t[0]} (ngưỡng cấu hình bởi Quản trị)">Cấp ${t[0]} · ${t[1]}</span>`);
+}
+/* D4, F1: header phải – [Hỏi AI] [Lưu nháp] [primary duy nhất]. setHTML: nội dung không đổi thì giữ nguyên nút */
+function renderHead(){
+  if(document.body.dataset.noAccess){ setHTML($('#headActions'),''); return; }
+  if(D.submitted){ setHTML($('#headActions'), AI_BTN + `<button class="btn" data-page="2"><svg class="i sm"><use href="#i-inbox"/></svg>Về Việc của tôi</button>`); return; }
+  let pri;
+  if(S.sec!=='s5'){ const nx = NEXT[S.sec] || NEXT.s4;
+    pri = `<button class="btn primary" id="hdPrimary" data-go="${nx[0]}">Tiếp: ${esc(nx[1])}<svg class="i sm"><use href="#i-arrow"/></svg></button>`; }
+  else { const r = submitReason();
+    pri = r ? `<button class="btn primary" id="hdPrimary" aria-disabled="true" data-lock="${esc(r)}" data-lockfocus title="${esc(r)}"><svg class="i sm"><use href="#i-lock"/></svg>Gửi Hỗ trợ tín dụng</button>`
+            : `<button class="btn primary" id="hdPrimary" data-submit><svg class="i sm"><use href="#i-send"/></svg>Gửi Hỗ trợ tín dụng</button>`; }
+  setHTML($('#headActions'), AI_BTN + `<button class="btn" id="saveDraft">Lưu nháp</button>` + pri);
+}
+/* Sau khi gửi: bước 1–4 chỉ xem, có dòng khóa */
+function renderReadOnly(){
+  const on = !!D.submitted;
+  document.body.classList.toggle('submitted', on);
+  ['custQ','amt','term','pur','rep'].forEach(id=>{ $('#'+id).readOnly = on; });
+  document.querySelectorAll('.tile').forEach(b=>{ if(on) b.setAttribute('aria-disabled','true'); else b.removeAttribute('aria-disabled'); });
+  document.querySelectorAll('.sec').forEach(sec=>{
+    if(sec.dataset.sec==='s5') return;
+    let l = sec.querySelector('.ro-line');
+    if(!l){ l = document.createElement('div'); l.className='ro-line'; sec.querySelector('.eyebrow').after(l); }
+    l.innerHTML = on ? `<svg class="i sm"><use href="#i-lock"/></svg>Đã gửi Hỗ trợ tín dụng lúc ${D.submitted} · chỉ xem. Đề xuất chỉ sửa được khi bị trả lại.` : '';
+  });
+}
+function refresh(){
+  /* Đang nhấn chuột: chờ tới sau click, nếu không cú bấm đầu tiên sẽ mất (xem PTR_DOWN) */
+  if(PTR_DOWN){ REFRESH_WAIT = true; return; }
+  showErrs(true);   /* đọc ô nhập vào D TRƯỚC khi vẽ – ô Cấp phê duyệt không còn trễ 1 phím */
+  applyValidity();
+  renderS1(); renderTier(); renderS3(); renderS4(); renderS5(); renderFacts();
+  buildSecs(); renderToc(); renderHead(); renderReadOnly();
+  saveState();
+}
+/* Nháp lưu vào sessionStorage (bọc try/catch) – tải lại hay mở lại từ rail đều không mất dữ liệu */
+let STORE_KEY = 'dx04:' + DRAFT_ID;   /* kịch bản mockup (#ready, #err, #consent, #cicdown) dùng khóa riêng, không đè nháp thật */
+const INPUTS = ['custQ','amt','term','pur','rep'];
+let SAVED_SEC = null;
+function saveState(){
+  if(!BOOTED || document.body.dataset.noAccess) return;
+  try{
+    sessionStorage.setItem(STORE_KEY, JSON.stringify({v:2, D, sec:S.sec,
+      inp:Object.fromEntries(INPUTS.map(id=>[id,$('#'+id).value])),
+      touched:['fAmt','fTerm','fPur','fRep'].filter(f=>$('#'+f).dataset.touched)}));
+  }catch(_){}
+}
+function loadState(){
+  try{
+    const raw = sessionStorage.getItem(STORE_KEY); if(!raw) return false;
+    const o = JSON.parse(raw); if(!o || (o.v!==1 && o.v!==2) || !o.D) return false;
+    const rev = x => x ? new Date(x) : x;
+    /* Nháp lưu trước vòng 3: tách dòng 78 tỷ (F9), không làm mất dữ liệu đã nhập */
+    if(o.v===1 && Array.isArray(o.D.coll)){ const i = o.D.coll.findIndex(c=>c.id==='c1' && c.v===78);
+      if(i>=0){ const c = o.D.coll[i]; o.D.coll.splice(i,1, {...D.coll[0]}, {...D.coll[1], lease:c.lease||''}); } }
+    (o.D.docs||[]).forEach(d=>{ if(d.lookup) d.lookup = rev(d.lookup); if(d.issued) d.issued = rev(d.issued);
+      /* đang tra cứu/phân loại dở khi tải lại: tác vụ đã mất → về trạng thái làm lại được */
+      if(d.st==='busy'){ if(d.id==='cic') d.st='exp'; else { d.st='ai'; d.conf = d.conf || 93; } }
+      /* F5: nháp cũ có ngoại lệ cho CIC thì bỏ, trừ khi hệ thống CIC gián đoạn */
+      if(d.id==='cic' && d.exc && !o.D.cicDown){ d.exc = false; delete d.excWhy; } });
+    Object.assign(D, o.D);
+    INPUTS.forEach(id=>{ if(o.inp && o.inp[id]!=null) $('#'+id).value = o.inp[id]; });
+    (o.touched||[]).forEach(f=>{ $('#'+f).dataset.touched = 1; });
+    document.querySelectorAll('[data-prod]').forEach(b=>b.setAttribute('aria-checked', String(b.dataset.prod===D.prod)));
+    SAVED_SEC = o.sec || null;
+    return true;
+  }catch(_){ return false; }
+}
+function touchSave(){ const d=new Date(); D.savedAt = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; renderSaved(); saveState(); }
+function renderSaved(){ if(D.savedAt) $('#savedAt').innerHTML = `${ic('i-checkc')}Đã tự lưu nháp lúc ${D.savedAt}`; }
+function onSec(sec){ SUGGEST = SUGG[sec] || SUGG.s4; buildSecs(); renderHead(); }
+function renderStepperSLA(){
+  $('#st2').title = `Hỗ trợ tín dụng · SLA ${BANK.SLA.kiemtra} ngày LV`;
+  $('#st3').title = `Chuyên viên Thẩm định · SLA ${BANK.SLA.thamdinh} ngày LV`;
+  $('#st4').title = `Quản lý rủi ro/Tuân thủ · SLA ${BANK.SLA.ruiro} ngày LV`;
+}
+
+/* ---------- Tương tác riêng trang ---------- */
+const CLASSIFY = [[/dong.?y|consent/i,'dongy'],[/de.?nghi.?cap/i,'denghi'],[/nghi.?quyet|nq_/i,'nghiquyet'],[/cong.?no|ton.?kho/i,'congno'],[/cic/i,'cic'],[/bctc|q3|quy|quý/i,'bctcq3'],[/hop.?dong|hđ|hd_|contract/i,'hd']];
+function ingest(files, target){
+  if(D.submitted){ toast('Đề xuất đã gửi – chỉ xem. Tải tài liệu khi Thẩm định yêu cầu bổ sung hoặc khi hồ sơ bị trả lại.'); return; }
+  [...files].forEach((f,k)=>{
+    let id = target; if(!id){ const m = CLASSIFY.find(([re])=>re.test(f.name)); id = m ? m[1] : null; }
+    /* Q2: khách không nộp CIC; bản CIC khách tự nộp không dùng để thẩm định */
+    if(id==='cic'){ toast(`"${f.name}" là CIC do khách nộp – không dùng để thẩm định. Bấm "Tra cứu CIC mới" để tra cứu trên hệ thống CIC.`); return; }
+    const d = id && D.docs.find(x=>x.id===id && x.st!=='ok' && x.st!=='ai');
+    if(!d){ toast(`AI chưa xếp được "${f.name}" vào mục bắt buộc nào – đã lưu vào "Tài liệu khác", bạn chọn mục sau.`); return; }
+    d.st='busy'; d.f=f.name; if(d.issued) d.issued=new Date(BANK.TODAY); d.exc=false; delete d.excWhy; refresh();
+    setTimeout(()=>{ d.st='ai'; d.conf = target?99:93; d.m = id==='bctcq3'?'Kỳ 01/07 – 30/09/2026':id==='hd'?'Hợp đồng thứ 2 · hiệu lực đến 12/2027':d.m; refresh(); touchSave();
+      toast(`AI đã xếp "${f.name}" vào mục "${docName(d)}" – chờ bạn xác nhận`); }, 900 + k*300);
+  });
+}
+const MUTATE = '[data-relout],[data-relsave],[data-relcancel],[data-relundo],[data-cf],[data-ef],[data-cd],[data-mv],[data-up],[data-cic],[data-cc],[data-addcoll],[data-prod],[data-sec3],[data-pickcust],[data-exc],[data-excsave],[data-exccancel],[data-excdel],[data-relok],#saveDraft,#pickBtn';
+document.addEventListener('click',e=>{
+  const j = e.target.closest('[data-jump]');
+  if(j){ const g = document.getElementById(j.dataset.jump); if(g){ highlight(g); } return; }
+  const t = e.target.closest(MUTATE+',[data-submit]');
+  if(!t) return; const d = t.dataset;
+  if(t.getAttribute('aria-disabled')==='true') return;   /* nút khóa: listener chung đã báo lý do */
+  if(D.submitted && t.matches(MUTATE)){ e.preventDefault(); toast('Đề xuất đã gửi – chỉ xem. Đề xuất chỉ sửa được khi bị trả lại.'); return; }
+  if(d.cf){ D.fields[d.cf].st='ok'; refresh(); touchSave(); toast(`Đã xác nhận "${D.fields[d.cf].k}" · ghi nhật ký bởi Nguyễn Thảo Vy`); return; }
+  if(d.ef){ toast('Mockup: mở ô sửa tại chỗ – giá trị sửa tay được ghi "Nhập bởi Nguyễn Thảo Vy"'); return; }
+  if(d.cd){ const x=D.docs.find(z=>z.id===d.cd); x.st='ok'; refresh(); touchSave(); toast(`Đã xác nhận "${docName(x)}" · ghi nhật ký bởi Nguyễn Thảo Vy`); return; }
+  if(d.mv){ toast('Mockup: chọn mục khác trong danh mục bắt buộc cho tài liệu này'); return; }
+  if(d.up){ $('#fileIn').dataset.target = d.up; $('#fileIn').click(); return; }
+  /* E1: đề xuất ngoại lệ cần lý do; có lý do thì mục không còn chặn Gửi, chuyển kèm thành cờ ngoại lệ */
+  if(d.exc){ EXC_OPEN = d.exc; EXC_DRAFT = ''; renderS4(); setTimeout(()=>$('#excWhy') && $('#excWhy').focus(),20); return; }
+  if(d.exccancel!==undefined){ closeOpenForm(); return; }
+  if(d.excsave){ const x=D.docs.find(z=>z.id===d.excsave), why=($('#excWhy').value||'').trim();
+    if(!why){ $('#excf-'+x.id).classList.add('bad'); $('#excWhy').setAttribute('aria-invalid','true'); $('#excWhy').focus(); return; }
+    x.exc=true; x.excWhy=why; EXC_OPEN=null; EXC_DRAFT=''; refresh(); touchSave();
+    toast(`Đã ghi đề xuất ngoại lệ cho "${docName(x)}" · mục này không còn chặn Gửi, chuyển kèm thành cờ ngoại lệ · ghi nhật ký bởi Nguyễn Thảo Vy`); return; }
+  if(d.excdel){ const x=D.docs.find(z=>z.id===d.excdel); x.exc=false; delete x.excWhy; refresh(); touchSave();
+    toast(`Đã rút đề xuất ngoại lệ cho "${docName(x)}" · đã ghi nhật ký bởi Nguyễn Thảo Vy · mục này lại chặn Gửi`); return; }
+  /* E4: QHKH xác nhận nhóm khách hàng liên quan */
+  if(d.relok!==undefined){ D.relConfirmed = true; D.relOut = false; RELF.open = false; refresh(); touchSave(); toast('Đã xác nhận nhóm khách hàng liên quan · ghi nhật ký bởi Nguyễn Thảo Vy'); return; }
+  /* F10: "Không thuộc nhóm" bắt buộc lý do và căn cứ; tổng và cấp tính lại; chuyển kèm cờ */
+  if(d.relout!==undefined){ RELF.open = !RELF.open; RELF.bad=''; refresh(); if(RELF.open) setTimeout(()=>$('#relWhy') && $('#relWhy').focus(),20); return; }
+  if(d.relcancel!==undefined){ RELF.open = false; RELF.bad=''; refresh(); const b=$('[data-relout]'); b && b.focus(); return; }
+  if(d.relsave!==undefined){ const why = RELF.why.trim(), basis = RELF.basis.trim();
+    if(!why || !basis){ RELF.bad = !why && !basis ? 'Nhập lý do và căn cứ.' : !why ? 'Nhập lý do.' : 'Nhập căn cứ.'; refresh(); const f = !why ? $('#relWhy') : $('#relBasis'); f.setAttribute('aria-invalid','true'); f.focus(); return; }
+    D.relConfirmed = true; D.relOut = true; D.relWhy = why; D.relBasis = basis; RELF.open = false; RELF.bad=''; refresh(); touchSave();
+    toast(`Đã ghi không thuộc nhóm · tổng cấp tín dụng ${fmt(totalCredit())} tỷ · chuyển kèm cờ cho Thẩm định · ghi nhật ký bởi Nguyễn Thảo Vy`); return; }
+  if(d.relundo!==undefined){ D.relConfirmed = false; D.relOut = false; D.relWhy = ''; D.relBasis = ''; refresh(); touchSave(); toast('Đã hoàn tác: nhóm liên quan về AI đề xuất, tổng tính lại · ghi nhật ký bởi Nguyễn Thảo Vy'); return; }
+  /* Q2: QHKH tra cứu CIC trên hệ thống; hiệu lực 30 ngày (BANK.cicValidUntil) */
+  if(d.cic!==undefined){ const x=D.docs.find(z=>z.id==='cic'); x.st='busy'; refresh(); toast('Đang tra cứu CIC trên hệ thống CIC · ghi nhật ký bởi Nguyễn Thảo Vy');
+    setTimeout(()=>{ x.st='ok'; x.lookup=new Date(BANK.TODAY); x.by='Nguyễn Thảo Vy'; x.f='Hệ thống CIC'; refresh(); touchSave();
+      toast(`Đã có kết quả tra cứu CIC ngày ${D_(BANK.TODAY)} – còn hiệu lực đến ${D_(BANK.cicValidUntil(BANK.TODAY))}`); },1200); return; }
+  if(d.cc){ D.coll.find(c=>c.id===d.cc).st='ok'; refresh(); touchSave(); toast('Đã xác nhận giá trị định giá · ghi nhật ký bởi Nguyễn Thảo Vy'); return; }
+  if(d.addcoll!==undefined){ toast('Mockup: thêm dòng tài sản – loại, giá trị định giá, chủ sở hữu'); return; }
+  if(d.prod){ D.prod=d.prod; document.querySelectorAll('[data-prod]').forEach(b=>b.setAttribute('aria-checked',String(b===t))); $('#fTerm').dataset.touched=1; refresh(); touchSave(); return; }
+  if(d.sec3){ D.secured = d.sec3==='co'; refresh(); touchSave(); return; }
+  if(d.pickcust!==undefined){ toast('Mockup: Công ty CP Đầu tư Mekong là khách khác – đề xuất này dành cho Mekong Flex'); return; }
+  if(d.submit!==undefined){
+    const r = submitReason(); if(r){ toast(r); focusFirstTodo(); return; }
+    EXC_OPEN = null; const n=new Date(); D.submitted = `${D_(BANK.TODAY)} ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+    if(S.sec!=='s5') go('s5'); refresh(); $('#content').scrollTo({top:0});
+    toast('Đã gửi đề xuất cho Hỗ trợ tín dụng · ghi nhật ký bởi Nguyễn Thảo Vy'); return; }
+  if(t.id==='saveDraft'){ saveState(); touchSave(); toast(`Đã lưu nháp ${DRAFT_ID} · ghi nhật ký bởi Nguyễn Thảo Vy`); return; }
+  if(t.id==='pickBtn'){ delete $('#fileIn').dataset.target; $('#fileIn').click(); return; }
+});
+$('#fileIn').addEventListener('change',e=>{ ingest(e.target.files, e.target.dataset.target); e.target.value=''; });
+const dz = $('#drop');
+['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{ e.preventDefault(); dz.classList.add('over'); }));
+['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{ e.preventDefault(); dz.classList.remove('over'); }));
+dz.addEventListener('drop',e=>ingest(e.dataTransfer.files));
+['amt','term','pur','rep'].forEach(id=>{
+  const el = $('#'+id), f = el.closest('.field');
+  /* Lùi refresh() ra sau blur: focus đã tới đích; đang nhấn chuột thì refresh() tự chờ tới sau click (xem PTR_DOWN) */
+  el.addEventListener('blur',()=>{ if(D.submitted) return; f.dataset.touched=1; setTimeout(refresh,0); });
+  el.addEventListener('input',()=>{ if(D.submitted) return; if(f.dataset.touched || id==='amt'){ f.dataset.touched=1; refresh(); touchSave(); } });
+});
+document.addEventListener('input',e=>{ if(e.target.id==='relWhy') RELF.why = e.target.value; if(e.target.id==='relBasis') RELF.basis = e.target.value;
+  if(e.target.id==='excWhy'){ EXC_DRAFT = e.target.value; const f=e.target.closest('.excf'); if(f && e.target.value.trim()){ f.classList.remove('bad'); e.target.removeAttribute('aria-invalid'); } } });
+document.addEventListener('change',e=>{ const sel = e.target.closest('[data-lease]'); if(!sel) return;
+  if(D.submitted){ refresh(); return; }
+  const c = D.coll.find(x=>x.id===sel.dataset.lease); c.lease = sel.value; refresh(); touchSave();
+  toast(c.lease ? `Đã ghi hình thức trả tiền thuê đất: ${LEASE[c.lease]} · chuyển kèm cờ cho Thẩm định` : 'Chưa chọn hình thức trả tiền thuê đất: chưa gửi được'); });
+document.querySelectorAll('[role="radio"]').forEach(r=>r.addEventListener('keydown',e=>{
+  if(!['ArrowRight','ArrowLeft'].includes(e.key)) return; e.preventDefault();
+  if(D.submitted) return;
+  const sibs=[...r.parentElement.children], n=sibs[(sibs.indexOf(r)+(e.key==='ArrowRight'?1:sibs.length-1))%sibs.length]; n.focus(); n.click();
+}));
+
+/* ===================== KHỞI TẠO + DEEP LINK ===================== */
+/* #draft · #sec=s1..s5 (sai → s4) · #role · #ai=open · #pol=6-4 · #doc · #cite
+   Kịch bản mockup (khóa lưu riêng): #ready=1 mọi việc đã xong · #err=1 bước 2 có lỗi · #consent=0|ai văn bản đồng ý thiếu hoặc chưa xác nhận · #cicdown=1 hệ thống CIC gián đoạn */
+const mockKey = h => ['ready','err','consent','cicdown'].filter(k=>h.get(k)).map(k=>k+'='+h.get(k)).join('&');
+function applyHash(){
+  const h = new URLSearchParams(location.hash.slice(1));
+  if(h.get('role') && ROLES[h.get('role')] && h.get('role')!==S.role) applyRole(h.get('role'));
+  if(h.get('sec') && h.get('sec')!==S.sec) go(h.get('sec'));
+  const allowed = !document.body.dataset.noAccess;
+  if(allowed && h.get('ai')==='open'){ if(!S.ai) setAI(true); } else if(S.ai) setAI(false);
+  if(allowed && h.get('cite') && CITES[h.get('cite')]) CITES[h.get('cite')]();
+  else if(allowed && h.get('pol') && $('#pol-'+h.get('pol'))){ if(h.get('pol')!==S.pol) openPolicy(h.get('pol')); }
+  else if(allowed && h.get('doc') && VIEW[h.get('doc')]){ if(h.get('doc')!==S.doc || (h.get('field')||null)!==S.docField) openDoc(h.get('doc'), h.get('field')); }
+  else if(S.pol || S.doc) closePolicy(false);
+}
+const MOCK = (function(){
+  const h = new URLSearchParams(location.hash.slice(1));
+  const mock = mockKey(h);
+  if(mock) STORE_KEY += ':' + mock;
+  let navType = 'navigate'; try{ navType = (performance.getEntriesByType('navigation')[0]||{}).type || 'navigate'; }catch(_){}
+  /* Mở thường (rail, nút "Tạo đề xuất vay", link nháp): LUÔN khôi phục nháp đã lưu, không bao giờ đè hay giấu nó.
+     Kịch bản mockup: mở mới dựng lại kịch bản; chỉ khôi phục khi tải lại hoặc quay lại. */
+  const restored = (!mock || navType==='reload' || navType==='back_forward') && loadState();
+  if(!restored){
+    if(h.get('ready')){
+      D.docs.forEach(d=>{ if(d.id==='cic'){ d.st='ok'; d.lookup=new Date(BANK.TODAY); d.by='Nguyễn Thảo Vy'; return; } if(d.st!=='ok'){ d.st='ok'; d.f=d.f||'Tai_lieu_bo_sung.pdf'; } });
+      D.fields.forEach(f=>f.st='ok'); D.coll.forEach(c=>{ c.st='ok'; if(c.lease!==undefined) c.lease='once'; }); D.relConfirmed = true; }
+    /* #consent=0: chưa có văn bản đồng ý · #consent=ai: AI phân loại, chưa xác nhận (F11) → "Tra cứu CIC mới" bị khóa */
+    if(h.get('consent')==='0'){ const c = D.docs.find(z=>z.id==='dongy'); c.st='miss'; delete c.f; c.m='Bắt buộc trước khi tra cứu CIC'; }
+    if(h.get('consent')==='ai'){ const c = D.docs.find(z=>z.id==='dongy'); c.st='ai'; c.conf=95; }
+    if(h.get('cicdown')) D.cicDown = true;
+    if(h.get('err')){ $('#term').value='18'; $('#fTerm').dataset.touched=1; }
+    /* mẫu số cho thanh "x/y" của từng việc ở bước 5 = số việc lúc mở nháp */
+    const s0 = docStats();
+    D.badTot = s0.bad.length; D.aiTot = s0.ai.length; D.fAiTot = D.fields.filter(f=>f.st==='ai').length; D.cAiTot = D.coll.filter(c=>c.st==='ai').length;
+  }
+  renderStepperSLA(); renderSaved();
+  applyValidity();
+  S.sec = SAVED_SEC || 's4';
+  SUGGEST = SUGG[S.sec] || SUGG.s4;
+  buildSecs();
+  applyRole('qhkh'); go(S.sec); renderCtx(); syncLockTitles();
+  applyHash();
+  BOOTED = true;
+  const dr = h.get('draft');
+  if(dr && dr!==DRAFT_ID && !document.body.dataset.noAccess) toast(`Không tìm thấy nháp ${dr} – đang mở nháp ${DRAFT_ID}`);
+  syncHash();
+  if(mock) saveState();   /* tải lại kịch bản mockup giữ nguyên; mở thường không ghi gì cho tới khi có thao tác */
+  addEventListener('pagehide', saveState);
+  return mock;
+})();
+/* hashchange: áp hash tại chỗ. Đổi kịch bản mockup thì tải lại vì dữ liệu nháp khác khóa. */
+addEventListener('hashchange',()=>{
+  if(mockKey(new URLSearchParams(location.hash.slice(1)))!==MOCK){ location.reload(); return; }
+  applyHash(); syncHash();
+});
+</script>
+</body>
+</html>

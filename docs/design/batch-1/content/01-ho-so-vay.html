@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chi tiết hồ sơ vay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!--
+  MOCKUP 01 – Chi tiết hồ sơ vay (góc nhìn Chuyên viên Thẩm định, bước "Đang thẩm định")
+  Hiện thực bằng React + Ant Design 6:
+    App shell      -> <Layout> + <Layout.Sider width={224}> + <Menu mode="inline"> + <Layout.Header>
+    Khung trợ lý   -> <Layout.Sider placement="right" width={392} collapsible collapsedWidth={44}> (hoặc Splitter)
+    Header hồ sơ   -> <Breadcrumb>, <Typography.Title level={4}>, <Tag>, <Descriptions size="small" column={7}>, <Steps size="small">
+    Tabs           -> <Tabs> (sticky qua tabBarStyle / Affix)
+    Bảng           -> <Table size="small" bordered={false} pagination={false}> với column.render
+    Tooltip/khóa   -> <Tooltip>, <Button disabled icon={<LockOutlined/>}>
+    Điều khoản CS  -> <Drawer placement="right" width={480}>
+    Thông báo      -> message.success()
+  Màu lấy từ frontend/src/theme/tokens.ts -> map vào ConfigProvider theme.token + CSS variables bên dưới.
+-->
+<style>
+:root{
+  /* Thương hiệu (tokens.ts) */
+  --orange-50:#FFF7F0; --orange-100:#FEEBDD; --orange-200:#FDD3B5; --orange-500:#F37021; --orange-600:#DD5A12; --orange-700:#B9450C;
+  /* CTA: cam SHB làm tối để chữ trắng đạt AA (4.7:1). #F37021 giữ cho điểm nhấn không chứa chữ */
+  --cta:#C44D0E; --cta-hover:#A9410B;
+  --navy-50:#F3F3FA; --navy-100:#E1E1F3; --navy-200:#C0BFE7; --navy-500:#4F4DB0; --navy-600:#3C3A96; --navy-700:#2F2E79; --navy-800:#23224F; --navy-900:#1B1A46;
+  /* Trung tính ấm */
+  --canvas:#F7F5F1; --surface:#FFFFFF; --surface-soft:#FFFBF7; --surface-sunken:#FAF8F5;
+  --border:#EAE3DA; --border-strong:#D9D0C5; --divider:#F1ECE5;
+  --text:#18212B; --text-2:#475467; --text-3:#5F6B7A; --text-disabled:#98A2B3;
+  /* Trạng thái (đã chỉnh để chữ trên nền nhạt đạt ≥4.5:1) */
+  --success:#11734F; --success-bg:#ECFAF4; --success-border:#A6E0C8;
+  --warning:#94560A; --warning-bg:#FFF6E5; --warning-border:#F2CC86;
+  --error:#B42318; --error-bg:#FEF3F2; --error-border:#F4B4AD;
+  --info:#226189; --info-bg:#EFF8FC; --info-border:#B5DAEE;
+  /* AI – màu riêng, không trùng thương hiệu/trạng thái */
+  --ai:#5B3FA8; --ai-strong:#4A3191; --ai-bg:#F4F1FC; --ai-border:#CFC3EE;
+  /* Hình khối */
+  --r-sm:4px; --r:6px; --r-md:8px; --r-lg:12px;
+  --shadow-sm:0 1px 2px rgba(35,34,79,.06);
+  --shadow-md:0 8px 30px rgba(35,34,79,.10);
+  --shadow-lg:0 16px 48px rgba(35,34,79,.16);
+  --sider-w:224px; --ai-w:376px; --topbar-h:56px;
+  --font:"Be Vietnam Pro", Inter, "Segoe UI", system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);font-size:13px;line-height:1.5;color:var(--text);background:var(--canvas);min-width:1280px;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--navy-600);outline-offset:2px;border-radius:var(--r-sm)}
+.num{font-variant-numeric:tabular-nums}
+svg.i{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+svg.i.sm{width:14px;height:14px}
+svg.i.xs{width:12px;height:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- App shell ---------- */
+.app{display:grid;grid-template-columns:var(--sider-w) 1fr;height:100vh}
+.sider{background:var(--navy-900);color:#E6E6F4;display:flex;flex-direction:column;min-height:0}
+.brand{height:var(--topbar-h);display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand-mark{width:28px;height:28px;border-radius:6px;background:var(--orange-500);display:grid;place-items:center;font-weight:700;color:#fff;font-size:12px;letter-spacing:.5px}
+.brand b{display:block;font-size:14px;color:#fff;line-height:1.2}
+.brand small{font-size:11px;color:#B9B8DA}
+.nav{padding:12px 8px;display:flex;flex-direction:column;gap:2px;flex:1}
+.nav-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#A9A8CF;padding:12px 10px 6px}
+.nav a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);color:#D9D9EE;text-decoration:none;font-size:13.5px;position:relative}
+.nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav a.active{background:rgba(255,255,255,.10);color:#fff;font-weight:600}
+.nav a.active::before{content:"";position:absolute;left:-8px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--orange-500)}
+.nav .badge{margin-left:auto;background:rgba(255,255,255,.14);color:#fff;font-size:11px;padding:0 6px;border-radius:10px;line-height:18px}
+.sider-foot{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:#A9A8CF}
+
+.main{display:grid;grid-template-rows:var(--topbar-h) 1fr;min-width:0;min-height:0}
+.topbar{display:flex;align-items:center;gap:16px;padding:0 16px 0 20px;background:var(--surface);border-bottom:1px solid var(--border)}
+.search{flex:0 1 480px;display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:1px solid var(--border-strong);border-radius:var(--r);background:var(--surface-sunken);color:var(--text-3)}
+.search input{border:0;background:transparent;outline:0;flex:1;font:inherit;color:var(--text)}
+.search kbd{font:500 11px var(--font);border:1px solid var(--border-strong);border-radius:4px;padding:0 5px;color:var(--text-3);background:#fff}
+.topbar .spacer{flex:1}
+.role-demo{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);padding:4px 8px;border:1px dashed var(--border-strong);border-radius:var(--r)}
+.role-demo select{font:inherit;font-size:12px;border:0;background:transparent;color:var(--navy-700);font-weight:600}
+.icon-btn{position:relative;width:34px;height:34px;display:grid;place-items:center;border:0;background:transparent;border-radius:var(--r);color:var(--text-2)}
+.icon-btn:hover{background:var(--surface-sunken)}
+.icon-btn .dot{position:absolute;top:4px;right:3px;min-width:16px;height:16px;border-radius:8px;background:var(--error);color:#fff;font-size:10px;font-weight:600;display:grid;place-items:center;padding:0 4px}
+.user{display:flex;align-items:center;gap:10px;padding-left:12px;border-left:1px solid var(--border)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--navy-100);color:var(--navy-700);display:grid;place-items:center;font-weight:600;font-size:12px}
+.user b{display:block;font-size:13px;line-height:1.25}
+.user small{font-size:12px;color:var(--text-3)}
+
+.workspace{display:grid;grid-template-columns:1fr var(--ai-w);min-height:0;transition:grid-template-columns .28s cubic-bezier(.22,1,.36,1)}
+.workspace.ai-collapsed{grid-template-columns:1fr 44px}
+.page{overflow:auto;min-width:0}
+
+/* ---------- Header hồ sơ ---------- */
+.case-head{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px 0}
+.crumb{font-size:12px;color:var(--text-3);display:flex;gap:6px;align-items:center}
+.crumb a{color:var(--text-3);text-decoration:none}.crumb a:hover{color:var(--navy-700);text-decoration:underline}
+.head-row{display:flex;align-items:flex-start;gap:16px;margin-top:6px}
+.head-title{flex:1;min-width:0}
+.head-title h1{margin:0;font-size:19px;line-height:1.3;font-weight:600;color:var(--navy-700);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.head-sub{font-size:13px;color:var(--text-3);margin-top:2px}
+.head-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.head-actions .row{display:flex;gap:8px}
+.gate{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:6px}
+.gate b{color:var(--warning)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:var(--r);border:1px solid var(--border-strong);background:var(--surface);font-weight:500;font-size:13px;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--navy-200);background:var(--navy-50)}
+.btn.primary{background:var(--cta);border-color:var(--cta);color:#fff}
+.btn.primary:hover{background:var(--cta-hover)}
+.btn.primary[aria-disabled="true"],.btn[aria-disabled="true"]{background:#F2F0EC;border-color:var(--border);color:var(--text-disabled);cursor:not-allowed}
+.btn.sm{height:26px;padding:0 10px;font-size:12px}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--navy-700)}
+.btn.ghost:hover{background:var(--navy-50)}
+.btn.ai{color:var(--ai);border-color:var(--ai-border);background:var(--ai-bg)}
+
+.meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin:12px 0 0;border:1px solid var(--divider);border-radius:var(--r-md);background:var(--divider);overflow:hidden}
+.meta div{padding:7px 12px;background:var(--surface-soft);min-width:0}
+.meta dt{font-size:12px;color:var(--text-3);margin:0 0 2px;display:flex;align-items:center;gap:4px}
+.meta dd{margin:0;font-weight:600;font-size:12.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta dd small{font-weight:400;color:var(--text-3)}
+
+.steps{display:grid;grid-template-columns:repeat(6,1fr);gap:0;margin:14px 0 0;padding-bottom:12px}
+.step{position:relative;padding-right:8px}
+.step::after{content:"";position:absolute;top:11px;left:30px;right:8px;height:2px;background:var(--border)}
+.step:last-child::after{display:none}
+.step.done::after{background:var(--success)}
+.step-top{display:flex;align-items:center;gap:8px;position:relative;z-index:1}
+.step-dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600;background:var(--surface);border:2px solid var(--border-strong);color:var(--text-3)}
+.step.done .step-dot{background:var(--success);border-color:var(--success);color:#fff}
+.step.current .step-dot{border-color:var(--orange-500);color:var(--orange-700);box-shadow:0 0 0 4px rgba(243,112,33,.14)}
+.step-title{font-size:12px;line-height:1.3;font-weight:600;background:var(--surface);padding-right:6px}
+.step.pending .step-title{color:var(--text-3);font-weight:500}
+.step-meta{font-size:11.5px;color:var(--text-3);margin:4px 0 0 32px;line-height:1.4}
+.step-meta b{color:var(--text-2);font-weight:500}
+.sla{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--warning-bg);color:var(--warning);border:1px solid var(--warning-border);margin-top:3px}
+
+/* ---------- Tabs ---------- */
+.tabs{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;display:flex;gap:2px;overflow-x:auto}
+.tab{border:0;background:transparent;padding:10px 7px 9px;font-size:13px;color:var(--text-2);border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--navy-700)}
+.tab[aria-selected="true"]{color:var(--navy-700);font-weight:600;border-bottom-color:var(--orange-500)}
+.tab .cnt{font-size:11px;font-weight:600;padding:0 6px;border-radius:9px;line-height:17px;background:var(--surface-sunken);color:var(--text-3);border:1px solid var(--border)}
+.tab .cnt.warn{background:var(--warning-bg);color:var(--warning);border-color:var(--warning-border)}
+.tab .cnt.ai{background:var(--ai-bg);color:var(--ai);border-color:var(--ai-border)}
+
+.panel{padding:16px 24px 40px}
+.panel[hidden]{display:none}
+
+/* ---------- Thẻ / section ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:16px}
+.card-h{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--divider)}
+.card-h h2{margin:0;font-size:15px;font-weight:600;color:var(--navy-700)}
+.card-h .desc{font-size:12px;color:var(--text-3)}
+.card-h .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.card-b{padding:12px 14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:16px}
+
+/* Tag */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;line-height:18px;font-weight:500;padding:1px 7px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface-sunken);color:var(--text-2);white-space:nowrap}
+.tag.success{color:var(--success);background:var(--success-bg);border-color:var(--success-border)}
+.tag.warning{color:var(--warning);background:var(--warning-bg);border-color:var(--warning-border)}
+.tag.error{color:var(--error);background:var(--error-bg);border-color:var(--error-border)}
+.tag.info{color:var(--info);background:var(--info-bg);border-color:var(--info-border)}
+.tag.navy{color:var(--navy-700);background:var(--navy-50);border-color:var(--navy-100)}
+.tag.ai{color:var(--ai);background:var(--ai-bg);border-color:var(--ai-border);border-style:dashed}
+.tag.orange{color:var(--orange-700);background:var(--orange-50);border-color:var(--orange-200)}
+
+/* Trạng thái số liệu (quy ước dùng chung toàn hệ thống) */
+.prov{display:inline-flex;align-items:center;gap:4px;font-size:12px;line-height:18px;white-space:nowrap}
+.prov.ai{color:var(--ai)}
+.prov.ok{color:var(--success)}
+.prov.verify{color:var(--warning)}
+.prov small{color:var(--text-3);font-size:11px;display:block;white-space:normal;max-width:130px}
+.t td.name{min-width:180px}
+.prov{align-items:flex-start}.prov svg{margin-top:2px}
+.prov span{line-height:1.3}
+.srcs{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.iconbtn{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:var(--r-sm);border:1px solid var(--border-strong);background:#fff;color:var(--text-2);margin-left:4px}
+.iconbtn:hover{border-color:var(--success);color:var(--success);background:var(--success-bg)}
+.iconbtn.aib{color:var(--ai);border-color:var(--ai-border);background:var(--ai-bg)}
+.iconbtn.aib:hover{background:var(--ai);color:#fff}
+td.v-ai{box-shadow:inset 0 -2px 0 0 var(--ai-border)}
+.cell-flag{display:inline-flex;align-items:center;gap:3px;color:var(--warning);font-weight:600;border-bottom:1px dashed var(--warning)}
+
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-3);align-items:center}
+.legend .prov{align-items:center}
+.legend .prov svg{margin-top:0}
+
+/* Bảng */
+table.t{width:100%;border-collapse:collapse;font-size:12.5px}
+.t th{background:var(--surface-sunken);text-align:left;font-weight:600;font-size:12px;color:var(--text-2);padding:7px 8px;border-bottom:1px solid var(--border);white-space:nowrap;z-index:2}
+.t th.r,.t td.r{text-align:right}
+.t th small{display:block;font-weight:400;color:var(--text-3);font-size:11px}
+.t td{padding:6px 8px;border-bottom:1px solid var(--divider);vertical-align:middle}
+.t tr:hover td{background:#FFFCF8}
+.t tr.grp td{background:var(--surface-soft);font-weight:600;color:var(--navy-700);font-size:12px;text-transform:uppercase;letter-spacing:.4px;padding:6px 10px}
+.t td.name{font-weight:500}
+.t td.name small{display:block;color:var(--text-3);font-weight:400;font-size:12px}
+.t .val{font-weight:600;font-size:13.5px}
+.t .muted{color:var(--text-3)}
+.t td.act{white-space:nowrap;text-align:right;width:1%}
+.t tr.flash td,.flash{animation:flash 2.2s ease-out}
+@keyframes flash{0%,35%{background:var(--orange-100)}100%{background:transparent}}
+.t tr.target td{box-shadow:inset 0 1px 0 var(--orange-500),inset 0 -1px 0 var(--orange-500)}
+.t tr.target td:first-child{box-shadow:inset 3px 0 0 var(--orange-500),inset 0 1px 0 var(--orange-500),inset 0 -1px 0 var(--orange-500)}
+
+.src{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-sm);padding:0 6px;font-size:12px;line-height:20px;color:var(--navy-700);white-space:nowrap;margin:1px 2px 1px 0}
+.src:hover{border-color:var(--navy-200);background:var(--navy-50);text-decoration:underline}
+.src.calc{color:var(--text-2)}
+.askai{display:inline-flex;align-items:center;gap:4px;border:1px solid transparent;background:transparent;color:var(--ai);border-radius:var(--r-sm);padding:0 6px;font-size:12px;line-height:22px;opacity:.75}
+.askai:hover,.askai:focus-visible{opacity:1;background:var(--ai-bg);border-color:var(--ai-border)}
+tr:hover .askai{opacity:1}
+.confirm{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--border-strong);background:var(--surface);color:var(--text-2);border-radius:var(--r-sm);padding:0 7px;font-size:12px;line-height:22px}
+.confirm:hover{border-color:var(--success);color:var(--success);background:var(--success-bg)}
+
+.result{white-space:nowrap;display:inline-flex;align-items:center;gap:4px;font-weight:600;font-size:12px;padding:1px 7px;border-radius:var(--r-sm)}
+.result.pass{color:var(--success);background:var(--success-bg)}
+.result.fail{color:var(--error);background:var(--error-bg)}
+.margin{font-size:12px;color:var(--text-3)}
+
+/* Alerts */
+.issue{display:grid;grid-template-columns:20px 1fr auto;gap:10px;padding:10px 14px;border-bottom:1px solid var(--divider);align-items:start}
+.issue:last-child{border-bottom:0}
+.issue .ic{color:var(--warning);margin-top:2px}
+.issue.err .ic{color:var(--error)}
+.issue b{font-weight:600}
+.issue p{margin:2px 0 4px;color:var(--text-2);font-size:13px}
+.issue .acts{display:flex;gap:6px;align-items:center}
+
+.progress{height:6px;border-radius:3px;background:var(--divider);overflow:hidden;width:120px}
+.progress i{display:block;height:100%;background:var(--success)}
+
+dl.desc{display:grid;grid-template-columns:112px 1fr;margin:0;font-size:13px}
+dl.desc dt{color:var(--text-3);padding:5px 0;border-bottom:1px solid var(--divider)}
+dl.desc dd{margin:0;padding:5px 0;border-bottom:1px solid var(--divider);font-weight:500}
+
+.check{display:flex;gap:8px;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px solid var(--divider)}
+.check:last-child{border-bottom:0}
+.check .ok{color:var(--success)} .check .pend{color:var(--text-disabled)} .check .wip{color:var(--orange-600)}
+.check span.r{margin-left:auto;font-size:12px;color:var(--text-3)}
+
+/* Tài liệu */
+.docs{display:grid;grid-template-columns:330px 1fr;gap:16px;align-items:start}
+.doc-item{display:grid;grid-template-columns:18px 1fr auto;gap:8px;padding:8px 12px;border-bottom:1px solid var(--divider);cursor:pointer;align-items:start}
+.doc-item:hover{background:#FFFCF8}
+.doc-item[aria-selected="true"]{background:var(--navy-50);box-shadow:inset 3px 0 0 var(--navy-700)}
+.doc-item b{font-size:13px;font-weight:500;display:block}
+.doc-item small{font-size:12px;color:var(--text-3)}
+.doc-grp{padding:6px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);background:var(--surface-soft);border-bottom:1px solid var(--divider)}
+.viewer{min-width:0;background:#E9E5DF;border-radius:var(--r-md);border:1px solid var(--border);position:sticky;top:60px}
+.viewer-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);border-radius:var(--r-md) var(--r-md) 0 0;font-size:13px}
+.viewer-bar .right{margin-left:auto;display:flex;gap:4px}
+.paper{background:#fff;margin:14px auto;width:92%;padding:22px 20px;box-shadow:0 2px 10px rgba(0,0,0,.12);font-family:"Times New Roman",serif;color:#111;font-size:12.5px}
+.paper h3{text-align:center;margin:0 0 2px;font-size:15px;text-transform:uppercase}
+.paper .ps{text-align:center;font-style:italic;font-size:12px;margin-bottom:12px}
+.paper table{width:100%;border-collapse:collapse}
+.paper td{border:1px solid #444;padding:4px 6px;overflow-wrap:anywhere}
+.paper td.r{text-align:right}
+.paper tr.hl td{background:rgba(243,112,33,.16);outline:2px solid var(--orange-500);outline-offset:-1px}
+.paper .wm{color:#999;font-size:11px;text-align:center;margin-top:12px;font-style:italic}
+
+/* Tờ trình */
+.rpt-sec{display:grid;grid-template-columns:36px 1fr auto;gap:10px;padding:10px 14px;border-bottom:1px solid var(--divider);align-items:start}
+.rpt-sec .no{font-weight:600;color:var(--navy-700)}
+.rpt-sec p{margin:2px 0 0;font-size:13px;color:var(--text-2)}
+.ai-block{border:1px dashed var(--ai-border);background:var(--ai-bg);border-radius:var(--r-md);padding:10px 12px;margin-top:8px}
+.ai-block .hd{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ai);font-weight:600;margin-bottom:6px}
+.ai-block .hd .right{margin-left:auto;display:flex;gap:6px}
+.ai-block.confirmed{border-style:solid;border-color:var(--success-border);background:var(--success-bg)}
+.ai-block.confirmed .hd{color:var(--success)}
+.mini{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+.mini td,.mini th{border:1px solid var(--border);padding:4px 8px;text-align:left}
+.mini th{background:var(--surface-sunken);font-weight:600}
+.mini td.r,.mini th.r{text-align:right}
+
+.locked{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:var(--r-md);background:var(--surface-sunken);border:1px solid var(--border);font-size:13px;color:var(--text-2)}
+.locked svg{color:var(--text-3);margin-top:2px}
+
+.timeline{list-style:none;margin:0;padding:0}
+.timeline li{display:grid;grid-template-columns:110px 14px 1fr;gap:10px;padding:0 0 14px;position:relative}
+.timeline li::before{content:"";position:absolute;left:116px;top:14px;bottom:0;width:2px;background:var(--divider)}
+.timeline li:last-child::before{display:none}
+.timeline time{font-size:12px;color:var(--text-3);text-align:right}
+.timeline .d{width:10px;height:10px;border-radius:50%;margin-top:5px;background:var(--navy-600);border:2px solid #fff;box-shadow:0 0 0 1px var(--navy-200)}
+.timeline .d.ai{background:var(--ai)} .timeline .d.ok{background:var(--success)}
+.timeline p{margin:0;font-size:13px}
+.timeline small{color:var(--text-3)}
+
+/* Banner vai trò */
+.role-banner{margin:12px 24px 0;padding:8px 12px;border-radius:var(--r-md);background:var(--info-bg);border:1px solid var(--info-border);color:var(--info);font-size:13px;display:none;gap:8px;align-items:center}
+.role-banner.show{display:flex}
+
+/* ---------- Khung trợ lý AI ---------- */
+.aipane{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;min-height:0;min-width:0;position:relative}
+.ai-head{display:flex;align-items:center;gap:8px;padding:10px 10px 10px 14px;border-bottom:1px solid var(--divider)}
+.ai-logo{width:26px;height:26px;border-radius:7px;background:var(--ai-bg);color:var(--ai);display:grid;place-items:center;border:1px solid var(--ai-border)}
+.ai-head b{font-size:14px;color:var(--navy-700);display:block;line-height:1.2}
+.ai-head small{font-size:11px;color:var(--text-3)}
+.ai-head .right{margin-left:auto;display:flex;gap:2px}
+.ctx{padding:8px 14px;border-bottom:1px solid var(--divider);background:var(--surface-soft)}
+.ctx-label{font-size:11px;color:var(--text-3);margin-bottom:4px;display:flex;justify-content:space-between}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;line-height:20px;padding:0 4px 0 7px;border-radius:var(--r-sm);background:#fff;border:1px solid var(--border-strong);color:var(--text-2);max-width:100%}
+.chip.item{border-color:var(--orange-200);background:var(--orange-50);color:var(--orange-700);font-weight:500}
+.chip button{border:0;background:transparent;padding:0 2px;color:inherit;display:grid;place-items:center;border-radius:3px}
+.chip button:hover{background:rgba(0,0,0,.06)}
+.chip.pulse{animation:pulse 1.2s ease-out}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(243,112,33,.55)}100%{box-shadow:0 0 0 8px rgba(243,112,33,0)}}
+
+.hist{position:absolute;top:50px;left:10px;right:10px;background:#fff;border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-md);z-index:20;display:none}
+.hist.open{display:block}
+.hist h4{margin:0;padding:10px 12px 6px;font-size:12px;color:var(--text-3);font-weight:600}
+.hist a{display:block;padding:8px 12px;border-top:1px solid var(--divider);text-decoration:none;color:var(--text);font-size:13px}
+.hist a:hover{background:var(--surface-soft)}
+.hist a small{display:block;color:var(--text-3);font-size:12px}
+.hist a.cur{background:var(--navy-50)}
+
+.msgs{flex:1;overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:14px}
+.sep{font-size:11px;color:var(--text-3);text-align:center;display:flex;align-items:center;gap:8px}
+.sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--divider)}
+.m-user{align-self:flex-end;max-width:88%;background:var(--navy-50);border:1px solid var(--navy-100);border-radius:10px 10px 2px 10px;padding:8px 11px;font-size:13px}
+.m-user small{display:block;font-size:11px;color:var(--text-3);margin-top:2px;text-align:right}
+.m-ai{font-size:13px;line-height:1.55}
+.m-ai .who{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);margin-bottom:4px}
+.m-ai p{margin:0 0 8px}
+.m-ai ul{margin:0 0 8px;padding-left:18px}
+.m-ai li{margin-bottom:3px}
+.cite{display:inline-grid;place-items:center;min-width:18px;height:17px;padding:0 4px;margin:0 1px;font-size:11px;font-weight:600;line-height:1;border-radius:4px;border:1px solid var(--ai-border);background:var(--ai-bg);color:var(--ai);vertical-align:1px}
+.cite:hover{background:var(--ai);color:#fff;border-color:var(--ai)}
+.assume{background:var(--warning-bg);border-bottom:1px dashed var(--warning);color:var(--warning);padding:0 2px;border-radius:2px}
+.ai-status{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0 8px}
+.sources{border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;margin:6px 0 8px}
+.sources button{display:grid;grid-template-columns:22px 1fr 14px;gap:6px;align-items:center;width:100%;text-align:left;border:0;border-top:1px solid var(--divider);background:#fff;padding:6px 8px;font-size:12px}
+.sources button:first-child{border-top:0}
+.sources button:hover{background:var(--surface-soft)}
+.sources button b{font-weight:500;color:var(--navy-700)}
+.sources button span.n{font-weight:600;color:var(--ai);text-align:center}
+.action-card{display:grid;grid-template-columns:28px 1fr 16px;gap:8px;align-items:center;width:100%;text-align:left;border:1px solid var(--border-strong);background:#fff;border-radius:var(--r-md);padding:8px 10px;margin-bottom:6px}
+.action-card:hover{border-color:var(--navy-200);background:var(--navy-50)}
+.action-card .ico{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;background:var(--navy-50);color:var(--navy-700)}
+.action-card.needs .ico{background:var(--orange-50);color:var(--orange-700)}
+.action-card b{display:block;font-size:13px;font-weight:600;color:var(--text)}
+.action-card small{font-size:12px;color:var(--text-3)}
+.fb{display:flex;gap:2px;align-items:center;font-size:11px;color:var(--text-3)}
+.fb button{border:0;background:transparent;padding:3px;border-radius:4px;color:var(--text-3)}
+.fb button:hover{background:var(--surface-sunken);color:var(--text)}
+
+.suggest{padding:8px 14px 0;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;scrollbar-width:thin}
+.suggest button{border:1px solid var(--ai-border);background:#fff;color:var(--ai-strong);border-radius:14px;padding:3px 10px;font-size:12px;white-space:nowrap;flex:none}
+.suggest button:hover{background:var(--ai-bg)}
+.composer{margin:8px 14px 10px;border:1px solid var(--border-strong);border-radius:10px;background:#fff}
+.composer:focus-within{border-color:var(--navy-500);box-shadow:0 0 0 3px rgba(79,77,176,.15)}
+.composer textarea{width:100%;border:0;outline:0;resize:none;font:inherit;font-size:13px;padding:8px 11px 0;min-height:38px;background:transparent}
+.composer .bar{display:flex;align-items:center;gap:4px;padding:4px 6px 6px 8px}
+.composer .bar .hint{font-size:11px;color:var(--text-3);margin-left:4px}
+.send{margin-left:auto;width:30px;height:30px;border-radius:7px;border:0;background:var(--navy-700);color:#fff;display:grid;place-items:center}
+.send:hover{background:var(--navy-800)}
+.disclaim{font-size:11px;color:var(--text-3);padding:0 14px 10px;line-height:1.4}
+
+.ai-full{display:flex;flex-direction:column;min-height:0;height:100%}
+.ai-rail{display:none;flex-direction:column;align-items:center;gap:10px;padding:10px 0}
+.workspace.ai-collapsed .ai-full{display:none}
+.workspace.ai-collapsed .ai-rail{display:flex}
+.rail-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--ai-border);background:var(--ai-bg);color:var(--ai);display:grid;place-items:center}
+.rail-text{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;color:var(--ai);font-weight:600;letter-spacing:.3px;border:0;background:transparent}
+
+/* Drawer chính sách */
+.drawer-mask{position:fixed;inset:0;background:rgba(27,26,70,.28);z-index:40;display:none}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:480px;background:#fff;box-shadow:var(--shadow-lg);z-index:41;transform:translateX(100%);transition:transform .28s cubic-bezier(.22,1,.36,1);display:flex;flex-direction:column}
+.drawer.open{transform:none}.drawer-mask.open{display:block}
+.drawer-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.drawer-h h3{margin:0;font-size:15px;color:var(--navy-700)}
+.drawer-b{padding:14px 18px;overflow:auto;font-size:13px;line-height:1.6}
+.drawer-b h4{margin:14px 0 4px;font-size:13px;color:var(--navy-700)}
+.drawer-b .clause{padding:6px 10px;border-radius:var(--r);margin:4px 0}
+.drawer-b .clause.hl{background:rgba(243,112,33,.12);box-shadow:inset 3px 0 0 var(--orange-500)}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--navy-900);color:#fff;padding:10px 14px;border-radius:var(--r-md);font-size:13px;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:.22s;z-index:60;display:flex;gap:8px;align-items:center;max-width:560px}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+/* Quản trị: không thấy nghiệp vụ */
+.admin-block{display:none;margin:40px auto;max-width:520px;text-align:center;color:var(--text-2)}
+body[data-role="quantri"] .admin-block{display:block}
+body[data-role="quantri"] .case-body{display:none}
+body[data-role="quantri"] .head-row,body[data-role="quantri"] .meta,body[data-role="quantri"] .steps{display:none}
+body[data-role="quantri"] .case-head{padding-bottom:12px}
+body:not([data-role="tdinh"]) .confirm,body:not([data-role="tdinh"]) .iconbtn.ok{display:none}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body data-role="tdinh">
+
+<!-- SVG icon sprite (tương đương @ant-design/icons) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-checkc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-xc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="i-at" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></symbol>
+  <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-return" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+</svg>
+
+<div class="app">
+  <!-- AntD: <Layout.Sider width={224} theme="dark"> + <Menu items={menuByRole[role]}> -->
+  <aside class="sider" aria-label="Điều hướng chính">
+    <div class="brand"><div class="brand-mark">SHB</div><div><b>AI Assistant</b><small>Thẩm định tín dụng SME</small></div></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sider-foot">Menu hiển thị theo vai trò.<br>Phiên bản 1.4 · Môi trường UAT</div>
+  </aside>
+
+  <div class="main">
+    <!-- AntD: <Layout.Header> + <Input.Search> + <Badge> + <Dropdown> -->
+    <header class="topbar">
+      <label class="search"><svg class="i"><use href="#i-search"/></svg><span class="sr">Tìm kiếm</span>
+        <input placeholder="Tìm hồ sơ, khách hàng, MST, tài liệu, điều khoản chính sách…"><kbd>Ctrl K</kbd></label>
+      <div class="spacer"></div>
+      <label class="role-demo" title="Chỉ có trong mockup: xem trang dưới góc nhìn vai trò khác">Xem thử vai trò:
+        <select id="roleSel" aria-label="Xem thử vai trò">
+          <option value="tdinh">Chuyên viên Thẩm định</option>
+          <option value="qhkh">Chuyên viên QHKH</option>
+          <option value="httd">Hỗ trợ tín dụng</option>
+          <option value="ruiro">Quản lý rủi ro/Tuân thủ</option>
+          <option value="pheduyet">Cấp phê duyệt</option>
+          <option value="kiemtoan">Kiểm toán nội bộ</option>
+          <option value="quantri">Quản trị hệ thống</option>
+        </select></label>
+      <button class="icon-btn" aria-label="Thông báo, 3 chưa đọc"><svg class="i"><use href="#i-bell"/></svg><span class="dot">3</span></button>
+      <div class="user"><div class="avatar" id="uAv">LH</div><div><b id="uName">Lê Quang Huy</b><small id="uRole">Chuyên viên Thẩm định · CN Hồ Chí Minh</small></div></div>
+    </header>
+
+    <div class="workspace" id="ws">
+      <!-- ================= TRANG LÀM VIỆC CHÍNH ================= -->
+      <main class="page" id="page">
+        <section class="case-head">
+          <div class="crumb"><a href="#">Hồ sơ vay</a><span>/</span><span>HSV-2026-00187</span></div>
+          <div class="head-row">
+            <div class="head-title">
+              <h1>Công ty Cổ phần Bao bì VinaNova <span class="tag orange">Đang thẩm định</span> <span class="tag">KH hiện hữu · Hạng A- (dự kiến)</span></h1>
+              <div class="head-sub">MST 0318888888 · Sản xuất bao bì giấy, bao bì nhựa, in công nghiệp · TP. Hồ Chí Minh · Mã bộ hồ sơ KH: CR-A01</div>
+            </div>
+            <!-- AntD: <Space> các <Button>; nút chính disabled kèm <Tooltip> lý do -->
+            <div class="head-actions">
+              <div class="row" id="headActions"></div>
+              <div class="gate" id="gate"></div>
+            </div>
+          </div>
+
+          <!-- AntD: <Descriptions size="small" bordered column={7} layout="vertical"> -->
+          <dl class="meta">
+            <div><dt>Mã hồ sơ</dt><dd>HSV-2026-00187</dd></div>
+            <div><dt>Số tiền đề nghị</dt><dd class="num">80.000.000.000 ₫ <small>(80 tỷ)</small></dd></div>
+            <div><dt>Sản phẩm</dt><dd>Hạn mức vốn lưu động · 12 tháng</dd></div>
+            <div><dt>Mục đích</dt><dd title="Mua giấy kraft, hạt nhựa, mực in và nguyên liệu sản xuất">Mua giấy kraft, hạt nhựa, mực in</dd></div>
+            <div><dt>Cấp phê duyệt dự kiến <span title="Tự tính theo số tiền: 20 tỷ < 80 tỷ ≤ 100 tỷ → Cấp 2 (ngưỡng cấu hình bởi Quản trị)"><svg class="i xs"><use href="#i-info"/></svg></span></dt><dd>Cấp 2 · Phê duyệt Hội sở</dd></div>
+            <div><dt>QHKH phụ trách</dt><dd>Nguyễn Thảo Vy</dd></div>
+            <div><dt>Ngày tiếp nhận</dt><dd>28/10/2026 <small>· CN Hồ Chí Minh</small></dd></div>
+            <div><dt>Hạn thẩm định (SLA)</dt><dd style="color:var(--warning)">07/11/2026 17:00 <small>· còn 2 ngày LV</small></dd></div>
+          </dl>
+
+          <!-- AntD: <Steps size="small" current={2} items=[{title, description}]> -->
+          <ol class="steps" aria-label="Tiến trình hồ sơ" style="list-style:none;padding-left:0">
+            <li class="step done"><div class="step-top"><span class="step-dot"><svg class="i xs"><use href="#i-check"/></svg></span><span class="step-title">Tiếp nhận &amp; đề xuất</span></div><div class="step-meta"><b>Nguyễn Thảo Vy</b> · QHKH<br>Xong 28/10</div></li>
+            <li class="step done"><div class="step-top"><span class="step-dot"><svg class="i xs"><use href="#i-check"/></svg></span><span class="step-title">Kiểm tra hồ sơ</span></div><div class="step-meta"><b>Võ Văn Tâm</b> · Hỗ trợ TD<br>Xong 30/10 · 2 lưu ý</div></li>
+            <li class="step current" aria-current="step"><div class="step-top"><span class="step-dot">3</span><span class="step-title">Thẩm định</span></div><div class="step-meta"><b>Lê Quang Huy</b> · Thẩm định<br><span class="sla"><svg class="i xs"><use href="#i-clock"/></svg>Hạn 07/11 · còn 2 ngày</span></div></li>
+            <li class="step pending"><div class="step-top"><span class="step-dot">4</span><span class="step-title">Ý kiến Rủi ro/Tuân thủ</span></div><div class="step-meta">Đặng Hải Yến (dự kiến)<br>SLA 3 ngày LV</div></li>
+            <li class="step pending"><div class="step-top"><span class="step-dot">5</span><span class="step-title">Phê duyệt cấp 2</span></div><div class="step-meta">Phê duyệt Hội sở<br>SLA 2 ngày LV</div></li>
+            <li class="step pending"><div class="step-top"><span class="step-dot">6</span><span class="step-title">Quyết định</span></div><div class="step-meta">Duyệt / Có điều kiện /<br>Từ chối / Trả lại</div></li>
+          </ol>
+        </section>
+
+        <div class="role-banner" id="roleBanner"><svg class="i"><use href="#i-info"/></svg><span id="roleBannerText"></span></div>
+
+        <div class="admin-block">
+          <svg class="i" style="width:40px;height:40px;color:var(--text-3)"><use href="#i-shield"/></svg>
+          <h2 style="color:var(--navy-700);font-size:18px">Không có quyền xem nội dung nghiệp vụ</h2>
+          <p>Vai trò Quản trị hệ thống chỉ quản lý người dùng, phân quyền, ngưỡng phê duyệt và cấu hình AI. Nội dung hồ sơ tín dụng được ẩn theo chính sách RLS.</p>
+          <button class="btn">Mở cấu hình hạn mức phê duyệt</button>
+        </div>
+
+        <div class="case-body">
+        <!-- AntD: <Tabs activeKey onChange items=[...]> ; tabBar sticky -->
+        <div class="tabs" role="tablist" aria-label="Nội dung hồ sơ">
+          <button class="tab" role="tab" data-tab="overview" aria-selected="false">Tổng quan <span class="cnt warn" title="4 cờ cảnh báo">4</span></button>
+          <button class="tab" role="tab" data-tab="docs" aria-selected="false">Hồ sơ tài liệu <span class="cnt">11</span></button>
+          <button class="tab" role="tab" data-tab="analysis" aria-selected="true">Phân tích tài chính <span class="cnt ai" id="tabUnconf">8 chưa XN</span></button>
+          <button class="tab" role="tab" data-tab="collateral" aria-selected="false">Tài sản bảo đảm</button>
+          <button class="tab" role="tab" data-tab="report" aria-selected="false">Tờ trình thẩm định <span class="cnt" title="4/7 mục hoàn tất">4/7</span></button>
+          <button class="tab" role="tab" data-tab="risk" aria-selected="false">Ý kiến rủi ro</button>
+          <button class="tab" role="tab" data-tab="approval" aria-selected="false">Phê duyệt</button>
+          <button class="tab" role="tab" data-tab="history" aria-selected="false">Lịch sử &amp; nhật ký</button>
+        </div>
+
+        <!-- ============ TAB: TỔNG QUAN ============ -->
+        <section class="panel" role="tabpanel" id="p-overview" hidden>
+          <div class="grid3">
+            <div class="card"><div class="card-h"><h2>Khách hàng</h2></div><div class="card-b">
+              <!-- AntD: <Descriptions column={1} size="small"> -->
+              <dl class="desc">
+                <dt>Tên doanh nghiệp</dt><dd>CTCP Bao bì VinaNova</dd>
+                <dt>Năm thành lập</dt><dd>2014 · ĐKDN thay đổi lần 5</dd>
+                <dt>Vốn điều lệ</dt><dd class="num">160 tỷ ₫</dd>
+                <dt>Người đại diện</dt><dd>Nguyễn Hoàng Nam · TGĐ</dd>
+                <dt>UBO</dt><dd>Nguyễn Hoàng Nam (55%) · không PEP</dd>
+                <dt>CIC</dt><dd>Nhóm 1 · dư nợ 98 tỷ tại 2 TCTD</dd>
+                <dt>Số lao động</dt><dd class="num">165 người</dd>
+              </dl></div></div>
+            <div class="card"><div class="card-h"><h2>Đề nghị cấp tín dụng</h2></div><div class="card-b">
+              <dl class="desc">
+                <dt>Sản phẩm</dt><dd>Hạn mức VLĐ</dd>
+                <dt>Số tiền</dt><dd class="num">80 tỷ ₫ · 12 tháng</dd>
+                <dt>Nhu cầu VLĐ (KH)</dt><dd class="num">68 – 88 tỷ ₫</dd>
+                <dt>Nguồn trả nợ chính</dt><dd>Tiền thu bán hàng</dd>
+                <dt>Nguồn trả nợ phụ</dt><dd>Tiền gửi, dòng tiền HĐ</dd>
+                <dt>TSBĐ</dt><dd>QSDĐ &amp; nhà xưởng; máy in</dd>
+                <dt>Đề xuất QHKH</dt><dd>Phê duyệt <span class="tag" style="margin-left:4px">Ý kiến sơ bộ</span></dd>
+              </dl></div></div>
+            <div class="card"><div class="card-h"><h2>Tiến độ thẩm định</h2><span class="right margin">4/7 phần</span></div><div class="card-b">
+              <div class="check"><svg class="i ok"><use href="#i-checkc"/></svg>Pháp lý &amp; UBO<span class="r">04/11</span></div>
+              <div class="check"><svg class="i ok"><use href="#i-checkc"/></svg>Đối chiếu doanh thu (BCTC–HĐĐT–VAT)<span class="r">04/11</span></div>
+              <div class="check"><svg class="i wip"><use href="#i-clock"/></svg>Phân tích tài chính<span class="r" id="ovUnconf">còn 8 số liệu</span></div>
+              <div class="check"><svg class="i ok"><use href="#i-checkc"/></svg>Tài sản bảo đảm (sơ bộ)<span class="r">04/11</span></div>
+              <div class="check"><svg class="i wip"><use href="#i-clock"/></svg>Yêu cầu bổ sung tài liệu<span class="r">2 mục</span></div>
+              <div class="check"><svg class="i ok"><use href="#i-checkc"/></svg>Tờ trình mục 1–3, 6<span class="r">05/11</span></div>
+              <div class="check"><svg class="i pend"><use href="#i-clock"/></svg>Đề xuất của Thẩm định (mục 7)<span class="r">chưa bắt đầu</span></div>
+            </div></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h2>Cờ cảnh báo cần xác minh</h2><span class="tag ai"><svg class="i xs"><use href="#i-spark"/></svg>AI phát hiện · chưa xác nhận</span><span class="desc">AI chỉ gắn cờ, không kết luận. Chuyên viên quyết định xử lý.</span></div>
+            <div class="issue err" id="flag-coi"><svg class="i ic"><use href="#i-alert"/></svg><div><b>Xung đột lợi ích tiềm ẩn</b><p>"Phạm Đức Lâm" ký mục <i>Xác nhận của cán bộ thẩm định</i> trên Phiếu thông tin KH, đồng thời là thành viên HĐQT VinaNova trong NQ 03/2024/NQ-HĐQT.</p><span class="src" onclick="gotoDoc('A01-01','signer')"><svg class="i xs"><use href="#i-file"/></svg>A01-01 · Phiếu TT</span><span class="src" onclick="gotoDoc('NQ','board')"><svg class="i xs"><use href="#i-file"/></svg>NQ HĐQT · danh sách</span></div><div class="acts"><button class="askai" onclick="askAI('flag','Cờ: Xung đột lợi ích tiềm ẩn')"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button></div></div>
+            <div class="issue"><svg class="i ic"><use href="#i-alert"/></svg><div><b>Ngày phát hành BCTC kiểm toán trước ngày kết thúc niên độ</b><p>BCTC năm 2025 (kết thúc 31/12/2025) ghi ngày ký 27/05/2025; trang 1 và trang 3 do hai công ty kiểm toán khác nhau ký (NT.Viet / Quốc Gia).</p><span class="src" onclick="gotoDoc('A01-04-1','auditor')"><svg class="i xs"><use href="#i-file"/></svg>A01-04 · tr.1</span><span class="src" onclick="gotoDoc('A01-04-3','auditor')"><svg class="i xs"><use href="#i-file"/></svg>A01-04 · tr.3</span></div><div class="acts"><button class="askai" onclick="askAI('flag','Cờ: Ngày phát hành BCTC')"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button></div></div>
+            <div class="issue"><svg class="i ic"><use href="#i-alert"/></svg><div><b>Tài liệu quá hạn hiệu lực</b><p>Báo cáo CIC ngày 25/05/2025; sao kê tài khoản kỳ 06/2023–05/2024 — không phải 12 tháng gần nhất.</p><span class="src" onclick="gotoDoc('CIC','date')"><svg class="i xs"><use href="#i-file"/></svg>CIC</span><span class="src" onclick="gotoDoc('A01-07','period')"><svg class="i xs"><use href="#i-file"/></svg>A01-07 · Sao kê</span></div><div class="acts"><button class="askai" onclick="askAI('flag','Cờ: Tài liệu quá hạn')"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button></div></div>
+            <div class="issue"><svg class="i ic"><use href="#i-alert"/></svg><div><b>5 điểm bất nhất số liệu tài chính</b><p>Dòng tiền HĐKD, dư nợ vay, VCSH, hệ số thanh khoản và kỳ thu tiền không khớp giữa các tài liệu.</p><button class="src" onclick="switchTab('analysis');flash(document.getElementById('issues'))"><svg class="i xs"><use href="#i-chart"/></svg>Xem trong Phân tích tài chính</button></div><div class="acts"></div></div>
+          </div>
+        </section>
+
+        <!-- ============ TAB: HỒ SƠ TÀI LIỆU ============ -->
+        <section class="panel" role="tabpanel" id="p-docs" hidden>
+          <div class="docs">
+            <div class="card" style="margin:0">
+              <div class="card-h"><h2>Danh mục tài liệu</h2><span class="desc">11 tài liệu · HTTD đã kiểm tra 30/10</span></div>
+              <div id="docList" role="listbox" aria-label="Tài liệu"></div>
+            </div>
+            <!-- AntD: trình xem tài liệu tùy biến (DocViewer hiện có trong frontend) + highlight bbox từ OCR -->
+            <div class="viewer">
+              <div class="viewer-bar"><svg class="i"><use href="#i-file"/></svg><b id="vTitle">—</b><span class="tag ai" id="vHl" style="display:none"><svg class="i xs"><use href="#i-link"/></svg>Vùng được trích dẫn đang tô sáng</span>
+                <div class="right"><button class="btn sm ghost">Bản gốc</button><button class="btn sm ai" id="vAsk"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI về tài liệu</button></div></div>
+              <div id="paper"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ TAB: PHÂN TÍCH TÀI CHÍNH ============ -->
+        <section class="panel" role="tabpanel" id="p-analysis">
+          <div class="card" style="padding:10px 14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <div><div style="font-size:12px;color:var(--text-3)">Mức độ xác nhận số liệu</div>
+              <div style="display:flex;align-items:center;gap:8px;font-weight:600"><span class="progress"><i id="progBar" style="width:60%"></i></span><span class="num" id="progTxt">12/20</span></div></div>
+            <div class="legend" aria-label="Chú giải trạng thái số liệu">
+              <span class="prov ai"><svg class="i sm"><use href="#i-spark"/></svg>AI đề xuất – chưa xác nhận</span>
+              <span class="prov ok"><svg class="i sm"><use href="#i-checkc"/></svg>Đã xác nhận bởi &lt;người&gt;</span>
+              <span class="prov verify"><svg class="i sm"><use href="#i-alert"/></svg>Cần xác minh (nguồn mâu thuẫn)</span>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <span class="tag">Đơn vị: tỷ đồng</span>
+              <button class="btn sm">Giả định &amp; tham số</button>
+              <button class="btn sm">Xuất Excel</button>
+            </div>
+          </div>
+
+          <!-- Chỉ số then chốt -->
+          <div class="card">
+            <div class="card-h"><h2>Chỉ số then chốt so với ngưỡng chính sách</h2><span class="desc">Ngưỡng theo CS-TD-SME/2025 · <button class="src" onclick="openPolicy('4-2')"><svg class="i xs"><use href="#i-book"/></svg>§4.2</button></span></div>
+            <!-- AntD: <Table size="small" columns=[Chỉ số, Giá trị, Ngưỡng, Kết quả, Biên, Trạng thái, Nguồn, ''] rowKey="id"> -->
+            <table class="t" id="ratioTbl">
+              <thead><tr><th style="width:26%">Chỉ số <small>Công thức</small></th><th class="r">Giá trị</th><th>Ngưỡng CS</th><th>Kết quả · biên</th><th>Trạng thái</th><th>Nguồn</th><th class="r">Hỏi AI</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Bất nhất -->
+          <div class="card" id="issues">
+            <div class="card-h"><h2>Bất nhất số liệu giữa các tài liệu</h2><span class="tag ai"><svg class="i xs"><use href="#i-spark"/></svg>AI phát hiện · 5</span><span class="right"><button class="btn sm"><svg class="i sm"><use href="#i-return"/></svg>Gộp vào yêu cầu bổ sung</button></span></div>
+            <div class="issue" id="iss-cfo"><svg class="i ic"><use href="#i-alert"/></svg><div><b>Dòng tiền HĐKD 2025: 93,2 vs 81,0</b><p>LCTT kiểm toán ghi 93,2 tỷ; Phiếu thông tin KH ghi 81 tỷ (2023: 28,3 vs 48). Chênh 12,2 tỷ.</p><span class="src" onclick="gotoDoc('A01-04-3','cfo')">A01-04 · tr.3</span><span class="src" onclick="gotoDoc('A01-01','cfo')">A01-01 · Phiếu TT</span></div><div class="acts"><button class="askai" onclick="askAI('issue','Bất nhất: Dòng tiền HĐKD')"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button></div></div>
+            <div class="issue" id="iss-debt"><svg class="i ic"><use href="#i-alert"/></svg><div><b>Dư nợ vay: CIC 98 tỷ vs BCĐKT 56 tỷ</b><p>CIC ghi Ngân hàng A 56 tỷ + Ngân hàng B 42 tỷ; BCĐKT 31/12/2025 chỉ thể hiện vay dài hạn 56 tỷ, không có vay ngắn hạn.</p><span class="src" onclick="gotoDoc('CIC','bankb')">CIC</span><span class="src" onclick="gotoDoc('A01-04-2','debt')">A01-04 · tr.2</span></div><div class="acts"><button class="askai" onclick="askAI('issue','Bất nhất: Dư nợ vay')"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button></div></div>
+            <div class="issue" id="iss-eq"><svg class="i ic"><use href="#i-alert"/></svg><div><b>Vốn chủ sở hữu: 1.018,5 vs 270 tỷ</b><p>BCQT 6T2026 và Phiếu TT dùng 270 tỷ (trùng "Vốn góp CSH" trên BCĐKT). Hệ số Nợ vay/VCSH 0,36 trên Phiếu tính theo 270.</p><span class="src" onclick="gotoDoc('A01-04-2','equity')">A01-04 · tr.2</span><span class="src" onclick="gotoDoc('A01-05','equity')">A01-05 · BCQT</span></div><div class="acts"><button class="askai" onclick="askAI('issue','Bất nhất: Vốn chủ sở hữu')"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button></div></div>
+            <div class="issue"><svg class="i ic"><use href="#i-alert"/></svg><div><b>Hệ số thanh toán ghi trên BCTC không khớp số liệu BCĐKT</b><p>Ghi 2,04 / 1,50; tính lại từ BCĐKT 31/12/2025 được 2,80 / 1,76. EBIT/lãi vay ghi 14,9; tính lại 2,81.</p><span class="src" onclick="gotoDoc('A01-04-2','cr')">A01-04 · tr.2</span></div><div class="acts"><button class="askai" onclick="askAI('issue','Bất nhất: Hệ số thanh toán')"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button></div></div>
+            <div class="issue err"><svg class="i ic"><use href="#i-alert"/></svg><div><b>Kỳ thu tiền: thuyết minh 48 ngày vs tính lại 150 ngày</b><p>Ảnh hưởng trực tiếp tới nhu cầu VLĐ và mức hạn mức 80 tỷ. Cần KH cung cấp chi tiết công nợ phải thu theo tuổi nợ.</p><span class="src" onclick="gotoDoc('A01-04-3','dso')">A01-04 · tr.3</span><button class="src calc" onclick="gotoMetric('dso')">Chỉ số DSO</button></div><div class="acts"><button class="askai" onclick="askAI('issue','Bất nhất: Kỳ thu tiền')"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button></div></div>
+          </div>
+
+          <!-- BCTC 3 năm -->
+          <div class="card">
+            <div class="card-h"><h2>Báo cáo tài chính 2023 – 2025 &amp; 6T/2026</h2><span class="desc">BCĐKT gốc đơn vị triệu đồng, đã quy đổi · cột 2023 dùng số dư 01/01/2024</span></div>
+            <table class="t" id="fsTbl">
+              <thead><tr><th style="width:24%">Chỉ tiêu</th><th class="r">2023<small>Kiểm toán</small></th><th class="r">2024<small>Kiểm toán</small></th><th class="r">2025<small>Kiểm toán</small></th><th class="r">6T/2026<small>Quản trị · chưa KT</small></th><th class="r">Δ 25/24</th><th>Trạng thái</th><th>Nguồn</th><th class="r">Hỏi AI</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============ TAB: TÀI SẢN BẢO ĐẢM ============ -->
+        <section class="panel" role="tabpanel" id="p-collateral" hidden>
+          <div class="card">
+            <div class="card-h"><h2>Tài sản bảo đảm</h2><span class="desc">Giá trị lấy từ Phiếu TT KH – chờ chứng thư thẩm định giá độc lập</span><span class="right"><button class="btn sm">Yêu cầu định giá</button></span></div>
+            <table class="t">
+              <thead><tr><th>Tài sản</th><th class="r">Giá thị trường</th><th class="r">Giá trị xử lý</th><th class="r">Tỷ lệ</th><th>Pháp lý</th><th>Trạng thái</th><th>Nguồn</th><th></th></tr></thead>
+              <tbody>
+                <tr><td class="name">QSDĐ &amp; nhà xưởng<small>Nhà xưởng sản xuất hiện hữu</small></td><td class="r num">150,0</td><td class="r num val">112,0</td><td class="r num">74,7%</td><td><span class="tag warning">Chờ GCN QSDĐ</span></td><td><span class="prov ok"><svg class="i sm"><use href="#i-checkc"/></svg>Đã XN · L.Q.Huy</span></td><td><span class="src" onclick="gotoDoc('A01-01','ltv')">A01-01 · mục 5</span></td><td class="act"><button class="askai" onclick="askAI('metric','TSBĐ: QSDĐ & nhà xưởng')"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button></td></tr>
+                <tr><td class="name">Máy in công nghiệp<small>Máy móc thiết bị</small></td><td class="r num">55,0</td><td class="r num val">33,0</td><td class="r num">60,0%</td><td><span class="tag warning">Chờ hóa đơn gốc</span></td><td><span class="prov ok"><svg class="i sm"><use href="#i-checkc"/></svg>Đã XN · L.Q.Huy</span></td><td><span class="src" onclick="gotoDoc('A01-01','ltv')">A01-01 · mục 5</span></td><td class="act"><button class="askai" onclick="askAI('metric','TSBĐ: Máy in công nghiệp')"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button></td></tr>
+                <tr style="font-weight:600"><td>Tổng</td><td class="r num">205,0</td><td class="r num">145,0</td><td></td><td colspan="4">LTV = 80 ÷ 145 = <b>55,2%</b> · ngưỡng ≤ 70% <span class="result pass"><svg class="i xs"><use href="#i-check"/></svg>Đạt</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============ TAB: TỜ TRÌNH ============ -->
+        <section class="panel" role="tabpanel" id="p-report" hidden>
+          <div class="card">
+            <div class="card-h"><h2>Tờ trình thẩm định – bản nháp v0.4</h2><span class="desc">Tự lưu 09:20 · chỉ người lập được sửa</span><span class="right"><button class="btn sm">Xem trước PDF</button></span></div>
+            <div class="rpt-sec"><span class="no">1</span><div><b>Thông tin khách hàng</b><p>Pháp lý, ngành nghề, quan hệ tín dụng.</p></div><span class="tag success">Hoàn tất</span></div>
+            <div class="rpt-sec"><span class="no">2</span><div><b>Đề nghị cấp tín dụng</b><p>HMTD VLĐ 80 tỷ, 12 tháng.</p></div><span class="tag success">Hoàn tất</span></div>
+            <div class="rpt-sec"><span class="no">3</span><div><b>Pháp lý, UBO &amp; người có liên quan</b></div><span class="tag success">Hoàn tất</span></div>
+            <div class="rpt-sec"><span class="no">4</span><div><b>Tình hình hoạt động kinh doanh</b><p>Đối chiếu doanh thu BCTC 705 – HĐĐT 701 – VAT 698 (chênh 0,99%).</p></div><span class="tag warning">Đang soạn</span></div>
+            <div class="rpt-sec" id="rpt-5"><span class="no">5</span><div><b>Phân tích tài chính &amp; khả năng trả nợ</b><p>5.1 Kết quả KD · 5.2 Cơ cấu vốn · <b>5.3 Khả năng trả nợ &amp; độ nhạy</b></p>
+              <div id="rpt53"><div class="locked" style="margin-top:8px"><svg class="i"><use href="#i-info"/></svg>Mục 5.3 đang trống. Có thể chèn bảng độ nhạy từ Trợ lý AI (sẽ ở trạng thái chờ xác nhận).</div></div>
+            </div><span class="tag warning">Đang soạn</span></div>
+            <div class="rpt-sec"><span class="no">6</span><div><b>Tài sản bảo đảm</b></div><span class="tag success">Hoàn tất</span></div>
+            <div class="rpt-sec"><span class="no">7</span><div><b>Đánh giá rủi ro &amp; đề xuất của Chuyên viên Thẩm định</b><p>Mục do người thẩm định tự viết. Trợ lý AI không soạn kết luận Duyệt/Từ chối.</p></div><span class="tag">Chưa bắt đầu</span></div>
+          </div>
+        </section>
+
+        <!-- ============ TAB: Ý KIẾN RỦI RO ============ -->
+        <section class="panel" role="tabpanel" id="p-risk" hidden>
+          <div class="locked" style="margin-bottom:16px"><svg class="i"><use href="#i-lock"/></svg><div><b>Hồ sơ chưa được trình Rủi ro/Tuân thủ.</b> Ý kiến độc lập sẽ do Đặng Hải Yến (Phòng QLRR) ghi tại đây. Chuyên viên Thẩm định chỉ xem.</div></div>
+          <div class="grid2">
+            <div class="card"><div class="card-h"><h2>Kiểm tra sơ bộ (tham khảo)</h2><span class="tag ai"><svg class="i xs"><use href="#i-spark"/></svg>AI đề xuất</span></div><div class="card-b">
+              <div class="check"><svg class="i ok"><use href="#i-checkc"/></svg>Giới hạn cấp TD – Điều 136 Luật TCTD 2024<span class="r">Tính khi trình, theo vốn tự có</span></div>
+              <div class="check"><svg class="i wip"><use href="#i-alert"/></svg>Nhóm KH có liên quan<span class="r">Chưa đủ dữ liệu</span></div>
+              <div class="check"><svg class="i ok"><use href="#i-checkc"/></svg>AML / danh sách cấm vận<span class="r">Không trùng khớp</span></div>
+              <div class="check"><svg class="i ok"><use href="#i-checkc"/></svg>PEP (UBO)<span class="r">Không</span></div>
+              <div class="check"><svg class="i wip"><use href="#i-alert"/></svg>Xung đột lợi ích<span class="r"><button class="src" onclick="switchTab('overview');flash(document.getElementById('flag-coi'))">Xem cờ</button></span></div>
+            </div></div>
+            <div class="card"><div class="card-h"><h2>Ý kiến Rủi ro/Tuân thủ</h2></div><div class="card-b" style="color:var(--text-3);font-size:13px">Chưa có ý kiến. Kết luận sẽ gồm: Đồng ý / Đồng ý có điều kiện / Không đồng ý, kèm điều kiện và điều khoản chính sách viện dẫn.</div></div>
+          </div>
+        </section>
+
+        <!-- ============ TAB: PHÊ DUYỆT ============ -->
+        <section class="panel" role="tabpanel" id="p-approval" hidden>
+          <div class="grid2">
+            <div class="card"><div class="card-h"><h2>Cấp phê duyệt dự kiến</h2><span class="tag navy">Cấp 2 · Phê duyệt Hội sở</span></div>
+              <table class="t"><thead><tr><th>Cấp</th><th>Thẩm quyền</th><th>Ngưỡng (cấu hình)</th><th></th></tr></thead><tbody>
+                <tr><td>Cấp 1</td><td>Giám đốc chi nhánh</td><td class="num">≤ 20 tỷ</td><td></td></tr>
+                <tr class="target"><td><b>Cấp 2</b></td><td><b>Phê duyệt Hội sở</b></td><td class="num"><b>&gt; 20 – ≤ 100 tỷ</b></td><td><span class="tag orange">Hồ sơ này</span></td></tr>
+                <tr><td>Cấp 3</td><td>Hội đồng tín dụng (biểu quyết)</td><td class="num">&gt; 100 tỷ</td><td></td></tr>
+              </tbody></table></div>
+            <div class="card"><div class="card-h"><h2>Quyết định</h2></div><div class="card-b">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+                <button class="btn" aria-disabled="true"><svg class="i sm"><use href="#i-lock"/></svg>Duyệt</button>
+                <button class="btn" aria-disabled="true"><svg class="i sm"><use href="#i-lock"/></svg>Duyệt có điều kiện</button>
+                <button class="btn" aria-disabled="true"><svg class="i sm"><use href="#i-lock"/></svg>Từ chối</button>
+                <button class="btn" aria-disabled="true"><svg class="i sm"><use href="#i-lock"/></svg>Trả lại bổ sung</button>
+              </div>
+              <div class="locked"><svg class="i"><use href="#i-lock"/></svg><div id="approvalLock"><b>Bạn không thể phê duyệt hoặc biểu quyết hồ sơ này.</b><br>Lý do: bạn đã tham gia hồ sơ ở bước Thẩm định (nguyên tắc tách bạch thẩm định – quyết định). Hồ sơ cũng chưa tới bước Phê duyệt.</div></div>
+              <p style="font-size:12px;color:var(--text-3);margin:10px 0 0">Bị loại trừ khỏi phê duyệt/biểu quyết: Nguyễn Thảo Vy (QHKH), Võ Văn Tâm (HTTD), Lê Quang Huy (Thẩm định), Đặng Hải Yến (Rủi ro – sau khi cho ý kiến).</p>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- ============ TAB: LỊCH SỬ ============ -->
+        <section class="panel" role="tabpanel" id="p-history" hidden>
+          <div class="grid2">
+            <div class="card"><div class="card-h"><h2>Nhật ký hồ sơ</h2><span class="desc">Bất biến · Kiểm toán nội bộ xem được</span></div><div class="card-b">
+              <!-- AntD: <Timeline items=[...]> -->
+              <ul class="timeline">
+                <li><time>05/11 09:14</time><span class="d ai"></span><div><p>Lê Quang Huy hỏi Trợ lý AI: "DSCR và độ nhạy"</p><small>Hội thoại được lưu vào hồ sơ · 4 trích dẫn</small></div></li>
+                <li><time>04/11 16:40</time><span class="d ok"></span><div><p>Lê Quang Huy xác nhận 12 số liệu phân tích</p><small>Bao gồm DT, EBITDA, LNST 2023–2025</small></div></li>
+                <li><time>04/11 10:02</time><span class="d ai"></span><div><p>Trợ lý AI trích xuất 23 số liệu từ A01-04, A01-05</p><small>Agent Tài chính · trạng thái: AI đề xuất</small></div></li>
+                <li><time>31/10 08:30</time><span class="d"></span><div><p>Chuyển bước Thẩm định · phân công Lê Quang Huy</p><small>bởi Trưởng phòng Thẩm định</small></div></li>
+                <li><time>30/10 15:12</time><span class="d ok"></span><div><p>Võ Văn Tâm xác nhận hồ sơ đầy đủ – 2 lưu ý</p><small>CIC quá hạn; sao kê không phải 12 tháng gần nhất</small></div></li>
+                <li><time>28/10 10:05</time><span class="d"></span><div><p>Nguyễn Thảo Vy tạo hồ sơ, tải lên 11 tài liệu</p></div></li>
+              </ul></div></div>
+            <div class="card"><div class="card-h"><h2>Hội thoại AI gắn với hồ sơ</h2></div><div class="card-b" style="padding:0">
+              <div class="issue"><svg class="i ic" style="color:var(--ai)"><use href="#i-spark"/></svg><div><b>DSCR và độ nhạy lãi suất</b><p>Lê Quang Huy · 05/11 · 1 khối đã chèn vào Tờ trình</p></div><button class="btn sm" onclick="toggleAI(true)">Mở</button></div>
+              <div class="issue"><svg class="i ic" style="color:var(--ai)"><use href="#i-spark"/></svg><div><b>Tóm tắt bất nhất số liệu BCTC</b><p>Lê Quang Huy · 04/11</p></div><button class="btn sm">Mở</button></div>
+              <div class="issue"><svg class="i ic" style="color:var(--ai)"><use href="#i-spark"/></svg><div><b>Kiểm tra tính đầy đủ hồ sơ</b><p>Võ Văn Tâm (HTTD) · 30/10 · đã chia sẻ vào hồ sơ</p></div><button class="btn sm">Mở</button></div>
+            </div></div>
+          </div>
+        </section>
+        </div><!-- /case-body -->
+      </main>
+
+      <!-- ================= KHUNG TRỢ LÝ AI ================= -->
+      <!-- AntD: <Layout.Sider placement right collapsible> ; bên trong: <Tag closable> chip ngữ cảnh, <Dropdown> lịch sử, <List> tin nhắn, <Card size="small"> thẻ hành động, <Input.TextArea autoSize> -->
+      <aside class="aipane" aria-label="Trợ lý AI">
+        <div class="ai-rail">
+          <button class="rail-btn" onclick="toggleAI(true)" aria-label="Mở Trợ lý AI"><svg class="i"><use href="#i-spark"/></svg></button>
+          <button class="rail-text" onclick="toggleAI(true)">Trợ lý AI · HSV-2026-00187</button>
+        </div>
+        <div class="ai-full">
+          <div class="ai-head">
+            <span class="ai-logo"><svg class="i"><use href="#i-spark"/></svg></span>
+            <div><b>Trợ lý AI</b><small>Hỗ trợ phân tích · không ra quyết định</small></div>
+            <div class="right">
+              <button class="icon-btn" aria-label="Hội thoại của hồ sơ" onclick="document.getElementById('hist').classList.toggle('open')"><svg class="i"><use href="#i-clock"/></svg></button>
+              <button class="icon-btn" aria-label="Hội thoại mới"><svg class="i"><use href="#i-plus"/></svg></button>
+              <button class="icon-btn" aria-label="Thu gọn Trợ lý AI" onclick="toggleAI(false)"><svg class="i"><use href="#i-panel"/></svg></button>
+            </div>
+          </div>
+          <div class="hist" id="hist">
+            <h4>Hội thoại của hồ sơ HSV-2026-00187</h4>
+            <a href="#" class="cur" onclick="return closeHist()">DSCR và độ nhạy lãi suất<small>Bạn · hôm nay 09:12 · đang mở</small></a>
+            <a href="#" onclick="return closeHist()">Tóm tắt bất nhất số liệu BCTC<small>Bạn · 04/11</small></a>
+            <a href="#" onclick="return closeHist()">Kiểm tra tính đầy đủ hồ sơ<small>Võ Văn Tâm (HTTD) · 30/10 · được chia sẻ</small></a>
+          </div>
+          <div class="ctx">
+            <div class="ctx-label"><span>Ngữ cảnh AI đang dùng</span><span>Tự cập nhật theo trang</span></div>
+            <div class="chips" id="chips" aria-live="polite"></div>
+          </div>
+
+          <div class="msgs" id="msgs">
+            <div class="sep">Hôm nay · 09:12</div>
+            <div class="m-user">Giải thích cách tính DSCR 1,34 và kiểm tra độ nhạy nếu lãi suất tăng 2% hoặc EBITDA giảm 15%.<small>Lê Quang Huy · ngữ cảnh: Chỉ số DSCR</small></div>
+            <div class="m-ai">
+              <div class="who"><svg class="i sm" style="color:var(--ai)"><use href="#i-spark"/></svg>Trợ lý AI · Agent Tài chính</div>
+              <p><b>DSCR dự phóng 2026 = 98,0 ÷ 72,9 = 1,34 lần</b></p>
+              <ul>
+                <li>EBITDA 2025: 98,0 tỷ <button class="cite" data-cite="1" aria-label="Trích dẫn 1">1</button></li>
+                <li>Nghĩa vụ trả nợ 72,9 tỷ = gốc 50,0 + lãi hiện hữu 17,8 <button class="cite" data-cite="2" aria-label="Trích dẫn 2">2</button> + lãi hạn mức mới 5,1 (<span class="assume" title="Giả định – cần bạn xác nhận">80 tỷ × 75% sử dụng × 8,5%</span>)</li>
+                <li>Ngưỡng chính sách ≥ 1,25 <button class="cite" data-cite="3" aria-label="Trích dẫn 3">3</button> → đạt, biên an toàn mỏng (+0,09).</li>
+              </ul>
+              <table class="mini" style="margin-bottom:8px">
+                <thead><tr><th>Kịch bản</th><th class="r">DSCR</th><th>So ngưỡng</th></tr></thead>
+                <tbody>
+                  <tr><td>Cơ sở</td><td class="r num">1,34</td><td><span class="result pass">Đạt</span></td></tr>
+                  <tr><td>Lãi suất +2%</td><td class="r num">1,29</td><td><span class="result pass">Đạt</span></td></tr>
+                  <tr><td>EBITDA −15%</td><td class="r num">1,14</td><td><span class="result fail">Không đạt</span></td></tr>
+                  <tr><td>Cả hai</td><td class="r num">1,10</td><td><span class="result fail">Không đạt</span></td></tr>
+                </tbody>
+              </table>
+              <p>Nếu dùng EBITDA 6T/2026 quy năm (118 tỷ) <button class="cite" data-cite="4" aria-label="Trích dẫn 4">4</button>, DSCR đạt 1,62 — nhưng đây là báo cáo quản trị chưa kiểm toán và có bất nhất VCSH, nên không nên làm cơ sở chính.</p>
+              <div class="ai-status"><span class="tag ai"><svg class="i xs"><use href="#i-spark"/></svg>AI đề xuất – chưa xác nhận</span><span class="tag warning">1 giả định cần xác nhận</span></div>
+              <div class="sources" aria-label="Nguồn trích dẫn">
+                <button data-cite="1"><span class="n">1</span><span><b>A01-04 BCTC kiểm toán 2025</b> · tr.1 · dòng EBITDA</span><svg class="i xs"><use href="#i-arrow"/></svg></button>
+                <button data-cite="2"><span class="n">2</span><span><b>A01-04 BCTC kiểm toán 2025</b> · tr.3 · chi phí lãi vay</span><svg class="i xs"><use href="#i-arrow"/></svg></button>
+                <button data-cite="3"><span class="n">3</span><span><b>Chính sách CS-TD-SME/2025</b> · §4.2 khả năng trả nợ</span><svg class="i xs"><use href="#i-arrow"/></svg></button>
+                <button data-cite="4"><span class="n">4</span><span><b>A01-05 BCTC quản trị 6T/2026</b> · EBITDA</span><svg class="i xs"><use href="#i-arrow"/></svg></button>
+              </div>
+              <button class="action-card" onclick="gotoMetric('dscr')"><span class="ico"><svg class="i"><use href="#i-chart"/></svg></span><span><b>Mở chỉ số DSCR trong Phân tích</b><small>Tab Phân tích tài chính · bảng chỉ số then chốt</small></span><svg class="i sm"><use href="#i-arrow"/></svg></button>
+              <button class="action-card needs" onclick="insertToReport()"><span class="ico"><svg class="i"><use href="#i-edit"/></svg></span><span><b>Đưa bảng độ nhạy vào Tờ trình mục 5.3</b><small>Sẽ chèn ở trạng thái chờ – bạn phải xác nhận</small></span><svg class="i sm"><use href="#i-arrow"/></svg></button>
+              <div class="fb"><button aria-label="Hữu ích"><svg class="i sm"><use href="#i-thumb"/></svg></button><button aria-label="Sao chép"><svg class="i sm"><use href="#i-copy"/></svg></button><span style="margin-left:auto">09:12 · 4 nguồn · lưu vào hồ sơ</span></div>
+            </div>
+          </div>
+
+          <div class="suggest" id="suggest" aria-label="Gợi ý câu hỏi"></div>
+          <div class="composer">
+            <label class="sr" for="ask">Câu hỏi cho Trợ lý AI</label>
+            <textarea id="ask" rows="1" placeholder="Hỏi về hồ sơ này… Gõ @ để gắn tài liệu, chỉ số"></textarea>
+            <div class="bar">
+              <button class="icon-btn" style="width:28px;height:28px" aria-label="Gắn ngữ cảnh"><svg class="i sm"><use href="#i-at"/></svg></button>
+              <span class="hint">Enter gửi · Shift+Enter xuống dòng</span>
+              <button class="send" aria-label="Gửi" onclick="send()"><svg class="i sm"><use href="#i-send"/></svg></button>
+            </div>
+          </div>
+          <div class="disclaim">AI có thể sai. Số liệu AI chỉ vào tờ trình sau khi bạn xác nhận. Hội thoại được lưu vào nhật ký hồ sơ.</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- AntD: <Drawer title="Chính sách" placement="right" width={480}> -->
+<div class="drawer-mask" id="dmask" onclick="closePolicy()"></div>
+<aside class="drawer" id="drawer" aria-label="Điều khoản chính sách" aria-hidden="true">
+  <div class="drawer-h"><svg class="i" style="color:var(--navy-700)"><use href="#i-book"/></svg><div><h3>CS-TD-SME/2025 · Chính sách cấp tín dụng KHDN SME</h3><small style="color:var(--text-3)">Hiệu lực 01/03/2025 · văn bản nội bộ (mô phỏng)</small></div><button class="icon-btn" style="margin-left:auto" aria-label="Đóng" onclick="closePolicy()"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="drawer-b">
+    <h4>Điều 4. Tiêu chí tài chính tối thiểu</h4>
+    <div class="clause" id="pol-4-1"><b>4.1</b> Khách hàng có lãi trong 2 năm tài chính gần nhất; BCTC năm gần nhất được kiểm toán với ý kiến chấp nhận toàn phần.</div>
+    <div class="clause" id="pol-4-2"><b>4.2 Khả năng trả nợ.</b> Hệ số khả năng trả nợ (DSCR) dự phóng ≥ 1,25 lần; Nợ vay/EBITDA sau cấp tín dụng ≤ 3,5 lần; EBIT/chi phí lãi vay ≥ 2,0 lần.</div>
+    <div class="clause" id="pol-4-3"><b>4.3 Thanh khoản &amp; đòn bẩy.</b> Hệ số thanh toán hiện hành ≥ 1,2; thanh toán nhanh ≥ 0,8; Nợ phải trả/VCSH ≤ 2,0.</div>
+    <div class="clause" id="pol-4-4"><b>4.4 Vốn lưu động.</b> Kỳ thu tiền bình quân không vượt 90 ngày, trừ khi có giải trình theo đặc thù ngành được Rủi ro chấp thuận.</div>
+    <h4>Điều 6. Tài sản bảo đảm</h4>
+    <div class="clause" id="pol-6-1"><b>6.1</b> Dư nợ/giá trị xử lý TSBĐ (LTV) ≤ 70%. Máy móc thiết bị: giá trị xử lý tối đa 60% giá thị trường.</div>
+  </div>
+</aside>
+
+<div class="toast" id="toast" role="status"><svg class="i"><use href="#i-checkc"/></svg><span id="toastTxt"></span></div>
+
+<script>
+/* ============================ DỮ LIỆU ============================ */
+const ME = 'Lê Quang Huy';
+const ratios = [
+  {id:'dscr',name:'DSCR dự phóng 2026',f:'98,0 ÷ (gốc 50,0 + lãi 17,8 + lãi HM mới 5,1)',v:'1,34',u:'lần',thr:'≥ 1,25',res:'pass',margin:'+0,09 · mỏng',st:'ai',src:[['A01-04 · tr.1','A01-04-1','ebitda'],['A01-04 · tr.3','A01-04-3','interest']]},
+  {id:'dti',name:'Nợ vay/EBITDA (DTI DN) sau cấp TD',f:'(98 + 80) ÷ 98',v:'1,82',u:'lần',thr:'≤ 3,5',res:'pass',margin:'còn 1,68',st:'ai',src:[['CIC','CIC','bankb'],['A01-04 · tr.1','A01-04-1','ebitda']]},
+  {id:'ltv',name:'LTV – dư nợ/giá trị xử lý TSBĐ',f:'80 ÷ 145',v:'55,2',u:'%',thr:'≤ 70%',res:'pass',margin:'còn 14,8 đp',st:'ok',by:'L.Q.Huy · 04/11',src:[['A01-01 · mục 5','A01-01','ltv']]},
+  {id:'de',name:'Nợ phải trả/VCSH',f:'364,5 ÷ 1.018,5',v:'0,36',u:'lần',thr:'≤ 2,0',res:'pass',margin:'còn 1,64',st:'ok',by:'L.Q.Huy · 04/11',src:[['A01-04 · tr.2','A01-04-2','equity']]},
+  {id:'cr',name:'Thanh toán hiện hành',f:'TSNH 864,5 ÷ Nợ NH 308,5',v:'2,80',u:'lần',thr:'≥ 1,2',res:'pass',margin:'+1,60',st:'verify',note:'BCTC ghi 2,04',src:[['A01-04 · tr.2','A01-04-2','cr']]},
+  {id:'qr',name:'Thanh toán nhanh',f:'(864,5 − HTK 320,0) ÷ 308,5',v:'1,76',u:'lần',thr:'≥ 0,8',res:'pass',margin:'+0,96',st:'verify',note:'BCTC ghi 1,50',src:[['A01-04 · tr.2','A01-04-2','cr']]},
+  {id:'icr',name:'EBIT/Chi phí lãi vay',f:'50,0 ÷ 17,8',v:'2,81',u:'lần',thr:'≥ 2,0',res:'pass',margin:'+0,81',st:'verify',note:'BCTC ghi 14,9',src:[['A01-04 · tr.3','A01-04-3','interest']]},
+  {id:'dso',name:'Kỳ thu tiền bình quân',f:'Phải thu BQ 290 ÷ DT 705 × 365',v:'150',u:'ngày',thr:'≤ 90 ngày',res:'fail',margin:'vượt 60 ngày',st:'ai',note:'Thuyết minh ghi 48 ngày',src:[['A01-04 · tr.2','A01-04-2','cr'],['A01-04 · tr.3','A01-04-3','dso']]},
+];
+const fs = [
+  {g:'Kết quả kinh doanh'},
+  {id:'rev',n:'Doanh thu thuần',v:['520,0','610,0','705,0','392,0'],d:'+15,6%',src:['A01-04 · tr.1','A01-04-1','rev'],st:'ok',by:'L.Q.Huy · 04/11'},
+  {id:'ebitda',n:'EBITDA',v:['62,0','78,0','98,0','59,0'],d:'+25,6%',src:['A01-04 · tr.1','A01-04-1','ebitda'],st:'ok',by:'L.Q.Huy · 04/11'},
+  {id:'ebitdam',n:'Biên EBITDA',sub:'Tính toán',v:['11,9%','12,8%','13,9%','15,1%'],d:'+1,1 đp',src:null,st:'ai'},
+  {id:'da',n:'Khấu hao TSCĐ',v:['38,0','42,5','48,0','—'],d:'+12,9%',src:['A01-04 · tr.3','A01-04-3','da'],st:'ok',by:'L.Q.Huy · 04/11'},
+  {id:'ebit',n:'EBIT',sub:'EBITDA − khấu hao',v:['24,0','35,5','50,0','—'],d:'+40,8%',src:null,st:'ai'},
+  {id:'int',n:'Chi phí lãi vay',v:['14,9','16,2','17,8','—'],d:'+9,9%',src:['A01-04 · tr.3','A01-04-3','interest'],st:'ok',by:'L.Q.Huy · 04/11'},
+  {id:'np',n:'Lợi nhuận sau thuế',v:['34,0','46,4','62,2','38,8'],d:'+34,1%',src:['A01-04 · tr.1','A01-04-1','np'],st:'ok',by:'L.Q.Huy · 04/11'},
+  {g:'Bảng cân đối kế toán (cuối kỳ)'},
+  {id:'ta',n:'Tổng tài sản',v:['1.039,0','1.210,0','1.383,0','368,0'],d:'+14,3%',src:['A01-04 · tr.2','A01-04-2','ta'],st:'verify',flag:{3:'BCQT 6T/2026 ghi 368 tỷ – lệch 1.015 tỷ so với 31/12/2025'}},
+  {id:'ca',n:'Tài sản ngắn hạn',v:['634,3','748,2','864,5','—'],d:'+15,5%',src:['A01-04 · tr.2','A01-04-2','cr'],st:'ok',by:'L.Q.Huy · 04/11'},
+  {id:'ar',n:'Phải thu ngắn hạn',v:['220,0','268,0','312,0','96,0'],d:'+16,4%',src:['A01-04 · tr.2','A01-04-2','ar'],st:'ok',by:'L.Q.Huy · 04/11'},
+  {id:'inv',n:'Hàng tồn kho',v:['228,0','274,0','320,0','110,0'],d:'+16,8%',src:['A01-04 · tr.2','A01-04-2','inv'],st:'ok',by:'L.Q.Huy · 04/11'},
+  {id:'cl',n:'Nợ ngắn hạn',v:['228,0','274,0','308,5','—'],d:'+12,6%',src:['A01-04 · tr.2','A01-04-2','cr'],st:'ok',by:'L.Q.Huy · 04/11'},
+  {id:'debt',n:'Vay và nợ thuê tài chính',v:['42,0','50,0','56,0','98,0'],d:'+12,0%',src:['A01-04 · tr.2','A01-04-2','debt'],st:'verify',flag:{2:'CIC 25/05/2025: tổng dư nợ 98 tỷ (NH A 56 + NH B 42)'}},
+  {id:'eq',n:'Vốn chủ sở hữu',v:['769,0','886,0','1.018,5','270,0'],d:'+15,0%',src:['A01-04 · tr.2','A01-04-2','equity'],st:'verify',flag:{3:'270 tỷ trùng "Vốn góp CSH", không phải tổng VCSH'}},
+  {g:'Lưu chuyển tiền tệ'},
+  {id:'cfo',n:'LCT thuần từ HĐKD',v:['28,3','59,6','93,2','—'],d:'+56,4%',src:['A01-04 · tr.3','A01-04-3','cfo'],st:'verify',flag:{2:'Phiếu TT KH ghi 81,0 (chênh 12,2)',0:'Phiếu TT KH ghi 48,0'}},
+  {id:'cfi',n:'LCT thuần từ HĐ đầu tư',v:['(49,5)','(45,2)','(48,8)','—'],d:'',src:['A01-04 · tr.3','A01-04-3','cfo'],st:'ok',by:'L.Q.Huy · 04/11'},
+  {id:'prin',n:'Tiền chi trả nợ gốc vay',v:['(58,0)','(50,0)','(50,0)','—'],d:'',src:['A01-04 · tr.3','A01-04-3','principal'],st:'ai'},
+];
+const docs = [
+  {id:'A01-01',g:'Đề nghị',n:'Phiếu thông tin khách hàng doanh nghiệp',dt:'—',st:'ok',flag:'Cán bộ ký xác nhận trùng thành viên HĐQT KH',
+    title:'Phiếu thông tin khách hàng doanh nghiệp',sub:'Hồ sơ tín dụng – Mã CR-A01',rows:[['Sản phẩm','Hạn mức vốn lưu động'],['Số tiền đề nghị','80 tỷ đồng'],['Dòng tiền HĐKD 2023 / 2024 / 2025','48 / 59 / 81','cfo'],['Tổng nợ vay (30/06/2026)','98'],['Vốn chủ sở hữu (30/06/2026)','270'],['Tổng giá trị xử lý thận trọng','145'],['Tỷ lệ dư nợ/giá trị xử lý','55,2%','ltv'],['Xác nhận của cán bộ thẩm định','Phạm Đức Lâm','signer']]},
+  {id:'DKKD',g:'Pháp lý',n:'Giấy CN đăng ký doanh nghiệp (thay đổi lần 5)',dt:'10/06/2022',st:'ok',
+    title:'Giấy chứng nhận đăng ký doanh nghiệp',sub:'Mã số doanh nghiệp: 0318888888',rows:[['Tên doanh nghiệp','CTCP Bao bì VinaNova'],['Vốn điều lệ','160.000.000.000 đồng'],['Người đại diện theo pháp luật','Nguyễn Hoàng Nam – TGĐ'],['Ngành nghề chính','Bao bì giấy, bao bì nhựa, in công nghiệp']]},
+  {id:'A01-02',g:'Pháp lý',n:'Danh sách cổ đông & xác định UBO',dt:'27/05/2025',st:'ok',
+    title:'A01-02: Danh sách cổ đông và bản xác định UBO',sub:'Ngày lập 27/05/2025',rows:[['Nguyễn Hoàng Nam','55% – UBO'],['Trần Thu Hà','15%'],['Lê Minh Đức','10%'],['Nhóm cổ đông nhỏ','20%'],['PEP','Không phát hiện']]},
+  {id:'NQ',g:'Pháp lý',n:'Nghị quyết HĐQT 03/2024/NQ-HĐQT về vay vốn',dt:'27/05/2024',st:'ok',flag:'Ban hành 2024 – kiểm tra hiệu lực cho khoản 2026',
+    title:'Nghị quyết Hội đồng quản trị về vay vốn',sub:'Số 03/2024/NQ-HĐQT – ngày 27/05/2024',rows:[['Hạn mức vay vốn lưu động','80.000.000.000 đồng'],['Tài sản bảo đảm','Nhà xưởng, máy móc thiết bị'],['Thành viên HĐQT','Trần Quốc Bảo, Phạm Đức Lâm, Nguyễn Hoàng Nam, Lê Minh Khoa, Lê Hoàng Anh','board'],['Kết quả biểu quyết','5/5 tán thành']]},
+  {id:'A01-04-1',g:'Tài chính',n:'BCTC kiểm toán 2025 – tr.1 Ý kiến KT & KQKD',dt:'27/05/2025',st:'ok',flag:'Ngày ký trước ngày kết thúc niên độ',
+    title:'Báo cáo tài chính kiểm toán',sub:'Năm tài chính kết thúc 31/12/2025 – Trang 1/3 – đơn vị: tỷ đồng',head:['Chỉ tiêu','2023','2024','2025'],rows:[['Doanh thu thuần','520','610','705','rev'],['EBITDA','62','78','98','ebitda'],['Lợi nhuận sau thuế','34,0','46,4','62,2','np'],['Ý kiến kiểm toán','','','Chấp nhận toàn phần'],['Đơn vị kiểm toán – ngày ký','','','NT.Viet – 27/05/2025','auditor']]},
+  {id:'A01-04-2',g:'Tài chính',n:'BCTC kiểm toán 2025 – tr.2 Bảng cân đối kế toán',dt:'24/05/2025',st:'ok',
+    title:'Bảng cân đối kế toán',sub:'Tại ngày 31/12/2025 – đơn vị: triệu đồng',head:['Chỉ tiêu','31/12/2025','31/12/2024','01/01/2024'],rows:[['Tổng cộng tài sản','1.383.000','1.210.000','1.039.000','ta'],['Các khoản phải thu ngắn hạn','312.000','268.000','220.000','ar'],['Hàng tồn kho','320.000','274.000','228.000','inv'],['Vay và nợ thuê tài chính dài hạn','56.000','50.000','42.000','debt'],['Vốn chủ sở hữu','1.018.500','886.000','769.000','equity'],['Hệ số thanh toán hiện hành (ghi trên BC)','2,04 lần','2,03 lần','2,07 lần','cr']]},
+  {id:'A01-04-3',g:'Tài chính',n:'BCTC kiểm toán 2025 – tr.3 Lưu chuyển tiền tệ',dt:'27/05/2025',st:'ok',flag:'Đơn vị kiểm toán khác tr.1',
+    title:'Báo cáo lưu chuyển tiền tệ (gián tiếp)',sub:'Trang 3/3',head:['Chỉ tiêu','2023','2024','2025'],rows:[['Khấu hao TSCĐ và BĐS đầu tư','38,0','42,5','48,0','da'],['Chi phí lãi vay','14,9','16,2','17,8','interest'],['Lưu chuyển tiền thuần từ HĐKD','28,3','59,6','93,2','cfo'],['Tiền chi trả nợ gốc vay','(58,0)','(50,0)','(50,0)','principal'],['Kỳ thu tiền bình quân (thuyết minh)','62 ngày','55 ngày','48 ngày','dso'],['Đơn vị kiểm toán','','','Kiểm toán Quốc Gia','auditor']]},
+  {id:'A01-05',g:'Tài chính',n:'BCTC quản trị 6 tháng đầu năm 2026',dt:'30/06/2026',st:'ok',flag:'Chưa kiểm toán; TS/VCSH lệch BCĐKT',
+    title:'Báo cáo tài chính quản trị 6 tháng đầu năm 2026',sub:'Đơn vị: tỷ đồng',rows:[['Doanh thu thuần 6T2026','392'],['EBITDA 6T2026','59','ebitda6m'],['Lợi nhuận sau thuế','38,8'],['Tổng tài sản (30/06/2026)','368'],['Tổng nợ vay','98'],['Vốn chủ sở hữu','270','equity']]},
+  {id:'A01-06',g:'Tài chính',n:'Tờ khai VAT & bảng đối chiếu doanh thu 2025',dt:'2025',st:'ok',
+    title:'Tờ khai VAT và bảng đối chiếu doanh thu',sub:'Kỳ đối chiếu: năm tài chính 2025',rows:[['Doanh thu theo BCTC 2025','705'],['Doanh thu theo hóa đơn điện tử','701'],['Doanh thu theo tờ khai VAT','698'],['Chênh lệch A – C','7 (0,99%)']]},
+  {id:'A01-07',g:'Tài chính',n:'Sao kê tài khoản doanh nghiệp 12 tháng',dt:'02/06/2024',st:'warn',flag:'Kỳ 06/2023–05/2024, không phải 12 tháng gần nhất',
+    title:'Sao kê tài khoản doanh nghiệp 12 tháng',sub:'Ngân hàng TMCP Phương Nam – CN Quận 1',rows:[['Kỳ sao kê','01/06/2023 – 31/05/2024','period'],['Tổng tiền vào','≈ 742 tỷ'],['Tổng tiền ra','≈ 704 tỷ'],['Số dư bình quân','≈ 38 tỷ'],['Tỷ lệ doanh thu chuyển về NH','≈ 74%']]},
+  {id:'CIC',g:'Tín dụng',n:'Báo cáo CIC & xác nhận dư nợ',dt:'25/05/2025',st:'warn',flag:'Quá 30 ngày – cần tra cứu CIC mới',
+    title:'Báo cáo CIC và xác nhận dư nợ',sub:'Mã hồ sơ CR-103',rows:[['Ngày báo cáo','25/05/2025','date'],['Ngân hàng A – dư nợ (triệu đồng)','56.000 – Nhóm 1'],['Ngân hàng B – dư nợ (triệu đồng)','42.000 – Nhóm 1','bankb'],['Tổng dư nợ tín dụng','98.000 triệu đồng']]},
+];
+
+/* ============================ VAI TRÒ ============================ */
+const roles = {
+  tdinh:{name:'Lê Quang Huy',av:'LH',title:'Chuyên viên Thẩm định · CN Hồ Chí Minh',
+    nav:[['i-inbox','Việc của tôi','5'],['i-folder','Hồ sơ vay','',1],['i-building','Khách hàng'],['i-book','Tra cứu chính sách'],['i-spark','Trợ lý AI']],
+    actions:'<button class="btn"><svg class="i sm"><use href="#i-return"/></svg>Trả lại QHKH bổ sung</button><button class="btn primary" aria-disabled="true" id="submitBtn" title="Chưa đủ điều kiện trình">Trình Rủi ro cho ý kiến</button>',
+    gate:true, banner:''},
+  qhkh:{name:'Nguyễn Thảo Vy',av:'TV',title:'Chuyên viên QHKH · CN Hồ Chí Minh',
+    nav:[['i-inbox','Việc của tôi','3'],['i-folder','Hồ sơ vay','',1],['i-building','Khách hàng'],['i-plus','Tạo hồ sơ mới'],['i-spark','Trợ lý AI']],
+    actions:'<button class="btn"><svg class="i sm"><use href="#i-file"/></svg>Bổ sung tài liệu</button>',
+    banner:'Bạn xem với vai trò QHKH: phân tích của Thẩm định là độc lập – chỉ xem, không sửa và không xác nhận số liệu.'},
+  httd:{name:'Võ Văn Tâm',av:'VT',title:'Hỗ trợ tín dụng · CN Hồ Chí Minh',
+    nav:[['i-inbox','Việc của tôi','7'],['i-checkc','Kiểm tra hồ sơ'],['i-folder','Hồ sơ vay','',1],['i-spark','Trợ lý AI']],
+    actions:'', banner:'Hồ sơ đã qua bước Kiểm tra hồ sơ. Bạn chỉ cập nhật được danh mục tài liệu khi Thẩm định trả lại.'},
+  ruiro:{name:'Đặng Hải Yến',av:'HY',title:'Quản lý rủi ro/Tuân thủ · Hội sở',
+    nav:[['i-inbox','Hồ sơ chờ ý kiến','2'],['i-folder','Hồ sơ vay','',1],['i-shield','Giới hạn tín dụng'],['i-book','Tra cứu chính sách'],['i-spark','Trợ lý AI']],
+    actions:'<button class="btn primary" aria-disabled="true" title="Hồ sơ chưa được trình">Ghi ý kiến rủi ro</button>',
+    banner:'Hồ sơ chưa được trình Rủi ro. Bạn có thể xem trước; ý kiến chỉ ghi được sau khi Thẩm định trình.'},
+  pheduyet:{name:'Bùi Thanh Sơn',av:'TS',title:'Cấp phê duyệt · Hội sở',
+    nav:[['i-inbox','Hồ sơ chờ phê duyệt','4'],['i-users','Hội đồng tín dụng'],['i-folder','Hồ sơ vay','',1],['i-book','Tra cứu chính sách'],['i-spark','Trợ lý AI']],
+    actions:'<button class="btn primary" aria-disabled="true" title="Hồ sơ chưa tới bước phê duyệt"><svg class="i sm"><use href="#i-lock"/></svg>Quyết định</button>',
+    banner:'Hồ sơ chưa tới bước Phê duyệt (Cấp 2). Nút quyết định mở khi có Tờ trình và Ý kiến rủi ro.'},
+  kiemtoan:{name:'Phan Minh Châu',av:'MC',title:'Kiểm toán nội bộ · Hội sở',
+    nav:[['i-folder','Hồ sơ vay (chỉ đọc)','',1],['i-clock','Nhật ký hệ thống'],['i-spark','Trợ lý AI']],
+    actions:'<span class="tag">Chỉ đọc</span>', banner:'Chế độ chỉ đọc. Mọi thao tác xem của bạn được ghi vào nhật ký kiểm toán.'},
+  quantri:{name:'Trịnh Đức Anh',av:'ĐA',title:'Quản trị hệ thống',
+    nav:[['i-users','Người dùng & vai trò'],['i-gear','Hạn mức phê duyệt'],['i-spark','Cấu hình AI'],['i-clock','Nhật ký hệ thống']],
+    actions:'', banner:''},
+};
+
+/* ============================ RENDER ============================ */
+const $ = s => document.querySelector(s);
+const ic = (id,c='sm') => `<svg class="i ${c}"><use href="#${id}"/></svg>`;
+function provHTML(st,by,note){
+  if(st==='ok') return `<span class="prov ok">${ic('i-checkc')}<span>Đã xác nhận<small>bởi ${by}</small></span></span>`;
+  if(st==='verify') return `<span class="prov verify">${ic('i-alert')}<span>Cần xác minh<small>${note||'nguồn mâu thuẫn'}</small></span></span>`;
+  return `<span class="prov ai">${ic('i-spark')}<span>AI đề xuất<small>chưa xác nhận${note?' · '+note:''}</small></span></span>`;
+}
+function srcHTML(label,doc,key){ return `<button class="src" onclick="gotoDoc('${doc}','${key}')">${ic('i-file','xs')}${label}</button>`; }
+function rowActs(kind,id,label,st){
+  const ctx = (kind==='ratio'?'Chỉ số: ':'Dòng BCTC: ')+label;
+  return `<td class="act">${st!=='ok'?`<button class="iconbtn ok" onclick="confirmRow('${kind}','${id}')" title="Xác nhận số liệu" aria-label="Xác nhận ${label}">${ic('i-check')}</button>`:''}<button class="iconbtn aib" onclick="askAI('metric','${ctx}')" title="Hỏi AI về mục này" aria-label="Hỏi AI về ${label}">${ic('i-spark')}</button></td>`;
+}
+function renderRatios(){
+  $('#ratioTbl tbody').innerHTML = ratios.map(r=>`
+  <tr id="m-${r.id}">
+    <td class="name">${r.name}<small>${r.f}</small></td>
+    <td class="r num ${r.st!=='ok'?'v-ai':''}" style="white-space:nowrap"><span class="val">${r.v}</span> <span class="muted">${r.u==='%'?'%':r.u}</span></td>
+    <td class="num">${r.thr} <button class="src calc" style="padding:0 4px" onclick="openPolicy('${r.id==='ltv'?'6-1':r.id==='dso'?'4-4':['cr','qr','de'].includes(r.id)?'4-3':'4-2'}')" aria-label="Xem điều khoản">${ic('i-book','xs')}</button></td>
+    <td>${r.res==='pass'?`<span class="result pass">${ic('i-check','xs')}Đạt</span>`:`<span class="result fail">${ic('i-x','xs')}Không đạt</span>`}<div class="margin">${r.margin}</div></td>
+    <td>${provHTML(r.st,r.by,r.note)}</td>
+    <td><div class="srcs">${r.src.map(s=>srcHTML(s[0],s[1],s[2])).join('')}</div></td>
+    ${rowActs('ratio',r.id,(r.name.split(' (')[0])+' '+r.v+(r.u==='%'?'%':''),r.st)}
+  </tr>`).join('');
+}
+function renderFS(){
+  $('#fsTbl tbody').innerHTML = fs.map(r=>{
+    if(r.g) return `<tr class="grp"><td colspan="9">${r.g}</td></tr>`;
+    const cells = r.v.map((x,i)=>{
+      const f = r.flag && r.flag[i];
+      return `<td class="r num ${r.st==='ai'?'v-ai':''}">${f?`<span class="cell-flag" title="${f}">${ic('i-alert','xs')}${x}</span>`:x}</td>`;
+    }).join('');
+    const src = r.src? srcHTML(r.src[0],r.src[1],r.src[2]) : `<span class="src calc">${ic('i-chart','xs')}Tính toán</span>`;
+    return `<tr id="r-${r.id}"><td class="name">${r.n}${r.sub?`<small>${r.sub}</small>`:''}</td>${cells}<td class="r num muted">${r.d}</td><td>${provHTML(r.st,r.by)}</td><td>${src}</td>${rowActs('fs',r.id,r.n,r.st)}</tr>`;
+  }).join('');
+}
+function updateCounts(){
+  const all = [...ratios, ...fs.filter(x=>!x.g)];
+  const ok = all.filter(x=>x.st==='ok').length, n = all.length, un = n-ok;
+  $('#progTxt').textContent = `${ok}/${n} đã xác nhận`;
+  $('#progBar').style.width = (ok/n*100)+'%';
+  $('#tabUnconf').textContent = un; $('#tabUnconf').title = `${un} số liệu chưa xác nhận`;
+  $('#ovUnconf').textContent = `còn ${un} số liệu`;
+  const g = $('#gate');
+  if(S.role==='tdinh') g.innerHTML = `${ic('i-lock','xs')}Để trình: xác nhận <b>${un} số liệu</b> · hoàn tất Tờ trình mục 4, 5, 7`;
+}
+function confirmRow(kind,id){
+  const arr = kind==='ratio'?ratios:fs;
+  const r = arr.find(x=>x.id===id); r.st='ok'; r.by='L.Q.Huy · vừa xong';
+  kind==='ratio'?renderRatios():renderFS(); updateCounts();
+  flash(document.getElementById((kind==='ratio'?'m-':'r-')+id), false);
+  toast(`Đã xác nhận "${r.name||r.n}" – ghi nhật ký với tên ${ME}`);
+}
+
+/* Tài liệu */
+let curDoc = 'A01-04-1';
+function renderDocList(){
+  let g='', h='';
+  docs.forEach(d=>{
+    if(d.g!==g){ g=d.g; h+=`<div class="doc-grp">${g}</div>`; }
+    h+=`<div class="doc-item" role="option" tabindex="0" aria-selected="${d.id===curDoc}" onclick="selectDoc('${d.id}')" onkeydown="if(event.key==='Enter')selectDoc('${d.id}')">
+      <svg class="i" style="color:var(--text-3)"><use href="#i-file"/></svg>
+      <div><b>${d.id.startsWith('A0')?d.id.replace(/-\d$/,'')+' · ':''}${d.n}</b><small>${d.dt} · ${d.st==='warn'?'<span style="color:var(--warning)">HTTD: lưu ý</span>':'HTTD: đã kiểm tra'}</small>
+      ${d.flag?`<div style="font-size:12px;color:var(--warning);display:flex;gap:4px;align-items:center;margin-top:2px">${ic('i-alert','xs')}${d.flag}</div>`:''}</div>
+      <button class="askai" onclick="event.stopPropagation();askAI('doc','Tài liệu: ${d.n.replace(/'/g,'')}')" aria-label="Hỏi AI về tài liệu">${ic('i-spark')}</button>
+    </div>`;
+  });
+  $('#docList').innerHTML = h;
+}
+function selectDoc(id,key){
+  curDoc = id; renderDocList();
+  const d = docs.find(x=>x.id===id);
+  $('#vTitle').textContent = d.n;
+  $('#vHl').style.display = key?'inline-flex':'none';
+  $('#vAsk').onclick = ()=>askAI('doc','Tài liệu: '+d.n);
+  const head = d.head?`<tr>${d.head.map(x=>`<td><b>${x}</b></td>`).join('')}</tr>`:'';
+  const body = d.rows.map(r=>{
+    const k = (r.length>(d.head?d.head.length:2)) ? r[r.length-1] : '';
+    const cells = r.slice(0, d.head?d.head.length:2);
+    return `<tr data-k="${k}" class="${k&&k===key?'hl':''}">${cells.map((c,i)=>`<td class="${i?'r':''}">${c}</td>`).join('')}</tr>`;
+  }).join('');
+  $('#paper').innerHTML = `<div class="paper"><h3>${d.title}</h3><div class="ps">${d.sub}</div><table>${head}${body}</table><div class="wm">Bản số hóa từ ảnh chụp tài liệu · OCR · bấm "Bản gốc" để xem ảnh</div></div>`;
+  if(key){ const el = $('#paper tr.hl'); if(el) setTimeout(()=>el.scrollIntoView({block:'center',behavior:motion()}),50); }
+  setCtxItem(null); // tài liệu đang xem thay đổi -> chip tab
+  S.docLabel = d.n; renderChips();
+}
+
+/* ============================ ĐIỀU HƯỚNG ============================ */
+const S = {role:'tdinh', tab:'analysis', item:'Chỉ số: DSCR dự phóng 2026 1,34', itemType:'metric', docLabel:null};
+const tabNames = {overview:'Tổng quan',docs:'Hồ sơ tài liệu',analysis:'Phân tích tài chính',collateral:'Tài sản bảo đảm',report:'Tờ trình thẩm định',risk:'Ý kiến rủi ro',approval:'Phê duyệt',history:'Lịch sử & nhật ký'};
+function motion(){ return matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'; }
+function switchTab(t){
+  S.tab = t;
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===t));
+  document.querySelectorAll('.panel').forEach(p=>p.hidden = p.id!=='p-'+t);
+  if(t==='docs' && !$('#paper').innerHTML) selectDoc(curDoc);
+  renderChips(); renderSuggest();
+}
+function flash(el, scroll=true){
+  if(!el) return;
+  document.querySelectorAll('tr.target').forEach(x=>{ if(!x.closest('#p-approval')) x.classList.remove('target'); });
+  if(el.tagName==='TR') el.classList.add('target');
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  if(scroll) el.scrollIntoView({block:'center',behavior:motion()});
+}
+function gotoMetric(id){ switchTab('analysis'); flash(document.getElementById('m-'+id)); }
+function gotoRow(id){ switchTab('analysis'); flash(document.getElementById('r-'+id)); }
+function gotoDoc(id,key){ switchTab('docs'); selectDoc(id,key); }
+function openPolicy(sec){
+  document.querySelectorAll('.clause').forEach(c=>c.classList.toggle('hl', c.id==='pol-'+sec));
+  $('#drawer').classList.add('open'); $('#dmask').classList.add('open'); $('#drawer').setAttribute('aria-hidden','false');
+  const el = document.getElementById('pol-'+sec); if(el) el.scrollIntoView({block:'center'});
+}
+function closePolicy(){ $('#drawer').classList.remove('open'); $('#dmask').classList.remove('open'); $('#drawer').setAttribute('aria-hidden','true'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closePolicy(); closeHist(); } });
+
+const cites = {1:()=>gotoDoc('A01-04-1','ebitda'),2:()=>gotoDoc('A01-04-3','interest'),3:()=>openPolicy('4-2'),4:()=>gotoDoc('A01-05','ebitda6m')};
+document.addEventListener('click',e=>{ const c = e.target.closest('[data-cite]'); if(c) cites[c.dataset.cite](); });
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+/* ============================ TRỢ LÝ AI ============================ */
+function toggleAI(open){ $('#ws').classList.toggle('ai-collapsed', !open); if(open) setTimeout(()=>$('#ask').focus(),300); }
+function closeHist(){ $('#hist').classList.remove('open'); return false; }
+function setCtxItem(label,type){ S.item = label; S.itemType = type||null; }
+function renderChips(pulse){
+  const c = [`<span class="chip">${ic('i-folder','xs')}HSV-2026-00187 · VinaNova</span>`,
+             `<span class="chip">${ic('i-panel','xs')}Tab: ${tabNames[S.tab]}</span>`];
+  if(S.tab==='docs' && S.docLabel && !S.item) c.push(`<span class="chip">${ic('i-file','xs')}Đang xem: ${S.docLabel}</span>`);
+  if(S.item) c.push(`<span class="chip item ${pulse?'pulse':''}">${ic('i-spark','xs')}${S.item}<button aria-label="Bỏ ngữ cảnh này" onclick="setCtxItem(null);renderChips();renderSuggest()">${ic('i-x','xs')}</button></span>`);
+  $('#chips').innerHTML = c.join('');
+}
+const tabSuggest = {
+  overview:['Tóm tắt hồ sơ trong 5 dòng','Còn thiếu gì trước khi trình Rủi ro?','Giải thích cờ xung đột lợi ích'],
+  docs:['Tài liệu nào đã quá hạn hiệu lực?','Soạn yêu cầu bổ sung gửi QHKH','Đối chiếu doanh thu BCTC – HĐĐT – VAT'],
+  analysis:['Tóm tắt các điểm bất nhất số liệu','Kiểm tra nhu cầu VLĐ 68–88 tỷ','So sánh chỉ số với trung vị ngành bao bì','Soạn nháp nhận xét mục 5 Tờ trình'],
+  collateral:['LTV thay đổi thế nào nếu TSBĐ giảm 20%?','Tỷ lệ khấu trừ máy móc có đúng chính sách?'],
+  report:['Soạn nháp mục 4 từ dữ liệu đã xác nhận','Rà soát tờ trình: số nào chưa có nguồn?'],
+  risk:['Các điểm Rủi ro có thể hỏi lại','Giới hạn Điều 136 áp dụng thế nào cho hồ sơ này?'],
+  approval:['Vì sao hồ sơ thuộc Cấp 2?','Khi nào phải chuyển Hội đồng tín dụng?'],
+  history:['Tóm tắt thay đổi từ 04/11','Ai đã xác nhận số liệu EBITDA?'],
+};
+function renderSuggest(){
+  let s;
+  if(S.item && S.itemType==='metric'){ const n=S.item.replace(/^[^:]+:\s*/,''); s=[`Giải thích cách tính ${n}`,'Độ nhạy nếu EBITDA −15% hoặc lãi suất +2%','Điều khoản chính sách áp dụng','So với trung vị ngành bao bì']; }
+  else if(S.item && S.itemType==='doc'){ s=['Tóm tắt tài liệu này','Số liệu nào mâu thuẫn với tài liệu khác?','Tài liệu còn hiệu lực không?']; }
+  else if(S.item && (S.itemType==='issue'||S.itemType==='flag')){ s=['Giải thích vì sao bị gắn cờ','Cần KH bổ sung tài liệu gì?','Ảnh hưởng tới chỉ số nào?']; }
+  else s = tabSuggest[S.tab]||[];
+  $('#suggest').innerHTML = s.map(x=>`<button onclick="$('#ask').value=this.textContent;$('#ask').focus()">${x}</button>`).join('');
+}
+function askAI(type,label){
+  setCtxItem(label,type); toggleAI(true); renderChips(true); renderSuggest();
+}
+function send(){
+  const t = $('#ask').value.trim(); if(!t) return;
+  const m = $('#msgs');
+  m.insertAdjacentHTML('beforeend',`<div class="m-user">${t.replace(/</g,'&lt;')}<small>${ME}${S.item?' · ngữ cảnh: '+S.item.replace(/^[^:]+:\s*/,''):''}</small></div>
+  <div class="m-ai"><div class="who">${ic('i-spark')}Trợ lý AI · đang phân tích…</div><p style="color:var(--text-3)">(Mockup) Câu trả lời sẽ kèm trích dẫn [n] tới tài liệu/chỉ số, nhãn "AI đề xuất – chưa xác nhận" và thẻ hành động.</p></div>`);
+  $('#ask').value=''; m.scrollTop = m.scrollHeight;
+}
+$('#ask').addEventListener('keydown',e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } });
+
+function insertToReport(){
+  switchTab('report');
+  $('#rpt53').innerHTML = `<div class="ai-block" id="blk53"><div class="hd">${ic('i-spark')}AI đề xuất – chưa xác nhận · từ hội thoại "DSCR và độ nhạy" · 4 nguồn
+    <span class="right"><button class="btn sm" onclick="confirmBlock()">${ic('i-check','xs')}Xác nhận đưa vào</button><button class="btn sm">Sửa</button><button class="btn sm ghost">Loại bỏ</button></span></div>
+    <table class="mini"><thead><tr><th>Kịch bản</th><th class="r">DSCR</th><th>So ngưỡng ≥ 1,25</th></tr></thead><tbody>
+    <tr><td>Cơ sở</td><td class="r">1,34</td><td>Đạt</td></tr><tr><td>Lãi suất +2%</td><td class="r">1,29</td><td>Đạt</td></tr><tr><td>EBITDA −15%</td><td class="r">1,14</td><td>Không đạt</td></tr><tr><td>Cả hai</td><td class="r">1,10</td><td>Không đạt</td></tr></tbody></table>
+    <div style="font-size:12px;color:var(--warning);margin-top:6px">Giả định cần xác nhận: tỷ lệ sử dụng hạn mức 75%, lãi suất 8,5%/năm.</div></div>`;
+  flash(document.getElementById('blk53'));
+  toast('Đã chèn vào mục 5.3 ở trạng thái "AI đề xuất – chưa xác nhận"');
+}
+function confirmBlock(){
+  const b = $('#blk53'); b.classList.add('confirmed');
+  b.querySelector('.hd').innerHTML = `${ic('i-checkc')}Đã xác nhận bởi ${ME} · 05/11/2026 09:31 · nguồn giữ nguyên`;
+  toast('Đã xác nhận mục 5.3 – ghi vào nhật ký hồ sơ');
+}
+function toast(t){ $('#toastTxt').textContent=t; const el=$('#toast'); el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2600); }
+
+/* ============================ ĐỔI VAI TRÒ (demo) ============================ */
+function applyRole(r){
+  S.role = r; const R = roles[r]; document.body.dataset.role = r;
+  $('#uName').textContent=R.name; $('#uRole').textContent=R.title; $('#uAv').textContent=R.av;
+  $('#nav').innerHTML = R.nav.map(n=>`<a href="#" class="${n[3]?'active':''}">${ic(n[0],'')}<span>${n[1]}</span>${n[2]?`<span class="badge">${n[2]}</span>`:''}</a>`).join('');
+  $('#headActions').innerHTML = R.actions;
+  $('#gate').innerHTML=''; if(R.gate) updateCounts();
+  $('#roleBanner').classList.toggle('show', !!R.banner); $('#roleBannerText').textContent = R.banner;
+  const lock = $('#approvalLock');
+  if(r==='pheduyet') lock.innerHTML='<b>Chưa thể quyết định.</b><br>Hồ sơ chưa tới bước Phê duyệt. Bạn không tham gia hồ sơ nên đủ điều kiện quyết định khi tới lượt.';
+  else if(r==='tdinh') lock.innerHTML='<b>Bạn không thể phê duyệt hoặc biểu quyết hồ sơ này.</b><br>Lý do: bạn đã tham gia hồ sơ ở bước Thẩm định (nguyên tắc tách bạch thẩm định – quyết định). Hồ sơ cũng chưa tới bước Phê duyệt.';
+  else lock.innerHTML='<b>Vai trò của bạn không có quyền phê duyệt.</b>';
+}
+$('#roleSel').addEventListener('change',e=>applyRole(e.target.value));
+
+/* Khởi tạo */
+renderRatios(); renderFS(); applyRole('tdinh'); updateCounts(); renderChips(); renderSuggest(); renderDocList();
+/* Deep link: #tab=docs | #cite=1 | #metric=dscr | #role=ruiro | #ai=off */
+(function(){
+  const h = new URLSearchParams(location.hash.slice(1));
+  if(h.get('role')){ $('#roleSel').value=h.get('role'); applyRole(h.get('role')); }
+  if(h.get('tab')) switchTab(h.get('tab'));
+  if(h.get('cite')) cites[h.get('cite')]();
+  if(h.get('metric')) gotoMetric(h.get('metric'));
+  if(h.get('ask')) askAI('metric', h.get('ask'));
+  if(h.get('report')) insertToReport();
+  if(h.get('ai')==='off') toggleAI(false);
+})();
+</script>
+</body>
+</html>

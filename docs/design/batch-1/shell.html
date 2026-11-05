@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHB AI Assistant – Shell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!--
+  SHELL DÙNG CHUNG – sao chép file này làm điểm xuất phát cho mọi trang.
+  Quy tắc: ../design-system.md · Khuôn gốc: content/02b-ho-so-vay-task.html
+  Thay: PAGE_ID, header trang, mục lục (SECS), các <section class="sec">.
+  Giữ nguyên: tokens, rail, topbar, Trợ lý AI, drawer, toast, JS dùng chung.
+  Deep link: #role=tdinh|qhkh|httd|ruiro|pheduyet|kiemtoan|quantri · #ai=open|off · #sec=<mục> · #filter=<bộ lọc> · #pol=<§, vd 4-2>
+             Trạng thái tự ghi lại vào hash bằng history.replaceState (syncHash, G10) → tải lại giữ nguyên.
+  Bàn phím (G2): panel AI / drawer đóng = inert. Esc: drawer → form của trang (ESC_HANDLERS) → panel AI.
+             Drawer mở: focus nút đóng, .app inert (F-C4); đóng: bỏ inert, trả focus về nút đã mở. Ctrl J: mở/đóng AI.
+  Lối vào AI (F1): "Hỏi AI" ở header (hằng AI_BTN), mục Trợ lý AI trên rail, Ctrl J, "Hỏi AI về <đối tượng>" tại chỗ. KHÔNG có nút nổi.
+             + khóa liên kết 2 chiều 02b ↔ 05: doc, page, field, cite, from, sec, metric (design-system.md §10.4)
+  Dữ liệu dùng chung (badge, SLA, lịch, ngưỡng, PAGE_FILE, điều hướng) LẤY TỪ common.js (window.BANK).
+  KHÔNG định nghĩa lại trong trang. Quyết định nghiệp vụ: ../../../business/rules.md mục A.
+-->
+<!-- DỮ LIỆU DÙNG CHUNG (window.BANK) – nạp TRƯỚC script của trang.
+     File trang thật nằm trong content/ → chỉ cần đúng 1 dòng:  <script src="common.js"></script>
+     Riêng shell.html nằm ngoài content/, nên khối dưới tự chọn đường dẫn (mở shell trực tiếp vẫn chạy, không lỗi 404).
+     Sao chép sang content/ thì được phép thay cả khối bằng dòng trên. -->
+<script>document.write('<script src="'+(/(^|\/)shell\.html$/i.test(location.pathname)?'content/':'')+'common.js"><\/script>');</script>
+<style>
+/* ===================== TOKENS (không thêm màu mới) ===================== */
+:root{
+  --orange-50:#FFF7F0; --orange-100:#FEEBDD; --orange-200:#FDD3B5; --orange-500:#F37021; --orange-600:#DD5A12; --orange-700:#B9450C;
+  --cta:#C44D0E; --cta-hover:#A9410B;
+  --navy-50:#F3F3FA; --navy-100:#E1E1F3; --navy-200:#C0BFE7; --navy-500:#4F4DB0; --navy-600:#3C3A96; --navy-700:#2F2E79; --navy-800:#23224F; --navy-900:#1B1A46;
+  --canvas:#F6F4F0; --surface:#FFFFFF; --soft:#FAF8F5; --soft-2:#F3F0EB;
+  --border:#EAE3DA; --border-strong:#D9D0C5; --divider:#F0EBE4;
+  --text:#18212B; --text-2:#475467; --text-3:#5F6B7A; --text-disabled:#98A2B3;
+  --success:#11734F; --success-bg:#ECFAF4;
+  --warning:#94560A; --warning-bg:#FFF6E5;
+  --error:#B42318; --error-bg:#FEF3F2;
+  --info:#226189; --info-bg:#EFF8FC;
+  --ai:#5B3FA8; --ai-strong:#4A3191; --ai-bg:#F4F1FC; --ai-border:#CFC3EE;
+  --r:6px; --r-md:8px; --r-lg:12px;
+  --shadow-sm:0 1px 2px rgba(35,34,79,.06),0 1px 1px rgba(35,34,79,.03);
+  --shadow-md:0 8px 30px rgba(35,34,79,.10);
+  --shadow-lg:0 16px 48px rgba(35,34,79,.18);
+  --rail-w:64px; --toc-w:256px; --ai-w:408px; --topbar-h:56px;
+  --sticky-foot-h:0px; /* trang có chân dính đặt bằng chiều cao chân → đệm đáy nội dung và toast nằm trên chân */
+  --font:"Be Vietnam Pro", Inter, "Segoe UI", system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);font-size:14px;line-height:1.55;color:var(--text);background:var(--canvas);min-width:1280px;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0;text-align:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--navy-600);outline-offset:2px;border-radius:4px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--text-3)}
+small{font-size:12px} /* G8: không chữ < 12px (small mặc định của trình duyệt ≈ 11,7px) */
+svg.i{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+svg.i.sm{width:14px;height:14px} svg.i.xs{width:12px;height:12px} svg.i.lg{width:20px;height:20px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ===================== APP SHELL ===================== */
+.app{display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr);height:100vh}
+.rail{background:var(--navy-900);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px}
+.brand-mark{width:36px;height:36px;border-radius:8px;background:var(--orange-500);display:grid;place-items:center;font-weight:700;color:#fff;font-size:12px;letter-spacing:.5px;margin-bottom:14px}
+.rail nav{display:flex;flex-direction:column;gap:4px}
+.rail .rail-bottom{margin-top:auto}
+.rail a{width:44px;height:44px;display:grid;place-items:center;border-radius:8px;color:#C9C8E6;position:relative;text-decoration:none}
+.rail a:hover{background:rgba(255,255,255,.07);color:#fff}
+.rail a.active{background:rgba(255,255,255,.13);color:#fff}
+.rail a.active::before{content:"";position:absolute;left:-10px;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--orange-500)}
+.rail a .badge{position:absolute;top:4px;right:3px;min-width:18px;height:18px;border-radius:9px;background:rgba(255,255,255,.2);color:#fff;font-size:11px;line-height:1;font-weight:600;display:grid;place-items:center;padding:0 4px}
+.rail a svg.i{width:20px;height:20px}
+
+.main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.main > .topbar{height:var(--topbar-h);flex:none}
+.main > .ws{flex:1}
+.topbar{display:flex;align-items:center;gap:14px;padding:0 20px 0 24px;background:var(--surface);border-bottom:1px solid var(--divider)}
+.topbar .app-name{flex:none;font-weight:600;color:var(--navy-800);white-space:nowrap}
+.search{flex:0 1 300px;min-width:160px;display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:8px;background:var(--soft-2);color:var(--text-3);margin-left:16px}
+.search input{border:0;background:transparent;outline:0;flex:1;font:inherit;color:var(--text);min-width:0}
+/* Viền focus ô tìm kiếm: input bỏ outline nên vòng focus nằm trên cả ô. --navy-600 trên --soft-2 và --surface ≥ 3:1 (§2.2) */
+.search:focus-within{outline:2px solid var(--navy-600);outline-offset:0}
+.spacer{flex:1}
+.demo{flex:none;white-space:nowrap;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-3);padding:4px 6px 4px 10px;border:1px dashed var(--border-strong);border-radius:8px}
+/* Xem thử vai trò: select rộng CỐ ĐỊNH 200px (đổi vai trò không làm topbar nhảy) */
+.demo select{flex:none;width:200px;min-height:28px;text-overflow:ellipsis;font:inherit;font-size:13px;border:0;background:transparent;color:var(--navy-700);font-weight:600;cursor:pointer}
+.seg{display:inline-flex;background:var(--soft-2);border-radius:6px;padding:2px}
+.seg button{padding:2px 10px;border-radius:5px;font-size:13px;color:var(--text-2);line-height:24px;min-height:28px} /* G7: vùng bấm ≥ 28px */
+.seg button[aria-pressed="true"]{background:#fff;color:var(--ai);font-weight:600;box-shadow:var(--shadow-sm)}
+.icon-btn{position:relative;width:36px;height:36px;display:grid;place-items:center;border-radius:8px;color:var(--text-2)}
+.icon-btn:hover{background:var(--soft-2)}
+.icon-btn .dot{position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--error);box-shadow:0 0 0 2px #fff}
+.icon-btn,.user{flex:none}
+.user{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--navy-100);color:var(--navy-700);display:grid;place-items:center;font-weight:600;font-size:12px}
+.user b{white-space:nowrap;display:block;font-size:13px;line-height:1.25;font-weight:600}
+.user small{white-space:nowrap;color:var(--text-3)}
+
+/* Header trang: tối đa 2 dòng */
+.page-head{min-width:0;background:var(--surface);padding:12px 32px;border-bottom:1px solid var(--divider)}
+.h1row{display:flex;align-items:center;gap:14px;min-width:0}
+.h1row h1{margin:0;font-size:20px;line-height:1.3;font-weight:600;color:var(--navy-800);white-space:nowrap;flex:0 1 auto;min-width:0;max-width:55%;overflow:hidden;text-overflow:ellipsis}
+/* meta co lại trước (ellipsis), cụm nút phải không bao giờ bị ép */
+.facts{flex:1 1 auto;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.facts b{color:var(--text);font-weight:600}
+.h-acts{margin-left:auto;display:flex;gap:8px;flex:none;align-items:center}
+.h-acts .btn{flex:none}
+.h2row{display:flex;align-items:center;gap:20px;margin-top:10px;min-width:0}
+.h2row .right{margin-left:auto;display:flex;gap:16px;align-items:center;flex:none}
+.stepper{display:flex;align-items:center;list-style:none;margin:0;padding:0}
+.stepper li{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text-3);white-space:nowrap}
+.stepper li+li::before{content:"";width:16px;height:2px;border-radius:1px;background:var(--border);margin:0 8px}
+.stepper li.done+li::before{background:#9BD3BC}
+.sd{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:600;background:var(--soft-2);color:var(--text-3)}
+.stepper .done{color:var(--text-2)} .stepper .done .sd{background:var(--success-bg);color:var(--success)}
+.stepper .cur{color:var(--text);font-weight:600} .stepper .cur .sd{background:var(--orange-500);color:#fff;box-shadow:0 0 0 4px rgba(243,112,33,.16)}
+.stepper .who{font-weight:400;color:var(--text-3)}
+.sla{display:inline-flex;align-items:center;gap:6px;color:var(--warning);font-weight:500;white-space:nowrap}
+.link{color:var(--navy-700);display:inline-flex;align-items:center;gap:4px;font-weight:500;white-space:nowrap;min-height:28px;margin-block:-3px;text-decoration:none} /* G7 · margin âm giữ nguyên chiều cao dòng · không gạch chân (chỉ khi hover) */
+.link:hover{text-decoration:underline}
+.role-banner{display:none;align-items:center;gap:8px;padding:8px 32px;background:var(--info-bg);color:var(--info);font-size:13px}
+.role-banner.show{display:flex}
+
+/* Workspace: mục lục | nội dung | AI (đẩy) */
+.ws{display:grid;grid-template-columns:var(--toc-w) minmax(0,1fr) 0px;min-height:0;transition:grid-template-columns .3s cubic-bezier(.22,1,.36,1)}
+.ws.no-toc{grid-template-columns:0px minmax(0,1fr) 0px}
+body.ai-open .ws{grid-template-columns:212px minmax(0,1fr) var(--ai-w)}
+body.ai-open .ws.no-toc{grid-template-columns:0px minmax(0,1fr) var(--ai-w)}
+/* D5: AI mở + viewport < 1360px → ẨN HẲN mục lục (mọi trang). Chọn mục bằng deep link / khối việc. */
+@media (max-width:1359.98px){
+  body.ai-open .ws{grid-template-columns:0px minmax(0,1fr) var(--ai-w)}
+  body.ai-open .ws>.toc{display:none}
+}
+/* Ngoại lệ §13.1: trang có trình xem tài liệu (.ws.has-viewer) ẩn hẳn mục lục khi AI mở ở MỌI viewport */
+body.ai-open .ws.has-viewer{grid-template-columns:0px minmax(0,1fr) var(--ai-w)}
+body.ai-open .ws.has-viewer>.toc{display:none}
+body.ai-open .sec{padding-left:28px;padding-right:28px}
+body.ai-open .toc .cnt{display:none}
+.toc{overflow:auto;padding:16px 12px 24px 16px;background:var(--canvas)}
+.ws.no-toc .toc{display:none}
+/* fix: khi ẩn mục lục, ghim cột để nội dung không rơi vào cột 0px */
+.ws>.content{grid-column:2}
+.ws>.aipanel{grid-column:3}
+.toc-grp{font-size:12px;color:var(--text-3);font-weight:600;padding:16px 12px 6px}
+.toc-grp:first-child{padding-top:4px}
+.toc a{white-space:nowrap;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;color:var(--text-2);text-decoration:none;margin-bottom:1px}
+.toc a:hover{background:rgba(35,34,79,.05);color:var(--text)}
+.toc a[aria-current="page"]{background:var(--surface);color:var(--navy-800);font-weight:600;box-shadow:var(--shadow-sm)}
+.toc .cnt{white-space:nowrap;margin-left:auto;font-size:12.5px;font-weight:400;color:var(--text-3)}
+.toc .cnt.hot{color:var(--error);font-weight:600} .toc .cnt.ai{color:var(--ai)}
+.toc .fdot{width:7px;height:7px;border-radius:50%;background:var(--error);margin-left:-4px}
+.content{overflow:auto;background:var(--surface);min-width:0;scroll-behavior:smooth}
+.content:focus{outline:0} /* tabindex=-1: chỉ là đích trả focus cuối cùng */
+.sec{padding:24px 40px calc(40px + var(--sticky-foot-h));max-width:1080px}
+.sec[hidden]{display:none}
+.sec-h{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.sec-h h2{margin:0;font-size:16px;font-weight:600;color:var(--navy-800)}
+.sec-h .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.sec-desc{color:var(--text-3);margin:0 0 20px}
+/* §0: trang công cụ (không có .hero) nêu việc đầu tiên bằng đúng 1 dòng chữ, không viền, không thẻ */
+.next-line{display:flex;align-items:center;gap:8px;min-width:0;margin:0 0 12px;color:var(--text-2);white-space:nowrap}
+.next-line b{color:var(--text);font-weight:600}
+
+/* ===================== THÀNH PHẦN ===================== */
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--border-strong);background:var(--surface);font-weight:500;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--cta);border-color:var(--cta);color:#fff}
+.btn.primary:hover{background:var(--cta-hover)}
+/* Nút khóa: chữ --text-3 (KHÔNG --text-disabled: không đạt tương phản). Đè cả hover của .primary */
+.btn[aria-disabled="true"],.btn[aria-disabled="true"]:hover{background:var(--soft-2);border-color:transparent;color:var(--text-3);cursor:not-allowed}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--navy-700)}
+.btn.ghost:hover{background:var(--navy-50)}
+.btn.ai{color:var(--ai);border-color:transparent;background:var(--ai-bg)}
+.btn.ai:hover{background:#ECE6FA}
+.btn.ok{color:var(--success);border-color:transparent;background:var(--success-bg)}
+.btn.ok:hover{background:#DDF4EA}
+.btn.sm{height:30px;padding:0 10px;font-size:13px}
+.lock-line{font-size:13px;color:var(--text-3);display:inline-flex;gap:6px;align-items:center}
+
+/* Thanh công cụ (lọc, tìm, nút): luôn được xuống dòng, không đẩy tràn ngang */
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-width:0;margin-bottom:12px}
+.toolbar>*{min-width:0}
+.toolbar .grow{flex:1 1 200px}
+
+/* Bộ lọc segmented trên bảng/danh sách: .filters > button[aria-pressed] (+ <span class="n">số</span>). Cao 28px. */
+.filters{display:inline-flex;flex-wrap:wrap;gap:2px;background:var(--soft-2);border-radius:8px;padding:3px;min-width:0}
+.filters button{display:inline-flex;align-items:center;min-height:28px;padding:0 12px;border-radius:6px;font-size:13px;color:var(--text-2);white-space:nowrap}
+.filters button:hover{color:var(--text)}
+.filters button[aria-pressed="true"]{background:#fff;color:var(--navy-800);font-weight:600;box-shadow:var(--shadow-sm)}
+.filters .n{color:var(--text-3);font-weight:400;margin-left:4px}
+
+/* BẢNG CHUẨN table.t (D5): KHÔNG table-layout:fixed. Ô 12px, canh giữa theo chiều dọc. Cột tên .nm min-width 200px.
+   Cột phụ: <th/td class="col-aux"> ẩn khi AI mở; giá trị lặp lại trong <span class="aux-sub"> ở dòng phụ (.sub) của cột tên.
+   Dòng bấm được: tr.row (+ .open) · dòng mở rộng: tr.exp · nhóm dòng: tr.grp · cột tiện ích: td.util (120px, "Hỏi AI" hiện khi hover/focus/mở). */
+table.t{width:100%;border-collapse:collapse}
+.t th{text-align:left;font-weight:500;font-size:13px;color:var(--text-3);padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+.t td{padding:12px;border-bottom:1px solid var(--divider);vertical-align:middle}
+.t th.r,.t td.r{text-align:right}
+.t .nm{min-width:200px}
+.t .sub{display:block;font-size:13px;color:var(--text-3)}
+.t .val{font-weight:600}
+.t .u{color:var(--text-3);font-size:13px}
+.t tr.row{cursor:pointer}
+.t tr.row:hover td,.t tr.row.open td{background:var(--soft)}
+.t tr.row.open td{border-bottom-color:transparent}
+.t tr.grp td{padding:18px 12px 6px;font-size:13px;font-weight:600;color:var(--navy-800);border-bottom:1px solid var(--border);background:none;cursor:default}
+.t tr.exp td{background:var(--soft);padding:0 12px 16px}
+.t td.util{width:120px;text-align:right;white-space:nowrap}
+.t td.util .askai{opacity:0;transition:opacity .15s}
+.t tr.row:hover .askai,.t tr.row:focus-within .askai,.t tr.row.open .askai{opacity:1}
+.chev{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:6px;color:var(--text-3);margin-left:10px;transition:transform .2s}
+tr.open .chev{transform:rotate(180deg)}
+.t tr.target td{background:var(--orange-50)!important}
+.t tr.target td:first-child{box-shadow:inset 3px 0 0 var(--orange-500)}
+.t .aux-sub{display:none}
+body.ai-open .t .col-aux{display:none}
+body.ai-open .t .aux-sub{display:inline}
+.t-empty{font-size:13px;color:var(--text-3);padding:12px}
+
+/* Trạng thái số liệu – chữ + icon, không phải pill */
+.st{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:13px}
+.st.ai{color:var(--ai)} .st.ok{color:var(--success)} .st.verify{color:var(--warning)}
+.v-unconf{border-bottom:1.5px dashed var(--ai-border);padding-bottom:1px}
+.v-verify{border-bottom:1.5px dashed #E8B566;padding-bottom:1px}
+.cflag{color:var(--warning);font-weight:600;display:inline-flex;align-items:center;gap:3px}
+/* Pill: CHỈ 2 loại */
+.res{display:inline-flex;align-items:center;gap:4px;font-weight:600;white-space:nowrap}
+.res.pass{color:var(--success)}
+.res.fail{color:var(--error);background:var(--error-bg);padding:1px 8px;border-radius:4px}
+.sev{display:inline-block;font-size:12px;font-weight:600;line-height:20px;text-align:center;border-radius:4px;padding:0 8px}
+.sev.high{color:var(--error);background:var(--error-bg)} .sev.med{color:var(--warning);background:var(--warning-bg)} .sev.low{color:var(--text-3);background:var(--soft-2)}
+
+/* G7: link hành động, nguồn, "Hỏi AI" tại chỗ: vùng bấm ≥ 28px (padding/margin âm giữ nguyên bố cục dòng) */
+.src{display:inline-flex;align-items:center;justify-content:center;gap:4px;color:var(--navy-700);font-size:13px;min-height:28px;min-width:28px;margin-block:-3px}
+.src:hover{text-decoration:underline}
+.askai{display:inline-flex;align-items:center;gap:4px;color:var(--ai);font-size:13px;font-weight:500;min-height:28px;padding:4px 8px;margin:-4px -8px;border-radius:6px}
+.askai:hover,.askai:focus-visible{background:var(--ai-bg)}
+/* Link quay lại trong nội dung (màn phụ, so sánh…) */
+.back{display:inline-flex;align-items:center;gap:4px;min-height:28px;padding:0 8px 0 4px;margin-block:-3px;margin-left:-4px;border-radius:6px;color:var(--navy-700);font-weight:500;white-space:nowrap}
+.back:hover{background:var(--navy-50)}
+.back svg{transform:rotate(180deg)}
+/* .cite: nhìn 18px, chữ 12px; vùng bấm nới bằng ::after inset -5px = 28px (đo bằng elementFromPoint, §1.3) */
+.cite{position:relative;display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;margin:0 1px;font-size:12px;font-weight:600;line-height:1;border-radius:4px;background:var(--ai-bg);color:var(--ai);vertical-align:1px}
+.cite::after{content:"";position:absolute;inset:-5px}
+.cite:hover{background:var(--ai);color:#fff}
+.note{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:var(--r-md);background:var(--soft);color:var(--text-2)}
+.note svg{color:var(--text-3);margin-top:3px}
+.target{background:var(--orange-50)!important;box-shadow:inset 3px 0 0 var(--orange-500)}
+.flash{animation:flash 2.4s ease-out}
+@keyframes flash{0%,40%{background-color:var(--orange-100)}100%{background-color:transparent}}
+
+/* KHÔNG CÓ QUYỀN (D3) – một component cho mọi trang, nền --canvas, chiếm cả vùng làm việc */
+.noaccess{flex:1;background:var(--canvas);display:flex;justify-content:center;align-items:flex-start;padding:72px 24px;overflow:auto}
+.noaccess .state{margin:0}
+.noaccess .state p{max-width:460px;margin:0 auto 20px}
+
+/* Trạng thái khối (.state): rỗng / không có quyền. Icon 40px · h2 16/600 · 1 câu · ≤ 1 nút (icon trong nút 16px) */
+.state{margin:48px auto;max-width:520px;text-align:center;color:var(--text-2)}
+.state > svg.i{width:40px;height:40px;color:var(--text-3)}
+.state .btn svg.i{width:16px;height:16px;color:inherit}
+.state h2{color:var(--navy-800);font-size:16px;margin:12px 0 4px}
+.state p{margin:0 0 16px}
+
+/* ===================== KHỐI VIỆC CÒN LẠI (hero) – số đo chuẩn ===================== */
+/* .hero: nền navy-50, bo 12, padding 20/24/12. Biến thể .hero.ready (đủ điều kiện) nền success-bg. */
+.hero{background:var(--navy-50);border-radius:var(--r-lg);padding:20px 24px 12px}
+.hero.ready{background:var(--success-bg)}
+.hero-top{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap;min-width:0}
+.hero-top h2{margin:0;font-size:20px;line-height:1.35;font-weight:600;color:var(--navy-800)}
+.hero-top .muted{font-size:14px}
+.hero-top .right{margin-left:auto;flex:none}
+.prog{display:flex;align-items:center;gap:12px;margin:12px 0 14px}
+.bar{flex:1;height:8px;border-radius:4px;background:#fff;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--navy-600);border-radius:4px;transition:width .4s}
+.prog span{font-size:13px;color:var(--text-2);white-space:nowrap}
+.prog span b{color:var(--navy-800)}
+/* .task: <button>/<a> nền trắng, bo 10, grid 32px 1fr auto 20px, padding 10/14. Số thứ tự .tn 28px. */
+.tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.task{width:100%;display:grid;grid-template-columns:32px minmax(0,1fr) auto 20px;gap:14px;align-items:center;padding:10px 14px;border-radius:10px;background:#fff;color:inherit;text-decoration:none;transition:box-shadow .15s}
+.task:hover{box-shadow:var(--shadow-md)}
+.task .tn{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:13px;background:var(--orange-50);color:var(--orange-700)}
+.task.done .tn{background:var(--success-bg);color:var(--success)}
+.task b{display:block;font-weight:600;font-size:15px;color:var(--text)}
+.task .ts{display:block;color:var(--text-3);font-size:13px}
+.task .tp{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);white-space:nowrap}
+.mbar{width:72px;height:4px;border-radius:2px;background:var(--soft-2);overflow:hidden}
+.mbar i{display:block;height:100%;background:var(--success)}
+.task .go{color:var(--text-3)}
+.task:hover .go{color:var(--navy-700)}
+.task.done b{color:var(--text-3);text-decoration:line-through;text-decoration-color:var(--border-strong)}
+.hero-foot{font-size:13px;color:var(--text-3);margin-top:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+/* ===================== WIZARD ===================== */
+/* Chân wizard (D4): chỉ "Quay lại" (.btn.ghost) + gợi ý; KHÔNG primary (primary "Tiếp: …" ở header phải) */
+.wz-foot{display:flex;align-items:center;gap:12px;margin-top:40px}
+.wz-foot .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.wz-foot .hint{font-size:13px;color:var(--text-3)}
+.wz-foot:empty{display:none}
+/* Wizard trong mục lục: số bước là CHỮ --text-3 (không chấm màu, không trùng stepper header).
+   Trạng thái "hiện tại" (aria-current) THẮNG "đã xong": mục đang mở luôn hiện số, không hiện ✓. */
+.toc .wz-n{flex:none;min-width:14px;font-size:13px;font-weight:500;color:var(--text-3);font-variant-numeric:tabular-nums}
+.toc a.wz-done:not([aria-current]) .wz-n{color:var(--success)}
+.toc a[aria-current="page"] .wz-n{color:var(--navy-800);font-weight:600}
+.wz-left{font-size:13px;color:var(--error);display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap} /* "Còn n mục bắt buộc trước khi gửi" + link */
+.skel{height:14px;border-radius:6px;background:linear-gradient(90deg,var(--soft-2) 25%,var(--soft) 50%,var(--soft-2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;margin:10px 0}
+@keyframes shimmer{to{background-position:-200% 0}}
+.err{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:var(--error-bg);color:var(--error)}
+.err .btn{margin-left:auto}
+
+/* ===================== TRỢ LÝ AI ===================== */
+.aipanel{background:var(--surface);border-left:1px solid var(--divider);display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;box-shadow:-12px 0 32px -24px rgba(35,34,79,.35)}
+.ai-in{width:var(--ai-w);display:flex;flex-direction:column;height:100%;min-height:0;position:relative}
+.ai-h{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 18px}
+.ai-logo{width:30px;height:30px;border-radius:8px;background:var(--ai-bg);color:var(--ai);display:grid;place-items:center}
+.ai-h b{font-size:15px;color:var(--navy-800);display:block;line-height:1.2;font-weight:600}
+.ai-h small{color:var(--text-3);white-space:nowrap}
+.ai-h .right{margin-left:auto;display:flex;gap:2px}
+.ai-ctx{display:flex;align-items:center;gap:8px;padding:8px 18px 10px;font-size:13px;color:var(--text-3);border-bottom:1px solid var(--divider)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 10px;border-radius:6px;background:var(--orange-50);color:var(--orange-700);font-weight:500;max-width:280px}
+.chip.none{background:var(--soft-2);color:var(--text-2);padding-right:10px}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ✕ chip: hộp thật 28px (đo được), margin âm giữ chiều cao chip; nền hover chỉ tô 20px giữa */
+.chip button{flex:none;display:grid;place-items:center;width:28px;height:28px;padding:4px;margin:-4px -4px -4px -2px;border-radius:8px;background-clip:content-box}
+.chip button:hover{background-color:rgba(0,0,0,.06)}
+.chip.pulse{animation:pulse 1.2s ease-out}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(243,112,33,.55)}100%{box-shadow:0 0 0 10px rgba(243,112,33,0)}}
+.msgs{flex:1;overflow:auto;padding:14px 18px;display:flex;flex-direction:column;gap:12px}
+.m-user{align-self:flex-end;max-width:88%;background:var(--navy-50);border-radius:12px 12px 4px 12px;padding:8px 12px}
+.m-ai p{margin:0 0 8px}
+.m-ai .who{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);margin-bottom:6px}
+.m-ai .lead{font-size:15px;font-weight:600;color:var(--text);line-height:1.45}
+.assume{border-bottom:1px dashed var(--warning);color:var(--warning)}
+details.srcs{margin:0 0 10px;font-size:13px}
+details.srcs summary{cursor:pointer;color:var(--text-2);list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:28px}
+details.srcs summary::-webkit-details-marker{display:none}
+details.srcs .list{margin-top:6px;display:flex;flex-direction:column}
+details.srcs .list button{display:grid;grid-template-columns:22px 1fr;gap:6px;min-height:28px;padding:5px 6px;border-radius:6px}
+details.srcs .list button:hover{background:var(--soft)}
+details.srcs .list .n{color:var(--ai);font-weight:600;text-align:center}
+.action-card{display:grid;grid-template-columns:30px 1fr 16px;gap:10px;align-items:center;width:100%;text-align:left;background:var(--orange-50);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.action-card:hover{background:var(--orange-100)}
+.action-card .ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#fff;color:var(--orange-700)}
+.action-card b{display:block;font-weight:600;font-size:14px}
+.action-card small{color:var(--text-3)}
+/* G6: hàng gợi ý 1 dòng, cuộn ngang, mép phải mờ dần 24px (mask-image) để thấy còn gợi ý */
+.suggest{padding:8px 24px 0 18px;display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent)}
+.suggest::-webkit-scrollbar{display:none}
+.suggest button{flex:none;white-space:nowrap;background:var(--ai-bg);color:var(--ai-strong);border-radius:14px;min-height:28px;padding:0 12px;font-size:13px}
+.suggest button:hover{background:#ECE6FA}
+.composer{margin:10px 18px 8px;border:1px solid var(--border-strong);border-radius:12px;background:#fff;display:flex;align-items:flex-end;gap:6px;padding:6px 6px 6px 12px}
+.composer:focus-within{border-color:var(--navy-500);box-shadow:0 0 0 3px rgba(79,77,176,.15)}
+.composer textarea{flex:1;border:0;outline:0;resize:none;font:inherit;padding:5px 0;min-height:30px;background:transparent}
+.send{width:32px;height:32px;border-radius:8px;background:var(--navy-700);color:#fff;display:grid;place-items:center;flex:none}
+.send:hover{background:var(--navy-800)}
+/* G6: disclaimer ĐÚNG 1 dòng, câu cố định (không sửa theo trang) */
+.disclaim{font-size:12px;color:var(--text-3);padding:0 18px 12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Drawer · Toast */
+.drawer-mask{position:fixed;inset:0;background:rgba(27,26,70,.28);z-index:40;display:none}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:480px;background:#fff;box-shadow:var(--shadow-lg);z-index:41;transform:translateX(100%);transition:transform .28s cubic-bezier(.22,1,.36,1);display:flex;flex-direction:column}
+.drawer.open{transform:none}.drawer-mask.open{display:block}
+/* G2: drawer đóng = inert (không nhận Tab), ẩn hẳn sau khi trượt ra để không lộ bóng/viền */
+.drawer:not(.open){visibility:hidden;transition:transform .28s cubic-bezier(.22,1,.36,1),visibility 0s .28s}
+.drawer-h{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--divider)}
+.drawer-h h3{margin:0;font-size:16px;color:var(--navy-800)}
+.drawer-b{padding:14px 20px;overflow:auto;line-height:1.65}
+.clause{padding:8px 12px;border-radius:var(--r);margin:4px 0}
+.clause.hl{background:rgba(243,112,33,.12);box-shadow:inset 3px 0 0 var(--orange-500)}
+.toast{position:fixed;left:50%;bottom:calc(28px + var(--sticky-foot-h));transform:translateX(-50%) translateY(20px);background:var(--navy-900);color:#fff;padding:10px 16px;border-radius:var(--r-md);box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:.22s;z-index:60;display:flex;gap:8px;align-items:center;max-width:620px}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+/* Quản trị: không thấy nghiệp vụ, không có AI */
+body[data-role="quantri"] #segWrap{display:none!important}
+/* Không có quyền: h1 trung tính, KHÔNG meta, KHÔNG nút header, KHÔNG banner, KHÔNG AI */
+body[data-no-access] .ws,body[data-no-access] .page-head .h2row,body[data-no-access] .page-head .facts,
+body[data-no-access] .page-head .h-acts,body[data-no-access] .role-banner,body[data-no-access] #segWrap{display:none!important}
+body:not([data-no-access]) #noAccess{display:none}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+/* fix: bỏ vệt bóng / viền gây cuộn ngang khi panel AI và drawer đang đóng */
+body:not(.ai-open) .aipanel{box-shadow:none;border-left:0}
+.drawer:not(.open){box-shadow:none}
+</style>
+</head>
+<body data-role="tdinh">
+
+<!-- ===================== BỘ ICON (SVG stroke 1.8 – không dùng emoji) ===================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-checkc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-filecheck" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-return" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+</svg>
+
+<div class="app">
+  <!-- RAIL 64px: menu sinh từ ROLES[role].nav -->
+  <aside class="rail" aria-label="Điều hướng chính">
+    <div class="brand-mark" title="SHB AI Assistant">SHB</div>
+    <nav id="nav"></nav>
+    <nav id="navBottom" class="rail-bottom"></nav>
+  </aside>
+
+  <div class="main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <span class="app-name">SHB AI Assistant</span>
+      <label class="search"><svg class="i"><use href="#i-search"/></svg><span class="sr">Tìm kiếm</span><input placeholder="Tìm hồ sơ, khách hàng, MST, điều khoản…"></label>
+      <div class="spacer"></div>
+      <div class="demo" title="Chỉ có trong mockup">
+        <label for="roleSel">Vai trò:</label>
+        <select id="roleSel"></select>
+        <span id="segWrap" style="display:inline-flex;align-items:center;gap:8px"><span style="width:1px;height:18px;background:var(--border-strong)"></span><span>Trợ lý AI:</span>
+        <span class="seg" role="group" aria-label="Trạng thái trợ lý AI (mockup)"><button id="segOff" aria-pressed="true">Đóng</button><button id="segOn" aria-pressed="false">Mở</button></span></span>
+      </div>
+      <button class="icon-btn" aria-label="Thông báo, 3 chưa đọc"><svg class="i"><use href="#i-bell"/></svg><span class="dot"></span></button>
+      <div class="user"><div class="avatar" id="uAv"></div><div><b id="uName"></b><small id="uRole"></small></div></div>
+    </header>
+
+    <!-- HEADER TRANG (tối đa 2 dòng) – thay nội dung theo trang -->
+    <section class="page-head">
+      <div class="h1row">
+        <h1 id="pageH1">Tên đối tượng</h1>
+        <span class="facts num">Mã · <b>số chính</b> · dữ kiện 3 · dữ kiện 4</span>
+        <!-- CỤM PHẢI HEADER (D4) – flex:none, không bao giờ bị ép:
+             [Hỏi AI (bắt buộc với mọi vai trò có AI, F1)] [nút phụ/ghost…] [≤ 1 .btn.primary = hành động CHUYỂN BƯỚC, luôn đứng cuối].
+             Primary chỉ ở đây, mọi trang; trong nội dung chỉ lặp lại dạng dòng khóa (.lock-line) hoặc link.
+             Chưa đủ điều kiện → giữ nút, aria-disabled="true" + icon khóa + data-lock="<lý do>".
+             Trang không có hành động chuyển bước (03, 05 vai trò ≠ HTTD) → KHÔNG có primary.
+             Wizard (04): primary = "Tiếp: <bước sau>"; bước cuối = "Gửi Hỗ trợ tín dụng" (khóa kèm lý do). Chân wizard chỉ còn "Quay lại". -->
+        <div class="h-acts" id="headActions"></div>
+      </div>
+      <div class="h2row">
+        <ol class="stepper" aria-label="Tiến trình">
+          <li class="done" title="Người · ngày"><span class="sd"><svg class="i xs"><use href="#i-check"/></svg></span>Bước 1</li>
+          <li class="cur" aria-current="step" title="Người · hạn"><span class="sd">2</span>Bước 2 <span class="who">· Người phụ trách</span></li>
+          <li title="SLA"><span class="sd">3</span>Bước 3</li>
+        </ol>
+        <div class="right"><span class="sla"><svg class="i sm"><use href="#i-clock"/></svg><span id="slaTxt">Hạn dd/mm 17:00 · còn n ngày LV</span></span><button class="link" data-go="history">Chi tiết<svg class="i xs"><use href="#i-right"/></svg></button></div>
+      </div>
+    </section>
+    <div class="role-banner" id="roleBanner"><svg class="i"><use href="#i-info"/></svg><span id="roleBannerText"></span></div>
+
+    <!-- KHÔNG CÓ QUYỀN (D3) – component dùng chung, do renderNoAccess() điền. Không sửa tay trong trang.
+         h1 = tên trang trung tính (PAGES[PAGE_ID].n), không meta, không tên khách hàng;
+         icon khiên · tiêu đề · lý do · ĐÚNG 1 nút có icon. Quản trị: "Mở Quản trị" + bánh răng. -->
+    <div class="noaccess" id="noAccess" role="region" aria-labelledby="naTitle">
+      <div class="state"><svg class="i"><use href="#i-shield"/></svg><h2 id="naTitle"></h2><p id="naReason"></p><span id="naBtn"></span></div>
+    </div>
+
+    <!-- WORKSPACE: thêm class "no-toc" nếu trang không cần mục lục; "has-viewer" nếu trang có trình xem tài liệu (§13.1) -->
+    <div class="ws" id="ws">
+      <nav class="toc" id="toc" aria-label="Mục lục"></nav>
+
+      <main class="content" id="content" tabindex="-1">
+        <section class="sec" data-sec="todo">
+          <div class="sec-h"><h2>Vùng nội dung</h2></div>
+          <p class="sec-desc">Thay bằng nội dung trang. Mẫu thành phần bên dưới chỉ để tham chiếu – xóa khi dùng.</p>
+          <!-- Trang công cụ (§0): đúng 1 dòng chữ nêu việc đầu tiên; số tính từ dữ liệu -->
+          <p class="next-line"><span>Còn <b>2 mâu thuẫn</b> · <b>1 cờ Cao</b></span><button class="link" data-go="todo">Bắt đầu: Dư nợ vay<svg class="i xs"><use href="#i-right"/></svg></button></p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+            <button class="btn primary">Nút chính</button><button class="btn">Nút phụ</button><button class="btn ghost">Ghost</button>
+            <button class="btn ai" data-ask="case|Toàn bộ hồ sơ"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button>
+            <button class="btn sm ok"><svg class="i xs"><use href="#i-check"/></svg>Xác nhận</button>
+            <button class="btn" aria-disabled="true" data-lock="Lý do khóa hiển thị ở tooltip và toast."><svg class="i sm"><use href="#i-lock"/></svg>Nút khóa</button>
+          </div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-bottom:20px">
+            <span class="st ai"><svg class="i sm"><use href="#i-spark"/></svg>AI đề xuất</span>
+            <span class="st ok"><svg class="i sm"><use href="#i-checkc"/></svg>Đã xác nhận</span>
+            <span class="st verify"><svg class="i sm"><use href="#i-alert"/></svg>Cần xác minh</span>
+            <span class="res pass"><svg class="i xs"><use href="#i-check"/></svg>Đạt</span>
+            <span class="res fail"><svg class="i xs"><use href="#i-x"/></svg>Không đạt</span>
+            <span class="sev high">Cao</span><span class="sev med">Trung bình</span><span class="sev low">Thấp</span>
+            <button class="src" data-policy="4-2"><svg class="i xs"><use href="#i-book"/></svg>§4.2</button>
+            <button class="askai" data-ask="metric|Ví dụ chỉ số"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button>
+            <button class="back" data-go="todo"><svg class="i sm"><use href="#i-right"/></svg>Quay lại danh sách</button>
+          </div>
+          <!-- KHỐI VIỆC CÒN LẠI (.hero) – số đo chuẩn 20/24/12; ≤ 4 việc; bấm việc → go(sec,{filter}) -->
+          <div class="hero" style="margin-bottom:24px">
+            <div class="hero-top"><h2>Còn 2 việc trước khi trình</h2><span class="muted">Hạn <span data-due="2026-10-30|thamdinh"></span></span></div>
+            <div class="prog"><div class="bar"><i style="width:40%"></i></div><span><b>40%</b> sẵn sàng · 16/40 hạng mục</span></div>
+            <ul class="tasks">
+              <li><button class="task" data-go="todo" data-filter-go="unconf"><span class="tn">1</span><span><b>Xác nhận 3 chỉ số AI đề xuất</b><span class="ts">Bấm dòng để xem công thức và nguồn</span></span><span class="tp"><span class="mbar"><i style="width:40%"></i></span>2/5</span><svg class="i go"><use href="#i-right"/></svg></button></li>
+              <li><button class="task done" data-go="todo"><span class="tn"><svg class="i sm"><use href="#i-check"/></svg></span><span><b>Đối chiếu tài liệu</b><span class="ts">Đã đủ 12/12 tài liệu</span></span><span class="tp">12/12</span><svg class="i go"><use href="#i-right"/></svg></button></li>
+            </ul>
+            <div class="hero-foot"><svg class="i sm"><use href="#i-lock"/></svg>Nút "Hành động chính" mở khi xong 2 việc trên.</div>
+          </div>
+          <!-- Thanh công cụ chuẩn: .toolbar (flex-wrap, min-width:0) · bộ lọc .filters[data-filters] ghi vào hash (#filter=) -->
+          <div class="toolbar">
+            <span class="filters" role="group" aria-label="Lọc" data-filters><button data-filter="all" aria-pressed="true">Tất cả<span class="n">3</span></button><button data-filter="mine" aria-pressed="false">Chờ bạn<span class="n">2</span></button><button data-filter="wait" aria-pressed="false">Chờ bổ sung<span class="n">1</span></button></span>
+            <label class="search grow" style="margin:0;max-width:320px"><svg class="i"><use href="#i-search"/></svg><span class="sr">Tìm trong bảng</span><input placeholder="Tìm tên, mã hồ sơ…"></label>
+            <button class="btn sm"><svg class="i xs"><use href="#i-down"/></svg>Sắp xếp: hạn gần nhất</button>
+          </div>
+          <!-- Bảng chuẩn table.t: cột tên .nm (min 200px) + dòng phụ .sub, cột phụ .col-aux ẩn khi AI mở, giá trị lặp ở .aux-sub -->
+          <table class="t" style="margin-bottom:24px">
+            <thead><tr><th class="nm">Khách hàng · hồ sơ</th><th class="r">Số tiền</th><th class="col-aux">Phụ trách</th><th>Hạn</th><th>Trạng thái</th><th class="util"><span class="sr">Tiện ích</span></th></tr></thead>
+            <tbody>
+              <tr class="row"><td class="nm"><b>CTCP Bao bì VinaNova</b><span class="sub">HSV-2026-00187<span class="aux-sub"> · Lê Quang Huy</span></span></td><td class="r num"><span class="val">80</span> <span class="u">tỷ</span></td><td class="col-aux">Lê Quang Huy</td><td class="num" data-due="2026-10-30|thamdinh"></td><td><span class="st ai"><svg class="i sm"><use href="#i-spark"/></svg>AI đề xuất</span></td><td class="util"><button class="askai" data-ask="case|HSV-2026-00187"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button></td></tr>
+            </tbody>
+          </table>
+          <div class="note" style="margin-bottom:16px"><svg class="i"><use href="#i-lock"/></svg><div><b>Chưa tới bước này.</b> Mô tả ai sẽ làm và khi nào.</div></div>
+          <div class="err" style="margin-bottom:16px"><svg class="i"><use href="#i-alert"/></svg>Không tải được dữ liệu. Dữ liệu cũ vẫn giữ nguyên.<button class="btn sm">Thử lại</button></div>
+          <div style="max-width:520px"><div class="skel" style="width:60%"></div><div class="skel"></div><div class="skel" style="width:80%"></div></div>
+          <!-- Trạng thái rỗng (.state): icon 40 · h2 16/600 · 1 câu · ≤ 1 nút -->
+          <div class="state"><svg class="i"><use href="#i-inbox"/></svg><h2>Không còn việc trong bộ lọc này</h2><p>Đổi bộ lọc để xem các hồ sơ khác.</p><button class="btn" data-filter-reset><svg class="i"><use href="#i-return"/></svg>Về "Tất cả"</button></div>
+          <!-- Chân wizard (.wz-foot): chỉ "Quay lại"; primary "Tiếp: …" ở header phải -->
+          <div class="wz-foot"><button class="btn ghost" data-go="todo"><svg class="i sm" style="transform:rotate(180deg)"><use href="#i-arrow"/></svg>Quay lại</button><div class="right"><span class="wz-left"><svg class="i sm"><use href="#i-alert"/></svg>Còn 2 mục bắt buộc trước khi gửi <button class="link" data-go="todo">Mở nhóm cần bổ sung<svg class="i xs"><use href="#i-right"/></svg></button></span></div></div>
+        </section>
+        <section class="sec" data-sec="wz1" hidden><div class="sec-h"><h2>Bước 1 · Khách hàng</h2></div><p class="sec-desc">Mẫu bước wizard.</p></section>
+        <section class="sec" data-sec="wz2" hidden><div class="sec-h"><h2>Bước 2 · Khoản vay</h2></div><p class="sec-desc">Mẫu bước wizard.</p></section>
+        <section class="sec" data-sec="history" hidden><div class="sec-h"><h2>Quy trình &amp; nhật ký</h2></div></section>
+      </main>
+
+      <!-- TRỢ LÝ AI: panel 408px đẩy nội dung -->
+      <aside class="aipanel" id="ai" aria-label="Trợ lý AI" aria-hidden="true" inert>
+        <div class="ai-in">
+          <div class="ai-h">
+            <span class="ai-logo"><svg class="i"><use href="#i-spark"/></svg></span>
+            <div><b>Trợ lý AI</b><small>Chỉ đề xuất · không ra quyết định</small></div>
+            <div class="right">
+              <button class="icon-btn" aria-label="Hội thoại của đối tượng"><svg class="i"><use href="#i-clock"/></svg></button>
+              <button class="icon-btn" aria-label="Hội thoại mới"><svg class="i"><use href="#i-plus"/></svg></button>
+              <button class="icon-btn" aria-label="Đóng Trợ lý AI" id="aiClose"><svg class="i"><use href="#i-x"/></svg></button>
+            </div>
+          </div>
+          <div class="ai-ctx" aria-live="polite"><span>Đang hỏi về</span><span id="ctxChip"></span></div>
+          <div class="msgs" id="msgs">
+            <!-- Mẫu câu trả lời: meta · kết luận 15/600 · 1 dòng cách tính [n] · giả định · nguồn (đóng) · thẻ hành động -->
+            <div class="m-user">Câu hỏi mẫu của người dùng.</div>
+            <div class="m-ai">
+              <div class="who"><svg class="i sm" style="color:var(--ai)"><use href="#i-spark"/></svg>Agent … · hh:mm · <span style="color:var(--ai)">AI đề xuất – chưa xác nhận</span></div>
+              <p class="lead">Kết luận một câu, có trích dẫn <button class="cite" data-cite="1" aria-label="Trích dẫn 1">1</button>.</p>
+              <p>Cách tính ngắn gọn <button class="cite" data-cite="2" aria-label="Trích dẫn 2">2</button>.</p>
+              <p class="muted" style="font-size:13px"><span class="st verify"><svg class="i xs"><use href="#i-alert"/></svg>Cần xác nhận:</span> <span class="assume">giả định …</span></p>
+              <details class="srcs"><summary>2 nguồn trích dẫn <svg class="i xs"><use href="#i-down"/></svg></summary>
+                <div class="list"><button data-cite="1"><span class="n">1</span><span>Tài liệu · trang · dòng</span></button><button data-cite="2"><span class="n">2</span><span>Chính sách · §</span></button></div></details>
+              <button class="action-card" data-action="demo"><span class="ico"><svg class="i"><use href="#i-edit"/></svg></span><span><b>Đưa vào … – cần xác nhận</b><small>Chèn ở trạng thái chờ – bạn phải xác nhận</small></span><svg class="i sm"><use href="#i-arrow"/></svg></button>
+            </div>
+          </div>
+          <div class="suggest" id="suggest"></div>
+          <div class="composer"><label class="sr" for="ask">Câu hỏi cho Trợ lý AI</label><textarea id="ask" rows="1" placeholder="Hỏi về hồ sơ này… (@ để gắn tài liệu)"></textarea><button class="send" aria-label="Gửi" id="sendBtn"><svg class="i sm"><use href="#i-send"/></svg></button></div>
+          <div class="disclaim">AI có thể sai. Chỉ đưa vào hồ sơ sau khi bạn xác nhận.</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+
+<div class="drawer-mask" id="dmask"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Điều khoản chính sách" aria-hidden="true" inert>
+  <div class="drawer-h"><svg class="i" style="color:var(--navy-700)"><use href="#i-book"/></svg><div><h3>CS-TD-SME/2025 – Quy trình và chính sách cấp tín dụng KHDN SME</h3><small class="muted">Văn bản nội bộ (mô phỏng)</small></div><button class="icon-btn" style="margin-left:auto" aria-label="Đóng điều khoản (Esc)" id="drawerClose" data-close><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="drawer-b">
+    <!-- G11: MỘT mã văn bản + MỘT cách đánh số cho mọi trang. id = pol-<chương>-<mục>; data-policy="4-2". Nội dung mô phỏng. -->
+    <div class="clause" id="pol-1-2"><b>§1.2 Phạm vi SME.</b> KHDN SME theo phân khúc nội bộ: doanh thu năm ≤ 1.000 tỷ đồng.</div>
+    <div class="clause" id="pol-2-3"><b>§2.3 SLA.</b> Kiểm tra hồ sơ 2 ngày LV · Thẩm định 5 · Ý kiến Rủi ro 3 · Phê duyệt 2. Thẩm định yêu cầu bổ sung: SLA tạm dừng, QHKH có 5 ngày LV; từ lúc HTTD ghi tài liệu mới đạt, SLA Thẩm định tính tiếp số ngày còn lại. Rủi ro trả về Thẩm định, hoặc Thẩm định nhận lại hồ sơ đã trả QHKH: SLA Thẩm định tính lại đủ 5 ngày LV từ ngày trả hoặc ngày nhận lại.</div>
+    <div class="clause" id="pol-3-1"><b>§3.1 Thẩm quyền phê duyệt.</b> Theo tổng cấp tín dụng của khách và người có liên quan: ≤ 20 / 20–100 / > 100 tỷ (cấu hình được).</div>
+    <div class="clause" id="pol-3-4"><b>§3.4 Tách bạch.</b> Không phê duyệt hoặc bỏ phiếu nếu đã tham gia bất kỳ bước nào của hồ sơ hoặc từng là QHKH quản lý khách hàng trong 2 năm gần nhất.</div>
+    <div class="clause" id="pol-4-2"><b>§4.2 Khả năng trả nợ.</b> DSCR dự phóng ≥ 1,25 lần; Nợ vay/EBITDA sau cấp TD ≤ 3,5 lần; EBIT/chi phí lãi vay ≥ 2,0 lần.</div>
+    <div class="clause" id="pol-5-2"><b>§5.2 Tập trung ngành.</b> Dư nợ một ngành không vượt hạn mức tỷ trọng do Rủi ro cấu hình.</div>
+    <div class="clause" id="pol-6-1"><b>§6.1 Danh mục hồ sơ.</b> Gồm giấy đề nghị cấp tín dụng, văn bản đồng ý tra cứu CIC, BCTC (kiểm toán khi tổng cấp tín dụng > 20 tỷ), sao kê 12 tháng…</div>
+    <div class="clause" id="pol-6-3"><b>§6.3 Hiệu lực tài liệu.</b> CIC, sao kê, xác nhận dư nợ: 30 ngày từ ngày tra cứu/ngày ngân hàng cấp, tính tới ngày trình phê duyệt.</div>
+    <div class="clause" id="pol-6-4"><b>§6.4 Ngoại lệ.</b> QHKH/HTTD lập "Đề xuất ngoại lệ" kèm lý do; cấp phê duyệt chấp thuận hoặc từ chối cùng lúc với quyết định. CIC hết hiệu lực không được đề xuất ngoại lệ, trừ khi hệ thống CIC gián đoạn, và vẫn phải tra lại trước khi trình phê duyệt.</div>
+    <div class="clause" id="pol-7-1"><b>§7.1 LTV và TSBĐ.</b> Tỷ lệ cho vay trên giá trị TSBĐ theo loại tài sản.</div>
+  </div>
+</aside>
+<div class="toast" id="toast" role="status"><svg class="i"><use href="#i-checkc"/></svg><span id="toastTxt"></span></div>
+
+<script>
+/* ===================== CẤU HÌNH TRANG ===================== */
+const PAGE_ID = 1;          // 1..10 – xem PAGES
+const RAIL_FROM = 2;        // trang 1 (Chi tiết hồ sơ) không có mục rail riêng → tô sáng mục dẫn tới (mặc định 2)
+
+const PAGES = {
+  1:{n:'Chi tiết hồ sơ vay'}, 2:{n:'Việc của tôi',ic:'i-inbox'}, 3:{n:'Tạo đề xuất vay',ic:'i-plus'},
+  4:{n:'Khách hàng SME',ic:'i-building'}, 5:{n:'Đối chiếu tài liệu',ic:'i-filecheck'}, 6:{n:'Phiên Hội đồng tín dụng',ic:'i-users'},
+  7:{n:'Tra cứu chính sách',ic:'i-book'}, 8:{n:'Nhật ký kiểm toán',ic:'i-clock'}, 9:{n:'Quản trị',ic:'i-gear'}, 10:{n:'Trợ lý AI',ic:'i-spark'},
+};
+/* Menu theo vai trò: [trang, nhãn riêng (tùy chọn), 'B' = có badge] – trang 10 luôn ở đáy rail.
+   Badge KHÔNG viết số tay: 'B' → BANK.BADGES[vai trò] (common.js). */
+const ROLES = {
+  qhkh:{label:'Chuyên viên QHKH',name:'Nguyễn Thảo Vy',av:'TV',title:'Chuyên viên QHKH',
+    nav:[[2,'','B'],[3],[4],[7]], ai:true},
+  httd:{label:'Hỗ trợ tín dụng',name:'Võ Văn Tâm',av:'VT',title:'Hỗ trợ tín dụng',
+    nav:[[2,'','B'],[5],[4],[7]], ai:true},
+  tdinh:{label:'Chuyên viên Thẩm định',name:'Lê Quang Huy',av:'LH',title:'Chuyên viên Thẩm định',
+    nav:[[2,'','B'],[5],[4],[7]], ai:true},
+  ruiro:{label:'Quản lý rủi ro/Tuân thủ',name:'Đặng Hải Yến',av:'HY',title:'Quản lý rủi ro/Tuân thủ',
+    nav:[[2,'Hồ sơ chờ ý kiến','B'],[4],[7]], ai:true},
+  pheduyet:{label:'Cấp phê duyệt / Thành viên HĐTD',name:'Bùi Thanh Sơn',av:'TS',title:'Cấp phê duyệt · Hội sở',
+    nav:[[2,'Hồ sơ chờ phê duyệt','B'],[6],[7]], ai:true},
+  kiemtoan:{label:'Kiểm toán nội bộ',name:'Phan Minh Châu',av:'MC',title:'Kiểm toán nội bộ',
+    nav:[[2,'Hồ sơ vay (chỉ đọc)'],[8],[6,'Phiên HĐTD (chỉ đọc)'],[7]], ai:true, readOnly:true},
+  quantri:{label:'Quản trị hệ thống',name:'Trịnh Đức Anh',av:'ĐA',title:'Quản trị hệ thống',
+    nav:[[9],[8,'Nhật ký hệ thống']], ai:false, noBusiness:true},
+};
+/* Nút header + banner theo vai trò – mỗi trang tự định nghĩa.
+   D4: tối đa 1 .btn.primary (chuyển bước), đứng CUỐI cụm; không có hành động chuyển bước → không primary.
+   F1: mọi vai trò có AI (ROLES[r].ai) đều có AI_BTN đứng ĐẦU cụm, kể cả Kiểm toán. Trang đổi data-ask theo đối tượng, giữ class .btn.ai
+   và nhãn "Hỏi AI": đóng panel mà không còn nút đã mở thì focus về nút này. Quản trị không có AI nên không có nút. */
+const AI_BTN = '<button class="btn ai" data-ask="case|Toàn bộ hồ sơ" title="Mở Trợ lý AI (Ctrl J)" aria-keyshortcuts="Control+J"><svg class="i sm"><use href="#i-spark"/></svg>Hỏi AI</button>';
+const PAGE_ROLE = {
+  tdinh:{actions:AI_BTN+'<button class="btn primary" aria-disabled="true" data-lock="Chưa đủ điều kiện: còn n việc."><svg class="i sm"><use href="#i-lock"/></svg>Hành động chính</button>', banner:''},
+  kiemtoan:{actions:AI_BTN+'<span class="lock-line"><svg class="i sm"><use href="#i-lock"/></svg>Chỉ đọc</span>', banner:'Chế độ chỉ đọc. Mọi thao tác xem của bạn được ghi vào nhật ký kiểm toán.'},
+  quantri:{actions:'', banner:''},
+  _default:{actions:AI_BTN, banner:'Bạn đang xem với vai trò khác người phụ trách bước hiện tại.'},
+};
+/* Mục lục: {grp} hoặc {id, n, cnt:{t,cls}|{done:1}, lock:1, fail:1} */
+const SECS = [
+  {grp:'Việc của bạn'}, {id:'todo', n:'Việc cần làm', cnt:{t:'3 chưa xác nhận', cls:'ai'}},
+  /* Mẫu wizard trong mục lục (trang 04): {id, n, wz:<số>, done:1} – xóa nếu trang không phải wizard */
+  {grp:'Các bước (mẫu wizard)'}, {id:'wz1', n:'Khách hàng', wz:1, done:1}, {id:'wz2', n:'Khoản vay', wz:2},
+  {grp:'Bước sau & lịch sử'}, {id:'history', n:'Quy trình & nhật ký', lock:1},
+];
+const SUGGEST = ['Còn thiếu gì trước khi trình?','Tóm tắt trong 5 dòng'];
+/* Không có quyền (D3): tiêu đề, lý do, ĐÚNG 1 nút có icon. Trang chỉ được ghi đè reason. */
+const NO_ACCESS = {
+  quantri:{title:'Không có quyền xem nội dung nghiệp vụ',
+    reason:'Vai trò Quản trị hệ thống chỉ quản lý người dùng, phân quyền, ngưỡng phê duyệt và cấu hình AI. Nội dung tín dụng được ẩn theo chính sách phân quyền dữ liệu (RLS).',
+    page:9, label:'Mở Quản trị', icon:'i-gear'},
+  _default:{title:'Không có quyền xem trang này',
+    reason:r=>`Trang ${PAGES[PAGE_ID].n} không thuộc phạm vi công việc của vai trò ${ROLES[r].label}. Cần quyền thì liên hệ Quản trị hệ thống.`,
+    page:2, label:'Về Việc của tôi', icon:'i-inbox'},
+};
+/* Ví dụ hạn: Thẩm định nhận 30/10 → BANK.addWorkdays(30/10, SLA 5) = 06/11 17:00. KHÔNG gõ ngày hạn tay. */
+const DUE = {start:new Date(2026,9,30), sla:'thamdinh'};
+const CITES = {1:()=>toast('Mở tài liệu và tô sáng dòng trích dẫn'), 2:()=>openPolicy('4-2')};
+
+/* ===================== JS DÙNG CHUNG ===================== */
+const S = {role:'tdinh', sec:'todo', ai:false, ctx:null, ctxType:null, filter:'all', pol:null};
+const BANK = window.BANK; // từ common.js – KHÔNG định nghĩa lại BADGES/SLA/PAGE_FILE/TIERS/lịch
+const IN_SHELL = /(^|\/)shell\.html$/i.test(location.pathname); // true chỉ khi mở shell.html trực tiếp
+const $ = s => document.querySelector(s);
+const ic = (id,c='sm') => `<svg class="i ${c}"><use href="#${id}"/></svg>`;
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const motion = () => matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
+const FILTERS = ['all','mine','wait']; // giá trị hợp lệ của #filter; sai → về 'all'
+
+/* ---------- G10: trạng thái ghi vào hash bằng history.replaceState (tải lại giữ nguyên) ----------
+   Khóa do shell quản lý: role, sec, ai, filter, pol. Trang thêm khóa riêng bằng PAGE_HASH() → {khóa: giá trị|null}
+   (null = xóa). Khóa không quản lý (doc, page, field, cite, from, metric…) được GIỮ NGUYÊN.
+   replaceState KHÔNG bắn hashchange và không thêm mục lịch sử. Trước khi khởi tạo xong (HASH_READY=false) không ghi. */
+let HASH_READY = false;
+const PAGE_HASH = () => ({});   // trang ghi đè, ví dụ ()=>({doc:S.doc, page:S.page})
+function syncHash(){
+  if(!HASH_READY) return;
+  const h = new URLSearchParams(location.hash.slice(1));
+  const put = (k,v) => (v==null || v==='' || v===false) ? h.delete(k) : h.set(k, v);
+  put('role', S.role); put('sec', S.sec); put('ai', S.ai ? 'open' : null);
+  put('filter', S.filter!=='all' ? S.filter : null); put('pol', S.pol);
+  const extra = PAGE_HASH(); Object.keys(extra).forEach(k=>put(k, extra[k]));
+  const s = h.toString(); const base = location.pathname + location.search;
+  if(base + (s ? '#'+s : '') !== base + location.hash) history.replaceState(null, '', base + (s ? '#'+s : ''));
+}
+
+/* Điều hướng (D1): mọi [data-page] → BANK.navigate(page, params, S.role); trang chưa có file → toast.
+   Tham số: data-params="doc=CIC&page=1&from=hsv" (dạng query string). */
+function nav(page, params){
+  page = +page; const name = (PAGES[page]||{}).n || ('số '+page);
+  /* C-8: chưa có trang 10 thì mục Trợ lý AI trên rail mở panel ngay trên trang đang xem */
+  if(page===10 && !(BANK && BANK.PAGE_FILE[10])){ setAI(true); return; }
+  if(BANK){
+    if(IN_SHELL){ const u = BANK.hrefFor(page, params, S.role); if(u){ location.href = 'content/'+u; return; } }
+    else if(BANK.navigate(page, params, S.role)) return;
+  }
+  toast('Trang '+name+' sẽ có ở đợt sau');
+}
+const parseParams = q => q ? Object.fromEntries(new URLSearchParams(q)) : null;
+/* Hạn = BANK.addWorkdays(ngày nhận, SLA) lúc 17:00 · "còn n ngày LV" = BANK.dueText(hạn). */
+function dueLabel(start, slaKey){ const d = BANK.addWorkdays(start, BANK.SLA[slaKey]); return BANK.fmtDate(d).slice(0,5)+' 17:00 · '+BANK.dueText(d); }
+function renderDue(){
+  if(!BANK) return;
+  $('#slaTxt').textContent = 'Hạn '+dueLabel(DUE.start, DUE.sla);
+  document.querySelectorAll('[data-due]').forEach(el=>{ const [d,k] = el.dataset.due.split('|'); const [y,m,dd] = d.split('-').map(Number); el.textContent = dueLabel(new Date(y,m-1,dd), k); });
+}
+
+function toast(t){ $('#toastTxt').textContent=t; const el=$('#toast'); el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2800); }
+
+/* Đổi vai trò: rail, người dùng, nút header, banner, quyền */
+function applyRole(r){
+  S.role = r; const R = ROLES[r]; document.body.dataset.role = r; $('#roleSel').value = r;
+  $('#uName').textContent=R.name; $('#uRole').textContent=R.title; $('#uAv').textContent=R.av;
+  const active = PAGE_ID===1 ? RAIL_FROM : PAGE_ID;
+  const item = ([p,label,b]) => { const P = PAGES[p]; const n = label||P.n;
+    const badge = b==='B' && BANK ? BANK.BADGES[r] : null; // "Việc của tôi": một nguồn duy nhất
+    const al = badge ? `${n}, ${badge} hồ sơ chờ bạn` : n;
+    return `<a href="#" data-page="${p}" class="${p===active?'active':''}" title="${al}" aria-label="${al}">${ic(P.ic,'')}${badge?`<span class="badge">${badge}</span>`:''}</a>`; };
+  $('#nav').innerHTML = R.nav.map(item).join('');
+  $('#navBottom').innerHTML = R.ai ? item([10]) : '';
+  const allowed = PAGE_ID===1 ? !R.noBusiness : (R.nav.some(n=>n[0]===PAGE_ID) || (PAGE_ID===10 && R.ai));
+  renderNoAccess(r, allowed);
+  const PR = PAGE_ROLE[r] || PAGE_ROLE._default;
+  $('#headActions').innerHTML = allowed ? PR.actions : '';
+  $('#roleBanner').classList.toggle('show', allowed && !!PR.banner); $('#roleBannerText').textContent = PR.banner||'';
+  if(!R.ai || !allowed) setAI(false);
+  if(!allowed) closePolicy(false);
+  renderToc(); syncHash();
+}
+
+/* D3: một component cho mọi trang. h1 = tên trang trung tính; meta/stepper/nút header/banner/AI bị ẩn bằng CSS. */
+function renderNoAccess(r, allowed){
+  const h1 = $('#pageH1');
+  if(h1.dataset.orig === undefined) h1.dataset.orig = h1.textContent;
+  if(allowed){ delete document.body.dataset.noAccess; h1.textContent = h1.dataset.orig; return; }
+  document.body.dataset.noAccess = '1';
+  const N = NO_ACCESS[r] || NO_ACCESS._default;
+  h1.textContent = PAGES[PAGE_ID].n;
+  $('#naTitle').textContent = N.title;
+  $('#naReason').textContent = typeof N.reason==='function' ? N.reason(r) : N.reason;
+  $('#naBtn').innerHTML = `<button class="btn" data-page="${N.page}">${ic(N.icon)}${N.label}</button>`;
+}
+
+/* Mục lục + chuyển mục.
+   Mục thường: {id, n, cnt:{t,cls,title}|{done:1}, lock:1, fail:1}. Mục wizard: {id, n, wz:<số bước>, done:1}.
+   Wizard: số bước là chữ --text-3; "hiện tại" thắng "đã xong" (mục đang mở hiện số, không hiện ✓).
+   G4: icon đứng một mình (khóa, ✓, chấm đỏ) luôn có aria-label + title; số đếm "n chưa xác nhận" / "n cần xác minh". */
+function renderToc(){
+  $('#toc').innerHTML = SECS.map(s=>{
+    if(s.grp) return `<div class="toc-grp">${s.grp}</div>`;
+    const cur = S.sec===s.id;
+    if(s.wz){
+      const n = (s.done && !cur) ? `<span class="wz-n" role="img" aria-label="Đã xong" title="Đã xong">${ic('i-check','xs')}</span>` : `<span class="wz-n">${s.wz}</span>`;
+      return `<a href="#" data-go="${s.id}" class="${s.done?'wz-done':''}" ${cur?'aria-current="page"':''}>${n}${s.n}</a>`;
+    }
+    let right = '';
+    if(s.lock) right = `<span class="cnt" role="img" aria-label="Chưa tới bước này" title="Chưa tới bước này">${ic('i-lock','xs')}</span>`;
+    else if(s.cnt) right = s.cnt.done ? `<span class="cnt" role="img" aria-label="Đã xong" title="Đã xong" style="color:var(--success)">${ic('i-check')}</span>`
+                                      : `<span class="cnt ${s.cnt.cls||''}" ${s.cnt.title?`title="${esc(s.cnt.title)}"`:''}>${s.cnt.t}</span>`;
+    const fd = s.fail ? `<span class="fdot" role="img" aria-label="Có chỉ số không đạt" title="Có chỉ số không đạt"></span>` : '';
+    return `<a href="#" data-go="${s.id}" ${cur?'aria-current="page"':''}>${s.n}${fd}${right}</a>`;
+  }).join('');
+}
+function go(sec, opt){
+  if(!SECS.some(s=>s.id===sec)) return;
+  S.sec = sec;
+  document.querySelectorAll('.sec').forEach(s=>s.hidden = s.dataset.sec!==sec);
+  if(opt && opt.filter) setFilter(opt.filter);
+  renderToc(); renderSuggest(); $('#content').scrollTo({top:0}); syncHash();
+}
+/* Bộ lọc chuẩn (.filters[data-filters] > button[data-filter]); giá trị sai → 'all' */
+function setFilter(f){
+  S.filter = FILTERS.includes(f) ? f : 'all';
+  document.querySelectorAll('[data-filters] [data-filter]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.filter===S.filter)));
+  syncHash();
+}
+function highlight(el){
+  if(!el) return;
+  document.querySelectorAll('.target').forEach(x=>x.classList.remove('target'));
+  el.classList.add('target'); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  setTimeout(()=>el.scrollIntoView({block:'center',behavior:motion()}),30);
+}
+
+/* ---------- Trợ lý AI ----------
+   G2: panel đóng = inert (Tab không vào được) + aria-hidden. Mở: focus ô nhập. Đóng: nếu focus đang trong panel
+   thì trả về nút đã mở panel; nút đó không còn thì về nút "Hỏi AI" ở header (F1, §17). */
+let aiOpener = null;
+function setAI(open){
+  if(open && (!ROLES[S.role].ai || document.body.dataset.noAccess)){ toast('Vai trò của bạn không dùng Trợ lý AI nghiệp vụ.'); return; }
+  const was = S.ai; S.ai = open; document.body.classList.toggle('ai-open', open);
+  const ai = $('#ai'); ai.setAttribute('aria-hidden', String(!open)); ai.inert = !open;
+  $('#segOn').setAttribute('aria-pressed', String(open)); $('#segOff').setAttribute('aria-pressed', String(!open));
+  if(open){
+    if(!was){ const a = document.activeElement; aiOpener = (a && a!==document.body && !ai.contains(a)) ? a : null; }
+    renderCtx(); setTimeout(()=>{ if(S.ai) $('#ask').focus({preventScroll:true}); },320);
+  } else if(was){
+    const a = document.activeElement;
+    if(!a || a===document.body || ai.contains(a)) focusBack(aiOpener, $('#headActions .btn.ai'), $('#content'));
+    aiOpener = null;
+  }
+  syncHash();
+}
+/* C-4: kiểm tra bằng getComputedStyle(...).display trên cả chuỗi cha. KHÔNG dùng offsetParent (null với position:fixed) và
+   KHÔNG xét opacity ("Hỏi AI" trong bảng mờ tới khi có focus, nhận focus xong sẽ hiện). */
+function canFocus(e){
+  if(!e || !e.isConnected || e.closest('[inert]')) return false;
+  for(let n=e; n; n=n.parentElement) if(getComputedStyle(n).display==='none') return false;
+  return getComputedStyle(e).visibility!=='hidden';
+}
+/* Trả focus về phần tử đầu tiên còn focus được trong danh sách (nút đã mở, rồi các phần tử dự phòng) */
+function focusBack(...els){
+  const t = els.find(canFocus);
+  if(t) t.focus({preventScroll:true}); else if(document.activeElement) document.activeElement.blur();
+}
+function renderCtx(pulse){
+  $('#ctxChip').innerHTML = S.ctx
+    ? `<span class="chip ${pulse?'pulse':''}" title="${esc(S.ctx)}">${ic('i-spark','xs')}<span>${esc(S.ctx)}</span><button aria-label="Bỏ ngữ cảnh này" title="Bỏ ngữ cảnh này" data-clearctx>${ic('i-x','xs')}</button></span>`
+    : `<span class="chip none"><span>Toàn bộ trang này</span></span>`;
+}
+function renderSuggest(){ $('#suggest').innerHTML = SUGGEST.map(x=>`<button data-suggest>${x}</button>`).join(''); }
+function askAI(type,label){ S.ctx=label; S.ctxType=type; setAI(true); renderCtx(true); }
+function send(){
+  const t = $('#ask').value.trim(); if(!t) return;
+  $('#msgs').insertAdjacentHTML('beforeend',`<div class="m-user">${esc(t)}</div><div class="m-ai"><div class="who">${ic('i-spark')}Trợ lý AI · đang phân tích…</div></div>`);
+  $('#ask').value=''; $('#msgs').scrollTop = $('#msgs').scrollHeight;
+}
+
+/* ---------- Drawer ----------
+   G2: drawer đóng = inert. Mở: nhớ nút đã mở, focus nút đóng. Đóng: trả focus về nút đã mở.
+   Trang có drawer khác (trình xem tài liệu, lịch sử…) dùng openDrawer(el)/closeDrawer(el), nút đóng có [data-close].
+   C-4: còn drawer mở thì có mask và .app inert; đóng hết thì bỏ cả hai, TRƯỚC khi trả focus. */
+const drawerOpener = new WeakMap();
+function syncMask(){ const on = !!$('.drawer.open'); $('#dmask').classList.toggle('open', on); $('.app').inert = on; }
+function openDrawer(el){
+  if(!el.classList.contains('open')){ const a = document.activeElement; drawerOpener.set(el, a && a!==document.body && !el.contains(a) ? a : null); }
+  el.classList.add('open'); el.inert = false; el.setAttribute('aria-hidden','false'); syncMask();
+  const c = el.querySelector('[data-close], #drawerClose'); if(c) setTimeout(()=>c.focus({preventScroll:true}), 20);
+}
+function closeDrawer(el, restore=true){
+  if(!el.classList.contains('open')) return false;
+  el.classList.remove('open'); el.inert = true; el.setAttribute('aria-hidden','true');
+  syncMask();
+  if(restore) focusBack(drawerOpener.get(el), $('#content'));
+  drawerOpener.delete(el); return true;
+}
+function openPolicy(sec){
+  S.pol = sec;
+  document.querySelectorAll('#drawer .clause').forEach(c=>c.classList.toggle('hl', c.id==='pol-'+sec));
+  openDrawer($('#drawer'));
+  const hl = $('#pol-'+sec); if(hl) setTimeout(()=>hl.scrollIntoView({block:'nearest'}), 30);
+  syncHash();
+}
+function closePolicy(restore=true){ const r = closeDrawer($('#drawer'), restore); if(r || S.pol){ S.pol = null; syncHash(); } return r; }
+
+/* ---------- G2: thứ tự Esc ----------
+   1) drawer đang mở (trên cùng) → 2) form/màn phụ của trang (ESC_HANDLERS theo thứ tự ưu tiên;
+   mỗi hàm trả true nếu đã đóng thứ gì đó) → 3) panel AI. Mỗi lần Esc chỉ đóng MỘT lớp. */
+const ESC_HANDLERS = [];   // trang: ESC_HANDLERS.push(()=>{ if(editing){ cancelEdit(); return true; } return false; })
+function onEsc(){
+  const d = [...document.querySelectorAll('.drawer.open')].pop();
+  if(d){ d.id==='drawer' ? closePolicy() : closeDrawer(d); return true; }
+  for(const h of ESC_HANDLERS){ if(h()) return true; }
+  if(S.ai){ setAI(false); return true; }
+  return false;
+}
+
+/* G7: nút khóa nào cũng có title = lý do (data-lock). Theo dõi cả khi data-lock đổi. */
+function syncLockTitles(){ document.querySelectorAll('[data-lock]').forEach(b=>{ if(b.title !== b.dataset.lock) b.title = b.dataset.lock; }); }
+new MutationObserver(syncLockTitles).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-lock']});
+
+/* Ủy quyền click tập trung */
+document.addEventListener('click',e=>{
+  const t = e.target.closest('[data-lock],[data-cite],[data-ask],[data-go],[data-policy],[data-page],[data-clearctx],[data-suggest],[data-action],[data-filter],[data-filter-reset],[data-close]');
+  if(!t) return; const d = t.dataset;
+  if(d.lock!==undefined && t.getAttribute('aria-disabled')==='true'){ e.preventDefault(); toast(d.lock); return; }
+  if(d.cite){ CITES[d.cite] && CITES[d.cite](); return; }
+  if(d.ask){ e.stopPropagation(); const i=d.ask.indexOf('|'); askAI(d.ask.slice(0,i), d.ask.slice(i+1)); return; }
+  if(d.go){ e.preventDefault(); go(d.go, d.filterGo ? {filter:d.filterGo} : null); return; }
+  if(d.policy){ openPolicy(d.policy); return; }
+  if(d.page){ e.preventDefault(); nav(d.page, parseParams(d.params)); return; }
+  if(d.clearctx!==undefined){ S.ctx=null; renderCtx(); return; }
+  if(d.suggest!==undefined){ $('#ask').value=t.textContent; $('#ask').focus(); return; }
+  if(d.action){ toast('Đã chèn ở trạng thái "AI đề xuất – chưa xác nhận"'); return; }
+  if(d.filter){ setFilter(d.filter); return; }
+  if(d.filterReset!==undefined){ setFilter('all'); return; }
+  if(d.close!==undefined){ const dr = t.closest('.drawer'); if(dr) dr.id==='drawer' ? closePolicy() : closeDrawer(dr); return; }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && onEsc()){ e.preventDefault(); return; }
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='j'){ e.preventDefault(); if(!$('.drawer.open')) setAI(!S.ai); }
+});
+$('#ask').addEventListener('keydown',e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); } });
+$('#sendBtn').onclick = send;
+$('#aiClose').onclick = ()=>setAI(false);
+$('#segOn').onclick = ()=>setAI(true);
+$('#segOff').onclick = ()=>setAI(false);
+$('#dmask').onclick = ()=>onEsc();
+$('#roleSel').innerHTML = Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+$('#roleSel').addEventListener('change',e=>applyRole(e.target.value));
+
+/* Khởi tạo + deep link: role, ai, sec, filter, pol, metric, doc, page, field, cite, from (design-system.md §10.4).
+   Thứ tự: dựng mặc định (chưa ghi hash) → applyHash → HASH_READY=true → syncHash một lần. */
+if(!BANK) console.warn('Chưa nạp common.js: badge, hạn và điều hướng sẽ không hoạt động.');
+applyRole('tdinh'); go('todo'); renderCtx(); renderDue(); syncLockTitles();
+function applyHash(){
+  const h = new URLSearchParams(location.hash.slice(1));
+  if(h.get('role') && ROLES[h.get('role')] && h.get('role')!==S.role) applyRole(h.get('role'));
+  if(h.get('sec') && SECS.some(s=>s.id===h.get('sec')) && h.get('sec')!==S.sec) go(h.get('sec'));
+  if(h.has('filter')) setFilter(h.get('filter'));
+  if(h.get('ai')==='open') setAI(true); else if(S.ai) setAI(false);
+  if(h.get('pol') && $('#pol-'+h.get('pol'))) openPolicy(h.get('pol')); else if(S.pol) closePolicy(false);
+  if(h.get('cite') && CITES[h.get('cite')]) CITES[h.get('cite')]();
+  /* Trang tự cài: metric=<id> → gotoMetric(id) · doc/page/field → gotoDoc(...) · from=hsv → nút "Về <mục> trong hồ sơ" */
+}
+applyHash(); HASH_READY = true; syncHash();
+addEventListener('hashchange', applyHash);
+</script>
+</body>
+</html>
