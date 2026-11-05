@@ -137,7 +137,7 @@ def test_document_context_builds_completeness_presence_conflicts_and_evidence() 
                 "value_number": None,
                 "value_date": None,
                 "page_number": 1,
-                "verification_status": "VERIFIED",
+                "verification_status": "CONFIRMED",
             },
             {
                 "document_id": payslip_id,
@@ -151,7 +151,7 @@ def test_document_context_builds_completeness_presence_conflicts_and_evidence() 
                 "value_number": None,
                 "value_date": None,
                 "page_number": 1,
-                "verification_status": "VERIFIED",
+                "verification_status": "CONFIRMED",
             },
             {
                 "document_id": identity_id,
@@ -165,7 +165,7 @@ def test_document_context_builds_completeness_presence_conflicts_and_evidence() 
                 "value_number": None,
                 "value_date": None,
                 "page_number": 1,
-                "verification_status": "VERIFIED",
+                "verification_status": "CONFIRMED",
             },
             {
                 "document_id": identity_id,
@@ -179,7 +179,7 @@ def test_document_context_builds_completeness_presence_conflicts_and_evidence() 
                 "value_number": None,
                 "value_date": None,
                 "page_number": 1,
-                "verification_status": "UNVERIFIED",
+                "verification_status": "AI_PROPOSED",
             },
         ],
         [
@@ -219,7 +219,7 @@ def test_document_context_builds_completeness_presence_conflicts_and_evidence() 
     assert documents["PAYSLIP"]["required_indicators"] == ["seal"]
     assert documents["PAYSLIP"]["extracted_fields"]["customer_name"] == {
         "normalized_value_text": "NGUYEN VAN A",
-        "verification_status": "VERIFIED",
+        "verification_status": "CONFIRMED",
         "source_id": payslip_name_field_id,
     }
     assert documents["IDENTITY_DOCUMENT"]["presence_indicators"] == {"signature": True}

@@ -26,6 +26,9 @@ from tests.integration.seed_ids import (
 )
 
 _PRODUCT = "40000000-0000-4000-8000-000000000001"
+# Tai lieu / truong trich xuat seed cua khach A (R__seed_demo_customers.sql).
+_SEED_DOCUMENT = UUID("52100000-0000-4000-8000-000000000001")
+_SEED_FIELD = UUID("52300000-0000-4000-8000-000000000001")
 
 
 async def _draft_loan(db, status: str = "DRAFT") -> UUID:
@@ -72,6 +75,26 @@ async def _add_step(db, loan_id: UUID, step_code: str, assignee: UUID, *, comple
         completed,
         CREDIT_OFFICER,
     )
+
+
+async def _insert_analysis_case(db, loan_id: UUID, *, created_by: UUID = CREDIT_OFFICER) -> UUID:
+    case_id = uuid4()
+    await db.execute(
+        """
+        INSERT INTO ai.analysis_case (
+            id, case_type, customer_id, loan_application_id, created_by, status,
+            objective, correlation_id, created_at
+        )
+        VALUES ($1, 'LOAN_APPLICATION_ANALYSIS', $2, $3, $4, 'CREATED',
+                'kiem thu', $5, CURRENT_TIMESTAMP)
+        """,
+        case_id,
+        CUSTOMER_A,
+        loan_id,
+        created_by,
+        uuid4(),
+    )
+    return case_id
 
 
 async def _count_loan(db, loan_id: UUID) -> int:
@@ -181,6 +204,97 @@ async def test_auditor_reads_all_cannot_write(db):
             LOAN_1,
             AUDITOR_HO,
         )
+
+
+async def test_auditor_reads_case_business_data_read_only(db):
+    """Q-M: Kiem toan doc toan he thong (khach, tai lieu, truong, tai khoan, giao dich, AI), chi doc."""
+    loan_id = await _draft_loan(db)  # QHKH (...0001) dang o DRAFT
+    case_id = await _insert_analysis_case(db, loan_id)
+
+    await act_as(db, AUDITOR_HO, BRANCH_HO)
+    customers = await db.fetchval(
+        "SELECT count(*) FROM customer.customer WHERE id = ANY($1::uuid[])",
+        [CUSTOMER_A, CUSTOMER_B, CUSTOMER_C],
+    )
+    assert customers == 3
+    assert await db.fetchval("SELECT count(*) FROM banking.account") >= 7
+    assert await db.fetchval('SELECT count(*) FROM banking."transaction"') > 0
+    assert await db.fetchval("SELECT count(*) FROM document.document WHERE id = $1", _SEED_DOCUMENT) == 1
+    assert (
+        await db.fetchval("SELECT count(*) FROM document.document_version WHERE document_id = $1", _SEED_DOCUMENT) == 1
+    )
+    assert await db.fetchval("SELECT count(*) FROM document.extracted_field WHERE id = $1", _SEED_FIELD) == 1
+    assert await db.fetchval("SELECT count(*) FROM ai.analysis_case WHERE id = $1", case_id) == 1
+
+    assert await db.execute("UPDATE customer.customer SET risk_rating = 'HIGH' WHERE id = $1", CUSTOMER_A) == "UPDATE 0"
+    assert await db.execute("UPDATE document.document SET title = 'sua' WHERE id = $1", _SEED_DOCUMENT) == "UPDATE 0"
+    assert (
+        await db.execute("UPDATE document.extracted_field SET verification_reason = 'x' WHERE id = $1", _SEED_FIELD)
+        == "UPDATE 0"
+    )
+    assert await db.execute("UPDATE banking.account SET status = 'CLOSED'") == "UPDATE 0"
+    assert await db.execute("UPDATE ai.analysis_case SET objective = 'x' WHERE id = $1", case_id) == "UPDATE 0"
+
+
+async def test_past_assignee_cannot_write_customer_or_documents(db):
+    """Nguoi da xong buoc doc duoc khach/tai lieu nhung khong ghi (vong sua Task 6)."""
+    loan_id = await _draft_loan(db)
+    await _add_step(db, loan_id, "APPRAISAL", CREDIT_APPRAISER, completed=True)
+
+    await act_as(db, CREDIT_APPRAISER, BRANCH_HO)
+    assert await _count_customer(db, CUSTOMER_A) == 1
+    assert await db.fetchval("SELECT count(*) FROM document.document WHERE id = $1", _SEED_DOCUMENT) == 1
+    assert await db.execute("UPDATE customer.customer SET risk_rating = 'HIGH' WHERE id = $1", CUSTOMER_A) == "UPDATE 0"
+    assert await db.execute("UPDATE document.document SET title = 'sua' WHERE id = $1", _SEED_DOCUMENT) == "UPDATE 0"
+    assert (
+        await db.execute("UPDATE document.extracted_field SET verification_reason = 'x' WHERE id = $1", _SEED_FIELD)
+        == "UPDATE 0"
+    )
+    assert await db.execute("UPDATE banking.account SET status = 'CLOSED'") == "UPDATE 0"
+    with pytest.raises(asyncpg.InsufficientPrivilegeError):
+        async with db.transaction():
+            await db.execute(
+                """
+                INSERT INTO banking.cic_consent (id, customer_id, document_id, signed_on)
+                VALUES ($1, $2, $3, CURRENT_DATE)
+                """,
+                uuid4(),
+                CUSTOMER_A,
+                _SEED_DOCUMENT,
+            )
+    with pytest.raises(asyncpg.InsufficientPrivilegeError):
+        async with db.transaction():
+            await db.execute(
+                """
+                INSERT INTO credit.loan_application (
+                    id, application_number, primary_customer_id, product_id,
+                    requested_amount, currency, requested_term_months, loan_purpose,
+                    status, assigned_employee_id, created_at, created_by, updated_at
+                )
+                VALUES ($1, $2, $3, $4, 1000000, 'VND', 12, 'WORKING_CAPITAL',
+                        'DRAFT', $5, CURRENT_TIMESTAMP, $5, CURRENT_TIMESTAMP)
+                """,
+                uuid4(),
+                f"LA-PAST-{uuid4().hex[:8]}",
+                CUSTOMER_A,
+                _PRODUCT,
+                CREDIT_APPRAISER,
+            )
+    with pytest.raises(asyncpg.InsufficientPrivilegeError):
+        async with db.transaction():
+            await _insert_analysis_case(db, loan_id, created_by=CREDIT_APPRAISER)
+
+
+async def test_open_step_assignee_writes_customer_documents(db):
+    loan_id = await _draft_loan(db)
+    await _add_step(db, loan_id, "APPRAISAL", CREDIT_APPRAISER)
+
+    await act_as(db, CREDIT_APPRAISER, BRANCH_HO)
+    assert await db.execute("UPDATE document.document SET title = 'TD' WHERE id = $1", _SEED_DOCUMENT) == "UPDATE 1"
+    assert (
+        await db.execute("UPDATE document.extracted_field SET verification_reason = 'TD' WHERE id = $1", _SEED_FIELD)
+        == "UPDATE 1"
+    )
 
 
 async def test_director_reads_branch_customers(db):

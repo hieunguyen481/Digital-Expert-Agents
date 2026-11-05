@@ -150,7 +150,8 @@ class DocumentAgent:
                 )
 
             for field_name, _, field_status, _ in _field_entries(document):
-                if field_status is None or field_status == "VERIFIED":
+                # Truong trich xuat (V022): chi CONFIRMED la da duoc nguoi xac nhan.
+                if field_status is None or field_status == "CONFIRMED":
                     continue
                 locator = dict(reference.source_locator)
                 locator["field"] = field_name

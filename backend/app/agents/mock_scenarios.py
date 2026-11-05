@@ -495,7 +495,7 @@ def _document(
             field_name: {
                 "normalized_value_text": value,
                 "verification_status": (
-                    "UNVERIFIED" if verification_status != "VERIFIED" else "VERIFIED"
+                    "AI_PROPOSED" if verification_status != "VERIFIED" else "CONFIRMED"
                 ),
                 "source_id": source_id,
             }

@@ -65,7 +65,7 @@ class ExtractedFieldResult(_FrozenModel):
     value_number: Decimal | None = None
     page_number: int | None = None
     confidence: Decimal = Field(ge=0, le=1)
-    verification_status: str = "UNVERIFIED"
+    verification_status: str = "AI_PROPOSED"
     source_text: str | None = None
 
 

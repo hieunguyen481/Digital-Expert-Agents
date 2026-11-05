@@ -76,6 +76,12 @@ class DocumentFieldResponse(APIModel):
     value_number: DecimalString | None = None
     confidence: DecimalString | None = None
     verification_status: str
+    source_type: str | None = None
+
+
+# Trang thai mot nguoi duoc ghi cho truong trich xuat (V022). AI_PROPOSED chi do
+# AI/OCR tao; sua gia tri = CONFIRMED kem corrected_value_text (source_type HUMAN).
+FIELD_VERIFICATION_STATUSES = frozenset({"CONFIRMED", "NEEDS_VERIFICATION"})
 
 
 class FieldVerificationRequest(APIModel):
@@ -86,9 +92,10 @@ class FieldVerificationRequest(APIModel):
     @field_validator("verification_status")
     @classmethod
     def status_is_supported(cls, value: str) -> str:
-        allowed = {"VERIFIED", "CORRECTED", "REJECTED", "NEEDS_REVIEW"}
-        if value not in allowed:
-            raise ValueError(f"verification_status must be one of {sorted(allowed)}")
+        if value not in FIELD_VERIFICATION_STATUSES:
+            raise ValueError(
+                f"verification_status must be one of {sorted(FIELD_VERIFICATION_STATUSES)}"
+            )
         return value
 
 

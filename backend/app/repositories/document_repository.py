@@ -444,8 +444,12 @@ class DocumentRepository:
         verification_status: str,
         verified_by: UUID,
         verification_reason: str,
+        source_type: str | None = None,
     ) -> Record | None:
-        """Store a correction without overwriting immutable OCR/source values."""
+        """Store a correction without overwriting immutable OCR/source values.
+
+        ``source_type`` NULL keeps the stored origin; ``HUMAN`` marks a person-entered value.
+        """
         if not verification_reason.strip():
             raise ValueError("verification_reason is required")
         return await execute_returning(
@@ -454,6 +458,7 @@ class DocumentRepository:
             UPDATE document.extracted_field AS ef
             SET corrected_value_text = :corrected_value_text,
                 verification_status = :verification_status,
+                source_type = COALESCE(CAST(:source_type AS VARCHAR), ef.source_type),
                 verified_by = :verified_by,
                 verified_at = CURRENT_TIMESTAMP,
                 verification_reason = :verification_reason,
@@ -473,6 +478,7 @@ class DocumentRepository:
                 "verification_status": verification_status,
                 "verified_by": verified_by,
                 "verification_reason": verification_reason,
+                "source_type": source_type,
             },
         )
 

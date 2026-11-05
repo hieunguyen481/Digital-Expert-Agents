@@ -59,7 +59,7 @@ async def test_document_context_preserves_exact_field_evidence_for_agent_conflic
                 "field_name": "tax_code",
                 "normalized_value_text": "VN-001",
                 "page_number": 1,
-                "verification_status": "VERIFIED",
+                "verification_status": "CONFIRMED",
             },
             {
                 "document_id": document_b,
@@ -69,7 +69,7 @@ async def test_document_context_preserves_exact_field_evidence_for_agent_conflic
                 "field_name": "tax_code",
                 "normalized_value_text": "VN-009",
                 "page_number": 1,
-                "verification_status": "UNVERIFIED",
+                "verification_status": "AI_PROPOSED",
             },
         ],
         [],

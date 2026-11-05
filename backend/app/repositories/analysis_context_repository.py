@@ -167,7 +167,7 @@ WHERE ac.id = :case_id
 ORDER BY d.id,
          ef.field_name,
          (ef.corrected_value_text IS NOT NULL) DESC,
-         (ef.verification_status = 'VERIFIED') DESC,
+         (ef.verification_status = 'CONFIRMED') DESC,
          ef.verified_at DESC NULLS LAST,
          ef.confidence DESC NULLS LAST,
          ef.id
@@ -448,7 +448,7 @@ def build_document_context(
                     {
                         "normalized_value_text": value,
                         "verification_status": str(
-                            field.get("verification_status") or "UNVERIFIED"
+                            field.get("verification_status") or "AI_PROPOSED"
                         ).upper(),
                         "source_id": _uuid_value(field.get("field_id"), "field_id"),
                     },
@@ -895,7 +895,7 @@ def _field_evidence(
 
 def _field_sort_key(row: Mapping[str, Any]) -> tuple[str, int, int, str, str]:
     corrected = row.get("corrected_value_text") is not None
-    verified = str(row.get("verification_status") or "").upper() == "VERIFIED"
+    verified = str(row.get("verification_status") or "").upper() == "CONFIRMED"
     return (
         str(row.get("document_id") or ""),
         -int(corrected),

@@ -6,6 +6,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Protocol
 from uuid import UUID
 
+from app.schemas.document import FIELD_VERIFICATION_STATUSES
 from app.services.access import require_permission
 from app.services.audit_service import AuditService
 from app.services.protocols import PrincipalLike
@@ -30,6 +31,7 @@ class DocumentRepositoryLike(Protocol):
         corrected_value_text: str | None,
         verification_reason: str,
         verified_by: UUID,
+        source_type: str | None = None,
     ) -> Mapping[str, Any] | None: ...
 
 
@@ -103,19 +105,23 @@ class DocumentService:
         request_id: UUID | None = None,
     ) -> Mapping[str, Any]:
         require_permission(principal, "document:verify")
-        allowed = {"VERIFIED", "CORRECTED", "REJECTED", "NEEDS_REVIEW"}
-        if verification_status not in allowed:
-            raise ValueError(f"verification_status must be one of {sorted(allowed)}")
-        if verification_status == "CORRECTED" and not corrected_value_text:
-            raise ValueError("A corrected value is required when verification_status is CORRECTED")
+        if verification_status not in FIELD_VERIFICATION_STATUSES:
+            raise ValueError(
+                f"verification_status must be one of {sorted(FIELD_VERIFICATION_STATUSES)}"
+            )
+        corrected = corrected_value_text if corrected_value_text and corrected_value_text.strip() else None
+        if corrected is not None and verification_status != "CONFIRMED":
+            raise ValueError("A corrected value can only be recorded with verification_status CONFIRMED")
         if not verification_reason.strip():
             raise ValueError("A verification reason is required")
         row = await self._repository.update_field(
             field_id,
             verification_status=verification_status,
-            corrected_value_text=corrected_value_text,
+            corrected_value_text=corrected,
             verification_reason=verification_reason,
             verified_by=principal.employee_id,
+            # Nguoi nhap gia tri thay the: nguon gia tri la HUMAN (V022).
+            source_type="HUMAN" if corrected is not None else None,
         )
         if row is None:
             raise LookupError("Document field was not found or is outside the authorized scope")
