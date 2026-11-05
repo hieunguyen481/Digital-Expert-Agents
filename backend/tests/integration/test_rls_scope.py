@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from tests.integration.conftest import act_as
 from tests.integration.seed_ids import (
     APPROVER_HO,
@@ -14,14 +12,12 @@ from tests.integration.seed_ids import (
 )
 
 
-@pytest.mark.xfail(strict=True, reason="Task 2")
 async def test_approver_without_scope_sees_no_branch2_customer(db):
     await act_as(db, APPROVER_HO, BRANCH_HO)
     rows = await db.fetch("SELECT id FROM customer.customer WHERE home_branch_id = $1", BRANCH_HN)
     assert rows == []
 
 
-@pytest.mark.xfail(strict=True, reason="Task 2")
 async def test_can_access_customer_false_without_scope(db):
     await act_as(db, APPROVER_HO, BRANCH_HO)
     assert (
