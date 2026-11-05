@@ -5,14 +5,20 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 LOAN_TRANSITIONS: Mapping[str, frozenset[str]] = {
-    "DRAFT": frozenset({"DOCUMENT_COLLECTION", "WITHDRAWN"}),
-    "DOCUMENT_COLLECTION": frozenset({"UNDER_ANALYSIS", "NEEDS_INFORMATION", "WITHDRAWN"}),
-    "UNDER_ANALYSIS": frozenset({"NEEDS_INFORMATION", "READY_FOR_REVIEW", "WITHDRAWN"}),
-    "NEEDS_INFORMATION": frozenset({"DOCUMENT_COLLECTION", "UNDER_ANALYSIS", "WITHDRAWN"}),
-    "READY_FOR_REVIEW": frozenset({"SUBMITTED_FOR_APPROVAL", "NEEDS_INFORMATION", "WITHDRAWN"}),
-    "SUBMITTED_FOR_APPROVAL": frozenset(
-        {"APPROVED", "APPROVED_WITH_CONDITIONS", "REJECTED", "NEEDS_INFORMATION"}
+    # Tạm thời: ánh xạ máy trạng thái cũ sang tên trạng thái V021. Task 9 thay
+    # toàn bộ bằng app.workflow.transitions; các trạng thái mới chưa có chuyển.
+    "DRAFT": frozenset({"CHECKING", "WITHDRAWN"}),
+    "CHECKING": frozenset({"APPRAISAL", "APPRAISAL_PENDING_INFO", "WITHDRAWN"}),
+    "APPRAISAL": frozenset({"APPRAISAL_PENDING_INFO", "APPROVAL", "WITHDRAWN"}),
+    "APPRAISAL_PENDING_INFO": frozenset({"CHECKING", "APPRAISAL", "WITHDRAWN"}),
+    "APPROVAL": frozenset(
+        {"APPROVED", "APPROVED_WITH_CONDITIONS", "REJECTED", "APPRAISAL_PENDING_INFO"}
     ),
+    "RETURNED_TO_RM": frozenset(),
+    "RISK_REVIEW": frozenset(),
+    "RISK_PENDING_INFO": frozenset(),
+    "RISK_HOLD_FRAUD": frozenset(),
+    "COUNCIL_SESSION": frozenset(),
     "APPROVED": frozenset(),
     "APPROVED_WITH_CONDITIONS": frozenset(),
     "REJECTED": frozenset(),

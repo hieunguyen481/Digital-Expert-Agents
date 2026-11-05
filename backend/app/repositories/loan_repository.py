@@ -286,14 +286,14 @@ class LoanRepository:
             self.session,
             """
             UPDATE credit.loan_application
-            SET status = 'SUBMITTED_FOR_APPROVAL',
+            SET status = 'APPROVAL',
                 submitted_at = CURRENT_TIMESTAMP,
                 updated_at = CURRENT_TIMESTAMP,
                 updated_by = :actor_id,
                 version = version + 1
             WHERE id = :loan_id
               AND version = :expected_version
-              AND status IN ('READY_FOR_REVIEW', 'NEEDS_INFORMATION')
+              AND status IN ('APPRAISAL', 'APPRAISAL_PENDING_INFO')
             RETURNING *
             """,
             {
@@ -341,7 +341,7 @@ class LoanRepository:
             SET status = :decision_type, updated_at = :decision_at,
                 updated_by = :decision_maker_id, version = version + 1
             WHERE id = :loan_application_id
-              AND status = 'SUBMITTED_FOR_APPROVAL'
+              AND status = 'APPROVAL'
             RETURNING id
             """,
             values,

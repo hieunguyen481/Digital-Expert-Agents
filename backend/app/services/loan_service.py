@@ -226,7 +226,7 @@ class LoanService:
         require_permission(principal, "loan:submit")
         current = await self.get(principal, loan_application_id)
         _require_assigned_handler(principal, current)
-        require_transition(str(current["status"]), "SUBMITTED_FOR_APPROVAL", LOAN_TRANSITIONS)
+        require_transition(str(current["status"]), "APPROVAL", LOAN_TRANSITIONS)
         row = await self._repository.submit(
             loan_application_id, actor_id=principal.employee_id, expected_version=expected_version
         )
@@ -263,7 +263,7 @@ class LoanService:
         require_permission(principal, "loan:approve")
         require_role(principal, "loan_approver")
         current = await self.get(principal, loan_application_id)
-        if str(current["status"]) != "SUBMITTED_FOR_APPROVAL":
+        if str(current["status"]) != "APPROVAL":
             raise ValueError("Loan application is not awaiting an authorized human decision")
         if decision_type not in _DECISION_TYPES:
             raise ValueError(f"decision_type must be one of {sorted(_DECISION_TYPES)}")

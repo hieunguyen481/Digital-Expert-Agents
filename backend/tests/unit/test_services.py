@@ -44,7 +44,7 @@ class FakeLoanRepository:
     def __init__(self) -> None:
         self.current = {
             "id": uuid4(),
-            "status": "SUBMITTED_FOR_APPROVAL",
+            "status": "APPROVAL",
             "version": 2,
         }
         self.decision: dict[str, Any] | None = None
@@ -58,8 +58,8 @@ class FakeLoanRepository:
 
 
 def test_loan_state_machine_denies_ai_shortcut_to_approval() -> None:
-    assert can_transition("READY_FOR_REVIEW", "SUBMITTED_FOR_APPROVAL", LOAN_TRANSITIONS)
-    assert not can_transition("READY_FOR_REVIEW", "APPROVED", LOAN_TRANSITIONS)
+    assert can_transition("APPRAISAL", "APPROVAL", LOAN_TRANSITIONS)
+    assert not can_transition("APPRAISAL", "APPROVED", LOAN_TRANSITIONS)
     with pytest.raises(ValueError, match="not allowed"):
         require_transition("DRAFT", "APPROVED", LOAN_TRANSITIONS)
 

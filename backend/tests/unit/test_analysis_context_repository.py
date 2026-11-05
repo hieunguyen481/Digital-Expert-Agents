@@ -253,7 +253,7 @@ def test_financial_context_uses_decimal_calculation_refs_and_currency_safe_debt_
         "loan_purpose": "HOME_PURCHASE",
         "interest_rate_assumption": Decimal("0.10000000"),
         "repayment_method": "ANNUITY",
-        "loan_status": "UNDER_ANALYSIS",
+        "loan_status": "APPRAISAL",
     }
     context = build_financial_context(
         scope,
