@@ -1,0 +1,25 @@
+services:
+  backend-test:
+    profiles: [test]
+    build:
+      # Multi-file runs use infra/docker-compose.infra.yml as the first file;
+      # Compose resolves every relative path from that file's directory.
+      context: ../backend
+      dockerfile: Dockerfile
+      target: test
+    image: bank-ai-backend-test:0.1.0
+    working_dir: /src
+    volumes:
+      - ../backend:/src:ro
+    environment:
+      PYTHONPATH: /src
+      PYTHONDONTWRITEBYTECODE: "1"
+      TEST_APP_DSN: postgresql://${POSTGRES_APP_USER:-bank_app}:${POSTGRES_APP_PASSWORD:?Generate infra/.env.local}@postgres:5432/bank_ai
+    command: ["python", "-m", "pytest", "-m", "integration", "tests/integration", "-p", "no:cacheprovider"]
+    networks:
+      - bank-data
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      postgres:
+        condition: service_healthy
