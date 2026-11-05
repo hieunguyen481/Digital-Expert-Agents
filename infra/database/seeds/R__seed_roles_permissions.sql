@@ -11,7 +11,8 @@ VALUES
     ('20000000-0000-4000-8000-000000000005', 'risk_officer', 'Risk Officer', 'Reviews risk analysis and policy exceptions.', TRUE, CURRENT_TIMESTAMP),
     ('20000000-0000-4000-8000-000000000006', 'loan_approver', 'Loan Approver', 'Records authorized human loan decisions.', TRUE, CURRENT_TIMESTAMP),
     ('20000000-0000-4000-8000-000000000007', 'auditor', 'Auditor', 'Reads masked reporting and audit information.', TRUE, CURRENT_TIMESTAMP),
-    ('20000000-0000-4000-8000-000000000008', 'admin', 'Administrator', 'Manages infrastructure-facing application configuration.', TRUE, CURRENT_TIMESTAMP)
+    ('20000000-0000-4000-8000-000000000008', 'admin', 'Administrator', 'Manages infrastructure-facing application configuration.', TRUE, CURRENT_TIMESTAMP),
+    ('20000000-0000-4000-8000-000000000009', 'credit_appraiser', 'Credit Appraiser', 'Appraises credit applications and prepares the appraisal proposal.', TRUE, CURRENT_TIMESTAMP)
 ON CONFLICT (role_code) DO UPDATE
 SET role_name = EXCLUDED.role_name,
     description = EXCLUDED.description,
@@ -59,7 +60,7 @@ WITH assignments(role_code, permission_code) AS (
         ('credit_officer', 'loan:read'),
         ('credit_officer', 'loan:create'),
         ('credit_officer', 'loan:update'),
-        ('credit_officer', 'loan:analyze'),
+        ('credit_officer', 'document:verify'),
         ('credit_officer', 'loan:submit'),
         ('credit_officer', 'policy:read'),
         ('credit_officer', 'report:read'),
@@ -79,12 +80,29 @@ WITH assignments(role_code, permission_code) AS (
         ('credit_manager', 'report:generate'),
         ('credit_manager', 'report:review'),
         ('credit_manager', 'report:export'),
+        ('credit_appraiser', 'customer:read'),
+        ('credit_appraiser', 'customer:search'),
+        ('credit_appraiser', 'account:read'),
+        ('credit_appraiser', 'transaction:read'),
+        ('credit_appraiser', 'document:read'),
+        ('credit_appraiser', 'document:download'),
+        ('credit_appraiser', 'document:verify'),
+        ('credit_appraiser', 'loan:read'),
+        ('credit_appraiser', 'loan:update'),
+        ('credit_appraiser', 'loan:analyze'),
+        ('credit_appraiser', 'policy:read'),
+        ('credit_appraiser', 'report:read'),
+        ('credit_appraiser', 'report:generate'),
         ('document_reviewer', 'customer:read'),
         ('document_reviewer', 'document:read'),
         ('document_reviewer', 'document:download'),
         ('document_reviewer', 'document:verify'),
         ('document_reviewer', 'loan:read'),
+        ('document_reviewer', 'customer:search'),
+        ('document_reviewer', 'policy:read'),
+        ('document_reviewer', 'report:read'),
         ('compliance_officer', 'customer:read'),
+        ('compliance_officer', 'customer:search'),
         ('compliance_officer', 'document:read'),
         ('compliance_officer', 'document:download'),
         ('compliance_officer', 'document:verify'),
@@ -94,6 +112,7 @@ WITH assignments(role_code, permission_code) AS (
         ('compliance_officer', 'report:read'),
         ('compliance_officer', 'report:review'),
         ('risk_officer', 'customer:read'),
+        ('risk_officer', 'customer:search'),
         ('risk_officer', 'account:read'),
         ('risk_officer', 'transaction:read'),
         ('risk_officer', 'document:read'),
@@ -103,6 +122,7 @@ WITH assignments(role_code, permission_code) AS (
         ('risk_officer', 'report:read'),
         ('risk_officer', 'report:review'),
         ('loan_approver', 'customer:read'),
+        ('loan_approver', 'customer:search'),
         ('loan_approver', 'account:read'),
         ('loan_approver', 'transaction:read'),
         ('loan_approver', 'document:read'),
@@ -117,6 +137,7 @@ WITH assignments(role_code, permission_code) AS (
         ('auditor', 'account:read'),
         ('auditor', 'transaction:read'),
         ('auditor', 'document:read'),
+        ('auditor', 'document:download'),
         ('auditor', 'loan:read'),
         ('auditor', 'policy:read'),
         ('auditor', 'report:read'),
@@ -135,6 +156,14 @@ INSERT INTO identity.role_permission(role_id, permission_id, created_at)
 SELECT role_id, permission_id, CURRENT_TIMESTAMP
 FROM resolved
 ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- Ma tran quyen moi: go cac quyen khong con thuoc vai tro (xoa hep, seed chay lai van dung).
+DELETE FROM identity.role_permission AS role_permission
+USING identity.role AS role, identity.permission AS permission
+WHERE role_permission.role_id = role.id
+  AND role_permission.permission_id = permission.id
+  AND role.role_code = 'credit_officer'
+  AND permission.permission_code = 'loan:analyze';
 
 -- Q-J: Quan tri chi co admin:manage, khong co quyen nghiep vu. Xoa cac dong cu
 -- (truoc day CROSS JOIN moi permission) de seed chay lai van dung.

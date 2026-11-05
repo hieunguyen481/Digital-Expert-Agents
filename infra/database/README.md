@@ -58,7 +58,7 @@ The Compose seed runner supplies `PGHOST`, `PGPORT`, `PGDATABASE`,
 The four repeatable files seed synthetic data only:
 
 1. roles, permissions, and role mappings;
-2. three branches, four departments, seven employees, a loan product, policy,
+2. three branches, four departments, ten employees, a loan product, policy,
    clauses, checklist rules, and retention rules;
 3. three demo customers, two accounts each, one VND 700,000,000 / 60-month
    application, one job, and one pending outbox event;

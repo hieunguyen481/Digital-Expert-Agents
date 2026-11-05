@@ -80,6 +80,12 @@
         "description": "Administer the local Bank AI environment",
         "composite": false,
         "clientRole": false
+      },
+      {
+        "name": "credit_appraiser",
+        "description": "Appraise credit applications and prepare the appraisal proposal",
+        "composite": false,
+        "clientRole": false
       }
     ]
   },
@@ -260,6 +266,36 @@
       "enabled": true,
       "realmRoles": [
         "admin"
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000008",
+      "username": "appraiser@example.local",
+      "email": "appraiser@example.local",
+      "emailVerified": true,
+      "enabled": true,
+      "realmRoles": [
+        "credit_appraiser"
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000009",
+      "username": "risk@example.local",
+      "email": "risk@example.local",
+      "emailVerified": true,
+      "enabled": true,
+      "realmRoles": [
+        "risk_officer"
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000010",
+      "username": "director.hn@example.local",
+      "email": "director.hn@example.local",
+      "emailVerified": true,
+      "enabled": true,
+      "realmRoles": [
+        "loan_approver"
       ]
     }
   ]

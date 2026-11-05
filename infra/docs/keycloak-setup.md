@@ -71,7 +71,7 @@ admin@example.local
 
 Their password comes from `SEED_USER_PASSWORD` in untracked `.env.local` and is
 injected by the user bootstrap script. Passwords are deliberately absent from
-the realm JSON, logs and documentation. The seven corresponding employee rows
+the realm JSON, logs and documentation. The ten corresponding employee rows
 in PostgreSQL use each Keycloak subject as `identity_subject`.
 
 ## Bootstrap
@@ -109,7 +109,7 @@ The stack verification checks:
 
 1. realm discovery returns issuer `.../realms/bank-ai`;
 2. all three clients and all eight roles exist;
-3. the seven demo users exist;
+3. the ten demo users exist;
 4. a demo token can be obtained using the supported test path;
 5. the signature validates against JWKS and `aud` contains `bank-ai-api`; and
 6. the public frontend client has no secret, requires PKCE S256 and has Direct

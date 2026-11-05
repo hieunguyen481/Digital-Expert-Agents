@@ -101,8 +101,14 @@ roles=(
   loan_approver
   auditor
   admin
+  credit_appraiser
 )
 for role in "${roles[@]}"; do
+  # Realm import only runs on first start; create roles added later (idempotent).
+  if ! kcadm get "roles/$role" -r "$KEYCLOAK_REALM" >/dev/null 2>&1; then
+    log "creating realm role $role"
+    kcadm create roles -r "$KEYCLOAK_REALM" -s "name=$role" >/dev/null
+  fi
   kcadm get "roles/$role" -r "$KEYCLOAK_REALM" >/dev/null || fail "required realm role is missing: $role"
 done
 
@@ -114,6 +120,9 @@ user_specs=(
   '10000000-0000-4000-8000-000000000005|approver@example.local|loan_approver|Loan|Approver'
   '10000000-0000-4000-8000-000000000006|auditor@example.local|auditor|Audit|Officer'
   '10000000-0000-4000-8000-000000000007|admin@example.local|admin|System|Administrator'
+  '10000000-0000-4000-8000-000000000008|appraiser@example.local|credit_appraiser|Credit|Appraiser'
+  '10000000-0000-4000-8000-000000000009|risk@example.local|risk_officer|Risk|Officer'
+  '10000000-0000-4000-8000-000000000010|director.hn@example.local|loan_approver|Branch|Director'
 )
 
 for specification in "${user_specs[@]}"; do
@@ -123,12 +132,13 @@ for specification in "${user_specs[@]}"; do
 
   if [[ -z "$user_id" ]]; then
     log "creating demo identity $username"
-    kcadm create users -r "$KEYCLOAK_REALM" \
-      -s "id=$expected_id" \
-      -s "username=$username" \
-      -s "email=$username" \
-      -s enabled=true \
-      -s emailVerified=true >/dev/null
+    # Users API ignores a client-supplied id; partialImport keeps it, so the
+    # token subject equals identity.employee.identity_subject.
+    partial_file="$(mktemp)"
+    printf '{"ifResourceExists":"SKIP","users":[{"id":"%s","username":"%s","email":"%s","enabled":true,"emailVerified":true}]}' \
+      "$expected_id" "$username" "$username" > "$partial_file"
+    kcadm create partialImport -r "$KEYCLOAK_REALM" -f "$partial_file" >/dev/null
+    rm -f "$partial_file"
     response="$(kcadm get users -r "$KEYCLOAK_REALM" -q "username=$username" -q exact=true --fields id,username)"
     user_id="$(printf '%s\n' "$response" | extract_first_id)"
   fi
@@ -152,4 +162,4 @@ for specification in "${user_specs[@]}"; do
     --rolename "$role" >/dev/null
 done
 
-log 'client secrets and seven demo identities were reconciled without storing passwords in realm JSON'
+log 'client secrets and ten demo identities were reconciled without storing passwords in realm JSON'
