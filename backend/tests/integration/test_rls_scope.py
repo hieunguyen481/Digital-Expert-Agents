@@ -9,6 +9,7 @@ from tests.integration.seed_ids import (
     BRANCH_HO,
     CREDIT_OFFICER,
     CUSTOMER_A,
+    LOAN_1,
 )
 
 
@@ -29,3 +30,8 @@ async def test_can_access_customer_false_without_scope(db):
 async def test_rm_sees_own_customer(db):
     await act_as(db, CREDIT_OFFICER, BRANCH_HN)
     assert await db.fetchval("SELECT count(*) FROM customer.customer WHERE id = $1", CUSTOMER_A) == 1
+
+
+async def test_can_access_loan_false_without_scope(db):
+    await act_as(db, APPROVER_HO, BRANCH_HO)
+    assert await db.fetchval("SELECT identity.can_access_loan($1,$2)", APPROVER_HO, LOAN_1) is False

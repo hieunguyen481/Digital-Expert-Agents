@@ -26,8 +26,6 @@ def scope_allows(
     scope_id: UUID,
     permission_code: str,
 ) -> bool:
-    if principal.is_admin:
-        return True
     return any(
         scope.scope_type == scope_type
         and scope.scope_id == scope_id

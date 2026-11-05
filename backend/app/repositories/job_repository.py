@@ -91,7 +91,7 @@ class JobRepository:
             """
             SELECT bj.* FROM integration.background_job AS bj
             WHERE bj.id = :job_id AND (
-                bj.requested_by = :employee_id OR identity.current_is_admin()
+                bj.requested_by = :employee_id
                 OR (bj.resource_type = 'CUSTOMER'
                     AND identity.can_access_customer(identity.current_employee_id(), bj.resource_id))
                 OR (bj.resource_type = 'LOAN_APPLICATION'
@@ -117,7 +117,7 @@ class JobRepository:
             SELECT js.* FROM integration.background_job AS bj
             JOIN integration.background_job_step AS js ON js.job_id = bj.id
             WHERE bj.id = :job_id AND (
-                bj.requested_by = :employee_id OR identity.current_is_admin()
+                bj.requested_by = :employee_id
                 OR (bj.resource_type = 'LOAN_APPLICATION'
                     AND identity.can_access_loan(identity.current_employee_id(), bj.resource_id))
                 OR (bj.resource_type = 'DOCUMENT_VERSION' AND EXISTS (
@@ -149,7 +149,7 @@ class JobRepository:
             JOIN integration.job_event AS je ON je.job_id = bj.id
             WHERE bj.id = :job_id AND je.sequence_number > :after_sequence
               AND (
-                bj.requested_by = :employee_id OR identity.current_is_admin()
+                bj.requested_by = :employee_id
                 OR (bj.resource_type = 'LOAN_APPLICATION'
                     AND identity.can_access_loan(identity.current_employee_id(), bj.resource_id))
                 OR (bj.resource_type = 'DOCUMENT_VERSION' AND EXISTS (

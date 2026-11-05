@@ -17,7 +17,7 @@ class CurrentPrincipal:
     is_admin: bool = False
 
     def has_permissions(self, *codes: str) -> bool:
-        return self.is_admin or set(codes).issubset(self.permissions)
+        return set(codes).issubset(self.permissions)
 
     def has_any_role(self, *codes: str) -> bool:
         return bool(self.roles.intersection(codes))

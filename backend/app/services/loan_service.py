@@ -305,10 +305,8 @@ class LoanService:
 
 
 def _can_reassign(principal: PrincipalLike) -> bool:
-    return bool(
-        getattr(principal, "is_admin", False)
-        or set(getattr(principal, "roles", ())).intersection({"admin", "credit_manager"})
-    )
+    # Q-B/Q-J: chi truong phong (credit_manager) phan cong lai; Quan tri khong co quyen nghiep vu.
+    return "credit_manager" in set(getattr(principal, "roles", ()))
 
 
 def _require_assigned_handler(

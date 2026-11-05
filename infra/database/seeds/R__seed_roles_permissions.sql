@@ -136,10 +136,20 @@ SELECT role_id, permission_id, CURRENT_TIMESTAMP
 FROM resolved
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
+-- Q-J: Quan tri chi co admin:manage, khong co quyen nghiep vu. Xoa cac dong cu
+-- (truoc day CROSS JOIN moi permission) de seed chay lai van dung.
+DELETE FROM identity.role_permission AS role_permission
+USING identity.role AS role, identity.permission AS permission
+WHERE role_permission.role_id = role.id
+  AND role_permission.permission_id = permission.id
+  AND role.role_code = 'admin'
+  AND permission.permission_code <> 'admin:manage';
+
 INSERT INTO identity.role_permission(role_id, permission_id, created_at)
 SELECT role.id, permission.id, CURRENT_TIMESTAMP
 FROM identity.role AS role
-CROSS JOIN identity.permission AS permission
+JOIN identity.permission AS permission
+  ON permission.permission_code = 'admin:manage'
 WHERE role.role_code = 'admin'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 

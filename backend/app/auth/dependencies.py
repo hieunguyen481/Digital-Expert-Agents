@@ -66,7 +66,7 @@ def require_permissions(*codes: str) -> Callable[..., Any]:
         principal: Annotated[CurrentPrincipal, Depends(get_current_principal)],
     ) -> CurrentPrincipal:
         missing = required.difference(principal.permissions)
-        if missing and not principal.is_admin:
+        if missing:
             raise AuthorizationError(
                 "MISSING_PERMISSION",
                 "You do not have the required permission.",
@@ -85,7 +85,7 @@ def require_roles(*roles: str) -> Callable[..., Any]:
     async def dependency(
         principal: Annotated[CurrentPrincipal, Depends(get_current_principal)],
     ) -> CurrentPrincipal:
-        if not principal.is_admin and not principal.roles.intersection(required):
+        if not principal.roles.intersection(required):
             raise AuthorizationError(
                 "MISSING_ROLE",
                 "You do not have the required role.",

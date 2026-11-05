@@ -16,6 +16,7 @@ from app.auth.dependencies import require_permissions
 from app.auth.jwt_validator import JWTValidator, SigningKeyNotFoundError
 from app.auth.principal import CurrentPrincipal, EmployeeAccessRecord, build_current_principal
 from app.exceptions import AuthenticationError, AuthorizationError
+from app.services.access import require_permission
 
 
 def _b64(value: int) -> str:
@@ -193,3 +194,36 @@ async def test_permission_dependency_denies_missing_database_permission() -> Non
 
     with pytest.raises(AuthorizationError):
         await dependency(principal)
+
+
+def _admin_principal() -> CurrentPrincipal:
+    return CurrentPrincipal(
+        employee_id=uuid4(),
+        subject="admin-subject",
+        branch_id=uuid4(),
+        roles=frozenset({"admin"}),
+        permissions=frozenset({"admin:manage"}),
+        is_admin=True,
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_admin_principal_lacks_business_permission() -> None:
+    principal = _admin_principal()
+
+    assert principal.has_permissions("customer:read") is False
+    with pytest.raises(PermissionError):
+        require_permission(principal, "customer:read")
+    with pytest.raises(AuthorizationError):
+        await require_permissions("customer:read")(principal)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_admin_principal_has_admin_manage() -> None:
+    principal = _admin_principal()
+
+    assert principal.has_permissions("admin:manage") is True
+    require_permission(principal, "admin:manage")
+    assert await require_permissions("admin:manage")(principal) is principal
