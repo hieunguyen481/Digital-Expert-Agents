@@ -106,11 +106,37 @@ async def test_sla_parameters_seeded(db):
 
 
 async def test_authority_tier_version_1_has_three_tiers(db):
-    rows = await db.fetch(
-        "SELECT tier, max_total_vnd FROM credit.authority_tier WHERE version = 1 ORDER BY tier"
-    )
+    rows = await db.fetch("SELECT tier, max_total_vnd FROM credit.authority_tier WHERE version = 1 ORDER BY tier")
     assert [(r["tier"], r["max_total_vnd"]) for r in rows] == [
         (1, 20_000_000_000),
         (2, 100_000_000_000),
         (3, None),
     ]
+
+
+async def test_rm_cannot_rewrite_own_history(db):
+    """E8: cuu QHKH khong duoc tu sua lich su de thoat loai tru phe duyet."""
+    await act_as(db, CREDIT_OFFICER, BRANCH_HN)
+    # Moi lenh trong savepoint rieng de lenh sau khong chay tren giao dich da hong.
+    with pytest.raises(asyncpg.InsufficientPrivilegeError):
+        async with db.transaction():
+            await db.execute(
+                """
+            INSERT INTO customer.relationship_manager_history (
+                customer_id, employee_id, valid_from, valid_until
+            )
+            VALUES ($1, $2, DATE '2020-01-01', DATE '2020-12-31')
+            """,
+                CUSTOMER_A,
+                CREDIT_OFFICER,
+            )
+    with pytest.raises(asyncpg.InsufficientPrivilegeError):
+        async with db.transaction():
+            await db.execute(
+                """
+            UPDATE customer.relationship_manager_history
+            SET valid_until = DATE '2020-12-31'
+            WHERE employee_id = $1
+            """,
+                CREDIT_OFFICER,
+            )

@@ -24,7 +24,7 @@ async def test_admin_cannot_insert_loan_decision(db):
                 id, loan_application_id, decision_type, rationale,
                 decision_maker_id, decision_at, created_at
             )
-            VALUES ($1, $2, 'APPROVE', 'admin thu ghi quyet dinh', $3,
+            VALUES ($1, $2, 'APPROVED', 'admin thu ghi quyet dinh', $3,
                     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             """,
             uuid4(),
