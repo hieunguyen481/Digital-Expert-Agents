@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import asyncpg
 import pytest
@@ -33,7 +33,32 @@ async def test_old_status_document_collection_is_rejected(db):
         )
 
 
-async def _insert_open_step(db, step_code: str) -> None:
+async def _draft_loan(db) -> UUID:
+    """Ho so DRAFT moi cua khach A: QHKH duoc ghi (V023 can_write_loan).
+
+    LOAN_1 dang APPRAISAL nen QHKH khong con ghi buoc/co tren ho so do.
+    """
+    loan_id = uuid4()
+    await db.execute(
+        """
+        INSERT INTO credit.loan_application (
+            id, application_number, primary_customer_id, product_id,
+            requested_amount, currency, requested_term_months, loan_purpose,
+            status, assigned_employee_id, created_at, created_by, updated_at
+        )
+        VALUES ($1, $2, $3, $4, 1000000, 'VND', 12, 'WORKING_CAPITAL',
+                'DRAFT', $5, CURRENT_TIMESTAMP, $5, CURRENT_TIMESTAMP)
+        """,
+        loan_id,
+        f"LA-TEST-{uuid4().hex[:8]}",
+        CUSTOMER_A,
+        _PRODUCT,
+        CREDIT_OFFICER,
+    )
+    return loan_id
+
+
+async def _insert_open_step(db, loan_id: UUID, step_code: str) -> None:
     await db.execute(
         """
         INSERT INTO credit.case_step (
@@ -43,7 +68,7 @@ async def _insert_open_step(db, step_code: str) -> None:
         VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $4, CURRENT_TIMESTAMP)
         """,
         uuid4(),
-        LOAN_1,
+        loan_id,
         step_code,
         CREDIT_OFFICER,
     )
@@ -51,19 +76,22 @@ async def _insert_open_step(db, step_code: str) -> None:
 
 async def test_only_one_open_step_per_case(db):
     await act_as(db, CREDIT_OFFICER, BRANCH_HN)
-    await _insert_open_step(db, "CHECKING")
+    loan_id = await _draft_loan(db)
+    await _insert_open_step(db, loan_id, "CHECKING")
     with pytest.raises(asyncpg.UniqueViolationError):
-        await _insert_open_step(db, "APPRAISAL")
+        await _insert_open_step(db, loan_id, "APPRAISAL")
 
 
 async def test_pending_info_step_may_coexist_with_open_step(db):
     await act_as(db, CREDIT_OFFICER, BRANCH_HN)
-    await _insert_open_step(db, "APPRAISAL")
-    await _insert_open_step(db, "PENDING_INFO")
+    loan_id = await _draft_loan(db)
+    await _insert_open_step(db, loan_id, "APPRAISAL")
+    await _insert_open_step(db, loan_id, "PENDING_INFO")
 
 
 async def test_high_flag_handled_requires_note(db):
     await act_as(db, CREDIT_OFFICER, BRANCH_HN)
+    loan_id = await _draft_loan(db)
     flag_id = uuid4()
     await db.execute(
         """
@@ -75,7 +103,7 @@ async def test_high_flag_handled_requires_note(db):
                 'TEST', $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         """,
         flag_id,
-        LOAN_1,
+        loan_id,
         CREDIT_OFFICER,
     )
     with pytest.raises(asyncpg.CheckViolationError):
