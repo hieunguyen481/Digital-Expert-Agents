@@ -15,6 +15,7 @@ services:
       PYTHONPATH: /src
       PYTHONDONTWRITEBYTECODE: "1"
       TEST_APP_DSN: postgresql://${POSTGRES_APP_USER:-bank_app}:${POSTGRES_APP_PASSWORD:?Generate infra/.env.local}@postgres:5432/bank_ai
+      TEST_MIGRATOR_DSN: postgresql://${POSTGRES_MIGRATOR_USER:-bank_migrator}:${POSTGRES_MIGRATOR_PASSWORD:?Generate infra/.env.local}@postgres:5432/bank_ai
     command: ["python", "-m", "pytest", "-m", "integration", "tests/integration", "-p", "no:cacheprovider"]
     networks:
       - bank-data
