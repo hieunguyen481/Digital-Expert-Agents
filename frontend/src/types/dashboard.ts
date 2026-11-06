@@ -72,3 +72,47 @@ export interface ComparisonMetric {
   /** Hệ nào tốt hơn ở chỉ tiêu này. */
   winner: 'single' | 'multi' | 'tie';
 }
+
+/** Trung bình ± độ lệch chuẩn của một chỉ số qua các lượt đo (null nếu không có lượt hợp lệ). */
+export interface BenchmarkStat {
+  mean: number | null;
+  sd: number | null;
+}
+
+export type BenchmarkMode = 'single' | 'multi';
+
+export interface BenchmarkModeSummary {
+  runs: number;
+  errors: number;
+  finding_recall: BenchmarkStat;
+  citation_recall: BenchmarkStat;
+  tool_recall: BenchmarkStat;
+  false_findings: BenchmarkStat;
+  invalid_citations: BenchmarkStat;
+  gate_ok: BenchmarkStat;
+  tool_calls: BenchmarkStat;
+  latency_s: BenchmarkStat;
+  total_tokens: BenchmarkStat;
+  cost_usd: BenchmarkStat;
+}
+
+/** Kết quả một lần chạy benchmark đã lưu (agent.benchmark_run) do gateway trả, dưới RLS. */
+export interface BenchmarkRun {
+  run_id: string;
+  created_at: string;
+  label: string;
+  cases_version: string;
+  llm_mode: string;
+  planner_model: string;
+  specialist_model: string;
+  git_commit: string;
+  runs_per_case: number;
+  total_cost_usd: number | null;
+  summary: Partial<Record<BenchmarkMode, BenchmarkModeSummary>>;
+  per_case: Record<string, Partial<Record<BenchmarkMode, BenchmarkModeSummary>>>;
+}
+
+export interface BenchmarkLatest {
+  status: 'ok' | 'empty';
+  run: BenchmarkRun | null;
+}

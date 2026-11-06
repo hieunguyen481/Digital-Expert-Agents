@@ -16,6 +16,7 @@ from app.exceptions import AppError, DependencyUnavailableError
 from app.services.agent_engine_client import AgentEngineClient, AgentEngineError
 
 router = APIRouter(prefix="/agent-cases", tags=["agent-cases"])
+benchmark_router = APIRouter(prefix="/agent-benchmark", tags=["agent-benchmark"])
 
 
 class ConfirmBody(BaseModel):
@@ -123,5 +124,15 @@ async def reject(case_id: str, body: RejectBody, request: Request,
     del principal
     try:
         return await _engine(request).reject(case_id, body.model_dump())
+    except AgentEngineError as e:
+        raise _raise(e) from e
+
+
+@benchmark_router.get("/latest", operation_id="get_agent_benchmark_latest")
+async def benchmark_latest(request: Request, principal: PrincipalDep) -> Any:
+    """Kết quả đo single-agent vs multi-agent đã lưu; chưa có thì `status=empty` (không dựng số)."""
+    del principal
+    try:
+        return await _engine(request).benchmark_latest()
     except AgentEngineError as e:
         raise _raise(e) from e

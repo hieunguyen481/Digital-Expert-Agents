@@ -241,6 +241,13 @@ async def direct_answer(body: AskBody, user: Principal = USER) -> dict:
             "note": "Câu hỏi phức tạp hơn? Tạo case để hội đồng chuyên gia xử lý."}
 
 
+# ---- Benchmark single-agent vs multi-agent (kết quả đã lưu, đọc dưới RLS) ----
+@app.get("/benchmark/latest")
+async def benchmark_latest(user: Principal = USER) -> dict:
+    run = await db.latest_benchmark()
+    return {"status": "ok", "run": run} if run else {"status": "empty", "run": None}
+
+
 # ---- Internal ----
 class EventBody(BaseModel):
     case_id: str

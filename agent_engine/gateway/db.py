@@ -255,3 +255,20 @@ async def get_action_by_key(key: str) -> dict | None:
     async with tx() as con:
         r = await con.fetchrow("SELECT * FROM agent.action_log WHERE idempotency_key=$1", key)
     return dict(r) if r else None
+
+
+# ---- benchmark (V032): chỉ đọc, dưới RLS ----
+async def latest_benchmark() -> dict | None:
+    """Lần chạy benchmark mới nhất. Không trả văn bản kết luận (runs[].conclusion_text) của từng lượt."""
+    async with tx() as con:
+        r = await con.fetchrow(
+            "SELECT run_id, created_at, label, cases_version, llm_mode, planner_model, specialist_model,"
+            " git_commit, runs_per_case, total_cost_usd, summary, per_case, runs"
+            " FROM agent.benchmark_run ORDER BY created_at DESC LIMIT 1")
+    if r is None:
+        return None
+    d = dict(r)
+    d["created_at"] = d["created_at"].isoformat()
+    d["total_cost_usd"] = float(d["total_cost_usd"]) if d["total_cost_usd"] is not None else None
+    d["runs"] = [{k: v for k, v in x.items() if k not in ("conclusion_text",)} for x in d["runs"]]
+    return d
