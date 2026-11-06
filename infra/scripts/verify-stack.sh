@@ -17,6 +17,9 @@ compose() {
     "$@"
 }
 
+# Số migration kỳ vọng = số file V*.sql trong repo (không để số cứng lệch khi thêm migration).
+EXPECTED_MIGRATIONS=$(ls "$INFRA_ROOT"/database/migrations/V*.sql | wc -l | tr -d ' ')
+
 pass() { printf '[PASS] %s\n' "$1"; }
 fail() { printf '[FAIL] %s\n' "$1" >&2; exit 1; }
 
@@ -26,9 +29,12 @@ if compose --profile tools --profile observability config --images | grep -Eq '(
 fi
 pass 'Compose config and image pins'
 
-if grep -Rin --exclude=intructions.md --exclude=verify-stack.sh --exclude=verify-stack.ps1 --exclude=.env.local --include='*.yml' --include='*.yaml' \
-    --include='*.json' --include='*.conf' --include='*.properties' --include='*.sql' \
-    --include='*.sh' --include='*.ps1' 'change''me' "$INFRA_ROOT" >/dev/null 2>&1; then
+# GNU grep: khi --include và --exclude mâu thuẫn thì tuỳ chọn ĐỨNG SAU thắng. Trước đây --exclude
+# đứng trước --include='*.sh' nên chính script này (thông báo chứa từ khoá) bị quét và tự báo lỗi.
+if grep -Rin --include='*.yml' --include='*.yaml' --include='*.json' --include='*.conf' \
+    --include='*.properties' --include='*.sql' --include='*.sh' --include='*.ps1' \
+    --exclude=intructions.md --exclude=verify-stack.sh --exclude=verify-stack.ps1 --exclude=.env.local \
+    'change''me' "$INFRA_ROOT" >/dev/null 2>&1; then
   fail 'changeme placeholder found in source config'
 fi
 pass 'No changeme placeholder'
@@ -39,8 +45,8 @@ pass 'Core services healthy'
 
 compose run --rm flyway || fail 'Flyway migration'
 [ "$(compose exec -T postgres psql -X -U postgres -d bank_ai -Atqc \
-  "SELECT count(*) FROM public.flyway_schema_history WHERE success")" = 32 ] || fail 'Migration count'
-pass '32 Flyway migrations complete'
+  "SELECT count(*) FROM public.flyway_schema_history WHERE success")" = "$EXPECTED_MIGRATIONS" ] || fail 'Migration count'
+pass "$EXPECTED_MIGRATIONS Flyway migrations complete"
 
 compose run --rm db-seed || fail 'First seed run'
 compose run --rm db-seed || fail 'Second seed run'
