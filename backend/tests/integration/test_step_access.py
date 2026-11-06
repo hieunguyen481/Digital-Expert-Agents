@@ -250,7 +250,15 @@ async def test_past_assignee_cannot_write_customer_or_documents(db):
         await db.execute("UPDATE document.extracted_field SET verification_reason = 'x' WHERE id = $1", _SEED_FIELD)
         == "UPDATE 0"
     )
-    assert await db.execute("UPDATE banking.account SET status = 'CLOSED'") == "UPDATE 0"
+    # Trừ tài khoản VinaNova (V030): thẩm định viên đang có bước APPRAISAL mở thật trên hồ sơ đó nên được ghi.
+    assert (
+        await db.execute(
+            """UPDATE banking.account SET status = 'CLOSED' WHERE id NOT IN (
+               SELECT h.account_id FROM banking.account_holder h JOIN customer.customer c ON c.party_id = h.party_id
+               WHERE c.id = '56000000-0000-4000-8000-000000000001')"""
+        )
+        == "UPDATE 0"
+    )
     with pytest.raises(asyncpg.InsufficientPrivilegeError):
         async with db.transaction():
             await db.execute(
