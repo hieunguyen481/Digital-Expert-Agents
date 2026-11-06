@@ -11,6 +11,7 @@ Ra:  một dòng JSON cuối cùng trên stdout (các dòng khác là log).
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import sys
 import time
@@ -58,8 +59,17 @@ async def main() -> None:
     identity.set_current(identity.Identity(i["employee_id"], i["branch_id"], bool(i.get("is_admin"))))
 
     usages: list[dict] = []
-    llm._log_usage = lambda resp: usages.append(  # type: ignore[assignment]
-        resp.usage.model_dump() if getattr(resp, "usage", None) is not None else {})
+    def _record(resp) -> None:
+        usages.append(resp.usage.model_dump() if getattr(resp, "usage", None) is not None else {})
+
+    # llm._log_usage là hàm đồng bộ ở bản cũ, async (resp, model) ở bản mới: giữ đúng kiểu của bản đang chạy.
+    if inspect.iscoroutinefunction(llm._log_usage):
+        async def _patched(resp, model=None) -> None:
+            _record(resp)
+    else:
+        def _patched(resp, model=None) -> None:  # type: ignore[misc]
+            _record(resp)
+    llm._log_usage = _patched  # type: ignore[assignment]
     calls: list[str] = []
     rag_calls: list[str] = []
 
