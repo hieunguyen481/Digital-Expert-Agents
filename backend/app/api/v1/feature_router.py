@@ -15,6 +15,7 @@ from app.api.v1 import (
     notifications,
     policies,
     reports,
+    work_items,
     workflow,
 )
 
@@ -32,3 +33,4 @@ router.include_router(jobs.router)
 router.include_router(notifications.router)
 router.include_router(policies.router)
 router.include_router(audit.router)
+router.include_router(work_items.router)

@@ -34,6 +34,8 @@ from tests.integration.seed_ids import (
     SME_POLICY_VERSION,
 )
 
+from app.repositories.work_item_repository import asyncpg_badge_sql  # noqa: E402
+
 BILLION = Decimal(1_000_000_000)
 
 # §6.1 theo thu tu bang F-DOC (rules.md); ma requirement_code sap xep dung thu tu.
@@ -364,27 +366,7 @@ async def test_mekong_flex_draft_and_related_party_exposure(db: asyncpg.Connecti
 # ---------------------------------------------------------------------------
 # "Cho ban" = buoc chinh dang mo giao cho minh va khong tam dung SLA, cong buoc cho bo
 # sung (PENDING_INFO / RISK_PENDING_INFO) tinh cho QHKH cua khach (nguoi phai tai len).
-BADGE_SQL = """
-SELECT count(*)
-FROM credit.case_step AS step
-JOIN credit.loan_application AS loan ON loan.id = step.loan_application_id
-WHERE step.loan_application_id = ANY($2::uuid[])
-  AND step.completed_at IS NULL
-  AND (
-      (
-          step.step_code NOT IN ('PENDING_INFO', 'RISK_PENDING_INFO')
-          AND step.assignee_employee_id = $1
-          AND (step.paused_at IS NULL OR step.resumed_at IS NOT NULL)
-      )
-      OR (
-          step.step_code IN ('PENDING_INFO', 'RISK_PENDING_INFO')
-          AND EXISTS (
-              SELECT 1 FROM customer.customer AS c
-              WHERE c.id = loan.primary_customer_id AND c.relationship_manager_id = $1
-          )
-      )
-  )
-"""
+BADGE_SQL = asyncpg_badge_sql()  # dinh nghia dung chung voi GET /work-items
 
 # common.js BADGES: qhkh 4, httd 3, tdinh 3, ruiro 2, pheduyet 3 (rules.md C).
 # Dinh nghia "cho ban" (BADGE_SQL): viec dang cho chinh nguoi do, KHONG phai moi buoc mo theo
