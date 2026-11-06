@@ -30,13 +30,18 @@ function New-SecureValue {
     $bytes = New-Object byte[] $ByteCount
     $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
     try {
-        $rng.GetBytes($bytes)
+        # A leading '-' makes CLI parsers (e.g. kafka-storage --cluster-id)
+        # treat the value as a flag, so draw again until it does not start with one.
+        do {
+            $rng.GetBytes($bytes)
+            $value = [Convert]::ToBase64String($bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+        } while ($value.StartsWith('-'))
     }
     finally {
         $rng.Dispose()
     }
 
-    return [Convert]::ToBase64String($bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+    return $value
 }
 
 if ($RotateKey) {
