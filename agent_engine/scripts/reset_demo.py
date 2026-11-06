@@ -1,37 +1,40 @@
-"""Reset 1 chạm về trạng thái demo sạch (chạy giữa 2 lượt demo).
+"""Xoá dữ liệu phân tích của agent engine trong Postgres (chạy giữa 2 lượt demo).
 
-Chạy: python -m scripts.reset_demo   (KHÔNG cần restart các service)
+Chạy: RESET_DATABASE_URL=postgresql://<chủ schema agent>@host/bank_ai python -m scripts.reset_demo
+Cần quyền ghi bỏ qua RLS (postgres hoặc bank_migrator); KHÔNG dùng role bank_engine.
+Chỉ xoá schema `agent` (case, sự kiện, plan, approval token, action log). Dữ liệu nghiệp vụ
+(hồ sơ vay đã chuyển bước qua API) không bị đụng tới: khôi phục bằng seed/migration của infra.
 """
 from __future__ import annotations
 
+import asyncio
+import os
 import sys
-from pathlib import Path
 
-if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+import asyncpg
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# Con trước cha: các bảng con tham chiếu agent.case_run.
+TABLES = ("action_log", "approval_token", "case_plan", "case_event", "case_run")
 
-import sqlite3  # noqa: E402
 
-from common import config  # noqa: E402
-from mcp_core_banking import seed  # noqa: E402
+async def main() -> int:
+    url = os.environ.get("RESET_DATABASE_URL")
+    if not url:
+        print("Thiếu RESET_DATABASE_URL (role có quyền xoá bỏ qua RLS, không phải bank_engine).",
+              file=sys.stderr)
+        return 2
+    con = await asyncpg.connect(url)
+    try:
+        async with con.transaction():
+            for table in TABLES:
+                n = await con.fetchval(f"WITH d AS (DELETE FROM agent.{table} RETURNING 1) "
+                                       "SELECT count(*) FROM d")
+                print(f"agent.{table}: xoá {n} dòng")
+    finally:
+        await con.close()
+    print("Đã reset dữ liệu demo của agent engine.")
+    return 0
 
-# Core banking: seed lại toàn bộ + xóa loans/drafts/disbursements/audit
-seed.main()
-db = sqlite3.connect(config.CORE_BANKING_DB)
-for table in ("loans", "loan_drafts", "disbursements", "audit"):
-    db.execute(f"DELETE FROM {table}")
-db.commit()
 
-# Gateway: xóa cases/events/plans/tokens
-if config.GATEWAY_DB.exists():
-    g = sqlite3.connect(config.GATEWAY_DB)
-    for table in ("cases", "events", "plans", "tokens"):
-        try:
-            g.execute(f"DELETE FROM {table}")
-        except sqlite3.OperationalError:
-            pass
-    g.commit()
-
-print("Đã reset toàn bộ dữ liệu demo (core banking + gateway).")
+if __name__ == "__main__":
+    sys.exit(asyncio.run(main()))
