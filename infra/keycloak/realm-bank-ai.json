@@ -297,6 +297,16 @@
       "realmRoles": [
         "loan_approver"
       ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000011",
+      "username": "approver2@example.local",
+      "email": "approver2@example.local",
+      "emailVerified": true,
+      "enabled": true,
+      "realmRoles": [
+        "loan_approver"
+      ]
     }
   ]
 }

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 from tests.integration.seed_ids import (
+    APPROVER2_HO,
     APPROVER_HO,
     BRANCH_HN,
     CREDIT_APPRAISER,
@@ -82,6 +83,7 @@ async def test_role_permission_set(db, role_code):
         (CREDIT_APPRAISER, "credit_appraiser", "appraiser@example.local"),
         (RISK_HO, "risk_officer", "risk@example.local"),
         (DIRECTOR_HN, "loan_approver", "director.hn@example.local"),
+        (APPROVER2_HO, "loan_approver", "approver2@example.local"),
     ],
 )
 async def test_new_employees(db, employee_id, role_code, email):
@@ -109,6 +111,7 @@ async def test_employee_authority(db):
     got = {r["employee_id"]: (r["tier"], r["unit_scope"], r["branch_id"]) for r in rows}
     assert got[APPROVER_HO] == (2, "HO", None)
     assert got[DIRECTOR_HN] == (1, "BRANCH", BRANCH_HN)
+    assert got[APPROVER2_HO] == (2, "HO", None)
 
 
 async def test_branch_scope_rows_removed_for_staff_and_added_for_director(db):

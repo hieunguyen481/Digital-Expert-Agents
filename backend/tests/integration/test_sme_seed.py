@@ -13,6 +13,7 @@ from decimal import Decimal
 import asyncpg
 from tests.integration.conftest import act_as
 from tests.integration.seed_ids import (
+    APPROVER2_HO,
     APPROVER_HO,
     AUDITOR_HO,
     BRANCH_HN,
@@ -385,15 +386,18 @@ WHERE step.loan_application_id = ANY($2::uuid[])
   )
 """
 
-# common.js BADGES: qhkh 4, httd 3, tdinh 3, ruiro 2, pheduyet 3. rules.md thang mockup:
-# Q-P - phien Hoi dong (Hau Giang Xanh) "khong tinh vao viec cua ai"; E8 - Bac Ha bi loai
-# voi nguoi phe duyet cap 2 duy nhat nen len Hoi dong. Pheduyet con 2.
+# common.js BADGES: qhkh 4, httd 3, tdinh 3, ruiro 2, pheduyet 3 (rules.md C).
+# Dinh nghia "cho ban" (BADGE_SQL): viec dang cho chinh nguoi do, KHONG phai moi buoc mo theo
+# nguoi nhan - buoc chinh tam dung SLA (Phu Dien) khong tinh cho Tham dinh; buoc PENDING_INFO
+# (apply_transition giao cho HTTD) tinh cho QHKH cua khach vi QHKH phai tai len.
+# Pheduyet: phien Hoi dong Hau Giang Xanh khong tinh (Q-P); Bac Ha chuyen Pham Thu Ha (E8);
+# ...0005 cho Thanh Dat, Minh Tam va ho so cap 2 bo sung Phuong Nam Xanh.
 EXPECTED_BADGES = [
     ("qhkh", CREDIT_OFFICER, BRANCH_HN, 4),
     ("httd", DOCUMENT_REVIEWER, BRANCH_HN, 3),
     ("tdinh", CREDIT_APPRAISER, BRANCH_HO, 3),
     ("ruiro", RISK_HO, BRANCH_HO, 2),
-    ("pheduyet", APPROVER_HO, BRANCH_HO, 2),
+    ("pheduyet", APPROVER_HO, BRANCH_HO, 3),
 ]
 
 
@@ -422,7 +426,9 @@ async def test_open_steps_due_matches_sla(db: asyncpg.Connection) -> None:
         """,
         list(SME_LOANS.values()),
     )
-    assert len(rows) >= 13
+    # 15 buoc co SLA: 14 ho so x 1 buoc chinh + PENDING_INFO cua Phu Dien (nhap va Hoi dong
+    # khong co han).
+    assert len(rows) == 15
     assert all(r["due_at"] == r["expected"] for r in rows)
 
 
@@ -436,3 +442,22 @@ async def test_compliance_reads_risk_review_case_only(db: asyncpg.Connection) ->
 async def test_bac_ha_former_rm_excluded(db: asyncpg.Connection) -> None:
     await act_as(db, APPROVER_HO, BRANCH_HO)
     assert await db.fetchval("SELECT credit.is_excluded($1, $2)", APPROVER_HO, LOAN_BAC_HA) is True
+
+
+async def test_bac_ha_routed_to_same_tier_colleague(db: asyncpg.Connection) -> None:
+    """E8 + Q-M: ...0005 bi loai nen ho so o APPROVAL voi nguoi cung cap 2 (Pham Thu Ha)."""
+    await act_as(db, APPROVER2_HO, BRANCH_HO)
+    loan = await db.fetchrow("SELECT status, approval_tier FROM credit.loan_application WHERE id = $1", LOAN_BAC_HA)
+    assert (loan["status"], loan["approval_tier"]) == ("APPROVAL", 2)
+    step = await db.fetchrow(
+        "SELECT step_code, assignee_employee_id, due_at = credit.add_workdays(received_at, 2) AS on_sla"
+        " FROM credit.case_step WHERE loan_application_id = $1 AND completed_at IS NULL",
+        LOAN_BAC_HA,
+    )
+    assert (step["step_code"], step["assignee_employee_id"], step["on_sla"]) == (
+        "APPROVAL",
+        APPROVER2_HO,
+        True,
+    )
+    assert await db.fetchval("SELECT credit.is_excluded($1, $2)", APPROVER2_HO, LOAN_BAC_HA) is False
+    assert await db.fetchval("SELECT credit.required_tier($1)", LOAN_BAC_HA) == 2

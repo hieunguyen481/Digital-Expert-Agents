@@ -58,15 +58,46 @@ BEGIN
 END
 $$;
 
+-- Khong de moc nao o tuong lai (vd. seed chay luc 08:00 ngay neo cho moc 09:10 cung ngay).
 CREATE FUNCTION pg_temp.at(n INT, t TIME) RETURNS TIMESTAMPTZ
 LANGUAGE sql STABLE AS $$
-    SELECT (pg_temp.wd(n) + t) AT TIME ZONE 'Asia/Ho_Chi_Minh'
+    SELECT LEAST((pg_temp.wd(n) + t) AT TIME ZONE 'Asia/Ho_Chi_Minh', CURRENT_TIMESTAMP)
 $$;
 
 -- Dich mot ngay lich cua mockup theo so ngay lich giua anchor va 05/11/2026.
 CREATE FUNCTION pg_temp.shift(d DATE) RETURNS DATE
 LANGUAGE sql STABLE AS $$
     SELECT d + (pg_temp.anchor() - DATE '2026-11-05')
+$$;
+
+-- Ngay cuoi quy da ket thuc thu (back + 1) truoc ngay d, va nhan "quý q/yyyy".
+CREATE FUNCTION pg_temp.quarter_end(d DATE, back INT) RETURNS DATE
+LANGUAGE sql IMMUTABLE AS $$
+    SELECT (date_trunc('quarter', d) - make_interval(months => 3 * back))::DATE - 1
+$$;
+
+CREATE FUNCTION pg_temp.quarter_label(d DATE) RETURNS TEXT
+LANGUAGE sql IMMUTABLE AS $$
+    SELECT 'quý ' || extract(QUARTER FROM d)::INT || '/' || extract(YEAR FROM d)::INT
+$$;
+
+-- Chu hien thi co ngay: thay token bang ngay dich theo anchor de khop moc tuong doi.
+--   {D-7}/{D-8}: ngay lam viec -7/-8 (dd/mm/yyyy); {STMT_FROM}/{STMT_TO}: ky sao ke 12 thang
+--   VinaNova (cap ngay -7); {MK_FROM}/{MK_TO}: ky sao ke Mekong (mm-yyyy, cap ngay -2);
+--   {MK_CONGNO}: cuoi quy gan nhat truoc ngay -2; {Q_LAST}/{Q_PREV}: hai quy da ket thuc
+--   gan nhat truoc ngay -12 (BCTC quy, to khai GTGT).
+CREATE FUNCTION pg_temp.txt(t TEXT) RETURNS TEXT
+LANGUAGE sql STABLE AS $$
+    SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(t,
+        '{D-7}', to_char(pg_temp.wd(-7), 'DD/MM/YYYY')),
+        '{D-8}', to_char(pg_temp.wd(-8), 'DD/MM/YYYY')),
+        '{STMT_FROM}', to_char(date_trunc('month', pg_temp.wd(-7)) - INTERVAL '11 months', 'DD/MM/YYYY')),
+        '{STMT_TO}', to_char(pg_temp.wd(-7), 'DD/MM/YYYY')),
+        '{MK_FROM}', to_char(date_trunc('month', pg_temp.wd(-2)) - INTERVAL '12 months', 'MM-YYYY')),
+        '{MK_TO}', to_char(date_trunc('month', pg_temp.wd(-2)) - INTERVAL '1 month', 'MM-YYYY')),
+        '{MK_CONGNO}', to_char(pg_temp.quarter_end(pg_temp.wd(-2), 0), 'DD-MM-YYYY')),
+        '{Q_LAST}', pg_temp.quarter_label(pg_temp.quarter_end(pg_temp.wd(-12), 0))),
+        '{Q_PREV}', pg_temp.quarter_label(pg_temp.quarter_end(pg_temp.wd(-12), 1)))
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -84,7 +115,7 @@ $$;
 INSERT INTO credit.holiday (day, name)
 VALUES
     (DATE '2026-01-01', 'Tết Dương lịch 2026'),
-    (DATE '2026-02-16', 'Tết Nguyên đán Bính Ngọ (28 tháng Chạp)'),
+    (DATE '2026-02-16', 'Tết Nguyên đán Bính Ngọ (29 tháng Chạp, giao thừa)'),
     (DATE '2026-02-17', 'Tết Nguyên đán Bính Ngọ (mùng 1)'),
     (DATE '2026-02-18', 'Tết Nguyên đán Bính Ngọ (mùng 2)'),
     (DATE '2026-02-19', 'Tết Nguyên đán Bính Ngọ (mùng 3)'),
@@ -93,8 +124,10 @@ VALUES
     (DATE '2026-04-27', 'Nghỉ bù Giỗ Tổ Hùng Vương 2026'),
     (DATE '2026-04-30', 'Ngày Chiến thắng 30/4/2026'),
     (DATE '2026-05-01', 'Ngày Quốc tế Lao động 1/5/2026'),
+    -- dự kiến: doi chieu qua bao chi dan thong bao Bo Noi vu, chua doc van ban goc.
     (DATE '2026-09-01', 'Quốc khánh 2026 (ngày liền kề)'),
     (DATE '2026-09-02', 'Quốc khánh 2/9/2026'),
+    -- dự kiến: theo bao chi dan VPCP 10065/VPCP-KGVX, chua doc van ban goc.
     (DATE '2026-11-24', 'Ngày Văn hóa Việt Nam 2026'),
     (DATE '2027-01-01', 'Tết Dương lịch 2027'),
     (DATE '2027-02-04', 'Tết Nguyên đán Đinh Mùi (28 tháng Chạp)'),
@@ -371,13 +404,15 @@ INSERT INTO sme_case VALUES
     (12, 'HSV-2026-00181', 'Công ty TNHH Vận tải Biển Nam Phương', 'TNHH Vận tải Biển Nam Phương', 'LLC', '0319000012', '5012', 28, 'RISK_REVIEW', NULL, NULL),
     (13, 'HSV-2026-00163', 'Công ty Cổ phần Nhựa Kỹ thuật Thành Đạt', 'CTCP Nhựa Kỹ thuật Thành Đạt', 'JSC', '0319000013', '2220', 55, 'APPROVAL', 2, NULL),
     (14, 'HSV-2026-00170', 'Công ty Cổ phần Phân phối Dược Minh Tâm', 'CTCP Phân phối Dược Minh Tâm', 'JSC', '0319000014', '4649', 38, 'APPROVAL', 2, NULL),
-    -- E8: nguoi phe duyet cap 2 duy nhat (...0005) tung la QHKH cua Bac Ha -> khong con ai cung
-    -- cap -> len Hoi dong (Q-M, apply_transition), thay cho "chuyen Pham Thu Ha" cua mockup.
-    (15, 'HSV-2026-00172', 'Công ty TNHH Thép Kết cấu Bắc Hà', 'TNHH Thép Kết cấu Bắc Hà', 'LLC', '0319000015', '2511', 70, 'COUNCIL_SESSION', 2, NULL),
+    -- E8: ...0005 tung la QHKH cua Bac Ha -> chuyen nguoi cung cap truoc (Q-M): Pham Thu Ha (...0011).
+    (15, 'HSV-2026-00172', 'Công ty TNHH Thép Kết cấu Bắc Hà', 'TNHH Thép Kết cấu Bắc Hà', 'LLC', '0319000015', '2511', 70, 'APPROVAL', 2, NULL),
     -- Q-P: > 100 ty -> buoc Hoi dong, "Chờ phiên Hội đồng – có ở đợt 2", khong tinh vao viec cua ai.
     (16, 'HSV-2026-00158', 'Công ty Cổ phần Thủy sản Hậu Giang Xanh', 'CTCP Thủy sản Hậu Giang Xanh', 'JSC', '0319000016', '1020', 150, 'COUNCIL_SESSION', 3, NULL),
     -- Ben lien quan cua Mekong Flex (gop 60% von): khach hien huu, du no 15,2 ty (khoan vay 17).
-    (17, 'HSV-2025-00090', 'Công ty CP Đầu tư Mekong', 'Công ty CP Đầu tư Mekong', 'JSC', '0301234567', '6420', 20, 'APPROVED', NULL, 'A');
+    (17, 'HSV-2025-00090', 'Công ty CP Đầu tư Mekong', 'Công ty CP Đầu tư Mekong', 'JSC', '0301234567', '6420', 20, 'APPROVED', NULL, 'A'),
+    -- Ngoai mockup: ho so cap 2 thu ba cho ...0005 de hang cho Phe duyet = BANK.BADGES.pheduyet (3),
+    -- vi phien Hoi dong khong tinh vao viec cua ai (Q-P) va Bac Ha da chuyen nguoi khac (E8).
+    (18, 'HSV-2026-00167', 'Công ty Cổ phần Thiết bị Công nghiệp Phương Nam Xanh', 'CTCP Thiết bị Công nghiệp Phương Nam Xanh', 'JSC', '0319000018', '2829', 45, 'APPROVAL', 2, NULL);
 
 INSERT INTO customer.party (
     id, party_type, display_name, status, created_at, created_by, updated_at, updated_by, version
@@ -533,7 +568,7 @@ WHERE loan_application_id IN (SELECT id FROM sme_loan)
 DELETE FROM credit.case_flag
 WHERE loan_application_id IN (SELECT id FROM sme_loan)
   AND id NOT IN (SELECT pg_temp.sid('78000000', a, b)
-                 FROM generate_series(1, 17) AS a, generate_series(1, 20) AS b);
+                 FROM generate_series(1, 18) AS a, generate_series(1, 20) AS b);
 DELETE FROM credit.case_related_party WHERE loan_application_id IN (SELECT id FROM sme_loan);
 DELETE FROM identity.employee_scope
 WHERE scope_type = 'LOAN_APPLICATION'
@@ -621,18 +656,24 @@ INSERT INTO sme_step VALUES
     (14, 3, 'APPRAISAL', '10000000-0000-4000-8000-000000000008', -8, '09:00', -3, '08:30', 'SUBMITTED', NULL, NULL, NULL),
     (14, 4, 'RISK_REVIEW', '10000000-0000-4000-8000-000000000009', -3, '08:30', 0, '08:30', 'SUBMITTED', NULL, NULL, NULL),
     (14, 5, 'APPROVAL', '10000000-0000-4000-8000-000000000005', 0, '08:30', NULL, NULL, NULL, NULL, NULL, NULL),
-    -- 15 Bac Ha: Rui ro trinh 04/11 (-1); ...0005 bi loai (E8) -> Hoi dong, khong nguoi nhan.
+    -- 15 Bac Ha: Rui ro trinh 04/11 (-1); ...0005 bi loai (E8) -> Pham Thu Ha (...0011) cung cap 2.
     (15, 1, 'RM_DRAFT', '10000000-0000-4000-8000-000000000001', -13, '09:00', -11, '09:00', 'SUBMITTED', NULL, NULL, NULL),
     (15, 2, 'CHECKING', '10000000-0000-4000-8000-000000000003', -11, '09:00', -9, '09:00', 'PASSED', NULL, NULL, NULL),
     (15, 3, 'APPRAISAL', '10000000-0000-4000-8000-000000000008', -9, '09:00', -4, '10:00', 'SUBMITTED', NULL, NULL, NULL),
     (15, 4, 'RISK_REVIEW', '10000000-0000-4000-8000-000000000009', -4, '10:00', -1, '10:00', 'SUBMITTED', NULL, NULL, NULL),
-    (15, 5, 'COUNCIL_SESSION', NULL, -1, '10:00', NULL, NULL, NULL, NULL, NULL, NULL),
+    (15, 5, 'APPROVAL', '10000000-0000-4000-8000-000000000011', -1, '10:00', NULL, NULL, NULL, NULL, NULL, NULL),
     -- 16 Hau Giang Xanh: 150 ty -> Hoi dong tu 02/11 (-3).
     (16, 1, 'RM_DRAFT', '10000000-0000-4000-8000-000000000001', -15, '09:00', -13, '09:00', 'SUBMITTED', NULL, NULL, NULL),
     (16, 2, 'CHECKING', '10000000-0000-4000-8000-000000000003', -13, '09:00', -11, '09:00', 'PASSED', NULL, NULL, NULL),
     (16, 3, 'APPRAISAL', '10000000-0000-4000-8000-000000000008', -11, '09:00', -6, '09:00', 'SUBMITTED', NULL, NULL, NULL),
     (16, 4, 'RISK_REVIEW', '10000000-0000-4000-8000-000000000009', -6, '09:00', -3, '09:00', 'SUBMITTED', NULL, NULL, NULL),
-    (16, 5, 'COUNCIL_SESSION', NULL, -3, '09:00', NULL, NULL, NULL, NULL, NULL, NULL);
+    (16, 5, 'COUNCIL_SESSION', NULL, -3, '09:00', NULL, NULL, NULL, NULL, NULL, NULL),
+    -- 18 Phuong Nam Xanh (ngoai mockup): Phe duyet nhan 04/11 14:00 (-1) -> han 06/11 (+1).
+    (18, 1, 'RM_DRAFT', '10000000-0000-4000-8000-000000000001', -12, '09:00', -10, '09:00', 'SUBMITTED', NULL, NULL, NULL),
+    (18, 2, 'CHECKING', '10000000-0000-4000-8000-000000000003', -10, '09:00', -8, '09:00', 'PASSED', NULL, NULL, NULL),
+    (18, 3, 'APPRAISAL', '10000000-0000-4000-8000-000000000008', -8, '09:00', -3, '14:00', 'SUBMITTED', NULL, NULL, NULL),
+    (18, 4, 'RISK_REVIEW', '10000000-0000-4000-8000-000000000009', -3, '14:00', -1, '14:00', 'SUBMITTED', NULL, NULL, NULL),
+    (18, 5, 'APPROVAL', '10000000-0000-4000-8000-000000000005', -1, '14:00', NULL, NULL, NULL, NULL, NULL, NULL);
 
 INSERT INTO credit.case_step (
     id, loan_application_id, step_code, assignee_employee_id, received_at, due_at, paused_at,
@@ -735,15 +776,15 @@ INSERT INTO sme_doc VALUES
     (1, 4, 'A01-02', 'SHAREHOLDER_LIST', NULL, 'Danh sách cổ đông và bên liên quan', -8, NULL, FALSE, TRUE, 4, 'VERIFIED', -6),
     (1, 5, 'CCCD', 'IDENTITY_DOCUMENT', NULL, 'Giấy tờ tùy thân người đại diện (minh họa)', -8, NULL, FALSE, TRUE, 5, 'VERIFIED', -6),
     (1, 6, 'NQ', 'BOARD_RESOLUTION', NULL, 'Nghị quyết HĐQT 03/2024 về vay vốn và thế chấp', NULL, DATE '2024-03-15', FALSE, TRUE, 6, 'VERIFIED', -6),
-    (1, 7, 'DONGY-CIC', 'CIC_CONSENT', NULL, 'Văn bản đồng ý tra cứu CIC (minh họa, ký 26/10/2026)', -8, NULL, FALSE, TRUE, 7, 'VERIFIED', -6),
+    (1, 7, 'DONGY-CIC', 'CIC_CONSENT', NULL, 'Văn bản đồng ý tra cứu CIC (minh họa, ký {D-8})', -8, NULL, FALSE, TRUE, 7, 'VERIFIED', -6),
     (1, 8, 'A01-04', 'FINANCIAL_STATEMENT', 'AUDITED', 'BCTC năm 2025 đã kiểm toán', NULL, DATE '2026-03-28', FALSE, TRUE, 8, 'VERIFIED', -6),
-    (1, 9, 'BCTC-Q3', 'FINANCIAL_STATEMENT', 'QUARTERLY', 'BCTC quý 3/2026 (minh họa)', -12, NULL, FALSE, TRUE, 9, 'VERIFIED', -6),
+    (1, 9, 'BCTC-Q3', 'FINANCIAL_STATEMENT', 'QUARTERLY', 'BCTC {Q_LAST} (minh họa)', -12, NULL, FALSE, TRUE, 9, 'VERIFIED', -6),
     (1, 10, 'CONGNO', 'RECEIVABLES_INVENTORY_LIST', NULL, 'Bảng kê công nợ và tồn kho (minh họa)', -8, NULL, FALSE, TRUE, 10, 'VERIFIED', -6),
-    (1, 11, 'A01-07', 'BANK_STATEMENT', NULL, 'Sao kê 12 tháng 01/11/2025–27/10/2026 · NH TMCP Sông Hậu (hư cấu)', -7, NULL, TRUE, TRUE, 11, 'VERIFIED', -6),
-    (1, 12, 'GTGT-2Q', 'TAX_RETURN', 'VAT', 'Tờ khai GTGT quý 2 và quý 3/2026 (minh họa)', -12, NULL, FALSE, TRUE, 12, 'VERIFIED', -6),
+    (1, 11, 'A01-07', 'BANK_STATEMENT', NULL, 'Sao kê 12 tháng {STMT_FROM}–{STMT_TO} · NH TMCP Sông Hậu (hư cấu)', -7, NULL, TRUE, TRUE, 11, 'VERIFIED', -6),
+    (1, 12, 'GTGT-2Q', 'TAX_RETURN', 'VAT', 'Tờ khai GTGT {Q_PREV} và {Q_LAST} (minh họa)', -12, NULL, FALSE, TRUE, 12, 'VERIFIED', -6),
     (1, 13, 'CIC', 'CIC_REPORT', 'BANK_LOOKUP', 'Kết quả tra cứu CIC do ngân hàng thực hiện · Hệ thống CIC (giả lập)', -7, NULL, TRUE, TRUE, 13, 'VERIFIED', -7),
     (1, 14, 'PA', 'BUSINESS_PLAN', NULL, 'Phương án kinh doanh (minh họa)', -8, NULL, FALSE, TRUE, 14, 'VERIFIED', -6),
-    (1, 15, 'HD', 'SALES_CONTRACT', NULL, 'Hợp đồng đầu ra (2) (minh họa)', NULL, DATE '2026-09-15', FALSE, TRUE, 15, 'VERIFIED', -6),
+    (1, 15, 'HD', 'SALES_CONTRACT', NULL, 'Hợp đồng đầu ra (2) (minh họa)', NULL, pg_temp.shift(DATE '2026-09-15'), FALSE, TRUE, 15, 'VERIFIED', -6),
     (1, 16, 'TSBD', 'COLLATERAL_DOCUMENT', NULL, 'Hồ sơ TSBĐ: GCN QSDĐ, hóa đơn gốc, chứng thư định giá (minh họa)', -9, NULL, FALSE, TRUE, 16, 'VERIFIED', -6),
     (1, 17, 'A01-01', 'CUSTOMER_INFORMATION_FORM', NULL, 'Phiếu thông tin khách hàng doanh nghiệp (bổ sung)', -8, NULL, FALSE, TRUE, NULL, 'VERIFIED', -6),
     (1, 18, 'A01-05', 'FINANCIAL_STATEMENT', 'MANAGEMENT', 'BCTC quản trị 6T/2026 (bổ sung)', NULL, DATE '2026-07-20', FALSE, TRUE, NULL, 'VERIFIED', -6),
@@ -758,8 +799,8 @@ INSERT INTO sme_doc VALUES
     (2, 6, 'NQ', 'BOARD_RESOLUTION', NULL, 'NQ_HDTV_vay_the_chap_2026.pdf', -3, NULL, FALSE, TRUE, 6, 'VERIFIED', -2),
     (2, 7, 'DONGY', 'CIC_CONSENT', NULL, 'Dong_y_tra_cuu_CIC.pdf', -25, NULL, FALSE, TRUE, 7, 'VERIFIED', -2),
     (2, 8, 'BCTC25', 'FINANCIAL_STATEMENT', 'AUDITED', 'BCTC_2025_kiemtoan.pdf', NULL, DATE '2026-03-30', FALSE, TRUE, 8, 'VERIFIED', -2),
-    (2, 10, 'CONGNO', 'RECEIVABLES_INVENTORY_LIST', NULL, 'Bang_ke_cong_no_ton_kho_30-09-2026.xlsx', NULL, DATE '2026-09-30', FALSE, TRUE, 10, 'VERIFIED', -2),
-    (2, 11, 'SAOKE', 'BANK_STATEMENT', NULL, 'Saoke_SongTien_11-2025_10-2026.pdf · NH TMCP Sông Tiền (hư cấu)', -2, NULL, TRUE, TRUE, 11, 'AI_PROPOSED', -2),
+    (2, 10, 'CONGNO', 'RECEIVABLES_INVENTORY_LIST', NULL, 'Bang_ke_cong_no_ton_kho_{MK_CONGNO}.xlsx', NULL, pg_temp.quarter_end(pg_temp.wd(-2), 0), FALSE, TRUE, 10, 'VERIFIED', -2),
+    (2, 11, 'SAOKE', 'BANK_STATEMENT', NULL, 'Saoke_SongTien_{MK_FROM}_{MK_TO}.pdf · NH TMCP Sông Tiền (hư cấu)', -2, NULL, TRUE, TRUE, 11, 'AI_PROPOSED', -2),
     (2, 12, 'THUE', 'TAX_RETURN', 'VAT', 'To_khai_GTGT_Q2_Q3.pdf', -12, NULL, FALSE, TRUE, 12, 'VERIFIED', -2),
     (2, 14, 'PA', 'BUSINESS_PLAN', NULL, 'Phuong_an_VLD_2027.docx', -2, NULL, FALSE, TRUE, 14, 'VERIFIED', -2),
     (2, 15, 'HD', 'SALES_CONTRACT', NULL, 'HĐ với CTCP Thực phẩm Đồng Xanh (hư cấu) – 1/2', -5, NULL, FALSE, TRUE, 15, 'VERIFIED', -2),
@@ -781,7 +822,7 @@ INSERT INTO document.document (
     updated_at, version, issued_date, counts_for_checklist
 )
 SELECT pg_temp.sid('57000000', d.n, d.k), d.document_type, d.document_subtype,
-       d.code || ' · ' || d.title, pg_temp.id('55000000', d.n), 'CONFIDENTIAL',
+       d.code || ' · ' || pg_temp.txt(d.title), pg_temp.id('55000000', d.n), 'CONFIDENTIAL',
        COALESCE(d.doc_date, pg_temp.wd(d.doc_off)), NULL, NULL, d.verification_status,
        'COMPLETED', '10000000-0000-4000-8000-000000000001', pg_temp.at(d.uploaded_off, '09:30'),
        pg_temp.at(d.uploaded_off, '09:30'), 1,
@@ -823,7 +864,7 @@ SET document_id = EXCLUDED.document_id,
 -- Danh muc ho so theo ho so: VinaNova du 16/16 (HTTD kiem tra 30/10, Q7 "Checklist đủ");
 -- Mekong Flex dang nhap (RECEIVED / REQUIRED; CIC het hieu luc).
 CREATE TEMP TABLE sme_item ON COMMIT DROP AS
-SELECT case_no.n, r.k, r.code, r.document_type,
+SELECT case_no.n, r.k, r.code, r.document_type, r.mandatory_level,
        CASE
            WHEN case_no.n = 1 THEN 'VALID'
            WHEN r.k = 13 THEN 'EXPIRED'
@@ -844,7 +885,7 @@ INSERT INTO credit.loan_checklist_item (
     created_at, updated_at
 )
 SELECT pg_temp.sid('77000000', i.n, i.k), pg_temp.id('75000000', i.n), i.code, i.document_type,
-       i.requirement_status, 'MANDATORY', '45200000-0000-4000-8000-000000000009',
+       i.requirement_status, i.mandatory_level, '45200000-0000-4000-8000-000000000009',
        (SELECT pg_temp.sid('57000000', d.n, d.k) FROM sme_doc AS d
         WHERE d.n = i.n AND d.item = i.k ORDER BY d.k LIMIT 1),
        NULL, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
@@ -890,6 +931,14 @@ SET bucket_name = EXCLUDED.bucket_name,
     created_at = EXCLUDED.created_at,
     deleted_at = NULL;
 
+-- Mot phien ban hien hanh moi tai lieu (uq_document_current_version): neu demo da tai len
+-- phien ban moi thi ha no xuong truoc khi dua phien ban mau ve hien hanh.
+UPDATE document.document_version
+SET is_current = FALSE
+WHERE document_id IN (SELECT pg_temp.sid('57000000', n, k) FROM sme_version)
+  AND id NOT IN (SELECT pg_temp.sid('57100000', n, k) FROM sme_version)
+  AND is_current;
+
 INSERT INTO document.document_version (
     id, document_id, version_number, original_object_id, original_filename, mime_type, file_size,
     sha256, uploaded_by, uploaded_at, scan_status, is_current, created_at
@@ -926,7 +975,7 @@ CREATE TEMP TABLE sme_field (
 
 INSERT INTO sme_field VALUES
     (1, 8, 'dscr', 'RATIO', '1,34', 1.34, 3, 'NEEDS_VERIFICATION', 'AI_OCR', 'Dùng EBITDA 98; nếu dùng 128 (cờ BCTC 2025) thì ≈ 1,76'),
-    (2, 8, 'dti', 'RATIO', '1,82', 1.82, 1, 'NEEDS_VERIFICATION', 'AI_OCR', 'Dùng dư nợ CIC 98 tỷ (tra cứu 27/10/2026), BCĐKT chỉ ghi 56 tỷ'),
+    (2, 8, 'dti', 'RATIO', '1,82', 1.82, 1, 'NEEDS_VERIFICATION', 'AI_OCR', 'Dùng dư nợ CIC 98 tỷ (tra cứu {D-7}), BCĐKT chỉ ghi 56 tỷ'),
     (3, 17, 'ltv', 'PERCENT', '55,2', 55.2, 1, 'NEEDS_VERIFICATION', 'AI_OCR', 'Giá trị đang lấy từ Phiếu TTKH (tài liệu bị cờ), chưa đối chiếu với chứng thư định giá'),
     (4, 8, 'de', 'RATIO', '0,36', 0.36, 2, 'CONFIRMED', 'AI_OCR', NULL),
     (5, 8, 'cr', 'RATIO', '2,80', 2.80, 2, 'NEEDS_VERIFICATION', 'AI_OCR', 'BCTC ghi 2,04, tính lại 2,80: nguồn mâu thuẫn'),
@@ -945,7 +994,7 @@ INSERT INTO sme_field VALUES
     (18, 8, 'ar', 'MONEY', '312,0', 312000000000, 2, 'CONFIRMED', 'AI_OCR', NULL),
     (19, 8, 'inv', 'MONEY', '320,0', 320000000000, 2, 'CONFIRMED', 'AI_OCR', NULL),
     (20, 8, 'cl', 'MONEY', '308,5', 308500000000, 2, 'CONFIRMED', 'AI_OCR', NULL),
-    (21, 8, 'debt', 'MONEY', '56,0', 56000000000, 2, 'NEEDS_VERIFICATION', 'AI_OCR', 'CIC tra cứu 27/10/2026 ghi 98 tỷ, BCĐKT 31/12/2025 ghi 56 tỷ'),
+    (21, 8, 'debt', 'MONEY', '56,0', 56000000000, 2, 'NEEDS_VERIFICATION', 'AI_OCR', 'CIC tra cứu {D-7} ghi 98 tỷ, BCĐKT 31/12/2025 ghi 56 tỷ'),
     (22, 8, 'eq', 'MONEY', '1.018,5', 1018500000000, 2, 'NEEDS_VERIFICATION', 'AI_OCR', '6T/2026 ghi 270 tỷ, trùng "Vốn góp CSH", không phải tổng VCSH'),
     (23, 8, 'cfo', 'MONEY', '93,2', 93200000000, 3, 'NEEDS_VERIFICATION', 'AI_OCR', 'Phiếu TT KH ghi 81,0, chênh 12,2 tỷ'),
     (24, 8, 'cfi', 'MONEY', '(48,8)', -48800000000, 3, 'CONFIRMED', 'AI_OCR', NULL),
@@ -978,7 +1027,7 @@ SELECT pg_temp.sid('57300000', 1, f.k), pg_temp.sid('57100000', 1, f.doc_k), f.f
             THEN '10000000-0000-4000-8000-000000000008'::UUID END,
        CASE WHEN f.source_type = 'SYSTEM_CIC' THEN pg_temp.at(-7, '10:00')
             WHEN f.status <> 'AI_PROPOSED' THEN pg_temp.at(-1, '11:00') END,
-       f.reason,
+       pg_temp.txt(f.reason),
        pg_temp.at(-6, '10:00'), CURRENT_TIMESTAMP, f.source_type
 FROM sme_field AS f
 ON CONFLICT (id) DO UPDATE
@@ -1118,7 +1167,7 @@ INSERT INTO sme_flag VALUES
     (1, 2, 'audit', 'HIGH', 'BCTC 2025 không nhất quán: lệch EBITDA, ngày ký, đơn vị kiểm toán', TRUE, 'APPRAISAL', '10000000-0000-4000-8000-000000000008', -1, '11:00'),
     (1, 3, 'cickh', 'HIGH', 'Bản CIC khách tự nộp có dấu hiệu không xác thực', FALSE, 'CHECKING', '10000000-0000-4000-8000-000000000003', -4, '16:00'),
     (1, 4, 'coi', 'HIGH', 'Phiếu TTKH do cán bộ ngân hàng khác xác nhận (NH TMCP Phương Bắc (hư cấu)); người này là thành viên HĐQT của khách', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
-    (1, 5, 'debt', 'MEDIUM', 'Dư nợ vay: CIC 98 tỷ vs BCĐKT 56 tỷ (hai thời điểm khác nhau: CIC 27/10/2026, BCĐKT 31/12/2025)', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
+    (1, 5, 'debt', 'MEDIUM', 'Dư nợ vay: CIC 98 tỷ vs BCĐKT 56 tỷ (hai thời điểm khác nhau: CIC {D-7}, BCĐKT 31/12/2025)', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
     (1, 6, 'eq', 'MEDIUM', 'Vốn chủ sở hữu: 1.018,5 vs 270 tỷ', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
     (1, 7, 'cfo', 'MEDIUM', 'Dòng tiền HĐKD 2025: 93,2 vs 81,0 tỷ', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
     (1, 8, 'cr', 'LOW', 'Hệ số thanh toán ghi trên BCTC không khớp BCĐKT', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
@@ -1132,7 +1181,7 @@ INSERT INTO credit.case_flag (
     compliance_conclusion, compliance_reason, source, created_by, created_at, updated_at
 )
 SELECT pg_temp.sid('78000000', f.n, f.k), pg_temp.id('75000000', f.n), f.code, f.severity,
-       f.title, f.blocks, 'OPEN', NULL, NULL, NULL, f.source, f.created_by,
+       pg_temp.txt(f.title), f.blocks, 'OPEN', NULL, NULL, NULL, f.source, f.created_by,
        pg_temp.at(f.created_off, f.created_t), pg_temp.at(f.created_off, f.created_t)
 FROM sme_flag AS f
 ON CONFLICT (id) DO UPDATE

@@ -28,6 +28,7 @@ LOAN_1 = UUID("70000000-0000-4000-8000-000000000001")
 CREDIT_APPRAISER = UUID("10000000-0000-4000-8000-000000000008")  # HO
 RISK_HO = UUID("10000000-0000-4000-8000-000000000009")  # HO
 DIRECTOR_HN = UUID("10000000-0000-4000-8000-000000000010")  # HN-DEMO, tier 1 BRANCH
+APPROVER2_HO = UUID("10000000-0000-4000-8000-000000000011")  # HO, tier 2 (Pham Thu Ha, hu cau)
 
 # Tai khoan khach A mo tai Hoi so (branch_id = HO)
 ACCOUNT_A_HO = UUID("60000000-0000-4000-8000-000000000007")
@@ -63,6 +64,7 @@ SME_CASES = {
     15: ("HSV-2026-00172", "TNHH Thep Ket cau Bac Ha"),
     16: ("HSV-2026-00158", "CTCP Thuy san Hau Giang Xanh"),
     17: ("HSV-2025-00090", "Cong ty CP Dau tu Mekong"),  # khoan vay hien huu 15,2 ty
+    18: ("HSV-2026-00167", "CTCP Thiet bi Cong nghiep Phuong Nam Xanh"),  # ngoai mockup, badge 3
 }
 SME_LOANS = {n: _sme(SME_LOAN_PREFIX, n) for n in SME_CASES}
 SME_CUSTOMERS = {n: _sme(SME_CUSTOMER_PREFIX, n) for n in SME_CASES}
