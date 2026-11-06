@@ -28,6 +28,12 @@ DECISION_STATUSES = frozenset({"APPROVED", "APPROVED_WITH_CONDITIONS", "REJECTED
 SUPPLEMENT_TARGETS = frozenset({"APPRAISAL", "RETURNED_TO_RM"})
 WITHDRAW_KINDS = frozenset({"CUSTOMER", "OVERDUE"})
 APPROVAL_TARGETS = frozenset({"APPROVAL", "COUNCIL_SESSION"})
+# Q-N (V025_1): Tuan thu doc duoc ho so thao tac cac action nay du khong giu buoc
+# RISK_REVIEW (giao cho Rui ro); credit_manager rut ho so tuong tu. Quyen ghi do
+# credit.apply_transition kiem; service khong tu kiem can_write_loan.
+COMPLIANCE_READ_ACTIONS = frozenset(
+    {"request_explanation", "fraud_hold", "fraud_release", "risk_return"}
+)
 
 
 def _t(

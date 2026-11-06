@@ -9,7 +9,14 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from app.workflow.gates import ChecklistFact, FlagFact, GateFacts, GateResult, evaluate
+from app.workflow.gates import (
+    ChecklistFact,
+    FlagFact,
+    GateFacts,
+    GateResult,
+    carried_flag_rows,
+    evaluate,
+)
 
 TODAY = date(2026, 11, 5)
 LOAN = uuid4()
@@ -206,3 +213,24 @@ async def test_risk_submit_expired_statement_needs_exception() -> None:
 async def test_unknown_gate_rejected() -> None:
     with pytest.raises(ValueError):
         await run("nope", ok_facts())
+
+
+async def test_non_blocking_carried_flags_do_not_block_later_gates() -> None:
+    # Co chuyen kem tu cong truoc (blocks_submission = FALSE) chi de Tham dinh xem.
+    facts = ok_facts(
+        flags=(
+            FlagFact("NEEDS_VERIFICATION", "OPEN", None, blocks_submission=False),
+            FlagFact("EXCEPTION:A01-07", "OPEN", None, blocks_submission=False),
+        )
+    )
+    assert (await run("appraisal_submit", facts)).blockers == ("REPORT_MISSING",)
+    assert (await run("risk_submit", facts)).ok
+
+
+def test_carried_flag_rows_skip_existing_flags() -> None:
+    rows = carried_flag_rows(("EXCEPTION:NQ", "NEEDS_VERIFICATION", "cickh", "FLAG:eq", "CIC_OUTAGE"))
+    assert [(r.code, r.severity) for r in rows] == [
+        ("EXCEPTION:NQ", "MEDIUM"),
+        ("NEEDS_VERIFICATION", "LOW"),
+        ("CIC_OUTAGE", "MEDIUM"),
+    ]

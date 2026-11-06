@@ -20,7 +20,7 @@ from app.exceptions import ConflictError, ValidationError
 from app.services.audit_service import AuditService
 from app.services.protocols import PrincipalLike
 from app.workflow import sla
-from app.workflow.gates import GateFacts, evaluate
+from app.workflow.gates import CarriedFlag, GateFacts, carried_flag_rows, evaluate
 from app.workflow.routing import ApproverCandidate, pick_approver
 from app.workflow.transitions import (
     DECISION_STATUSES,
@@ -34,7 +34,7 @@ from app.workflow.transitions import (
 @dataclass(frozen=True)
 class TransitionResult:
     status: str
-    step_code: str
+    step_code: str | None  # None khi ho so rut ma khong con buoc mo
     assignee_employee_id: UUID | None
     due_at: datetime | None
     carried_flags: tuple[str, ...]
@@ -66,6 +66,9 @@ class WorkflowRepositoryLike(Protocol):
     async def is_excluded(self, employee_id: UUID, loan_id: UUID) -> bool: ...
     async def required_tier(self, loan_id: UUID) -> int: ...
     async def gate_facts(self, loan_id: UUID) -> GateFacts: ...
+    async def persist_carried_flags(
+        self, loan_id: UUID, *, gate: str, flags: Sequence[CarriedFlag], created_by: UUID
+    ) -> None: ...
     async def insert_decision(
         self,
         loan_id: UUID,
@@ -178,6 +181,14 @@ class WorkflowService:
         now = await self._repo.db_now()
         holidays = await self._repo.holidays()
         await self._plan_step(transition, plan, loan, principal, now, holidays)
+        if transition.gate is not None and carried:
+            # Q7/F10: co chuyen kem hien thanh co o buoc sau, khong chan trinh.
+            await self._repo.persist_carried_flags(
+                loan_id,
+                gate=transition.gate,
+                flags=carried_flag_rows(carried),
+                created_by=principal.employee_id,
+            )
         if plan.decision is not None:
             await self._repo.insert_decision(
                 loan_id,
@@ -201,7 +212,7 @@ class WorkflowService:
         )
         result = TransitionResult(
             status=str(row["out_status"]),
-            step_code=str(row["out_step_code"]),
+            step_code=None if row["out_step_code"] is None else str(row["out_step_code"]),
             assignee_employee_id=row["out_assignee"],
             due_at=row["out_due_at"],
             carried_flags=carried,

@@ -20,7 +20,7 @@ class TransitionRequest(APIModel):
 
 class TransitionResponse(APIModel):
     status: str
-    step_code: str
+    step_code: str | None
     assignee_employee_id: UUID | None
     due_at: datetime | None
     carried_flags: list[str]

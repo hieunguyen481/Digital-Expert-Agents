@@ -75,6 +75,8 @@ class FlagFact:
     code: str
     status: str
     compliance_conclusion: str | None
+    # FALSE: co chuyen kem tu cong (thong tin cho Tham dinh), khong chan trinh.
+    blocks_submission: bool = True
 
 
 @dataclass(frozen=True)
@@ -193,7 +195,7 @@ def _appraisal_submit(facts: GateFacts, blockers: set[str], carried: list[str]) 
             continue
         if flag.code == CIC_SELF_SUBMITTED_FLAG:
             carried.append(flag.code)
-        else:
+        elif flag.blocks_submission:
             blockers.add("FLAGS_OPEN")
     # TODO(Ke hoach 5): kiem tra bang to trinh (Q-L); chua co bang o Ke hoach 1
     # nen cong nay luon chan bang REPORT_MISSING.
@@ -202,7 +204,9 @@ def _appraisal_submit(facts: GateFacts, blockers: set[str], carried: list[str]) 
 
 def _risk_submit(facts: GateFacts, blockers: set[str], carried: list[str]) -> None:
     for flag in facts.flags:
-        awaiting = flag.status in {"OPEN", "FORWARDED_COMPLIANCE"}
+        awaiting = flag.status == "FORWARDED_COMPLIANCE" or (
+            flag.status == "OPEN" and flag.blocks_submission
+        )
         needs_compliance = (
             flag.code == CIC_SELF_SUBMITTED_FLAG and flag.compliance_conclusion is None
         )
@@ -221,6 +225,40 @@ def _risk_submit(facts: GateFacts, blockers: set[str], carried: list[str]) -> No
     for flag in facts.flags:
         if flag.status in {"HANDLED", "CONCLUDED"}:
             carried.append(f"FLAG:{flag.code}")
+
+
+# Co chuyen kem duoc luu thanh credit.case_flag (Q7 "hien thanh co o Tham dinh",
+# F10). "FLAG:<ma>" va cickh la co da co san, khong tao lai.
+_FLAG_TITLES = {
+    "NEEDS_VERIFICATION": "Trường cần xác minh chuyển kèm hồ sơ",
+    "NOT_IN_GROUP": "Bên được xác nhận Không thuộc nhóm, Thẩm định rà lại",
+    "LEASE_ANNUAL": "Đất thuê trả tiền hằng năm: chỉ tính tài sản gắn liền với đất",
+    "LEASE_ONE_TIME_NO_PROOF": "Đất thuê trả một lần chưa có chứng từ",
+    "CIC_OUTAGE": "Hệ thống CIC gián đoạn: tra lại CIC trước khi trình phê duyệt",
+}
+_MEDIUM_FLAGS = frozenset({"CIC_OUTAGE", "LEASE_ANNUAL", "LEASE_ONE_TIME_NO_PROOF"})
+
+
+@dataclass(frozen=True)
+class CarriedFlag:
+    code: str
+    severity: str
+    title: str
+
+
+def carried_flag_rows(carried: Iterable[str]) -> tuple[CarriedFlag, ...]:
+    """Co chuyen kem can luu (bo FLAG:<ma> va cickh vi da la co tren ho so)."""
+    rows: list[CarriedFlag] = []
+    for code in _unique(carried):
+        if code.startswith("FLAG:") or code == CIC_SELF_SUBMITTED_FLAG:
+            continue
+        if code.startswith("EXCEPTION:"):
+            item = code.split(":", 1)[1]
+            rows.append(CarriedFlag(code, "MEDIUM", f"Đề xuất ngoại lệ tài liệu {item} đi theo hồ sơ"))
+        else:
+            severity = "MEDIUM" if code in _MEDIUM_FLAGS else "LOW"
+            rows.append(CarriedFlag(code, severity, _FLAG_TITLES.get(code, code)))
+    return tuple(rows)
 
 
 def _unique(values: Iterable[str]) -> tuple[str, ...]:

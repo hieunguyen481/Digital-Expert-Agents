@@ -13,12 +13,13 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID, uuid4
 
+from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions import ConflictError
 from app.repositories.base import Record, execute_returning, fetch_all, fetch_one
-from app.workflow.gates import ChecklistFact, FlagFact, GateFacts
+from app.workflow.gates import CarriedFlag, ChecklistFact, FlagFact, GateFacts
 from app.workflow.routing import ApproverCandidate
 from app.workflow.sla import TZ
 
@@ -239,6 +240,42 @@ class WorkflowRepository:
             {"loan_id": loan_id},
         )
 
+    async def persist_carried_flags(
+        self, loan_id: UUID, *, gate: str, flags: Sequence[CarriedFlag], created_by: UUID
+    ) -> None:
+        """Luu co chuyen kem (OPEN, khong chan trinh); bo qua ma da co tren ho so.
+
+        Ghi truoc apply_transition trong cung giao dich, khi nguoi chuyen buoc con
+        quyen ghi ho so (policy case_flag_insert_policy = can_write_loan).
+        """
+        statement = text(
+            """
+            INSERT INTO credit.case_flag (
+                id, loan_application_id, code, severity, title, blocks_submission,
+                status, source, created_by, created_at, updated_at
+            )
+            SELECT :id, :loan_id, :code, :severity, :title, FALSE,
+                   'OPEN', :source, :created_by, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            WHERE NOT EXISTS (
+                SELECT 1 FROM credit.case_flag AS existing
+                WHERE existing.loan_application_id = :loan_id AND existing.code = :code
+            )
+            """
+        )
+        for flag in flags:
+            await self.session.execute(
+                statement,
+                {
+                    "id": uuid4(),
+                    "loan_id": loan_id,
+                    "code": flag.code,
+                    "severity": flag.severity,
+                    "title": flag.title,
+                    "source": f"GATE:{gate}",
+                    "created_by": created_by,
+                },
+            )
+
     # -- chuyen buoc ---------------------------------------------------------------
     async def apply_transition(
         self,
@@ -308,7 +345,7 @@ class WorkflowRepository:
         flags = await fetch_all(
             self.session,
             """
-            SELECT flag.code, flag.status, flag.compliance_conclusion
+            SELECT flag.code, flag.status, flag.compliance_conclusion, flag.blocks_submission
             FROM credit.loan_application AS la
             JOIN credit.case_flag AS flag ON flag.loan_application_id = la.id
             WHERE la.id = :loan_id
@@ -349,7 +386,13 @@ class WorkflowRepository:
             total_credit_exposure=exposure["total"] if exposure else None,
             has_audited_fs=bool(summary["has_audited_fs"]),
             flags=tuple(
-                FlagFact(str(f["code"]), str(f["status"]), f["compliance_conclusion"]) for f in flags
+                FlagFact(
+                    str(f["code"]),
+                    str(f["status"]),
+                    f["compliance_conclusion"],
+                    bool(f["blocks_submission"]),
+                )
+                for f in flags
             ),
         )
 
