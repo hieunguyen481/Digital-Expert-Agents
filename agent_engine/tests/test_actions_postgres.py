@@ -1,8 +1,8 @@
 """Acceptance trên Postgres + Keycloak + backend thật (bỏ qua nếu thiếu biến môi trường).
 
 Chạy trong container engine: cần DATABASE_URL, KC_TOKEN_URL, KC_CLIENT_SECRET, SEED_USER_PASSWORD.
-Test `valid_confirmation` tiêu thụ một hồ sơ đang ở bước APPROVAL (chuyển bước thật), tự bỏ qua khi
-không còn hồ sơ phù hợp.
+Test `valid_confirmation` tự dựng một hồ sơ TEST ở bước APPROVAL (cần TEST_ADMIN_DATABASE_URL, role
+bank_migrator) rồi duyệt qua API thật; thiếu biến thì bỏ qua.
 """
 import os
 import uuid
@@ -115,26 +115,62 @@ async def test_confirmation_for_other_customers_loan_refused(api):
     approver = await kc_token("approver@example.local")
     cid = f"case_x_{uuid.uuid4().hex[:8]}"
     await seed_pending(cust(14), cid)
+    before = await _status(loan(13))     # có thể đã bị test valid_confirmation tiêu thụ ở lượt chạy trước
     r = await api.post(f"/cases/{cid}/approve", headers=H(approver), json=confirm(loan(13)))
     assert r.status_code in (403, 404, 409, 422), r.text
-    assert await _status(loan(13)) == "APPROVAL" and await _action(cid) == []
+    assert await _status(loan(13)) == before and await _action(cid) == []
+
+
+async def _fresh_approval_loan() -> tuple[str, str]:
+    """Nhân bản hồ sơ mẫu 13 thành hồ sơ TEST đang ở bước APPROVAL (cần TEST_ADMIN_DATABASE_URL).
+
+    Dùng role chủ schema (bank_migrator) chỉ để dựng dữ liệu thử; việc duyệt vẫn đi qua API thật.
+    """
+    import asyncpg
+    n = 900000 + uuid.uuid4().int % 99999
+    new_loan = loan(n)
+    con = await asyncpg.connect(os.environ["TEST_ADMIN_DATABASE_URL"])
+    try:
+        async with con.transaction():
+            await con.execute(
+                """INSERT INTO credit.loan_application
+                   (id, application_number, primary_customer_id, product_id, requested_amount, currency,
+                    requested_term_months, loan_purpose, interest_rate_assumption, repayment_method, status,
+                    assigned_employee_id, submitted_at, created_at, created_by, updated_at, updated_by,
+                    version, approval_tier)
+                   SELECT $2::uuid, 'HSV-TEST-' || $3, primary_customer_id, product_id, requested_amount,
+                          currency, requested_term_months, loan_purpose, interest_rate_assumption,
+                          repayment_method, 'APPROVAL', assigned_employee_id, submitted_at, created_at,
+                          created_by, updated_at, updated_by, 1, approval_tier
+                   FROM credit.loan_application WHERE id = $1::uuid""", loan(13), new_loan, str(n))
+            await con.execute(
+                """INSERT INTO credit.case_step
+                   (id, loan_application_id, step_code, assignee_employee_id, received_at, due_at,
+                    completed_at, result, reason, created_by, created_at)
+                   SELECT gen_random_uuid(), $2::uuid, step_code, assignee_employee_id, received_at, due_at,
+                          CASE WHEN step_code='APPROVAL' THEN NULL ELSE completed_at END,
+                          CASE WHEN step_code='APPROVAL' THEN NULL ELSE result END,
+                          CASE WHEN step_code='APPROVAL' THEN NULL ELSE reason END, created_by, created_at
+                   FROM credit.case_step WHERE loan_application_id = $1::uuid""", loan(13), new_loan)
+            customer = await con.fetchval(
+                "SELECT primary_customer_id::text FROM credit.loan_application WHERE id=$1::uuid", new_loan)
+    finally:
+        await con.close()
+    return new_loan, customer
 
 
 async def test_valid_confirmation_writes_real_action(api):
-    n = None
-    for cand in (14, 13, 18):
-        if await _status(loan(cand)) == "APPROVAL":
-            n = cand
-            break
-    if n is None:
-        pytest.skip("các hồ sơ mẫu đã được duyệt ở lần chạy trước")
+    if not os.getenv("TEST_ADMIN_DATABASE_URL"):
+        pytest.skip("cần TEST_ADMIN_DATABASE_URL để dựng hồ sơ thử ở bước APPROVAL")
+    new_loan, customer = await _fresh_approval_loan()
+    assert await _status(new_loan) == "APPROVAL"
     approver = await kc_token("approver@example.local")
     cid = f"case_ok_{uuid.uuid4().hex[:8]}"
-    await seed_pending(cust(n), cid)
-    r = await api.post(f"/cases/{cid}/approve", headers=H(approver), json=confirm(loan(n)))
+    await seed_pending(customer, cid)
+    r = await api.post(f"/cases/{cid}/approve", headers=H(approver), json=confirm(new_loan))
     assert r.status_code == 200, r.text
     assert r.json()["status"] == "completed"
-    assert await _status(loan(n)) != "APPROVAL"
+    assert await _status(new_loan) != "APPROVAL"
     rows = await _action(cid)
     assert rows and rows[0]["outcome"] == "EXECUTED"
 
