@@ -1,110 +1,62 @@
-import { Card, Tag, Tooltip, Typography } from 'antd';
+import { useState } from 'react';
+import { Alert, Button, Card, Empty, Skeleton, Tag, Typography } from 'antd';
+import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
+import { listAgentCases, type AgentCaseSummary } from '@/services/agentCaseService';
 import { formatDateTime } from '@/utils/formatDate';
-import { MOCK_AGENT_RUNS } from '@/mocks/mockDashboard';
-import { AGENT_LABEL, AGENT_SHORT_LABEL, type AgentRole } from '@/types/agent';
-import {
-  TASK_DECISION_LABEL,
-  TASK_STATUS_LABEL,
-  type AgentRun,
-  type TaskStatus,
-} from '@/types/dashboard';
+import { STATE_COLOR, fmtSeconds, stateLabel } from '../agentTrace';
+import { CaseTrace } from './CaseTrace';
 
 const { Text } = Typography;
 
-const STATUS_COLOR: Record<TaskStatus, string> = {
-  running: 'processing',
-  completed: 'green',
-  failed: 'red',
-  escalated: 'gold',
-};
-
 export function TracesTab() {
+  const [open, setOpen] = useState<string | null>(null);
+  const q = useQuery({ queryKey: ['agent-cases'], queryFn: () => listAgentCases(100), refetchInterval: 10_000 });
+
+  if (q.isLoading) return <Skeleton active />;
+  if (q.isError) {
+    return (
+      <Alert type="error" showIcon message="Không tải được danh sách case"
+        action={<Button size="small" onClick={() => void q.refetch()}>Thử lại</Button>} />
+    );
+  }
+  const cases = q.data ?? [];
+
   return (
-    <Card
-      title="Lượt xử lý gần đây"
-      size="small"
-      extra={<Text type="secondary" style={{ fontSize: 12 }}>{MOCK_AGENT_RUNS.length} lượt</Text>}
-    >
-      <DataTable<AgentRun>
-        rowKey="id"
-        dataSource={MOCK_AGENT_RUNS}
-        size="small"
-        columns={[
-          {
-            title: 'Yêu cầu',
-            dataIndex: 'request',
-            key: 'request',
-            render: (request: string, record) => (
-              <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <span style={{ fontWeight: 550 }}>{request}</span>
-                {record.reference && (
-                  <Text type="secondary" style={{ fontSize: 11.5 }}>
-                    {record.reference}
-                  </Text>
-                )}
-              </span>
-            ),
-          },
-          {
-            title: 'Chuyên gia tham gia',
-            dataIndex: 'agents',
-            key: 'agents',
-            render: (agents: AgentRole[]) => (
-              <span style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                {agents.map((agent) => (
-                  <Tooltip key={agent} title={AGENT_LABEL[agent]}>
-                    <Tag bordered={false} style={{ marginInlineEnd: 0 }}>
-                      {AGENT_SHORT_LABEL[agent]}
-                    </Tag>
-                  </Tooltip>
-                ))}
-              </span>
-            ),
-          },
-          {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status: TaskStatus) => (
-              <Tag color={STATUS_COLOR[status]}>{TASK_STATUS_LABEL[status]}</Tag>
-            ),
-          },
-          {
-            title: 'Quyết định',
-            dataIndex: 'decision',
-            key: 'decision',
-            render: (decision: AgentRun['decision']) => (
-              <Text type={decision === 'none' ? 'secondary' : undefined} style={{ fontSize: 13 }}>
-                {TASK_DECISION_LABEL[decision]}
-              </Text>
-            ),
-          },
-          {
-            title: 'Công cụ',
-            dataIndex: 'toolCalls',
-            key: 'toolCalls',
-            align: 'right',
-          },
-          {
-            title: 'Thời gian',
-            dataIndex: 'durationMs',
-            key: 'durationMs',
-            align: 'right',
-            render: (ms: number) => (ms > 0 ? `${(ms / 1000).toFixed(2)}s` : '—'),
-          },
-          {
-            title: 'Bắt đầu',
-            dataIndex: 'startedAt',
-            key: 'startedAt',
-            render: (iso: string) => (
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                {formatDateTime(iso)}
-              </Text>
-            ),
-          },
-        ]}
-      />
+    <Card title="Case phân tích gần đây" size="small"
+      extra={<Text type="secondary" style={{ fontSize: 12 }}>{cases.length} case bạn được phép xem</Text>}>
+      {cases.length === 0 ? (
+        <Empty description="Chưa có case nào. Gửi một yêu cầu phân tích sâu ở trang trò chuyện, case sẽ hiện ở đây." />
+      ) : (
+        <DataTable<AgentCaseSummary>
+          rowKey="case_id" dataSource={cases} size="small"
+          onRow={(r) => ({ onClick: () => setOpen(r.case_id), style: { cursor: 'pointer' }, 'data-testid': `case-row-${r.case_id}` }) as React.HTMLAttributes<HTMLElement>}
+          columns={[
+            { title: 'Mã case', dataIndex: 'case_id', key: 'case_id', render: (id: string) => <Typography.Text code>{id}</Typography.Text> },
+            {
+              title: 'Yêu cầu', key: 'request',
+              render: (_: unknown, r) => (
+                <span>
+                  {r.request.amount != null ? `${r.request.amount.toLocaleString('vi-VN')} VND` : '—'}
+                  {r.request.term_months ? ` · ${r.request.term_months} tháng` : ''}
+                  {r.request.purpose ? <Text type="secondary" style={{ display: 'block', fontSize: 11.5 }}>{r.request.purpose}</Text> : null}
+                </span>
+              ),
+            },
+            { title: 'Trạng thái', dataIndex: 'state', key: 'state', render: (s: string) => <Tag color={STATE_COLOR[s] ?? 'default'}>{stateLabel(s)}</Tag> },
+            { title: 'Công cụ', dataIndex: 'tool_calls', key: 'tool_calls', align: 'right' },
+            {
+              title: 'Thời gian', key: 'dur', align: 'right',
+              render: (_: unknown, r) => (r.updated_at > r.created_at ? fmtSeconds(r.updated_at - r.created_at) : '—'),
+            },
+            {
+              title: 'Bắt đầu', dataIndex: 'created_at', key: 'created_at',
+              render: (t: number) => <Text type="secondary" style={{ fontSize: 12 }}>{formatDateTime(new Date(t * 1000).toISOString())}</Text>,
+            },
+          ]}
+        />
+      )}
+      <CaseTrace caseId={open} onClose={() => setOpen(null)} />
     </Card>
   );
 }

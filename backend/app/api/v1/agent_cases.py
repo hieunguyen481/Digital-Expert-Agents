@@ -46,6 +46,26 @@ def _raise(e: AgentEngineError) -> AppError:
                     str(detail.get("message") or "Agent engine từ chối yêu cầu."), status)
 
 
+@router.get("", operation_id="list_agent_cases")
+async def list_cases(request: Request, principal: PrincipalDep, limit: int = 50) -> Any:
+    """Danh sách case mà người gọi được phép thấy (engine áp RLS bằng JWT của họ)."""
+    del principal
+    try:
+        return await _engine(request).list_cases(limit)
+    except AgentEngineError as e:
+        raise _raise(e) from e
+
+
+@router.get("/stats", operation_id="agent_case_stats")
+async def case_stats(request: Request, principal: PrincipalDep) -> Any:
+    """Thống kê tổng hợp trên đúng các case người gọi được thấy."""
+    del principal
+    try:
+        return await _engine(request).case_stats()
+    except AgentEngineError as e:
+        raise _raise(e) from e
+
+
 @router.get("/{case_id}", operation_id="get_agent_case")
 async def get_case(case_id: str, request: Request, principal: PrincipalDep) -> Any:
     del principal

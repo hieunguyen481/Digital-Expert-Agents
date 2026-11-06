@@ -106,6 +106,11 @@ async def list_cases(limit: int = 50, user: Principal = USER) -> list[dict]:
     return await db.list_cases(limit)
 
 
+@app.get("/cases/stats")
+async def case_stats(user: Principal = USER) -> dict:
+    return await db.case_stats()
+
+
 @app.post("/cases/{case_id}/run")
 async def run_case(case_id: str, background: BackgroundTasks, user: Principal = USER) -> dict:
     await _visible_case(case_id)

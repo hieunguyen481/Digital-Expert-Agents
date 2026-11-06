@@ -106,11 +106,60 @@ async def update_case(case_id: str, **fields: Any) -> None:
 
 
 async def list_cases(limit: int = 50) -> list[dict]:
+    """Danh sách hồ sơ dưới RLS của người gọi, kèm tóm tắt số liệu tính từ trace thật."""
     async with tx() as con:
         rows = await con.fetch(
-            "SELECT case_id, customer_id, submitted_by, state, created_at, updated_at"
-            " FROM agent.case_run ORDER BY created_at DESC LIMIT $1", max(1, min(limit, 200)))
-    return [_case({**dict(r), "approver": None}) | {"approver": None} for r in rows]
+            "SELECT r.case_id, r.customer_id, r.submitted_by, r.approver, r.state, r.created_at,"
+            " r.updated_at, r.replan_count, r.payload->'request' AS request,"
+            " COUNT(*) FILTER (WHERE e.type='tool_call') AS tool_calls,"
+            " COUNT(*) FILTER (WHERE e.type='llm_usage') AS llm_calls,"
+            " SUM((e.payload->>'cost_usd')::float8) FILTER (WHERE e.type='llm_usage') AS cost_usd"
+            " FROM agent.case_run r LEFT JOIN agent.case_event e ON e.case_id=r.case_id"
+            " GROUP BY r.case_id ORDER BY r.created_at DESC LIMIT $1", max(1, min(limit, 200)))
+    out = []
+    for r in rows:
+        d = _case(dict(r))
+        d["request"] = {k: (d["request"] or {}).get(k) for k in ("amount", "purpose", "term_months")}
+        out.append(d)
+    return out
+
+
+async def case_stats() -> dict:
+    """Thống kê tổng hợp dưới RLS: chỉ gồm hồ sơ người gọi được phép thấy."""
+    async with tx() as con:
+        by_state = await con.fetch(
+            "SELECT state, COUNT(*) AS n FROM agent.case_run GROUP BY state")
+        total = await con.fetchrow(
+            "SELECT COUNT(*) AS cases,"
+            " AVG(updated_at - created_at) FILTER (WHERE state <> 'Draft' AND state <> 'In Analysis')"
+            "   AS avg_seconds FROM agent.case_run")
+        ev = await con.fetchrow(
+            "SELECT COUNT(*) FILTER (WHERE type='tool_call') AS tool_calls,"
+            " COUNT(*) FILTER (WHERE type='llm_usage') AS llm_calls,"
+            " SUM((payload->>'cost_usd')::float8) FILTER (WHERE type='llm_usage') AS cost_usd,"
+            " COUNT(*) FILTER (WHERE type='llm_usage' AND payload ? 'cost_usd') AS costed_calls,"
+            " COUNT(*) FILTER (WHERE type='a2a_challenge') AS challenges"
+            " FROM agent.case_event")
+        tools = await con.fetch(
+            "SELECT payload->>'tool' AS tool, COUNT(*) AS n,"
+            " COUNT(*) FILTER (WHERE payload->>'outcome' <> 'ok') AS failed"
+            " FROM agent.case_event WHERE type='tool_call' GROUP BY 1 ORDER BY n DESC")
+        agents = await con.fetch(
+            "SELECT agent, COUNT(*) FILTER (WHERE type='task_finished') AS tasks,"
+            " COUNT(*) FILTER (WHERE type='agent_error') AS errors,"
+            " COUNT(*) FILTER (WHERE type='tool_call') AS tool_calls"
+            " FROM agent.case_event WHERE agent NOT IN ('gateway','orchestrator','hitl','sla')"
+            " GROUP BY agent ORDER BY agent")
+    return {
+        "cases": total["cases"],
+        "avg_seconds": float(total["avg_seconds"]) if total["avg_seconds"] is not None else None,
+        "by_state": {r["state"]: r["n"] for r in by_state},
+        "tool_calls": ev["tool_calls"], "llm_calls": ev["llm_calls"],
+        "cost_usd": ev["cost_usd"] if ev["costed_calls"] else None,
+        "challenges": ev["challenges"],
+        "tools": [dict(r) for r in tools],
+        "agents": [dict(r) for r in agents],
+    }
 
 
 async def list_pending_approval() -> list[dict]:

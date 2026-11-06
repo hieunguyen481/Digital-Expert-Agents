@@ -12,7 +12,7 @@ import traceback
 
 import httpx
 
-from common import config, identity
+from common import config, identity, trace_ctx
 from common.schemas import (
     ApprovalPackage, CaseState, Envelope, MessageType, Plan, Verdict, VerdictDecision,
 )
@@ -60,6 +60,7 @@ async def run_analysis(case_id: str, ident: identity.Identity | None = None) -> 
         return
     payload = case["payload"]
     _bind_identity(payload)
+    trace_ctx.bind(case_id, "planner")
     version = case["replan_count"] + 1
 
     try:

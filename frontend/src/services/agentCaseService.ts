@@ -30,6 +30,34 @@ export interface AgentCaseEvent {
   agent: string;
   type: string;
   ts: number;
+  payload?: Record<string, unknown>;
+}
+
+export interface AgentCaseSummary {
+  case_id: string;
+  customer_id: string;
+  submitted_by: string;
+  approver: string | null;
+  state: string;
+  created_at: number;
+  updated_at: number;
+  replan_count: number;
+  request: { amount?: number | null; purpose?: string | null; term_months?: number | null };
+  tool_calls: number;
+  llm_calls: number;
+  cost_usd: number | null;
+}
+
+export interface AgentCaseStats {
+  cases: number;
+  avg_seconds: number | null;
+  by_state: Record<string, number>;
+  tool_calls: number;
+  llm_calls: number;
+  cost_usd: number | null;
+  challenges: number;
+  tools: { tool: string; n: number; failed: number }[];
+  agents: { agent: string; tasks: number; errors: number; tool_calls: number }[];
 }
 
 export interface ConfirmInput {
@@ -43,6 +71,14 @@ export interface ConfirmInput {
 }
 
 export const TERMINAL_STATES = ['Pending Approval', 'Needs Info', 'Escalated', 'Executing', 'Completed', 'Rejected'];
+
+export async function listAgentCases(limit = 100): Promise<AgentCaseSummary[]> {
+  return (await apiClient.get<AgentCaseSummary[]>('/agent-cases', { params: { limit } })).data;
+}
+
+export async function getAgentCaseStats(): Promise<AgentCaseStats> {
+  return (await apiClient.get<AgentCaseStats>('/agent-cases/stats')).data;
+}
 
 export async function getAgentCase(caseId: string): Promise<AgentCase> {
   return (await apiClient.get<AgentCase>(`/agent-cases/${caseId}`)).data;

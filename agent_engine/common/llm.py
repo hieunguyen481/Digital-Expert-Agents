@@ -11,7 +11,7 @@ import json
 import re
 from typing import Any, Awaitable, Callable, Optional
 
-from . import config
+from . import config, events, trace_ctx
 
 ToolFn = Callable[..., Awaitable[Any]]
 
@@ -35,11 +35,22 @@ class ToolDef:
         }
 
 
-def _log_usage(resp) -> None:
-    """Ghi token/chi phí mỗi lượt gọi LLM ra log container (không ghi nội dung, không ghi khóa)."""
+async def _log_usage(resp, model: str | None = None) -> None:
+    """Ghi token/chi phí mỗi lượt gọi LLM ra log container và vào trace của case (không ghi nội dung)."""
     u = getattr(resp, "usage", None)
-    if u is not None:
-        print("LLM_USAGE", json.dumps(u.model_dump() if hasattr(u, "model_dump") else str(u), default=str), flush=True)
+    if u is None:
+        return
+    data = u.model_dump() if hasattr(u, "model_dump") else {}
+    print("LLM_USAGE", json.dumps(data or str(u), default=str), flush=True)
+    ctx = trace_ctx.current()
+    if ctx is None or not data:
+        return
+    payload = {"model": model or getattr(resp, "model", None),
+               "prompt_tokens": data.get("prompt_tokens"),
+               "completion_tokens": data.get("completion_tokens")}
+    if isinstance(data.get("cost"), (int, float)):  # chỉ ghi chi phí khi nhà cung cấp trả về
+        payload["cost_usd"] = float(data["cost"])
+    await events.emit(ctx[0], ctx[1], "llm_usage", payload)
 
 
 def _client():
@@ -50,7 +61,7 @@ def _client():
 
     async def create_logged(*a, **kw):
         resp = await create(*a, **kw)
-        _log_usage(resp)
+        await _log_usage(resp, kw.get('model'))
         return resp
 
     client.chat.completions.create = create_logged  # type: ignore[method-assign]

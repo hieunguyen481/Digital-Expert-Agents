@@ -16,6 +16,8 @@ export interface DataTableProps<TRecord> {
   scrollX?: number | string;
   className?: string;
   bordered?: boolean;
+  /** Gắn thuộc tính/nhấp chuột cho dòng (ví dụ mở chi tiết). */
+  onRow?: TableProps<TRecord>['onRow'];
 }
 
 /**
@@ -34,6 +36,7 @@ export function DataTable<TRecord extends object>({
   scrollX = 'max-content',
   className,
   bordered = false,
+  onRow,
 }: DataTableProps<TRecord>) {
   const resolveRowKey =
     typeof rowKey === 'function'
@@ -50,6 +53,7 @@ export function DataTable<TRecord extends object>({
       pagination={pagination}
       size={size}
       bordered={bordered}
+      onRow={onRow}
       // Cuộn ngang trong phạm vi bảng — không đẩy tràn cả trang.
       scroll={{ x: scrollX }}
       locale={{

@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import httpx  # noqa: E402
 from fastapi import FastAPI, HTTPException, Request  # noqa: E402
 
-from common import config, events, identity  # noqa: E402
+from common import config, events, identity, trace_ctx  # noqa: E402
 from common.schemas import AgentCard, Envelope, MessageType, Verdict  # noqa: E402
 
 TaskHandler = Callable[[Envelope], Awaitable[Verdict]]
@@ -60,6 +60,7 @@ def build_agent_app(
             identity.set_current(identity.verify(request.headers))
         except identity.IdentityError as e:
             raise HTTPException(status_code=401, detail=str(e)) from e
+        trace_ctx.bind(env.case_id, card.agent_id)
         try:
             if env.type == MessageType.TASK_REQUEST:
                 await events.emit(env.case_id, card.agent_id, "task_started",

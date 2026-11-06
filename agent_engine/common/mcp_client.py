@@ -5,20 +5,36 @@ Mỗi call mở một session streamable-http (local nên chi phí không đáng
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
-from . import config, identity
+from . import config, events, identity, trace_ctx
 
 
 async def call_tool(name: str, arguments: dict[str, Any] | None = None) -> Any:
-    async with streamablehttp_client(config.MCP_CORE_BANKING_URL, headers=identity.headers_for()) as (read, write, _):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            result = await session.call_tool(name, arguments or {})
-    return _guard(_unwrap(result))
+    t0 = time.monotonic()
+    outcome = "ok"
+    try:
+        async with streamablehttp_client(config.MCP_CORE_BANKING_URL, headers=identity.headers_for()) as (read, write, _):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                result = await session.call_tool(name, arguments or {})
+        return _guard(_unwrap(result))
+    except McpDenied:
+        outcome = "denied"
+        raise
+    except Exception:
+        outcome = "error"
+        raise
+    finally:
+        ctx = trace_ctx.current()
+        if ctx is not None:  # chỉ ghi khi đang chạy trong một case; không ghi giá trị tham số
+            await events.emit(ctx[0], ctx[1], "tool_call", {
+                "tool": name, "outcome": outcome, "arg_keys": sorted(arguments or {}),
+                "duration_ms": int((time.monotonic() - t0) * 1000)})
 
 
 class McpDenied(PermissionError):
