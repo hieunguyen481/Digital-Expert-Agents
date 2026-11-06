@@ -7,6 +7,7 @@ Re-plan có giới hạn; vượt giới hạn -> Escalated.
 from __future__ import annotations
 
 import asyncio
+import time
 import traceback
 
 import httpx
@@ -15,17 +16,17 @@ from common import config, identity
 from common.schemas import (
     ApprovalPackage, CaseState, Envelope, MessageType, Plan, Verdict, VerdictDecision,
 )
-from . import approval, db, planner
+from . import actions, approval, db, planner
 
 
 async def _emit(case_id: str, agent: str, etype: str, payload: dict | None = None):
     from .main import broadcast  # import trễ để tránh vòng
 
-    await broadcast(db.add_event(case_id, agent, etype, payload or {}))
+    await broadcast(await db.add_event(case_id, agent, etype, payload or {}))
 
 
-def _set_state(case_id: str, state: CaseState) -> None:
-    db.update_case(case_id, state=state.value)
+async def _set_state(case_id: str, state: CaseState) -> None:
+    await db.update_case(case_id, state=state.value)
 
 
 def _bind_identity(payload: dict) -> None:
@@ -50,9 +51,11 @@ async def _dispatch(case_id: str, task_id: str, agent: str, payload: dict) -> Ve
     return Verdict(**reply.payload["verdict"])
 
 
-async def run_analysis(case_id: str) -> None:
+async def run_analysis(case_id: str, ident: identity.Identity | None = None) -> None:
     """Chạy một vòng phân tích đầy đủ (plan -> DAG -> validation -> package)."""
-    case = db.get_case(case_id)
+    if ident is not None:
+        identity.set_current(ident)
+    case = await db.get_case(case_id)
     if case is None:
         return
     payload = case["payload"]
@@ -60,12 +63,12 @@ async def run_analysis(case_id: str) -> None:
     version = case["replan_count"] + 1
 
     try:
-        _set_state(case_id, CaseState.IN_ANALYSIS)
+        await _set_state(case_id, CaseState.IN_ANALYSIS)
         await _emit(case_id, "orchestrator", "state_changed",
                     {"state": CaseState.IN_ANALYSIS.value})
 
         plan, source = await planner.make_plan(case_id, payload, version)
-        db.save_plan(case_id, version, plan.model_dump(mode="json"))
+        await db.save_plan(case_id, version, plan.model_dump(mode="json"))
         await _emit(case_id, "planner", "plan_created",
                     {"version": version, "source": source,
                      "rationale": plan.rationale,
@@ -81,19 +84,19 @@ async def run_analysis(case_id: str) -> None:
         if validation.decision == VerdictDecision.APPROVE:
             await _build_package(case_id, plan, validation)
         elif validation.decision == VerdictDecision.REJECT:
-            _set_state(case_id, CaseState.REJECTED)
+            await _set_state(case_id, CaseState.REJECTED)
             await _emit(case_id, "orchestrator", "state_changed",
                         {"state": CaseState.REJECTED.value,
                          "reason": validation.summary})
         else:  # need_more_info / không hội tụ
-            _set_state(case_id, CaseState.NEEDS_INFO)
+            await _set_state(case_id, CaseState.NEEDS_INFO)
             await _emit(case_id, "orchestrator", "state_changed",
                         {"state": CaseState.NEEDS_INFO.value,
                          "reason": validation.summary,
                          "findings": validation.findings})
     except Exception as e:  # noqa: BLE001
         traceback.print_exc()
-        _set_state(case_id, CaseState.ESCALATED)
+        await _set_state(case_id, CaseState.ESCALATED)
         await _emit(case_id, "orchestrator", "state_changed",
                     {"state": CaseState.ESCALATED.value, "reason": str(e)})
 
@@ -150,9 +153,9 @@ async def _build_package(case_id: str, plan: Plan, validation: Verdict) -> None:
     ).model_dump(mode="json")
 
     import time as _t
-    db.update_case(case_id, package=package,
+    await db.update_case(case_id, package=package,
                    sla_deadline=_t.time() + config.APPROVAL_SLA_SECONDS)
-    _set_state(case_id, CaseState.PENDING_APPROVAL)
+    await _set_state(case_id, CaseState.PENDING_APPROVAL)
     await _emit(case_id, "orchestrator", "approval_package_ready",
                 {"package": package,
                  "package_hash": approval.package_hash(package)})
@@ -161,52 +164,75 @@ async def _build_package(case_id: str, plan: Plan, validation: Verdict) -> None:
                  "required_approver_level": level})
 
 
-async def approve_and_commit(case_id: str, approver: str) -> dict:
-    """HITL phê duyệt -> phát token -> dispatch Operations pha COMMIT."""
-    case = db.get_case(case_id)
+async def approve_and_commit(case_id: str, approver: str, jwt: str, confirm: dict) -> dict:
+    """Người có thẩm quyền xác nhận -> token -> Operations kiểm -> backend thực thi `decide`.
+
+    Agent không tự chạy bước này: chỉ gateway, sau request /approve của người duyệt. Backend kiểm
+    vai trò, trạng thái, phiên bản và tách bạch E8 bằng JWT của người duyệt. Bị từ chối thì giữ
+    nguyên Pending Approval (không escalate), ghi sự kiện `commit_refused`.
+    """
+    case = await db.get_case(case_id)
     if not case or case["state"] != CaseState.PENDING_APPROVAL.value:
-        return {"error": f"case không ở trạng thái Pending Approval"}
-    _bind_identity(case["payload"])
+        return {"error": "case không ở trạng thái Pending Approval"}
     package = case["package"]
+    request = case["payload"]["request"]
+    loan_id = confirm["loan_application_id"]
+    key = f"{case_id}:v{package.get('plan_version', 1)}:{loan_id}"
 
-    tok = approval.issue(case_id, package, approver)
-    db.update_case(case_id, approver=approver)
+    async def refuse(status: int, code: str, message: str) -> dict:
+        await db.record_action(case_id, "decide", loan_id, f"{key}:refused:{time.time_ns()}",
+                               approver, "REFUSED", {"status": status, "code": code})
+        await _emit(case_id, "hitl", "commit_refused",
+                    {"approver": approver, "status": status, "code": code, "message": message})
+        return {"status": "refused", "http_status": status, "code": code, "message": message}
+
+    try:
+        loan = await actions.fetch_loan(jwt, loan_id, case["customer_id"])
+    except actions.ActionRefused as e:
+        return await refuse(e.status, e.code, e.message)
+
+    tok = await approval.issue(case_id, package, approver)
+    await db.update_case(case_id, approver=approver)
     await _emit(case_id, "hitl", "approved",
-                {"approver": approver, "token_expires_at": tok["expires_at"]})
-    _set_state(case_id, CaseState.EXECUTING)
-    await _emit(case_id, "orchestrator", "state_changed",
-                {"state": CaseState.EXECUTING.value})
+                {"approver": approver, "token_expires_at": tok["expires_at"],
+                 "loan_application_id": loan_id})
+    await _set_state(case_id, CaseState.EXECUTING)
+    await _emit(case_id, "orchestrator", "state_changed", {"state": CaseState.EXECUTING.value})
 
-    plan = db.get_latest_plan(case_id) or {}
     verdict = await _dispatch(case_id, "t_commit", "operations", {
-        "objective": "Thực thi tạo khoản vay sau phê duyệt",
-        "params": {"phase": "commit", "approval_token": tok["token"],
+        "objective": "Kiểm token và điều kiện trước khi thực thi",
+        "params": {"phase": "commit", "approval_token": tok["token"], "idempotency_key": key,
                    "approved_limit": package.get("proposed_limit"),
-                   "plan_version": package.get("plan_version", 1),
-                   "request": case["payload"]["request"]},
+                   "plan_version": package.get("plan_version", 1), "request": request},
     })
 
     if verdict.decision == VerdictDecision.PASS_:
-        _set_state(case_id, CaseState.COMPLETED)
+        try:
+            result = await actions.execute_decision(
+                jwt, loan, decision_type=confirm["decision_type"],
+                amount=float(confirm["approved_amount"]), term_months=int(confirm["term_months"]),
+                conditions=confirm.get("conditions") or [], reason=confirm["reason"])
+        except actions.ActionRefused as e:
+            await _set_state(case_id, CaseState.PENDING_APPROVAL)
+            return await refuse(e.status, e.code, e.message)
+        await db.record_action(case_id, "decide", loan_id, key, approver, "EXECUTED", result)
+        await _set_state(case_id, CaseState.COMPLETED)
         await _emit(case_id, "orchestrator", "state_changed",
-                    {"state": CaseState.COMPLETED.value,
-                     "loan_id": verdict.data.get("loan_id")})
-        return {"status": "completed", "loan_id": verdict.data.get("loan_id")}
+                    {"state": CaseState.COMPLETED.value, "loan_application_id": loan_id,
+                     "workflow_status": result.get("status")})
+        return {"status": "completed", "workflow_status": result.get("status")}
 
     # Token vô hiệu / precondition fail -> re-plan có giới hạn; quá giới hạn -> Escalated
     stage = verdict.data.get("stage", "")
-    await _emit(case_id, "operations", "commit_blocked",
-                {"stage": stage, "summary": verdict.summary})
-    if stage in ("token_verify", "precondition") and \
-            case["replan_count"] < config.MAX_REPLAN_ROUNDS:
-        db.update_case(case_id, replan_count=case["replan_count"] + 1)
+    await _emit(case_id, "operations", "commit_blocked", {"stage": stage, "summary": verdict.summary})
+    if stage in ("token_verify", "precondition") and case["replan_count"] < config.MAX_REPLAN_ROUNDS:
+        await db.update_case(case_id, replan_count=case["replan_count"] + 1)
         await _emit(case_id, "planner", "replan_triggered",
-                    {"reason": verdict.summary,
-                     "round": case["replan_count"] + 1})
+                    {"reason": verdict.summary, "round": case["replan_count"] + 1})
         asyncio.create_task(run_analysis(case_id))
         return {"status": "replanning", "reason": verdict.summary}
 
-    _set_state(case_id, CaseState.ESCALATED)
+    await _set_state(case_id, CaseState.ESCALATED)
     await _emit(case_id, "orchestrator", "state_changed",
                 {"state": CaseState.ESCALATED.value, "reason": verdict.summary})
     return {"status": "escalated", "reason": verdict.summary}
@@ -214,18 +240,18 @@ async def approve_and_commit(case_id: str, approver: str) -> dict:
 
 async def supplement_and_replan(case_id: str, documents: list[dict]) -> dict:
     """Chuyên viên bổ sung hồ sơ -> Document Agent -> re-plan (giới hạn số vòng)."""
-    case = db.get_case(case_id)
+    case = await db.get_case(case_id)
     if not case:
         return {"error": "case không tồn tại"}
     if case["replan_count"] >= config.MAX_REPLAN_ROUNDS:
-        _set_state(case_id, CaseState.ESCALATED)
+        await _set_state(case_id, CaseState.ESCALATED)
         await _emit(case_id, "orchestrator", "state_changed",
                     {"state": CaseState.ESCALATED.value,
                      "reason": f"vượt giới hạn {config.MAX_REPLAN_ROUNDS} vòng re-plan"})
         return {"status": "escalated"}
     payload = case["payload"]
     payload["documents"] = payload.get("documents", []) + documents
-    db.update_case(case_id, payload=payload, replan_count=case["replan_count"] + 1)
+    await db.update_case(case_id, payload=payload, replan_count=case["replan_count"] + 1)
     await _emit(case_id, "hitl", "documents_supplemented",
                 {"count": len(documents)})
     await _emit(case_id, "planner", "replan_triggered",

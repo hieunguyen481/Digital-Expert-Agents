@@ -87,17 +87,23 @@ async def test_authorised_employee_reads_vinanova_seed():
     assert cic["cic_group"] == 1 and cic["total_outstanding"] == 98e9
     col = await server.get_collateral(VINA, ctx)
     assert col[0]["valuation"] == 145e9 and col[0]["legal_status"] == "clear"
-    assert await server.get_existing_loans(VINA, ctx) == []
+    loans = await server.get_existing_loans(VINA, ctx)   # V030: 2 nghĩa vụ mẫu có nhãn
+    assert sorted(l["outstanding"] for l in loans) == [42e9, 56e9]
+    assert all("(mau)" in l["lender"] for l in loans)
     bl = await server.check_blacklist(VINA, ctx)
-    assert bl["hit"] is False and bl["screened"] is False
+    assert bl["hit"] is False and bl["screened"] is True   # V030 có KYC mẫu
 
 
-async def test_write_tools_unsupported():
+async def test_agent_cannot_commit_or_disburse():
+    """Agent chỉ tạo bản nháp không hiệu lực; commit/giải ngân bị từ chối và ghi audit."""
     ctx = await ctx_for(OFFICER)
-    for r in (await server.create_loan_draft("c", VINA, 1.0, 12, ctx),
-              await server.commit_loan("k", "c", VINA, 1.0, 12, ctx),
+    draft = await server.create_loan_draft("c", VINA, 1.0, 12, ctx)
+    assert draft["status"] == "DRAFT_PROPOSAL" and draft["effective"] is False
+    for r in (await server.commit_loan("k", "c", VINA, 1.0, 12, ctx),
               await server.create_disbursement_schedule("L1", ctx)):
-        assert "chưa hỗ trợ" in r["error"]
+        assert "error" in r
+    rows = await server.get_audit_log(await ctx_for(OFFICER), 10)
+    assert {"commit_loan", "create_disbursement_schedule"} <= {r["tool"] for r in rows if r["outcome"] == "denied"}
 
 
 async def test_audit_persisted_with_employee_and_no_values():

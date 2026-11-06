@@ -1,136 +1,208 @@
-"""Store của gateway: cases, events (audit/trace), plans, approval tokens."""
+"""Store của gateway trong Postgres (schema agent, V031): cases, events/trace, plans, approval tokens.
+
+Mọi truy vấn chạy trong giao dịch `SET LOCAL ROLE bank_engine` + danh tính nhân viên (app.employee_id
+...), nên RLS quyết định ai thấy hồ sơ/trace nào. Danh tính lấy từ contextvar `identity.current()`
+(gateway đặt từ JWT đã xác thực, background task đặt từ danh tính người nộp hồ sơ).
+"""
 from __future__ import annotations
 
 import json
-import sqlite3
 import time
-from typing import Any
+import uuid
+from contextlib import asynccontextmanager
+from typing import Any, AsyncIterator
 
-from common import config
+import asyncpg
 
+from common import config, identity
 
-def _conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(config.GATEWAY_DB, timeout=10)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def init() -> None:
-    with _conn() as db:
-        db.executescript("""
-        CREATE TABLE IF NOT EXISTS cases(
-          case_id TEXT PRIMARY KEY, state TEXT, payload_json TEXT,
-          package_json TEXT, approver TEXT, replan_count INTEGER DEFAULT 0,
-          sla_deadline REAL, created_at REAL, updated_at REAL);
-        CREATE TABLE IF NOT EXISTS events(
-          id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL, case_id TEXT,
-          agent TEXT, type TEXT, payload_json TEXT);
-        CREATE TABLE IF NOT EXISTS plans(
-          case_id TEXT, version INTEGER, plan_json TEXT, ts REAL,
-          PRIMARY KEY (case_id, version));
-        CREATE TABLE IF NOT EXISTS tokens(
-          token TEXT PRIMARY KEY, case_id TEXT, package_hash TEXT,
-          policy_version TEXT, approver TEXT, expires_at REAL, used INTEGER DEFAULT 0);
-        """)
-        db.execute("PRAGMA journal_mode=WAL")
+_pool: asyncpg.Pool | None = None
+_JSON_COLS = {"payload", "package", "plan"}
 
 
-# ---- cases ----
-def create_case(case_id: str, payload: dict) -> None:
-    now = time.time()
-    with _conn() as db:
-        db.execute(
-            "INSERT INTO cases(case_id, state, payload_json, created_at, updated_at) "
-            "VALUES (?,?,?,?,?)",
-            (case_id, "Draft", json.dumps(payload, ensure_ascii=False), now, now),
-        )
+class NoIdentity(Exception):
+    pass
 
 
-def get_case(case_id: str) -> dict | None:
-    with _conn() as db:
-        row = db.execute("SELECT * FROM cases WHERE case_id=?", (case_id,)).fetchone()
-    if not row:
+async def _init_conn(con: asyncpg.Connection) -> None:
+    await con.set_type_codec("jsonb", schema="pg_catalog", format="text",
+                             encoder=lambda v: json.dumps(v, ensure_ascii=False, default=str),
+                             decoder=json.loads)
+
+
+async def pool() -> asyncpg.Pool:
+    global _pool
+    if _pool is None:
+        _pool = await asyncpg.create_pool(config.DATABASE_URL, min_size=1, max_size=8,
+                                          init=_init_conn)
+    return _pool
+
+
+async def close() -> None:
+    global _pool
+    if _pool is not None:
+        await _pool.close()
+        _pool = None
+
+
+@asynccontextmanager
+async def tx(ident: identity.Identity | None = None,
+             system: bool = False) -> AsyncIterator[asyncpg.Connection]:
+    """Giao dịch dưới RLS. `system=True` chỉ dành cho hàm SECURITY DEFINER (SLA watcher)."""
+    ident = ident or identity.current()
+    if ident is None and not system:
+        raise NoIdentity("thiếu danh tính nhân viên cho truy vấn")
+    p = await pool()
+    async with p.acquire() as con, con.transaction():
+        await con.execute("SET LOCAL ROLE bank_engine")
+        if ident is not None:
+            await con.fetch(
+                "SELECT set_config('app.employee_id',$1,true), set_config('app.branch_id',$2,true),"
+                " set_config('app.is_admin',$3,true)",
+                ident.employee_id, ident.branch_id, "true" if ident.is_admin else "false")
+        yield con
+
+
+def _case(r: asyncpg.Record | None) -> dict | None:
+    if r is None:
         return None
-    d = dict(row)
-    d["payload"] = json.loads(d.pop("payload_json") or "{}")
-    d["package"] = json.loads(d.pop("package_json") or "null")
+    d = dict(r)
+    d["customer_id"] = str(d["customer_id"])
+    d["submitted_by"] = str(d["submitted_by"])
+    d["approver"] = str(d["approver"]) if d["approver"] else None
     return d
 
 
-def update_case(case_id: str, **fields: Any) -> None:
-    sets, vals = ["updated_at=?"], [time.time()]
+# ---- cases ----
+async def create_case(case_id: str, payload: dict) -> None:
+    now = time.time()
+    async with tx() as con:
+        await con.execute(
+            "INSERT INTO agent.case_run(case_id, customer_id, submitted_by, state, payload,"
+            " created_at, updated_at) VALUES ($1,$2,$3,'Draft',$4,$5,$5)",
+            case_id, uuid.UUID(payload["request"]["business_id"]),
+            uuid.UUID(identity.current().employee_id), payload, now)
+
+
+async def get_case(case_id: str) -> dict | None:
+    async with tx() as con:
+        return _case(await con.fetchrow("SELECT * FROM agent.case_run WHERE case_id=$1", case_id))
+
+
+_UPDATABLE = {"state", "payload", "package", "approver", "replan_count", "sla_deadline"}
+
+
+async def update_case(case_id: str, **fields: Any) -> None:
+    sets, vals = ["updated_at=$1"], [time.time()]
     for k, v in fields.items():
-        if k in ("payload", "package"):
-            sets.append(f"{k}_json=?")
-            vals.append(json.dumps(v, ensure_ascii=False, default=str))
-        else:
-            sets.append(f"{k}=?")
-            vals.append(v)
+        if k not in _UPDATABLE:
+            raise ValueError(f"cột không được phép: {k}")
+        vals.append(uuid.UUID(v) if k == "approver" and v else v)
+        sets.append(f"{k}=${len(vals)}")
     vals.append(case_id)
-    with _conn() as db:
-        db.execute(f"UPDATE cases SET {', '.join(sets)} WHERE case_id=?", vals)
+    async with tx() as con:
+        await con.execute(f"UPDATE agent.case_run SET {', '.join(sets)} WHERE case_id=${len(vals)}",
+                          *vals)
 
 
-def list_pending_approval() -> list[dict]:
-    with _conn() as db:
-        rows = db.execute("SELECT * FROM cases WHERE state='Pending Approval'").fetchall()
+async def list_cases(limit: int = 50) -> list[dict]:
+    async with tx() as con:
+        rows = await con.fetch(
+            "SELECT case_id, customer_id, submitted_by, state, created_at, updated_at"
+            " FROM agent.case_run ORDER BY created_at DESC LIMIT $1", max(1, min(limit, 200)))
+    return [_case({**dict(r), "approver": None}) | {"approver": None} for r in rows]
+
+
+async def list_pending_approval() -> list[dict]:
+    async with tx(system=True) as con:
+        rows = await con.fetch("SELECT * FROM agent.pending_approvals()")
     return [dict(r) for r in rows]
 
 
-# ---- events ----
-def add_event(case_id: str, agent: str, etype: str, payload: dict) -> dict:
+async def add_system_event(case_id: str, etype: str, payload: dict) -> dict:
+    async with tx(system=True) as con:
+        eid = await con.fetchval("SELECT agent.add_system_event($1,$2,$3)", case_id, etype, payload)
+    return {"id": eid, "ts": time.time(), "case_id": case_id, "agent": "sla", "type": etype,
+            "payload": payload}
+
+
+# ---- events (trace) ----
+async def add_event(case_id: str, agent: str, etype: str, payload: dict) -> dict:
     ts = time.time()
-    with _conn() as db:
-        cur = db.execute(
-            "INSERT INTO events(ts, case_id, agent, type, payload_json) VALUES (?,?,?,?,?)",
-            (ts, case_id, agent, etype, json.dumps(payload, ensure_ascii=False, default=str)),
-        )
-        eid = cur.lastrowid
-    return {"id": eid, "ts": ts, "case_id": case_id, "agent": agent,
-            "type": etype, "payload": payload}
+    async with tx() as con:
+        eid = await con.fetchval(
+            "INSERT INTO agent.case_event(ts, case_id, agent, type, payload)"
+            " VALUES ($1,$2,$3,$4,$5) RETURNING id", ts, case_id, agent, etype, payload)
+    return {"id": eid, "ts": ts, "case_id": case_id, "agent": agent, "type": etype,
+            "payload": payload}
 
 
-def get_events(case_id: str, after_id: int = 0) -> list[dict]:
-    with _conn() as db:
-        rows = db.execute(
-            "SELECT * FROM events WHERE case_id=? AND id>? ORDER BY id", (case_id, after_id)
-        ).fetchall()
-    return [
-        {**dict(r), "payload": json.loads(r["payload_json"] or "{}")} for r in rows
-    ]
+async def get_events(case_id: str, after_id: int = 0) -> list[dict]:
+    async with tx() as con:
+        rows = await con.fetch(
+            "SELECT id, ts, case_id, agent, type, payload FROM agent.case_event"
+            " WHERE case_id=$1 AND id>$2 ORDER BY id", case_id, after_id)
+    return [dict(r) for r in rows]
 
 
 # ---- plans ----
-def save_plan(case_id: str, version: int, plan: dict) -> None:
-    with _conn() as db:
-        db.execute(
-            "INSERT OR REPLACE INTO plans VALUES (?,?,?,?)",
-            (case_id, version, json.dumps(plan, ensure_ascii=False), time.time()),
-        )
+async def save_plan(case_id: str, version: int, plan: dict) -> None:
+    async with tx() as con:
+        await con.execute(
+            "INSERT INTO agent.case_plan(case_id, version, plan, ts) VALUES ($1,$2,$3,$4)"
+            " ON CONFLICT (case_id, version) DO UPDATE SET plan=EXCLUDED.plan, ts=EXCLUDED.ts",
+            case_id, version, plan, time.time())
 
 
-def get_latest_plan(case_id: str) -> dict | None:
-    with _conn() as db:
-        row = db.execute(
-            "SELECT * FROM plans WHERE case_id=? ORDER BY version DESC LIMIT 1", (case_id,)
-        ).fetchone()
-    return json.loads(row["plan_json"]) if row else None
+async def get_latest_plan(case_id: str) -> dict | None:
+    async with tx() as con:
+        return await con.fetchval(
+            "SELECT plan FROM agent.case_plan WHERE case_id=$1 ORDER BY version DESC LIMIT 1",
+            case_id)
 
 
 # ---- tokens ----
-def save_token(token: str, case_id: str, package_hash: str, policy_version: str,
-               approver: str, expires_at: float) -> None:
-    with _conn() as db:
-        db.execute("INSERT INTO tokens VALUES (?,?,?,?,?,?,0)",
-                   (token, case_id, package_hash, policy_version, approver, expires_at))
+async def save_token(token: str, case_id: str, package_hash: str, policy_version: str,
+                     approver: str, expires_at: float) -> None:
+    async with tx() as con:
+        await con.execute(
+            "INSERT INTO agent.approval_token(token, case_id, package_hash, policy_version,"
+            " approver, expires_at) VALUES ($1,$2,$3,$4,$5,$6)",
+            token, case_id, package_hash, policy_version, uuid.UUID(approver), expires_at)
 
 
-def get_token(token: str) -> dict | None:
-    with _conn() as db:
-        row = db.execute("SELECT * FROM tokens WHERE token=?", (token,)).fetchone()
-    return dict(row) if row else None
+async def get_token(token: str) -> dict | None:
+    async with tx() as con:
+        r = await con.fetchrow("SELECT * FROM agent.approval_token WHERE token=$1", token)
+    if not r:
+        return None
+    d = dict(r)
+    d["approver"] = str(d["approver"])
+    return d
 
 
-def mark_token_used(token: str) -> None:
-    with _conn() as db:
-        db.execute("UPDATE tokens SET used=1 WHERE token=?", (token,))
+async def mark_token_used(token: str) -> bool:
+    """Đánh dấu dùng một lần; trả False nếu đã bị dùng (chống chạy đua)."""
+    async with tx() as con:
+        return await con.fetchval(
+            "UPDATE agent.approval_token SET used=TRUE WHERE token=$1 AND NOT used RETURNING TRUE",
+            token) is True
+
+
+# ---- hành động đã thực thi ----
+async def record_action(case_id: str, action: str, loan_id: str, key: str, executed_by: str,
+                        outcome: str, result: dict) -> bool:
+    """Ghi nhật ký hành động; trả False nếu idempotency_key đã tồn tại."""
+    async with tx() as con:
+        return await con.fetchval(
+            "INSERT INTO agent.action_log(case_id, action, loan_application_id, idempotency_key,"
+            " executed_by, outcome, result, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)"
+            " ON CONFLICT (idempotency_key) DO NOTHING RETURNING TRUE",
+            case_id, action, uuid.UUID(loan_id), key, uuid.UUID(executed_by), outcome, result,
+            time.time()) is True
+
+
+async def get_action_by_key(key: str) -> dict | None:
+    async with tx() as con:
+        r = await con.fetchrow("SELECT * FROM agent.action_log WHERE idempotency_key=$1", key)
+    return dict(r) if r else None

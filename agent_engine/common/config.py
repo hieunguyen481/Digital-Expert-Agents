@@ -74,17 +74,19 @@ KEYCLOAK_JWKS_URL = os.getenv(
     "KEYCLOAK_JWKS_INTERNAL_URL",
     "http://keycloak:8080/realms/bank-ai/protocol/openid-connect/certs")
 OIDC_AUDIENCE = os.getenv("OIDC_EXPECTED_AUDIENCE", "bank-ai-api")
+# Backend: nơi duy nhất thực thi chuyển bước hồ sơ (WorkflowService, E8) bằng JWT của người xác nhận.
+BACKEND_URL = os.getenv("BACKEND_URL", "http://backend-api:8000")
 # Vai trò DB được phép dùng gateway / các route nhạy cảm
 GATEWAY_ROLES = frozenset({
     "credit_officer", "credit_appraiser", "credit_manager", "risk_officer",
     "compliance_officer", "document_reviewer", "loan_approver", "auditor", "admin"})
-APPROVER_ROLES = frozenset({"loan_approver", "admin"})
+# Quản trị không bao giờ phê duyệt (Q-J); backend cũng từ chối.
+APPROVER_ROLES = frozenset({"loan_approver"})
 AUDIT_ROLES = frozenset({"auditor", "admin"})
 
 # ---- Paths ----
 DATA_DIR = BACKEND_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
-GATEWAY_DB = DATA_DIR / "gateway.db"
 RAG_CORPUS_DIR = BACKEND_DIR / "rag_corpus"
 UPLOADS_DIR = DATA_DIR / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)

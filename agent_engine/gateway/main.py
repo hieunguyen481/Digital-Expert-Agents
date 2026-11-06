@@ -14,7 +14,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import httpx  # noqa: E402
 import uvicorn  # noqa: E402
-from fastapi import BackgroundTasks, Depends, FastAPI  # noqa: E402
+import uuid  # noqa: E402
+
+import asyncpg  # noqa: E402
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 from sse_starlette.sse import EventSourceResponse  # noqa: E402
@@ -25,13 +28,23 @@ from gateway import approval, db, orchestrator, planner  # noqa: E402
 from gateway.auth import (Principal, current_principal, internal_only,  # noqa: E402
                           require_roles)
 
-USER = Depends(require_roles())
+def _authed(*roles: str):
+    """Xác thực JWT + vai trò, rồi đặt danh tính cho mọi truy vấn DB (RLS) của request."""
+    base = require_roles(*roles)
+
+    async def dep(user: Principal = Depends(base)) -> Principal:
+        identity.set_current(user.identity())
+        return user
+    return dep
+
+
+USER = Depends(_authed())
 
 app = FastAPI(title="SHB Digital Expert Agents — Gateway")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"],
                    allow_headers=["*"])
 
-# ---- SSE broadcast ----
+# ---- SSE broadcast (chỉ người đã qua kiểm quyền đọc case mới đăng ký) ----
 _subscribers: dict[str, list[asyncio.Queue]] = {}
 
 
@@ -47,20 +60,40 @@ async def health() -> dict:
 
 @app.on_event("startup")
 async def startup() -> None:
-    db.init()
+    await db.pool()
     asyncio.create_task(_sla_watcher())
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    await db.close()
+
+
+async def _visible_case(case_id: str) -> dict:
+    """Case hiển thị được dưới RLS của người gọi; không thấy -> 404 (không lộ có tồn tại)."""
+    case = await db.get_case(case_id)
+    if case is None:
+        raise HTTPException(404, "case không tồn tại hoặc không có quyền")
+    return case
 
 
 # ---- Cases ----
 @app.post("/cases")
 async def create_case(body: CaseCreate, user: Principal = USER) -> dict:
+    try:
+        uuid.UUID(body.request.business_id)
+    except ValueError:
+        raise HTTPException(422, "business_id phải là mã khách hàng (UUID)") from None
     case_id = new_id("case")
     payload = body.model_dump(mode="json")
     payload["submitted_by"] = user.employee_id  # danh tính từ JWT, không tin giá trị client gửi
     payload["_identity"] = {"employee_id": user.employee_id, "branch_id": user.branch_id,
                             "is_admin": user.is_admin}
-    db.create_case(case_id, payload)
-    await broadcast(db.add_event(case_id, "gateway", "case_created", {
+    try:
+        await db.create_case(case_id, payload)
+    except asyncpg.PostgresError:  # RLS không cho thấy khách hàng, hoặc khách không tồn tại
+        raise HTTPException(403, "không có quyền với khách hàng này") from None
+    await broadcast(await db.add_event(case_id, "gateway", "case_created", {
         "request": body.request.model_dump(mode="json"),
         "submitted_by": user.employee_id,
         "documents": [d.get("doc_type") for d in body.documents],
@@ -68,54 +101,70 @@ async def create_case(body: CaseCreate, user: Principal = USER) -> dict:
     return {"case_id": case_id, "state": CaseState.DRAFT.value}
 
 
+@app.get("/cases")
+async def list_cases(limit: int = 50, user: Principal = USER) -> list[dict]:
+    return await db.list_cases(limit)
+
+
 @app.post("/cases/{case_id}/run")
 async def run_case(case_id: str, background: BackgroundTasks, user: Principal = USER) -> dict:
-    if db.get_case(case_id) is None:
-        return {"error": "case không tồn tại"}
-    background.add_task(orchestrator.run_analysis, case_id)
+    await _visible_case(case_id)
+    background.add_task(orchestrator.run_analysis, case_id, user.identity())
     return {"status": "started"}
 
 
 @app.get("/cases/{case_id}")
 async def get_case(case_id: str, user: Principal = USER) -> dict:
-    case = db.get_case(case_id)
-    if case is None:
-        return {"error": "case không tồn tại"}
-    case["plan"] = db.get_latest_plan(case_id)
+    case = await _visible_case(case_id)
+    case["plan"] = await db.get_latest_plan(case_id)
+    case["payload"].pop("_identity", None)
     return case
 
 
 @app.get("/cases/{case_id}/events")
 async def get_events(case_id: str, after: int = 0, user: Principal = USER) -> list[dict]:
-    return db.get_events(case_id, after)
+    await _visible_case(case_id)
+    return await db.get_events(case_id, after)
 
 
 @app.get("/cases/{case_id}/stream")
 async def stream_events(case_id: str, user: Principal = USER):
+    """SSE; xác thực bằng header Authorization (trình duyệt dùng fetch streaming, không đặt token lên URL)."""
+    await _visible_case(case_id)
+    ident = user.identity()
     q: asyncio.Queue = asyncio.Queue()
     _subscribers.setdefault(case_id, []).append(q)
 
     async def gen():
+        identity.set_current(ident)
         try:
-            for e in db.get_events(case_id):  # phát lại lịch sử trước
+            last = 0
+            for e in await db.get_events(case_id):  # phát lại lịch sử trước
+                last = e["id"]
                 yield {"data": json.dumps(e, ensure_ascii=False, default=str)}
             while True:
                 e = await q.get()
-                yield {"data": json.dumps(e, ensure_ascii=False, default=str)}
+                if e["id"] > last:
+                    last = e["id"]
+                    yield {"data": json.dumps(e, ensure_ascii=False, default=str)}
         finally:
             _subscribers.get(case_id, []).remove(q)
 
     return EventSourceResponse(gen())
 
 
-# ---- HITL ----
+# ---- HITL: chỉ người có thẩm quyền xác nhận; agent không có đường tự phê duyệt ----
 class ApproveBody(BaseModel):
-    approver: str
     approver_level: str = "branch_director"
+    loan_application_id: str
+    decision_type: str = "APPROVED"
+    approved_amount: float | None = None   # mặc định lấy hạn mức agent đề xuất
+    approved_term_months: int | None = None
+    conditions: list[str] | None = None
+    reason: str
 
 
 class RejectBody(BaseModel):
-    approver: str
     reason: str = ""
 
 
@@ -124,29 +173,51 @@ class SupplementBody(BaseModel):
 
 
 @app.post("/cases/{case_id}/approve")
-async def approve(case_id: str, body: ApproveBody, background: BackgroundTasks,
-                  user: Principal = Depends(require_roles(*config.APPROVER_ROLES))) -> dict:
-    case = db.get_case(case_id)
-    if not case or case["state"] != CaseState.PENDING_APPROVAL.value:
-        return {"error": "case không ở trạng thái Pending Approval"}
-    required = (case.get("package") or {}).get("required_approver_level", "branch_director")
+async def approve(case_id: str, body: ApproveBody, request: Request,
+                  user: Principal = Depends(_authed(*config.APPROVER_ROLES))) -> dict:
+    case = await _visible_case(case_id)
+    if case["state"] != CaseState.PENDING_APPROVAL.value:
+        raise HTTPException(409, "case không ở trạng thái Pending Approval")
+    package = case.get("package") or {}
+    required = package.get("required_approver_level", "branch_director")
     if body.approver_level != required:
-        return {"error": f"sai thẩm quyền: cần {required}, nhận {body.approver_level}"}
-    background.add_task(orchestrator.approve_and_commit, case_id, user.employee_id)
-    return {"status": "approving"}
+        raise HTTPException(403, f"sai thẩm quyền: cần {required}, nhận {body.approver_level}")
+    if not body.reason.strip():
+        raise HTTPException(422, "xác nhận phải kèm lý do")
+    if body.decision_type not in ("APPROVED", "APPROVED_WITH_CONDITIONS", "REJECTED"):
+        raise HTTPException(422, "decision_type không hợp lệ")
+    amount = body.approved_amount if body.approved_amount is not None else package.get("proposed_limit")
+    term = body.approved_term_months or case["payload"]["request"].get("term_months")
+    if body.decision_type != "REJECTED" and (not amount or not term):
+        raise HTTPException(422, "thiếu số tiền hoặc kỳ hạn phê duyệt")
+    confirm = {"loan_application_id": body.loan_application_id,
+               "decision_type": body.decision_type, "approved_amount": amount or 0,
+               "term_months": term or 0, "reason": body.reason.strip(),
+               "conditions": body.conditions if body.conditions is not None
+               else package.get("conditions") or []}
+    jwt = request.headers["authorization"].partition(" ")[2].strip()
+    result = await orchestrator.approve_and_commit(case_id, user.employee_id, jwt, confirm)
+    if result.get("status") == "refused":
+        raise HTTPException(result["http_status"] if result["http_status"] in (403, 404, 409, 422)
+                            else 409, {"code": result["code"], "message": result["message"]})
+    return result
 
 
 @app.post("/cases/{case_id}/reject")
 async def reject(case_id: str, body: RejectBody,
-                 user: Principal = Depends(require_roles(*config.APPROVER_ROLES))) -> dict:
-    db.update_case(case_id, state=CaseState.REJECTED.value, approver=user.employee_id)
-    await broadcast(db.add_event(case_id, "hitl", "rejected",
-                                 {"approver": user.employee_id, "reason": body.reason}))
+                 user: Principal = Depends(_authed(*config.APPROVER_ROLES))) -> dict:
+    case = await _visible_case(case_id)
+    if case["state"] != CaseState.PENDING_APPROVAL.value:
+        raise HTTPException(409, "case không ở trạng thái Pending Approval")
+    await db.update_case(case_id, state=CaseState.REJECTED.value, approver=user.employee_id)
+    await broadcast(await db.add_event(case_id, "hitl", "rejected",
+                                       {"approver": user.employee_id, "reason": body.reason}))
     return {"status": "rejected"}
 
 
 @app.post("/cases/{case_id}/supplement")
 async def supplement(case_id: str, body: SupplementBody, user: Principal = USER) -> dict:
+    await _visible_case(case_id)
     return await orchestrator.supplement_and_replan(case_id, body.documents)
 
 
@@ -173,9 +244,18 @@ class EventBody(BaseModel):
     payload: dict = {}
 
 
+def _internal_identity(request: Request) -> None:
+    """Dịch vụ nội bộ phải kèm danh tính đã ký (do gateway cấp); thiếu/giả -> 401."""
+    try:
+        identity.set_current(identity.verify(request.headers))
+    except identity.IdentityError as e:
+        raise HTTPException(401, str(e)) from None
+
+
 @app.post("/internal/events", dependencies=[Depends(internal_only)])
-async def post_event(body: EventBody) -> dict:
-    await broadcast(db.add_event(body.case_id, body.agent, body.type, body.payload))
+async def post_event(body: EventBody, request: Request) -> dict:
+    _internal_identity(request)
+    await broadcast(await db.add_event(body.case_id, body.agent, body.type, body.payload))
     return {"ok": True}
 
 
@@ -185,8 +265,9 @@ class TokenVerifyBody(BaseModel):
 
 
 @app.post("/internal/tokens/verify", dependencies=[Depends(internal_only)])
-async def verify_token(body: TokenVerifyBody) -> dict:
-    return approval.verify(body.case_id, body.token)
+async def verify_token(body: TokenVerifyBody, request: Request) -> dict:
+    _internal_identity(request)
+    return await approval.verify(body.case_id, body.token)
 
 
 # ---- Registry & audit ----
@@ -209,17 +290,17 @@ async def _sla_watcher() -> None:
     while True:
         await asyncio.sleep(10)
         try:
-            for row in db.list_pending_approval():
+            for row in await db.list_pending_approval():
                 cid, deadline = row["case_id"], row["sla_deadline"] or 0
                 now = time.time()
                 if deadline and now > deadline and cid not in reminded:
                     reminded.add(cid)
-                    await broadcast(db.add_event(cid, "sla", "sla_reminder", {
+                    await broadcast(await db.add_system_event(cid, "sla_reminder", {
                         "message": "Quá SLA phê duyệt — đã nhắc người duyệt, giữ checkpoint"}))
                 elif deadline and now > deadline * 1 + config.APPROVAL_SLA_SECONDS \
                         and f"{cid}:esc" not in reminded:
                     reminded.add(f"{cid}:esc")
-                    await broadcast(db.add_event(cid, "sla", "sla_escalated", {
+                    await broadcast(await db.add_system_event(cid, "sla_escalated", {
                         "message": "Người phê duyệt không phản hồi — chuyển hàng đợi "
                                    "cấp dự phòng theo ma trận thẩm quyền"}))
         except Exception:  # noqa: BLE001

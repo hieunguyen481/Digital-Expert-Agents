@@ -25,8 +25,8 @@ from common import config, identity  # noqa: E402
 
 mcp = FastMCP("core-banking", host=config.HOST, port=config.MCP_CORE_BANKING_PORT)
 
-NOT_SUPPORTED = ("chưa hỗ trợ: tool ghi chưa nối vào Postgres (đợt B2); "
-                 "không có thay đổi nào được ghi")
+NOT_SUPPORTED = ("từ chối: agent không được tự ghi quyết định hay giải ngân; hành động nghiệp vụ "
+                 "chỉ chạy sau xác nhận của người có thẩm quyền qua gateway")
 _pool: asyncpg.Pool | None = None
 
 
@@ -330,36 +330,47 @@ async def get_audit_log(ctx: Context, limit: int = 30) -> list[dict]:
     return res if isinstance(res, list) else [res]
 
 
-# ---------------------------------------------------------------- ghi: chưa hỗ trợ
+# ---------------------------------------------------------------- ghi: chỉ nháp / từ chối
 @mcp.tool()
 async def create_loan_draft(case_id: str, business_id: str, amount: float, term_months: int,
                             ctx: Context) -> dict:
-    """[Chưa hỗ trợ] Tạo bản nháp khoản vay."""
-    await _audit("create_loan_draft", None, None, ["case_id", "business_id", "amount",
-                                                  "term_months"], "unsupported")
-    return {"error": NOT_SUPPORTED}
+    """Bản nháp đề xuất (không đổi hồ sơ vay, không có hiệu lực); lưu vết qua trace của case."""
+    async def fn(con, cust):
+        return {"draft_id": f"draft-{case_id}", "status": "DRAFT_PROPOSAL", "amount": amount,
+                "term_months": term_months, "effective": False}
+    return await run_tool("create_loan_draft", ctx,
+                          {"case_id": case_id, "business_id": business_id, "amount": amount,
+                           "term_months": term_months}, fn)
 
 
 @mcp.tool()
 async def commit_loan(idempotency_key: str, case_id: str, business_id: str, amount: float,
                       term_months: int, ctx: Context, rate: float = 9.5) -> dict:
-    """[Chưa hỗ trợ] Ghi khoản vay chính thức."""
+    """TỪ CHỐI: agent không ghi quyết định. Chuyển bước `decide` chỉ chạy qua gateway sau khi
+    người duyệt xác nhận (approval token + JWT của họ, backend kiểm E8)."""
     await _audit("commit_loan", None, None, ["case_id", "business_id", "amount", "term_months",
-                                            "rate", "idempotency_key"], "unsupported")
+                                            "rate", "idempotency_key"], "denied",
+                 "agent không được tự ghi")
     return {"error": NOT_SUPPORTED}
 
 
 @mcp.tool()
 async def get_loan_by_idempotency(idempotency_key: str, ctx: Context) -> dict:
-    """[Chưa hỗ trợ] Tra khoản vay theo khóa idempotency."""
-    return {"error": NOT_SUPPORTED}
+    """Tra hành động đã thực thi theo idempotency key (agent.action_log, dưới RLS)."""
+    async def fn(con, _):
+        r = await con.fetchrow(
+            "SELECT action, outcome, loan_application_id FROM agent.action_log"
+            " WHERE idempotency_key=$1 AND outcome='EXECUTED'", idempotency_key)
+        return {"found": r is not None, **(_rec(r) if r else {})}
+    return await run_tool("get_loan_by_idempotency", ctx, {"idempotency_key": idempotency_key}, fn,
+                          customer_arg=None)
 
 
 @mcp.tool()
 async def create_disbursement_schedule(loan_id: str, ctx: Context, num_tranches: int = 2) -> dict:
-    """[Chưa hỗ trợ] Lập lịch giải ngân."""
+    """TỪ CHỐI: giải ngân không có hành động workflow và nằm ngoài quyền của agent."""
     await _audit("create_disbursement_schedule", None, None, ["loan_id", "num_tranches"],
-                 "unsupported")
+                 "denied", "agent không giải ngân")
     return {"error": NOT_SUPPORTED}
 
 

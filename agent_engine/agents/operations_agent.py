@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import httpx  # noqa: E402
 
 from agents.base import build_agent_app  # noqa: E402
-from common import config, mcp_client  # noqa: E402
+from common import config, identity, mcp_client  # noqa: E402
 from common.schemas import (  # noqa: E402
     AgentCard, AgentSkill, Envelope, Evidence, Verdict, VerdictDecision,
 )
@@ -61,7 +61,10 @@ async def _dry_run(env: Envelope) -> Verdict:
 async def _verify_token(case_id: str, token: str) -> dict:
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.post(f"{config.GATEWAY_URL}/internal/tokens/verify",
-                                 json={"case_id": case_id, "token": token})
+                                 json={"case_id": case_id, "token": token},
+                                 headers=identity.headers_for())
+        if resp.status_code != 200:
+            return {"valid": False, "reason": f"gateway từ chối kiểm token ({resp.status_code})"}
         return resp.json()
 
 
@@ -98,44 +101,25 @@ async def _commit(env: Envelope) -> Verdict:
             data={"stage": "precondition", "cic": cic},
         )
 
-    # 3. Commit idempotent + đối soát khi mơ hồ + retry đúng 1 lần
-    idem_key = f"{case_id}:v{plan_version}"
-    commit_args = {"idempotency_key": idem_key, "case_id": case_id,
-                   "business_id": business_id, "amount": amount,
-                   "term_months": int(request["term_months"])}
-    loan = None
-    for attempt in (1, 2):  # tối đa: 1 lần chính + 1 retry sau đối soát
-        try:
-            loan = await mcp_client.call_tool("commit_loan", commit_args)
-            break
-        except Exception as e:  # noqa: BLE001 - kết quả mơ hồ (timeout/mất kết nối)
-            recon = await mcp_client.call_tool(
-                "get_loan_by_idempotency", {"idempotency_key": idem_key})
-            if recon.get("found"):
-                loan = recon["loan"]  # đã ghi nhận -> coi như thành công
-                break
-            if attempt == 2:
-                return Verdict(
-                    agent=CARD.agent_id, task_id=env.task_id or "",
-                    decision=VerdictDecision.FLAG,
-                    summary=f"Thực thi thất bại sau đối soát + 1 retry ({e}) — "
-                            f"KHÔNG retry thêm, chuyển Escalated",
-                    data={"stage": "commit_failed", "error": str(e)},
-                )
+    # 3. Idempotency: hành động này đã được người duyệt thực thi trước đó thì không làm lại.
+    idem_key = p.get("idempotency_key") or f"{case_id}:v{plan_version}"
+    prior = await mcp_client.call_tool("get_loan_by_idempotency", {"idempotency_key": idem_key})
+    if prior.get("found"):
+        return Verdict(
+            agent=CARD.agent_id, task_id=env.task_id or "", decision=VerdictDecision.FLAG,
+            summary="Hành động đã được thực thi trước đó với cùng idempotency key — không làm lại",
+            data={"stage": "already_executed", "action": prior.get("action")})
 
-    schedule = await mcp_client.call_tool(
-        "create_disbursement_schedule", {"loan_id": loan["loan_id"], "num_tranches": 2})
-
+    # 4. Agent KHÔNG tự ghi: chỉ xác nhận đủ điều kiện. Gateway thực thi chuyển bước `decide`
+    #    dưới JWT của người duyệt (backend kiểm vai trò, trạng thái, E8). Agent không giải ngân.
     return Verdict(
         agent=CARD.agent_id, task_id=env.task_id or "",
         decision=VerdictDecision.PASS_,
-        summary=f"Đã tạo khoản vay {loan['loan_id']} số tiền {amount:,.0f} VND "
-                f"và lịch giải ngân {schedule['tranches']} đợt"
-                + (" (idempotent: bản ghi đã tồn tại, không tạo trùng)"
-                   if loan.get("already_recorded") else ""),
-        evidence=[Evidence(source="core-banking:commit_loan",
-                           quote=f"loan_id={loan['loan_id']}, idempotency_key={idem_key}")],
-        data={"loan_id": loan["loan_id"], "schedule": schedule},
+        summary=f"Token hợp lệ, điều kiện tại thời điểm thực thi đạt (hạn mức {amount:,.0f} VND). "
+                f"Chờ gateway thực thi dưới quyền người duyệt; giải ngân nằm ngoài phạm vi agent",
+        evidence=[Evidence(source="gateway:approval_token",
+                           quote=f"token hợp lệ, idempotency_key={idem_key}")],
+        data={"stage": "ready", "idempotency_key": idem_key},
     )
 
 
