@@ -164,7 +164,7 @@ class WorkflowService:
         clean_reason = (reason or "").strip() or None
         if transition.reason_required and clean_reason is None:
             raise ValueError(f"Action {action} requires a reason")
-        plan = _validate_params(transition, params or {})
+        plan = _validate_params(transition, params or {}, loan)
         # 4. Cong dieu kien.
         carried: tuple[str, ...] = ()
         if transition.gate is not None:
@@ -337,10 +337,12 @@ def _require_permission(principal: PrincipalLike, permission: str) -> None:
         raise PermissionError(f"Missing permission: {permission}")
 
 
-def _validate_params(transition: Transition, params: Mapping[str, Any]) -> _Plan:
+def _validate_params(
+    transition: Transition, params: Mapping[str, Any], loan: Mapping[str, Any]
+) -> _Plan:
     action = transition.action
     if action == "decide":
-        return _decide_plan(params)
+        return _decide_plan(params, loan.get("requested_amount"))
     if action == "return_for_supplement":
         target = params.get("target")
         if target not in SUPPLEMENT_TARGETS:
@@ -355,12 +357,12 @@ def _validate_params(transition: Transition, params: Mapping[str, Any]) -> _Plan
     return _Plan(to_status=transition.to_status or "")
 
 
-def _decide_plan(params: Mapping[str, Any]) -> _Plan:
-    decision = _decision_params(params)
+def _decide_plan(params: Mapping[str, Any], requested_amount: Any) -> _Plan:
+    decision = _decision_params(params, requested_amount)
     return _Plan(to_status=decision["decision_type"], decision=decision)
 
 
-def _decision_params(params: Mapping[str, Any]) -> dict[str, Any]:
+def _decision_params(params: Mapping[str, Any], requested_amount: Any) -> dict[str, Any]:
     decision_type = params.get("decision_type")
     if decision_type not in DECISION_STATUSES:
         raise ValueError(f"decision_type must be one of {sorted(DECISION_STATUSES)}")
@@ -370,6 +372,20 @@ def _decision_params(params: Mapping[str, Any]) -> dict[str, Any]:
     conditions = list(params.get("conditions") or [])
     if str(decision_type).startswith("APPROVED") and (amount is None or amount <= 0 or not term):
         raise ValueError("Approved decisions require a positive amount and term")
+    # Cap phe duyet tinh tu so tien de nghi (submit_to_approval): duyet vuot so tien
+    # de nghi se vuot tham quyen cua cap da dinh tuyen (database kiem lai, V027).
+    requested = _decimal(requested_amount)
+    if str(decision_type).startswith("APPROVED") and amount is not None and (
+        requested is None or amount > requested
+    ):
+        raise ValidationError(
+            "APPROVED_AMOUNT_EXCEEDS_REQUESTED",
+            "The approved amount must not exceed the requested amount.",
+            {
+                "approved_amount": str(amount),
+                "requested_amount": None if requested is None else str(requested),
+            },
+        )
     if decision_type == "APPROVED_WITH_CONDITIONS" and not conditions:
         raise ValueError("APPROVED_WITH_CONDITIONS requires at least one condition")
     is_override = bool(params.get("is_override", False))

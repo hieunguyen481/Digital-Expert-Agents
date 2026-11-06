@@ -39,8 +39,8 @@ pass 'Core services healthy'
 
 compose run --rm flyway || fail 'Flyway migration'
 [ "$(compose exec -T postgres psql -X -U postgres -d bank_ai -Atqc \
-  "SELECT count(*) FROM public.flyway_schema_history WHERE success")" = 31 ] || fail 'Migration count'
-pass '31 Flyway migrations complete'
+  "SELECT count(*) FROM public.flyway_schema_history WHERE success")" = 32 ] || fail 'Migration count'
+pass '32 Flyway migrations complete'
 
 compose run --rm db-seed || fail 'First seed run'
 compose run --rm db-seed || fail 'Second seed run'

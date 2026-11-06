@@ -39,5 +39,8 @@ class CaseStepResponse(APIModel):
     resumed_at: datetime | None
     completed_at: datetime | None
     result: str | None
+    # Q-M: ly do buoc gian lan / AML bi an (NULL) voi nguoi khong co vai tro
+    # Tuan thu, Rui ro, Phe duyet hoac Kiem toan; khi do reason_restricted = True.
     reason: str | None
+    reason_restricted: bool = False
     created_by: UUID

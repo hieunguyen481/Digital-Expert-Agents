@@ -1,0 +1,881 @@
+-- V027: sua 4 phat hien cua vong review cuoi Ke hoach 1.
+--   I1. document.document_link chua co RLS: nguoi giu buoc mo cua ho so L1 gan
+--       duoc tai lieu cua khach khac (doc duoc qua ho so cu L0) vao L1, roi qua
+--       nhanh lien ket cua can_write_document co quyen GHI tai lieu do. Nay:
+--       bat RLS; doc lien ket = doc duoc thuc the; them lien ket = ghi duoc thuc
+--       the VA tai lieu cung chu (khach chinh / ben lien quan CONFIRMED cua ho so,
+--       hoac tai lieu chua co chu do chinh minh tao). Nhanh lien ket cua
+--       can_write_document cung chi tinh lien ket cung chu. bank_worker giu nguyen
+--       quyen doc moi lien ket nhu truoc (V017: chi SELECT, khong RLS).
+--   I2. E8 "cuu QHKH trong 2 nam": lich su QHKH chi do migration/seed ghi (V021.1)
+--       nen nhan / tra / tiep quan khach luc chay khong de lai dau vet. Nay: trigger
+--       SECURITY DEFINER tren customer.customer ghi lich su moi khi doi QHKH.
+--   I3. So tien duyet khong duoc vuot so tien de nghi (cap phe duyet tinh tu
+--       requested_amount): apply_transition kiem lai quyet dinh da ghi.
+--   I4. Q-M: QHKH / HTTD khong doc ket luan AML / gian lan. Cot case_step.reason
+--       khong con cap SELECT cho bank_app; doc buoc qua credit.list_case_steps,
+--       ham an ly do cac buoc gian lan / do Tuan thu tra lai voi nguoi khong co vai
+--       tro compliance_officer, risk_officer, loan_approver hoac auditor.
+-- Moi ham SECURITY DEFINER: search_path = pg_catalog, tham so p_ hoac viet day du
+-- ten ham, khong co nhanh quan tri (Q-J), REVOKE PUBLIC + GRANT ro rang.
+
+-- ---------------------------------------------------------------------------
+-- I1. Lien ket tai lieu
+-- ---------------------------------------------------------------------------
+
+-- Noi bo (khong cap EXECUTE cho runtime): tai lieu cung chu voi thuc the lien ket.
+CREATE FUNCTION identity.document_matches_entity(
+    p_document_id UUID,
+    p_entity_type TEXT,
+    p_entity_id UUID,
+    p_employee_id UUID
+)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+    SELECT EXISTS (
+        SELECT 1
+        FROM document.document AS document_record
+        WHERE document_record.id = p_document_id
+          AND (
+              (
+                  document_record.owner_party_id IS NULL
+                  AND document_record.created_by = p_employee_id
+              )
+              OR (
+                  p_entity_type = 'CUSTOMER'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM customer.customer AS customer_record
+                      WHERE customer_record.id = p_entity_id
+                        AND customer_record.party_id = document_record.owner_party_id
+                  )
+              )
+              OR (
+                  p_entity_type = 'LOAN_APPLICATION'
+                  AND (
+                      EXISTS (
+                          SELECT 1
+                          FROM credit.loan_application AS loan
+                          JOIN customer.customer AS customer_record
+                            ON customer_record.id = loan.primary_customer_id
+                          WHERE loan.id = p_entity_id
+                            AND customer_record.party_id = document_record.owner_party_id
+                      )
+                      OR EXISTS (
+                          SELECT 1
+                          FROM credit.case_related_party AS related
+                          WHERE related.loan_application_id = p_entity_id
+                            AND related.party_id = document_record.owner_party_id
+                            AND related.status = 'CONFIRMED'
+                      )
+                  )
+              )
+          )
+    );
+$function$;
+
+REVOKE ALL ON FUNCTION identity.document_matches_entity(UUID, TEXT, UUID, UUID) FROM PUBLIC;
+
+-- Them lien ket: ghi duoc thuc the va tai lieu cung chu.
+CREATE FUNCTION identity.can_link_document(
+    p_employee_id UUID,
+    p_document_id UUID,
+    p_entity_type TEXT,
+    p_entity_id UUID
+)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+    SELECT p_employee_id IS NOT NULL
+       AND p_document_id IS NOT NULL
+       AND p_entity_id IS NOT NULL
+       AND p_employee_id = identity.current_employee_id()
+       AND (
+            (
+                p_entity_type = 'CUSTOMER'
+                AND identity.can_write_customer(p_employee_id, p_entity_id)
+            )
+            OR (
+                p_entity_type = 'LOAN_APPLICATION'
+                AND identity.can_write_loan(p_employee_id, p_entity_id)
+            )
+       )
+       AND identity.document_matches_entity(p_document_id, p_entity_type, p_entity_id, p_employee_id);
+$function$;
+
+REVOKE ALL ON FUNCTION identity.can_link_document(UUID, UUID, TEXT, UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION identity.can_link_document(UUID, UUID, TEXT, UUID) TO bank_app;
+
+-- Ghi tai lieu: nhu V023.1, nhung nhanh lien ket chi tinh lien ket cung chu.
+CREATE OR REPLACE FUNCTION identity.can_write_document(employee_id UUID, document_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+    SELECT can_write_document.employee_id IS NOT NULL
+       AND can_write_document.document_id IS NOT NULL
+       AND can_write_document.employee_id = identity.current_employee_id()
+       AND EXISTS (
+                SELECT 1
+                FROM document.document AS document_record
+                WHERE document_record.id = can_write_document.document_id
+                  AND (
+                      EXISTS (
+                          SELECT 1
+                          FROM customer.customer AS customer_record
+                          WHERE customer_record.party_id = document_record.owner_party_id
+                            AND identity.can_write_customer(
+                                can_write_document.employee_id,
+                                customer_record.id
+                            )
+                      )
+                      OR EXISTS (
+                          SELECT 1
+                          FROM document.document_link AS document_link
+                          WHERE document_link.document_id = document_record.id
+                            AND identity.document_matches_entity(
+                                document_record.id,
+                                document_link.entity_type,
+                                document_link.entity_id,
+                                can_write_document.employee_id
+                            )
+                            AND (
+                                (
+                                    document_link.entity_type = 'CUSTOMER'
+                                    AND identity.can_write_customer(
+                                        can_write_document.employee_id,
+                                        document_link.entity_id
+                                    )
+                                )
+                                OR (
+                                    document_link.entity_type = 'LOAN_APPLICATION'
+                                    AND identity.can_write_loan(
+                                        can_write_document.employee_id,
+                                        document_link.entity_id
+                                    )
+                                )
+                            )
+                      )
+                      OR (
+                          document_record.owner_party_id IS NULL
+                          AND document_record.created_by = can_write_document.employee_id
+                          AND NOT EXISTS (
+                              SELECT 1
+                              FROM document.document_link AS document_link
+                              WHERE document_link.document_id = document_record.id
+                          )
+                      )
+                  )
+            );
+$function$;
+
+COMMENT ON FUNCTION identity.can_write_document(UUID, UUID) IS
+    'Write access to a document via its owner customer, a same-owner link to a writable customer/case, or as creator of an unlinked document.';
+
+ALTER TABLE document.document_link ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY document_link_select_policy
+ON document.document_link
+FOR SELECT
+TO bank_app
+USING (
+    (
+        entity_type = 'CUSTOMER'
+        AND identity.can_read_customer(identity.current_employee_id(), entity_id)
+    )
+    OR (
+        entity_type = 'LOAN_APPLICATION'
+        AND identity.can_read_loan(identity.current_employee_id(), entity_id)
+    )
+);
+CREATE POLICY document_link_insert_policy
+ON document.document_link
+FOR INSERT
+TO bank_app
+WITH CHECK (
+    identity.can_link_document(identity.current_employee_id(), document_id, entity_type, entity_id)
+);
+-- Khong co policy UPDATE: lien ket khong sua, chi them (khong vai tro nao duoc DELETE).
+-- Tien trinh xu ly tai lieu (bank_worker, chi SELECT theo V017): giu hanh vi cu.
+CREATE POLICY document_link_worker_select_policy
+ON document.document_link
+FOR SELECT
+TO bank_worker
+USING (TRUE);
+
+-- ---------------------------------------------------------------------------
+-- I2. Lich su QHKH (E8)
+-- ---------------------------------------------------------------------------
+-- Noi bo (trigger): dong moi dong lich su dang mo cua QHKH khac QHKH moi (ngay
+-- dong = hom nay theo gio VN); QHKH cu chua co dong mo thi them mot dong da dong
+-- trong ngay; mo dong cho QHKH moi neu chua co. Khong doi gia tri thi khong lam gi.
+CREATE FUNCTION customer.record_relationship_manager_change()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+DECLARE
+    v_today DATE := (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::DATE;
+BEGIN
+    IF TG_OP = 'UPDATE' THEN
+        IF NEW.relationship_manager_id IS NOT DISTINCT FROM OLD.relationship_manager_id THEN
+            RETURN NULL;
+        END IF;
+        UPDATE customer.relationship_manager_history AS history
+        SET valid_until = GREATEST(v_today, history.valid_from)
+        WHERE history.customer_id = NEW.id
+          AND history.valid_until IS NULL
+          AND history.employee_id IS DISTINCT FROM NEW.relationship_manager_id;
+        IF OLD.relationship_manager_id IS NOT NULL AND NOT EXISTS (
+            SELECT 1
+            FROM customer.relationship_manager_history AS history
+            WHERE history.customer_id = NEW.id
+              AND history.employee_id = OLD.relationship_manager_id
+              AND history.valid_until IS NOT NULL
+              AND history.valid_until >= v_today
+        ) THEN
+            INSERT INTO customer.relationship_manager_history (
+                customer_id, employee_id, valid_from, valid_until
+            )
+            VALUES (NEW.id, OLD.relationship_manager_id, v_today, v_today)
+            ON CONFLICT (customer_id, employee_id, valid_from)
+            DO UPDATE SET valid_until = EXCLUDED.valid_until;
+        END IF;
+    END IF;
+
+    IF NEW.relationship_manager_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1
+        FROM customer.relationship_manager_history AS history
+        WHERE history.customer_id = NEW.id
+          AND history.employee_id = NEW.relationship_manager_id
+          AND history.valid_until IS NULL
+    ) THEN
+        INSERT INTO customer.relationship_manager_history (
+            customer_id, employee_id, valid_from, valid_until
+        )
+        VALUES (NEW.id, NEW.relationship_manager_id, v_today, NULL)
+        ON CONFLICT (customer_id, employee_id, valid_from)
+        DO UPDATE SET valid_until = NULL;
+    END IF;
+    RETURN NULL;
+END
+$function$;
+
+REVOKE ALL ON FUNCTION customer.record_relationship_manager_change() FROM PUBLIC;
+
+CREATE TRIGGER trg_customer_rm_history_insert
+AFTER INSERT ON customer.customer
+FOR EACH ROW
+WHEN (NEW.relationship_manager_id IS NOT NULL)
+EXECUTE FUNCTION customer.record_relationship_manager_change();
+
+CREATE TRIGGER trg_customer_rm_history_update
+AFTER UPDATE OF relationship_manager_id ON customer.customer
+FOR EACH ROW
+WHEN (OLD.relationship_manager_id IS DISTINCT FROM NEW.relationship_manager_id)
+EXECUTE FUNCTION customer.record_relationship_manager_change();
+
+-- Bo sung dong mo cho QHKH hien tai chua co lich su (khach co tu truoc V027).
+INSERT INTO customer.relationship_manager_history (customer_id, employee_id, valid_from, valid_until)
+SELECT customer_record.id,
+       customer_record.relationship_manager_id,
+       LEAST(
+           COALESCE(customer_record.onboarding_date, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::DATE),
+           (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::DATE
+       ),
+       NULL
+FROM customer.customer AS customer_record
+WHERE customer_record.relationship_manager_id IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1
+      FROM customer.relationship_manager_history AS history
+      WHERE history.customer_id = customer_record.id
+        AND history.employee_id = customer_record.relationship_manager_id
+        AND history.valid_until IS NULL
+  )
+ON CONFLICT (customer_id, employee_id, valid_from) DO NOTHING;
+
+COMMENT ON FUNCTION customer.record_relationship_manager_change() IS
+    'E8: record relationship manager changes in customer.relationship_manager_history (closes the old RM, opens the new one).';
+
+-- ---------------------------------------------------------------------------
+-- I4. An ly do buoc gian lan / AML (Q-M)
+-- ---------------------------------------------------------------------------
+REVOKE SELECT ON credit.case_step FROM bank_app;
+GRANT SELECT (
+    id, loan_application_id, step_code, assignee_employee_id, received_at, due_at,
+    paused_at, remaining_workdays, resumed_at, completed_at, result, created_by, created_at
+) ON credit.case_step TO bank_app;
+
+-- Ly do bi han che: buoc giu gian lan, buoc dong vi gian lan / mo lai sau gian
+-- lan, buoc cho giai trinh Tuan thu, buoc Y kien Rui ro do Tuan thu tra lai
+-- (buoc ke tiep do mot compliance_officer tao dung luc buoc nay dong).
+CREATE FUNCTION credit.step_reason_restricted(p_step_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+    SELECT EXISTS (
+        SELECT 1
+        FROM credit.case_step AS step
+        WHERE step.id = p_step_id
+          AND (
+              step.step_code IN ('FRAUD_HOLD', 'RISK_PENDING_INFO')
+              OR step.result IN ('FRAUD_HOLD', 'RELEASED')
+              OR (
+                  step.step_code = 'RISK_REVIEW'
+                  AND step.result = 'RETURNED'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM credit.case_step AS next_step
+                      WHERE next_step.loan_application_id = step.loan_application_id
+                        AND next_step.received_at = step.completed_at
+                        AND next_step.id <> step.id
+                        AND credit.has_active_role(next_step.created_by, 'compliance_officer')
+                  )
+              )
+          )
+    );
+$function$;
+
+REVOKE ALL ON FUNCTION credit.step_reason_restricted(UUID) FROM PUBLIC;
+
+-- Danh sach buoc cua ho so ma nguoi goi doc duoc (nhu case_step_select_policy),
+-- ly do bi an (NULL, reason_restricted = TRUE) khi han che va nguoi goi khong co
+-- vai tro Tuan thu / Rui ro / Phe duyet / Kiem toan.
+CREATE FUNCTION credit.list_case_steps(p_loan_id UUID)
+RETURNS TABLE (
+    id UUID,
+    loan_application_id UUID,
+    step_code VARCHAR(30),
+    assignee_employee_id UUID,
+    received_at TIMESTAMPTZ,
+    due_at TIMESTAMPTZ,
+    paused_at TIMESTAMPTZ,
+    remaining_workdays INTEGER,
+    resumed_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    result VARCHAR(30),
+    reason TEXT,
+    reason_restricted BOOLEAN,
+    created_by UUID,
+    created_at TIMESTAMPTZ
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+    WITH viewer AS (
+        SELECT (
+            identity.current_has_role('compliance_officer'::public.citext)
+            OR identity.current_has_role('risk_officer'::public.citext)
+            OR identity.current_has_role('loan_approver'::public.citext)
+            OR identity.current_has_role('auditor'::public.citext)
+        ) AS privileged
+    ),
+    steps AS (
+        SELECT step.*,
+               credit.step_reason_restricted(step.id) AND NOT viewer.privileged AS hidden
+        FROM credit.case_step AS step
+        CROSS JOIN viewer
+        WHERE step.loan_application_id = p_loan_id
+          AND identity.can_read_loan(identity.current_employee_id(), p_loan_id)
+    )
+    SELECT steps.id, steps.loan_application_id, steps.step_code, steps.assignee_employee_id,
+           steps.received_at, steps.due_at, steps.paused_at, steps.remaining_workdays,
+           steps.resumed_at, steps.completed_at, steps.result,
+           CASE WHEN steps.hidden THEN NULL ELSE steps.reason END,
+           steps.hidden,
+           steps.created_by, steps.created_at
+    FROM steps
+    ORDER BY steps.received_at, steps.created_at, steps.id;
+$function$;
+
+REVOKE ALL ON FUNCTION credit.list_case_steps(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION credit.list_case_steps(UUID) TO bank_app;
+
+COMMENT ON FUNCTION credit.list_case_steps(UUID) IS
+    'Q-M: case steps readable by the caller; fraud/AML-related reasons masked unless compliance, risk, approver or auditor.';
+COMMENT ON FUNCTION credit.step_reason_restricted(UUID) IS
+    'TRUE when a case step reason concerns a fraud hold/release, a compliance explanation request or a compliance-authored risk return.';
+
+-- ---------------------------------------------------------------------------
+-- I3. So tien duyet <= so tien de nghi (apply_transition nhu V025.2 + kiem tra)
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION credit.apply_transition(
+    p_loan_id UUID,
+    p_action TEXT,
+    p_expected_version INT,
+    p_from_status TEXT,
+    p_to_status TEXT,
+    p_reason TEXT,
+    p_new_assignee UUID,
+    p_new_due_at TIMESTAMPTZ,
+    p_remaining_workdays INT,
+    p_approval_tier SMALLINT,
+    p_withdraw_kind TEXT
+)
+RETURNS TABLE (
+    out_status TEXT,
+    out_version INT,
+    out_step_code TEXT,
+    out_assignee UUID,
+    out_due_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+VOLATILE
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+DECLARE
+    v_caller UUID := identity.current_employee_id();
+    v_now TIMESTAMPTZ := CURRENT_TIMESTAMP;
+    v_today DATE := (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::DATE;
+    v_froms TEXT[];
+    v_tos TEXT[];
+    v_roles TEXT[];
+    v_reason_required BOOLEAN := TRUE;
+    v_status TEXT;
+    v_version INT;
+    v_customer UUID;
+    v_rm UUID;
+    v_home_branch UUID;
+    v_main credit.case_step%ROWTYPE;
+    v_side credit.case_step%ROWTYPE;
+    v_has_main BOOLEAN;
+    v_has_side BOOLEAN;
+    v_expected_main TEXT;
+    v_close_result TEXT;
+    v_new_code TEXT;
+    v_new_role TEXT;
+    v_new_must_be UUID;
+    v_sla_key TEXT;
+    v_expected_due TIMESTAMPTZ;
+    v_expected_remaining INT;
+    v_required_tier SMALLINT;
+    v_held_remaining INT;
+    v_result_step TEXT;
+    v_result_assignee UUID;
+    v_result_due TIMESTAMPTZ;
+BEGIN
+    IF v_caller IS NULL THEN
+        RAISE EXCEPTION 'apply_transition requires an employee context' USING ERRCODE = '42501';
+    END IF;
+    IF p_loan_id IS NULL OR p_action IS NULL OR p_expected_version IS NULL
+       OR p_from_status IS NULL OR p_to_status IS NULL THEN
+        RAISE EXCEPTION 'apply_transition: missing required argument' USING ERRCODE = '22023';
+    END IF;
+
+    -- Bang action (lap lai app/workflow/transitions.py).
+    CASE p_action
+        WHEN 'submit_to_checking' THEN
+            v_froms := ARRAY['DRAFT', 'RETURNED_TO_RM']; v_tos := ARRAY['CHECKING'];
+            v_roles := ARRAY['credit_officer']; v_reason_required := FALSE;
+        WHEN 'return_to_rm' THEN
+            v_froms := ARRAY['CHECKING', 'APPRAISAL']; v_tos := ARRAY['RETURNED_TO_RM'];
+            v_roles := ARRAY['document_reviewer', 'credit_appraiser'];
+        WHEN 'pass_to_appraisal' THEN
+            v_froms := ARRAY['CHECKING']; v_tos := ARRAY['APPRAISAL'];
+            v_roles := ARRAY['document_reviewer']; v_reason_required := FALSE;
+        WHEN 'request_info' THEN
+            v_froms := ARRAY['APPRAISAL']; v_tos := ARRAY['APPRAISAL_PENDING_INFO'];
+            v_roles := ARRAY['credit_appraiser'];
+        WHEN 'accept_info' THEN
+            v_froms := ARRAY['APPRAISAL_PENDING_INFO']; v_tos := ARRAY['APPRAISAL'];
+            v_roles := ARRAY['document_reviewer']; v_reason_required := FALSE;
+        WHEN 'submit_to_risk' THEN
+            v_froms := ARRAY['APPRAISAL']; v_tos := ARRAY['RISK_REVIEW'];
+            v_roles := ARRAY['credit_appraiser']; v_reason_required := FALSE;
+        WHEN 'risk_return' THEN
+            v_froms := ARRAY['RISK_REVIEW']; v_tos := ARRAY['APPRAISAL'];
+            v_roles := ARRAY['risk_officer', 'compliance_officer'];
+        WHEN 'request_explanation' THEN
+            v_froms := ARRAY['RISK_REVIEW']; v_tos := ARRAY['RISK_PENDING_INFO'];
+            v_roles := ARRAY['compliance_officer'];
+        WHEN 'accept_explanation' THEN
+            v_froms := ARRAY['RISK_PENDING_INFO']; v_tos := ARRAY['RISK_REVIEW'];
+            v_roles := ARRAY['document_reviewer']; v_reason_required := FALSE;
+        WHEN 'fraud_hold' THEN
+            v_froms := ARRAY['RISK_REVIEW']; v_tos := ARRAY['RISK_HOLD_FRAUD'];
+            v_roles := ARRAY['compliance_officer'];
+        WHEN 'fraud_release' THEN
+            v_froms := ARRAY['RISK_HOLD_FRAUD']; v_tos := ARRAY['RISK_REVIEW'];
+            v_roles := ARRAY['compliance_officer'];
+        WHEN 'submit_to_approval' THEN
+            v_froms := ARRAY['RISK_REVIEW']; v_tos := ARRAY['APPROVAL', 'COUNCIL_SESSION'];
+            v_roles := ARRAY['risk_officer']; v_reason_required := FALSE;
+        WHEN 'decide' THEN
+            v_froms := ARRAY['APPROVAL'];
+            v_tos := ARRAY['APPROVED', 'APPROVED_WITH_CONDITIONS', 'REJECTED'];
+            v_roles := ARRAY['loan_approver'];
+        WHEN 'return_for_supplement' THEN
+            v_froms := ARRAY['APPROVAL']; v_tos := ARRAY['APPRAISAL', 'RETURNED_TO_RM'];
+            v_roles := ARRAY['loan_approver'];
+        WHEN 'withdraw' THEN
+            v_froms := ARRAY['RETURNED_TO_RM', 'APPRAISAL_PENDING_INFO']; v_tos := ARRAY['WITHDRAWN'];
+            v_roles := ARRAY['credit_officer', 'credit_manager'];
+        ELSE
+            RAISE EXCEPTION 'unknown workflow action %', p_action USING ERRCODE = '22023';
+    END CASE;
+
+    IF NOT (p_from_status = ANY (v_froms)) OR NOT (p_to_status = ANY (v_tos)) THEN
+        RAISE EXCEPTION 'action % does not move % to %', p_action, p_from_status, p_to_status
+            USING ERRCODE = '22023';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM unnest(v_roles) AS allowed(code)
+        WHERE identity.current_has_role(allowed.code::public.citext)
+    ) THEN
+        RAISE EXCEPTION 'caller lacks a role for action %', p_action USING ERRCODE = '42501';
+    END IF;
+    IF v_reason_required AND (p_reason IS NULL OR btrim(p_reason) = '') THEN
+        RAISE EXCEPTION 'action % requires a reason', p_action USING ERRCODE = '22023';
+    END IF;
+    IF p_action = 'withdraw' AND (p_withdraw_kind IS NULL OR p_withdraw_kind NOT IN ('CUSTOMER', 'OVERDUE')) THEN
+        RAISE EXCEPTION 'withdraw requires withdraw_kind CUSTOMER or OVERDUE' USING ERRCODE = '22023';
+    END IF;
+    -- Ghi ho so: nguoi nhan buoc dang mo / QHKH theo trang thai; truong phong
+    -- (credit_manager) duoc rut ho so ma minh doc duoc (Q-O); Tuan thu
+    -- (compliance_officer) doc duoc ho so thi duoc thao tac y kien con cua minh o
+    -- buoc Y kien Rui ro du khong giu buoc (Q-N). Trang thai nguon van kiem duoi.
+    IF NOT (
+        identity.can_write_loan(v_caller, p_loan_id)
+        OR (
+            p_action = 'withdraw'
+            AND identity.current_has_role('credit_manager'::public.citext)
+            AND identity.can_read_loan(v_caller, p_loan_id)
+        )
+        OR (
+            p_action IN ('request_explanation', 'fraud_hold', 'fraud_release', 'risk_return')
+            AND identity.current_has_role('compliance_officer'::public.citext)
+            AND identity.can_read_loan(v_caller, p_loan_id)
+        )
+    ) THEN
+        RAISE EXCEPTION 'caller may not change loan application %', p_loan_id USING ERRCODE = '42501';
+    END IF;
+    -- E8: kiem ca o database.
+    IF p_action IN ('decide', 'return_for_supplement') AND credit.is_excluded(v_caller, p_loan_id) THEN
+        RAISE EXCEPTION 'caller is excluded from deciding loan application %', p_loan_id
+            USING ERRCODE = '42501';
+    END IF;
+
+    -- Khoa ho so; lenh dong thoi thu hai cho o day va thay phien ban moi.
+    SELECT loan.status, loan.version, loan.primary_customer_id
+    INTO v_status, v_version, v_customer
+    FROM credit.loan_application AS loan
+    WHERE loan.id = p_loan_id
+    FOR UPDATE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'loan application % not found', p_loan_id USING ERRCODE = '42501';
+    END IF;
+    IF v_version <> p_expected_version THEN
+        RAISE EXCEPTION 'loan application % version is %, expected %', p_loan_id, v_version, p_expected_version
+            USING ERRCODE = 'WF409';
+    END IF;
+    IF v_status <> p_from_status THEN
+        RAISE EXCEPTION 'loan application % is %, not %', p_loan_id, v_status, p_from_status
+            USING ERRCODE = '22023';
+    END IF;
+
+    SELECT customer_record.relationship_manager_id, customer_record.home_branch_id
+    INTO v_rm, v_home_branch
+    FROM customer.customer AS customer_record
+    WHERE customer_record.id = v_customer;
+
+    SELECT * INTO v_main
+    FROM credit.case_step AS step
+    WHERE step.loan_application_id = p_loan_id
+      AND step.completed_at IS NULL
+      AND step.step_code NOT IN ('PENDING_INFO', 'RISK_PENDING_INFO')
+    FOR UPDATE;
+    v_has_main := FOUND;
+    SELECT * INTO v_side
+    FROM credit.case_step AS step
+    WHERE step.loan_application_id = p_loan_id
+      AND step.completed_at IS NULL
+      AND step.step_code IN ('PENDING_INFO', 'RISK_PENDING_INFO')
+    ORDER BY step.received_at DESC
+    LIMIT 1
+    FOR UPDATE;
+    v_has_side := FOUND;
+
+    v_expected_main := CASE p_from_status
+        WHEN 'DRAFT' THEN 'RM_DRAFT'
+        WHEN 'RETURNED_TO_RM' THEN 'RM_REWORK'
+        WHEN 'CHECKING' THEN 'CHECKING'
+        WHEN 'APPRAISAL' THEN 'APPRAISAL'
+        WHEN 'APPRAISAL_PENDING_INFO' THEN 'APPRAISAL'
+        WHEN 'RISK_REVIEW' THEN 'RISK_REVIEW'
+        WHEN 'RISK_PENDING_INFO' THEN 'RISK_REVIEW'
+        WHEN 'RISK_HOLD_FRAUD' THEN 'FRAUD_HOLD'
+        WHEN 'APPROVAL' THEN 'APPROVAL'
+    END;
+    IF v_has_main AND v_main.step_code <> v_expected_main THEN
+        RAISE EXCEPTION 'open step % does not match status %', v_main.step_code, p_from_status
+            USING ERRCODE = '55000';
+    END IF;
+    IF NOT v_has_main AND p_from_status NOT IN ('DRAFT', 'RETURNED_TO_RM') THEN
+        RAISE EXCEPTION 'loan application % has no open % step', p_loan_id, v_expected_main
+            USING ERRCODE = '55000';
+    END IF;
+
+    -- Buoc moi theo action.
+    CASE p_action
+        WHEN 'submit_to_checking' THEN
+            v_close_result := 'SUBMITTED'; v_new_code := 'CHECKING';
+            v_new_role := 'document_reviewer'; v_sla_key := 'CHECKING';
+        WHEN 'pass_to_appraisal' THEN
+            v_close_result := 'PASSED'; v_new_code := 'APPRAISAL';
+            v_new_role := 'credit_appraiser'; v_sla_key := 'APPRAISAL';
+        WHEN 'return_to_rm' THEN
+            v_close_result := 'RETURNED'; v_new_code := 'RM_REWORK';
+            v_new_must_be := v_rm; v_sla_key := 'CUSTOMER_SUPPLEMENT';
+        WHEN 'request_info' THEN
+            v_new_code := 'PENDING_INFO'; v_new_role := 'document_reviewer';
+            v_sla_key := 'CUSTOMER_SUPPLEMENT';
+        WHEN 'request_explanation' THEN
+            v_new_code := 'RISK_PENDING_INFO'; v_new_role := 'document_reviewer';
+            v_sla_key := 'CUSTOMER_SUPPLEMENT';
+        WHEN 'accept_info', 'accept_explanation' THEN
+            NULL;
+        WHEN 'submit_to_risk' THEN
+            v_close_result := 'SUBMITTED'; v_new_code := 'RISK_REVIEW';
+            v_new_role := 'risk_officer'; v_sla_key := 'RISK_REVIEW';
+        WHEN 'risk_return' THEN
+            v_close_result := 'RETURNED'; v_new_code := 'APPRAISAL';
+            v_new_role := 'credit_appraiser'; v_sla_key := 'APPRAISAL';
+        WHEN 'fraud_hold' THEN
+            v_close_result := 'FRAUD_HOLD'; v_new_code := 'FRAUD_HOLD'; v_new_must_be := v_caller;
+        WHEN 'fraud_release' THEN
+            v_close_result := 'RELEASED'; v_new_code := 'RISK_REVIEW'; v_new_role := 'risk_officer';
+        WHEN 'submit_to_approval' THEN
+            v_close_result := 'SUBMITTED'; v_new_code := p_to_status;
+            IF p_to_status = 'APPROVAL' THEN
+                v_sla_key := 'APPROVAL';
+            END IF;
+        WHEN 'decide' THEN
+            v_close_result := p_to_status;
+        WHEN 'return_for_supplement' THEN
+            v_close_result := 'RETURN_FOR_SUPPLEMENT';
+            IF p_to_status = 'APPRAISAL' THEN
+                v_new_code := 'APPRAISAL'; v_new_role := 'credit_appraiser'; v_sla_key := 'APPRAISAL';
+            ELSE
+                v_new_code := 'RM_REWORK'; v_new_must_be := v_rm; v_sla_key := 'CUSTOMER_SUPPLEMENT';
+            END IF;
+        WHEN 'withdraw' THEN
+            v_close_result := 'WITHDRAWN';
+    END CASE;
+
+    -- Quyet dinh phai da duoc ghi (credit.loan_decision, chi them) trong buoc nay.
+    IF p_action IN ('decide', 'return_for_supplement') AND NOT EXISTS (
+        SELECT 1
+        FROM credit.loan_decision AS decision
+        WHERE decision.loan_application_id = p_loan_id
+          AND decision.decision_maker_id = v_caller
+          AND decision.decision_type = CASE WHEN p_action = 'decide' THEN p_to_status
+                                            ELSE 'RETURN_FOR_SUPPLEMENT' END
+          AND decision.decision_at >= v_main.received_at
+    ) THEN
+        RAISE EXCEPTION 'no recorded decision for action %', p_action USING ERRCODE = '55000';
+    END IF;
+    -- I3 (V027): so tien duyet phai duong va khong vuot so tien de nghi (cap phe
+    -- duyet tinh tu requested_amount khi trinh duyet).
+    IF p_action = 'decide' AND p_to_status IN ('APPROVED', 'APPROVED_WITH_CONDITIONS') AND EXISTS (
+        SELECT 1
+        FROM credit.loan_decision AS decision
+        JOIN credit.loan_application AS loan
+          ON loan.id = decision.loan_application_id
+        WHERE decision.loan_application_id = p_loan_id
+          AND decision.decision_maker_id = v_caller
+          AND decision.decision_type = p_to_status
+          AND decision.decision_at >= v_main.received_at
+          AND (
+              decision.approved_amount IS NULL
+              OR decision.approved_amount <= 0
+              OR decision.approved_amount > loan.requested_amount
+          )
+    ) THEN
+        RAISE EXCEPTION 'approved amount must be positive and not exceed the requested amount'
+            USING ERRCODE = '22023';
+    END IF;
+
+    -- Tam dung SLA buoc chinh (chờ bo sung) hoac luu so ngay con lai khi giu gian lan.
+    IF p_action IN ('request_info', 'request_explanation', 'fraud_hold') THEN
+        v_expected_remaining := CASE
+            WHEN v_main.due_at IS NULL THEN NULL
+            ELSE credit.workdays_between(v_today, (v_main.due_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::DATE)
+        END;
+        IF p_remaining_workdays IS DISTINCT FROM v_expected_remaining THEN
+            RAISE EXCEPTION 'remaining workdays % do not match %', p_remaining_workdays, v_expected_remaining
+                USING ERRCODE = '22023';
+        END IF;
+        UPDATE credit.case_step AS step
+        SET paused_at = v_now, remaining_workdays = v_expected_remaining, resumed_at = NULL
+        WHERE step.id = v_main.id;
+    ELSIF p_remaining_workdays IS NOT NULL THEN
+        RAISE EXCEPTION 'remaining workdays only apply when pausing' USING ERRCODE = '22023';
+    END IF;
+
+    -- Tinh tiep SLA (E2, F7): tu luc HTTD ghi dat, con lai remaining_workdays.
+    IF p_action IN ('accept_info', 'accept_explanation') THEN
+        IF NOT v_has_side THEN
+            RAISE EXCEPTION 'loan application % has no pending supplement step', p_loan_id
+                USING ERRCODE = '55000';
+        END IF;
+        UPDATE credit.case_step AS step
+        SET completed_at = v_now, result = 'ACCEPTED'
+        WHERE step.id = v_side.id;
+        v_expected_due := CASE
+            WHEN v_main.remaining_workdays IS NULL THEN NULL
+            ELSE credit.add_workdays(v_now, GREATEST(v_main.remaining_workdays, 0))
+        END;
+        IF p_new_due_at IS DISTINCT FROM v_expected_due THEN
+            RAISE EXCEPTION 'resumed due % does not match %', p_new_due_at, v_expected_due
+                USING ERRCODE = '22023';
+        END IF;
+        UPDATE credit.case_step AS step
+        SET due_at = v_expected_due, resumed_at = v_now
+        WHERE step.id = v_main.id;
+        v_result_step := v_main.step_code;
+        v_result_assignee := v_main.assignee_employee_id;
+        v_result_due := v_expected_due;
+    END IF;
+
+    -- Dong buoc chinh.
+    IF v_close_result IS NOT NULL AND v_has_main THEN
+        UPDATE credit.case_step AS step
+        SET completed_at = v_now, result = v_close_result, reason = p_reason
+        WHERE step.id = v_main.id;
+    END IF;
+    IF p_action = 'withdraw' AND v_has_side THEN
+        UPDATE credit.case_step AS step
+        SET completed_at = v_now, result = 'WITHDRAWN', reason = p_reason
+        WHERE step.loan_application_id = p_loan_id
+          AND step.completed_at IS NULL;
+    END IF;
+
+    -- Mo buoc moi.
+    IF v_new_code IS NOT NULL THEN
+        IF v_new_code = 'APPROVAL' OR v_new_code = 'COUNCIL_SESSION' THEN
+            v_required_tier := credit.required_tier(p_loan_id);
+            IF p_approval_tier IS DISTINCT FROM v_required_tier THEN
+                RAISE EXCEPTION 'approval tier % does not match required tier %', p_approval_tier, v_required_tier
+                    USING ERRCODE = '22023';
+            END IF;
+            IF v_new_code = 'APPROVAL' THEN
+                IF NOT credit.is_eligible_approver(p_new_assignee, p_loan_id, v_required_tier, v_home_branch) THEN
+                    RAISE EXCEPTION 'assignee is not an eligible approver' USING ERRCODE = '22023';
+                END IF;
+            ELSIF p_new_assignee IS NOT NULL OR (
+                v_required_tier < 3 AND EXISTS (
+                    SELECT 1
+                    FROM identity.employee_authority AS authority
+                    WHERE credit.is_eligible_approver(
+                        authority.employee_id, p_loan_id, v_required_tier, v_home_branch
+                    )
+                )
+            ) THEN
+                RAISE EXCEPTION 'council session only when no individual approver is eligible'
+                    USING ERRCODE = '22023';
+            END IF;
+        ELSIF p_approval_tier IS NOT NULL THEN
+            RAISE EXCEPTION 'approval tier only applies when submitting to approval' USING ERRCODE = '22023';
+        ELSIF v_new_role IS NOT NULL THEN
+            IF NOT credit.has_active_role(p_new_assignee, v_new_role) THEN
+                RAISE EXCEPTION 'assignee lacks role %', v_new_role USING ERRCODE = '22023';
+            END IF;
+        ELSIF p_new_assignee IS NULL OR p_new_assignee IS DISTINCT FROM v_new_must_be THEN
+            RAISE EXCEPTION 'assignee for % must be %', v_new_code, v_new_must_be USING ERRCODE = '22023';
+        END IF;
+
+        IF p_action = 'fraud_release' THEN
+            -- Q-N: dong xu ly gian lan thi Y kien Rui ro tinh tiep so ngay con lai.
+            SELECT held.remaining_workdays INTO v_held_remaining
+            FROM credit.case_step AS held
+            WHERE held.loan_application_id = p_loan_id
+              AND held.step_code = 'RISK_REVIEW'
+              AND held.result = 'FRAUD_HOLD'
+            ORDER BY held.completed_at DESC
+            LIMIT 1;
+            v_expected_due := CASE
+                WHEN v_held_remaining IS NULL THEN NULL
+                ELSE credit.add_workdays(v_now, GREATEST(v_held_remaining, 0))
+            END;
+        ELSIF v_sla_key IS NOT NULL THEN
+            v_expected_due := credit.add_workdays(
+                v_now,
+                (SELECT parameter.workdays FROM credit.sla_parameter AS parameter
+                 WHERE parameter.step_code = v_sla_key)
+            );
+        ELSE
+            v_expected_due := NULL;
+        END IF;
+        IF p_new_due_at IS DISTINCT FROM v_expected_due THEN
+            RAISE EXCEPTION 'due % does not match %', p_new_due_at, v_expected_due USING ERRCODE = '22023';
+        END IF;
+
+        INSERT INTO credit.case_step (
+            id, loan_application_id, step_code, assignee_employee_id, received_at,
+            due_at, resumed_at, created_by, created_at
+        )
+        VALUES (
+            gen_random_uuid(), p_loan_id, v_new_code, p_new_assignee, v_now,
+            v_expected_due, CASE WHEN p_action = 'fraud_release' THEN v_now END, v_caller, v_now
+        );
+        IF p_action IN ('request_info', 'request_explanation') THEN
+            -- Buoc chinh van la buoc cua ho so; buoc cho bo sung chay song song.
+            v_result_step := v_main.step_code;
+            v_result_assignee := v_main.assignee_employee_id;
+            v_result_due := NULL;
+        ELSE
+            v_result_step := v_new_code;
+            v_result_assignee := p_new_assignee;
+            v_result_due := v_expected_due;
+        END IF;
+    ELSIF p_action NOT IN ('accept_info', 'accept_explanation') THEN
+        IF p_new_assignee IS NOT NULL OR p_new_due_at IS NOT NULL OR p_approval_tier IS NOT NULL THEN
+            RAISE EXCEPTION 'action % opens no step', p_action USING ERRCODE = '22023';
+        END IF;
+        v_result_step := v_main.step_code;
+    END IF;
+
+    -- Q-N: ho so vao Y kien Rui ro thi Tuan thu (y kien con thu hai) phai doc duoc.
+    IF p_to_status = 'RISK_REVIEW' THEN
+        PERFORM credit.ensure_compliance_reader(p_loan_id, v_caller, p_action);
+    END IF;
+
+    UPDATE credit.loan_application AS loan
+    SET status = p_to_status,
+        version = loan.version + 1,
+        updated_at = v_now,
+        updated_by = v_caller,
+        submitted_at = CASE WHEN p_action = 'submit_to_approval' THEN v_now ELSE loan.submitted_at END,
+        approval_tier = CASE WHEN p_action = 'submit_to_approval' THEN v_required_tier ELSE loan.approval_tier END,
+        withdraw_reason = CASE WHEN p_action = 'withdraw' THEN p_withdraw_kind || ': ' || p_reason
+                               ELSE loan.withdraw_reason END
+    WHERE loan.id = p_loan_id
+    RETURNING loan.version INTO v_version;
+
+    RETURN QUERY SELECT p_to_status, v_version, v_result_step, v_result_assignee, v_result_due;
+END
+$function$;
+
+REVOKE ALL ON FUNCTION credit.apply_transition(
+    UUID, TEXT, INT, TEXT, TEXT, TEXT, UUID, TIMESTAMPTZ, INT, SMALLINT, TEXT
+) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION credit.apply_transition(
+    UUID, TEXT, INT, TEXT, TEXT, TEXT, UUID, TIMESTAMPTZ, INT, SMALLINT, TEXT
+) TO bank_app;

@@ -180,7 +180,9 @@ class LoanRepository:
             "relationship_type": "SUPPORTING_DOCUMENT",
             "created_at": datetime.now(UTC),
         }
-        # Touching the protected parent makes a missing/unauthorized loan a no-op.
+        # Touching the protected parent makes a missing/unauthorized loan a no-op;
+        # can_link_document (V027) requires write access to the loan and a document
+        # owned by its primary customer or a confirmed related party.
         row = await execute_returning(
             self.session,
             """
@@ -192,6 +194,9 @@ class LoanRepository:
             FROM credit.loan_application AS la
             JOIN document.document AS d ON d.id = :document_id
             WHERE la.id = :loan_id
+              AND identity.can_link_document(
+                  identity.current_employee_id(), d.id, 'LOAN_APPLICATION', la.id
+              )
             RETURNING *
             """,
             {**payload, "loan_id": loan_application_id},

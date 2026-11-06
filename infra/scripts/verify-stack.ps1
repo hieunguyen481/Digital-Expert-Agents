@@ -195,7 +195,7 @@ Test-Step 'Core services are running and healthy' {
 
 Test-Step 'Flyway migrations are complete' {
     [void](Invoke-ComposeCapture run --rm flyway)
-    Assert-True ((Invoke-PostgresScalar "SELECT count(*) FROM public.flyway_schema_history WHERE success") -eq '31') 'Expected 31 successful migrations'
+    Assert-True ((Invoke-PostgresScalar "SELECT count(*) FROM public.flyway_schema_history WHERE success") -eq '32') 'Expected 32 successful migrations'
 }
 
 Test-Step 'PostgreSQL databases, extensions, schemas, comments, RLS, and roles are valid' {

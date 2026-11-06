@@ -11,7 +11,7 @@ tables.
   required extensions during first PostgreSQL volume initialization.
 - `bootstrap/create-roles.sh` creates the five least-privilege login roles,
   isolates the two databases, and grants `pg_monitor` to `bank_readonly`.
-- `migrations/` holds 31 ordered Flyway versioned migrations (`V021_1` etc. are
+- `migrations/` holds 32 ordered Flyway versioned migrations (`V021_1` etc. are
   Flyway versions 21.1):
   - V001 databases and extensions, V002 schemas, V003 identity, V004 customer,
     V005 banking, V006 storage, V007 documents, V008 credit, V009 policy,
@@ -24,7 +24,15 @@ tables.
     policies, V024 separation and exposure, V024_1 exposure latest snapshot;
   - V025 workflow transition function, V025_1 compliance risk actions,
     V025_2 compliance reader on risk review;
-  - V026 column comments for the workflow tables.
+  - V026 column comments for the workflow tables;
+  - V027 final review fixes: RLS on `document.document_link` (links require
+    write access to the case/customer and a same-owner document; the link branch
+    of `identity.can_write_document` only counts same-owner links), a trigger
+    that records relationship-manager changes in
+    `customer.relationship_manager_history` (E8), the approved amount capped at
+    the requested amount inside `credit.apply_transition`, and
+    `credit.list_case_steps` masking fraud/AML step reasons (Q-M; `bank_app` no
+    longer selects `credit.case_step.reason` directly).
 - `seeds/run-seeds.sh` applies the four repeatable, idempotent seed files in
   their required dependency order.
 - `partitions/create-future-partitions.sql` creates one future UTC calendar

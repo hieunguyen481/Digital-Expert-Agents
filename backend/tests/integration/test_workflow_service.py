@@ -201,6 +201,11 @@ class Case:
         await m.execute("DELETE FROM document.document WHERE id = $1", self.document_id)
         await m.execute("DELETE FROM document.document WHERE id = ANY($1::uuid[])", self.extra_documents)
         await m.execute("DELETE FROM credit.loan_application WHERE id = $1", self.loan_id)
+        # V027: trigger ghi lich su QHKH khi tao khach co QHKH.
+        await m.execute(
+            "DELETE FROM customer.relationship_manager_history WHERE customer_id = $1",
+            self.customer_id,
+        )
         await m.execute("DELETE FROM customer.customer WHERE id = $1", self.customer_id)
         await m.execute("DELETE FROM customer.party WHERE id = $1", self.party_id)
 

@@ -25,13 +25,6 @@ from app.workflow.sla import TZ
 
 VERSION_CONFLICT_SQLSTATE = "WF409"
 
-_STEP_COLUMNS = """
-    step.id, step.loan_application_id, step.step_code, step.assignee_employee_id,
-    step.received_at, step.due_at, step.paused_at, step.remaining_workdays,
-    step.resumed_at, step.completed_at, step.result, step.reason, step.created_by,
-    step.created_at
-"""
-
 
 def _sqlstate(error: DBAPIError) -> str | None:
     orig: Any = error.orig
@@ -79,7 +72,7 @@ class WorkflowRepository:
             self.session,
             """
             SELECT la.id, la.status, la.version, la.primary_customer_id, la.approval_tier,
-                   customer_record.relationship_manager_id
+                   la.requested_amount, customer_record.relationship_manager_id
             FROM credit.loan_application AS la
             LEFT JOIN customer.customer AS customer_record
               ON customer_record.id = la.primary_customer_id
@@ -89,15 +82,12 @@ class WorkflowRepository:
         )
 
     async def list_steps(self, loan_id: UUID) -> list[Record]:
+        # Q-M (V027): bank_app khong doc truc tiep case_step.reason; ham SQL an ly
+        # do buoc gian lan / AML voi nguoi khong co vai tro Tuan thu, Rui ro, Phe
+        # duyet, Kiem toan (reason = NULL, reason_restricted = TRUE).
         return await fetch_all(
             self.session,
-            f"""
-            SELECT {_STEP_COLUMNS}
-            FROM credit.loan_application AS la
-            JOIN credit.case_step AS step ON step.loan_application_id = la.id
-            WHERE la.id = :loan_id
-            ORDER BY step.received_at, step.created_at, step.id
-            """,  # noqa: S608 - cot co dinh
+            "SELECT * FROM credit.list_case_steps(:loan_id)",
             {"loan_id": loan_id},
         )
 
