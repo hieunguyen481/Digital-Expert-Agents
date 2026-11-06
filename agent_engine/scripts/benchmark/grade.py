@@ -15,8 +15,28 @@ def valid_sections() -> set[str]:
     return {m.group(1) for line in text.splitlines() if line.startswith("## ") for m in _SEC.finditer(line)}
 
 
+GRADER_VERSION = "v2"
+# v2: mẫu "forbidden" bị bỏ qua khi khớp nằm trong câu phủ định (v1 khớp nhầm "Blacklist không hit").
+_NEG_WORDS = ("không", "chưa", "no", "false")
+_NEG_AFTER = re.compile(r"^\s{0,3}(=\s*false|false|trở lên|trở xuống)", re.IGNORECASE)
+
+
 def _has(pattern: str, text: str) -> bool:
     return re.search(pattern, text, re.IGNORECASE) is not None
+
+
+def _is_negated(text: str, m: re.Match, pattern: str) -> bool:
+    """Phủ định nếu trong đoạn khớp hoặc <=12 ký tự trước nó có không/chưa/false (trừ từ chính mẫu
+    đang tìm, vd. mẫu "chưa có" thì "chưa" không tính), hoặc ngay sau có =false/false/trở lên."""
+    near = text[max(0, m.start() - 12):m.end()].lower()
+    words = [w for w in _NEG_WORDS if w not in pattern.lower()]
+    if any(re.search(rf"\b{w}\b", near) for w in words):
+        return True
+    return bool(_NEG_AFTER.match(text[m.end():m.end() + 14]))
+
+
+def _has_affirmed(pattern: str, text: str) -> bool:
+    return any(not _is_negated(text, m, pattern) for m in re.finditer(pattern, text, re.IGNORECASE))
 
 
 def grade(case: dict, out: dict) -> dict[str, Any]:
@@ -27,7 +47,7 @@ def grade(case: dict, out: dict) -> dict[str, Any]:
 
     found = {f["id"]: all(_has(p, text) for p in f["all"]) for f in case["required_findings"]}
     cites = {c["id"]: _has(c["pattern"], cite_pool) for c in case["required_citations"]}
-    false_hits = [f["id"] for f in case["forbidden"] if _has(f["pattern"], text)]
+    false_hits = [f["id"] for f in case["forbidden"] if _has_affirmed(f["pattern"], text)]
     called = set(out.get("tools_called", []))
     tools = {t: t in called for t in case["required_tools"]}
 
@@ -42,6 +62,7 @@ def grade(case: dict, out: dict) -> dict[str, Any]:
         "tools": tools, "tools_hit": n(tools), "tools_total": len(tools),
         "false_findings": false_hits, "false_count": len(false_hits),
         "invalid_citations": bad_cites,
+        "grader_version": GRADER_VERSION,
         "gate": out.get("gate"), "gate_ok": out.get("gate") in case["expected_gate"],
     }
 
