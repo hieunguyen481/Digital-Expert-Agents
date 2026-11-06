@@ -382,6 +382,8 @@ class ConversationService:
             assistant_route["complexity_level"] = reply.complexity_level
         if reply.analysis_case_id is not None:
             assistant_route["analysis_case_id"] = reply.analysis_case_id
+        if reply.metadata.get("engine_case_id"):
+            assistant_route["engine_case_id"] = reply.metadata["engine_case_id"]
 
         assistant_row = await self._repository.add_message(
             conversation_id,

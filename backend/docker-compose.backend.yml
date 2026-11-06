@@ -46,7 +46,12 @@ services:
       FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY:?Generate infra/.env.local}
       OCR_PROVIDER: mock
       EMBEDDING_PROVIDER: mock
-      LLM_PROVIDER: mock
+      # Mặc định mock; đặt LLM_PROVIDER=openrouter (+ LLM_API_URL/KEY/MODEL_NAME trong infra/.env.local) để bật LLM thật.
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_API_URL: ${LLM_API_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL_NAME: ${LLM_MODEL_NAME:-mock-model}
+      AGENT_ENGINE_URL: ${AGENT_ENGINE_URL:-http://engine:8010}
       LOG_FORMAT: json
       LOG_LEVEL: INFO
     ports:

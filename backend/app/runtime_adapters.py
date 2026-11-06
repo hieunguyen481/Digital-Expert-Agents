@@ -22,6 +22,7 @@ from app.db.rls_context import set_rls_context
 from app.repositories.identity_repository import IdentityRepository
 from app.providers.llm.openai_compat import OpenAICompatLLMProvider
 from app.services.agent_engine_client import AgentEngineClient
+from app.services.engine_conversation_responder import EngineConversationResponder
 from app.services.document_highlight_service import DocumentHighlighter
 from app.services.llm_conversation_responder import LLMConversationResponder
 from app.services.mock_conversation_responder import MockConversationResponder
@@ -302,11 +303,6 @@ class DefaultRuntimeAdapters:
             and settings.llm_api_url
             and settings.llm_api_key is not None
         ):
-            engine = (
-                AgentEngineClient(settings.agent_engine_url)
-                if settings.agent_engine_url
-                else None
-            )
             vision_llm = OpenAICompatLLMProvider(
                 provider=settings.llm_provider,
                 api_url=settings.llm_api_url,
@@ -321,14 +317,17 @@ class DefaultRuntimeAdapters:
                     api_key=settings.llm_api_key.get_secret_value(),
                     model_name=settings.llm_model_name,
                 ),
-                engine=engine,
-                engine_business_id=settings.agent_engine_business_id,
-                engine_wait_seconds=settings.agent_engine_wait_seconds,
                 highlighter=DocumentHighlighter(vision_llm, storage),
                 storage=storage,
             )
         else:
             responder = None
+        engine = AgentEngineClient(settings.agent_engine_url) if settings.agent_engine_url else None
+        application.state.agent_engine = engine
+        if engine is not None and responder is not None:
+            responder = EngineConversationResponder(
+                responder, engine, settings.agent_engine_wait_seconds
+            )
         application.state.conversation_responder = responder
         application.state.readiness_probe = InfrastructureReadinessProbe(
             settings, redis, storage

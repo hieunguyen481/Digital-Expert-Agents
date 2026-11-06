@@ -26,9 +26,13 @@ def _chunk(text: str) -> list[str]:
 @lru_cache(maxsize=8)
 def _index(domain: str):
     chunks: list[tuple[str, str]] = []  # (source, text)
-    for path in sorted(config.RAG_CORPUS_DIR.glob(f"{domain}*.md")):
+    # `shared_*`: chính sách CS-TD-SME/2025 dùng chung; nguồn trích dẫn là điều khoản (§).
+    for path in sorted(config.RAG_CORPUS_DIR.glob(f"{domain}*.md")) + sorted(
+            config.RAG_CORPUS_DIR.glob("shared_*.md")):
         for c in _chunk(path.read_text(encoding="utf-8")):
-            chunks.append((path.name, c))
+            src = c.splitlines()[0].lstrip("# ").strip() if path.name.startswith("shared_") \
+                and c.startswith("## ") else path.name
+            chunks.append((src, c))
     if not chunks:
         return None, []
     bm25 = BM25Okapi([_tokenize(c[1]) for c in chunks])

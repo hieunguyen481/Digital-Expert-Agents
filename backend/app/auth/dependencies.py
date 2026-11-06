@@ -8,6 +8,7 @@ from typing import Annotated, Any
 from fastapi import Depends, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from app.auth.bearer import current_bearer
 from app.auth.jwt_validator import JWTValidator
 from app.auth.login_rules import LoginRuleEngine
 from app.auth.principal import CurrentPrincipal, PrincipalResolver, build_current_principal
@@ -51,6 +52,7 @@ async def get_current_principal(
 
     principal = build_current_principal(record, validated.realm_roles)
     request.state.principal = principal
+    current_bearer.set(credentials.credentials)
     bind_contextvars(actor_id=str(principal.employee_id))
     return principal
 

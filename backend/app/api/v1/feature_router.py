@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    agent_cases,
     agent_simulations,
     analyses,
     audit,
@@ -34,3 +35,4 @@ router.include_router(notifications.router)
 router.include_router(policies.router)
 router.include_router(audit.router)
 router.include_router(work_items.router)
+router.include_router(agent_cases.router)
