@@ -141,15 +141,6 @@ class Case:
             uuid4(), self.loan_id, step_code, assignee, completed, result, CREDIT_OFFICER,
         )
 
-    async def grant_read(self, employee_id: UUID) -> None:
-        """Pham vi LOAN_APPLICATION (loan:read): nguoi khong giu buoc doc duoc ho so."""
-        await self.mig.execute(
-            "INSERT INTO identity.employee_scope (id, employee_id, scope_type, scope_id,"
-            " permission_code, valid_from, created_at) VALUES ($1, $2, 'LOAN_APPLICATION', $3,"
-            " 'loan:read', now() - interval '1 minute', now())",
-            uuid4(), employee_id, self.loan_id,
-        )
-
     async def add_checklist_item(
         self, code: str, document_type: str, status: str, *, document_id: UUID | None = None
     ) -> None:
@@ -643,18 +634,69 @@ async def test_return_for_supplement(
     assert await mig.fetchval("SELECT credit.is_excluded($1, $2)", APPROVER_HO, case.loan_id) is False
 
 
+async def enter_risk_review(engine: AsyncEngine, mig: asyncpg.Connection, case: Case) -> None:
+    """Dua ho so APPRAISAL vao RISK_REVIEW bang chinh credit.apply_transition.
+
+    Cong appraisal_submit cua WorkflowService luon chan REPORT_MISSING toi Ke hoach 5,
+    nen tham dinh vien goi thang ham SQL (cong Python khong nam trong ham; moi kiem
+    tra cua ham - vai tro, quyen ghi, phien ban, nguoi nhan, han - van chay), dung
+    nguoi nhan va han tinh nhu WorkflowService.
+    """
+    await case.add_step("APPRAISAL", CREDIT_APPRAISER)
+    appraiser = await principal(mig, CREDIT_APPRAISER)
+    async with (
+        AsyncSession(engine) as session,
+        rls_transaction(session, appraiser.employee_id, appraiser.branch_id),
+    ):
+        repo = WorkflowRepository(session)
+        now = await repo.db_now()
+        due = sla.add_workdays(now, await repo.sla_workdays("RISK_REVIEW"), await repo.holidays())
+        risk = await repo.pick_role_assignee(case.loan_id, "RISK_REVIEW", "risk_officer")
+        await repo.apply_transition(
+            case.loan_id, action="submit_to_risk", expected_version=1, from_status="APPRAISAL",
+            to_status="RISK_REVIEW", reason=None, new_assignee=risk, new_due_at=due,
+            remaining_workdays=None, approval_tier=None, withdraw_kind=None,
+        )
+
+
+async def compliance_scopes(mig: asyncpg.Connection, loan_id: UUID) -> list[asyncpg.Record]:
+    return await mig.fetch(
+        "SELECT employee_id, permission_code::text AS permission, assigned_by, reason"
+        " FROM identity.employee_scope WHERE scope_type = 'LOAN_APPLICATION' AND scope_id = $1",
+        loan_id,
+    )
+
+
+async def test_entering_risk_review_grants_compliance_read(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="APPRAISAL")
+    compliance = await principal(mig, COMPLIANCE_HO)
+    # Truoc khi vao Y kien Rui ro, Tuan thu khong doc duoc ho so.
+    with pytest.raises(LookupError):
+        await transition(engine, compliance, case.loan_id, "fraud_hold", 1, reason="x")
+    await enter_risk_review(engine, mig, case)
+    scopes = await compliance_scopes(mig, case.loan_id)
+    assert [tuple(r)[:3] for r in scopes] == [(COMPLIANCE_HO, "loan:read", CREDIT_APPRAISER)]
+    assert "submit_to_risk" in scopes[0]["reason"]
+    assert (await open_step(mig, case.loan_id, "RISK_REVIEW"))["assignee_employee_id"] == RISK_HO
+    async with (
+        AsyncSession(engine) as session,
+        rls_transaction(session, compliance.employee_id, compliance.branch_id),
+    ):
+        loan = await WorkflowRepository(session).get_loan(case.loan_id)
+    assert loan is not None and loan["status"] == "RISK_REVIEW"
+
+
 @pytest.mark.parametrize("actor", [RISK_HO, COMPLIANCE_HO])
 async def test_risk_return_resets_appraisal_to_five_workdays(
     engine: AsyncEngine, mig: asyncpg.Connection, case: Case, actor: UUID
 ) -> None:
-    await case.create(status="RISK_REVIEW")
-    await case.add_step("APPRAISAL", CREDIT_APPRAISER, completed=True, result="SUBMITTED")
-    await case.add_step("RISK_REVIEW", RISK_HO)
-    if actor == COMPLIANCE_HO:
-        await case.grant_read(COMPLIANCE_HO)  # Tuan thu khong giu buoc RISK_REVIEW
+    await case.create(status="APPRAISAL")
+    await enter_risk_review(engine, mig, case)  # Tuan thu doc duoc, khong giu buoc RISK_REVIEW
     holidays = await holidays_of(mig)
     who = await principal(mig, actor)
-    result = await transition(engine, who, case.loan_id, "risk_return", 1, reason="Sai DSCR")
+    result = await transition(engine, who, case.loan_id, "risk_return", 2, reason="Sai DSCR")
     appraisal = await open_step(mig, case.loan_id, "APPRAISAL")
     assert (result.status, result.step_code) == ("APPRAISAL", "APPRAISAL")
     assert result.assignee_employee_id == CREDIT_APPRAISER == appraisal["assignee_employee_id"]
@@ -668,16 +710,15 @@ async def test_risk_return_resets_appraisal_to_five_workdays(
 async def test_compliance_request_and_accept_explanation(
     engine: AsyncEngine, mig: asyncpg.Connection, case: Case
 ) -> None:
-    await case.create(status="RISK_REVIEW")
+    await case.create(status="APPRAISAL")
     await case.add_step("CHECKING", DOCUMENT_REVIEWER, completed=True, result="PASSED")
-    await case.add_step("RISK_REVIEW", RISK_HO)
-    await case.grant_read(COMPLIANCE_HO)
+    await enter_risk_review(engine, mig, case)
     holidays = await holidays_of(mig)
     risk_step = await open_step(mig, case.loan_id, "RISK_REVIEW")
 
     compliance = await principal(mig, COMPLIANCE_HO)
     r1 = await transition(
-        engine, compliance, case.loan_id, "request_explanation", 1, reason="Chua du can cu cickh"
+        engine, compliance, case.loan_id, "request_explanation", 2, reason="Chua du can cu cickh"
     )
     paused = await step_by_id(mig, risk_step["id"])
     pending = await open_step(mig, case.loan_id, "RISK_PENDING_INFO")
@@ -689,29 +730,30 @@ async def test_compliance_request_and_accept_explanation(
     assert pending["due_at"] == sla.add_workdays(pending["received_at"], 5, holidays)
 
     httd = await principal(mig, DOCUMENT_REVIEWER)
-    r2 = await transition(engine, httd, case.loan_id, "accept_explanation", 2)
+    r2 = await transition(engine, httd, case.loan_id, "accept_explanation", 3)
     resumed = await step_by_id(mig, risk_step["id"])
     assert (r2.status, r2.step_code, r2.assignee_employee_id) == ("RISK_REVIEW", "RISK_REVIEW", RISK_HO)
     assert resumed["due_at"] == sla.add_workdays(resumed["resumed_at"], remaining, holidays)
     assert r2.due_at == resumed["due_at"]
     assert (await closed_step(mig, case.loan_id, "RISK_PENDING_INFO"))["result"] == "ACCEPTED"
-    assert tuple(await loan_row(mig, case.loan_id)) == ("RISK_REVIEW", 3)
+    assert tuple(await loan_row(mig, case.loan_id)) == ("RISK_REVIEW", 4)
     assert await audit_actions(mig, case.loan_id) == [
         "WORKFLOW_REQUEST_EXPLANATION", "WORKFLOW_ACCEPT_EXPLANATION",
     ]
+    # Quay lai RISK_REVIEW khong cap them pham vi (idempotent).
+    assert [r["employee_id"] for r in await compliance_scopes(mig, case.loan_id)] == [COMPLIANCE_HO]
 
 
 async def test_compliance_fraud_hold_then_release_keeps_remaining_days(
     engine: AsyncEngine, mig: asyncpg.Connection, case: Case
 ) -> None:
-    await case.create(status="RISK_REVIEW")
-    await case.add_step("RISK_REVIEW", RISK_HO)
-    await case.grant_read(COMPLIANCE_HO)
+    await case.create(status="APPRAISAL")
+    await enter_risk_review(engine, mig, case)
     holidays = await holidays_of(mig)
     risk_step = await open_step(mig, case.loan_id, "RISK_REVIEW")
     compliance = await principal(mig, COMPLIANCE_HO)
 
-    r1 = await transition(engine, compliance, case.loan_id, "fraud_hold", 1, reason="Dau hieu gia mao")
+    r1 = await transition(engine, compliance, case.loan_id, "fraud_hold", 2, reason="Dau hieu gia mao")
     held = await step_by_id(mig, risk_step["id"])
     remaining = sla.workdays_between(vn_date(held["paused_at"]), vn_date(risk_step["due_at"]), holidays)
     hold = await open_step(mig, case.loan_id, "FRAUD_HOLD")
@@ -722,20 +764,22 @@ async def test_compliance_fraud_hold_then_release_keeps_remaining_days(
     assert held["completed_at"] is not None
     assert hold["assignee_employee_id"] == COMPLIANCE_HO and hold["due_at"] is None
 
-    r2 = await transition(engine, compliance, case.loan_id, "fraud_release", 2, reason="Da xu ly xong")
+    r2 = await transition(engine, compliance, case.loan_id, "fraud_release", 3, reason="Da xu ly xong")
     review = await open_step(mig, case.loan_id, "RISK_REVIEW")
     assert (r2.status, r2.step_code, r2.assignee_employee_id) == ("RISK_REVIEW", "RISK_REVIEW", RISK_HO)
     assert review["assignee_employee_id"] == RISK_HO
     assert review["due_at"] == sla.add_workdays(review["received_at"], remaining, holidays)
     assert review["resumed_at"] == review["received_at"]
     assert (await closed_step(mig, case.loan_id, "FRAUD_HOLD"))["result"] == "RELEASED"
-    assert tuple(await loan_row(mig, case.loan_id)) == ("RISK_REVIEW", 3)
+    assert tuple(await loan_row(mig, case.loan_id)) == ("RISK_REVIEW", 4)
     assert await audit_actions(mig, case.loan_id) == ["WORKFLOW_FRAUD_HOLD", "WORKFLOW_FRAUD_RELEASE"]
+    assert [r["employee_id"] for r in await compliance_scopes(mig, case.loan_id)] == [COMPLIANCE_HO]
 
 
 async def test_compliance_without_read_access_cannot_act(
     engine: AsyncEngine, mig: asyncpg.Connection, case: Case
 ) -> None:
+    # Ho so dat thang vao RISK_REVIEW (khong qua apply_transition): khong co pham vi Tuan thu.
     await case.create(status="RISK_REVIEW")
     await case.add_step("RISK_REVIEW", RISK_HO)
     compliance = await principal(mig, COMPLIANCE_HO)
