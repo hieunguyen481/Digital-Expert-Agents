@@ -120,3 +120,36 @@ body {
   background: var(--shb-orange-100);
   color: var(--shb-navy-800);
 }
+
+/* Biến theo docs/design/batch-1/design-system.md §1.1 (khung ứng dụng mới). */
+:root {
+  --cta: #c44d0e;
+  --cta-hover: #a9410b;
+  --canvas: #f6f4f0;
+  --surface: #ffffff;
+  --soft: #faf8f5;
+  --soft-2: #f3f0eb;
+  --border: #eae3da;
+  --border-strong: #d9d0c5;
+  --divider: #f0ebe4;
+  --text: #18212b;
+  --text-2: #475467;
+  --text-3: #5f6b7a;
+  --text-disabled: #98a2b3;
+  --success: #11734f;
+  --success-bg: #ecfaf4;
+  --warning: #94560a;
+  --warning-bg: #fff6e5;
+  --error: #b42318;
+  --error-bg: #fef3f2;
+  --info: #226189;
+  --info-bg: #eff8fc;
+  --ai: #5b3fa8;
+  --ai-strong: #4a3191;
+  --ai-bg: #f4f1fc;
+  --ai-border: #cfc3ee;
+  --rail-w: 64px;
+  --ai-w: 408px;
+  --topbar-h: 56px;
+  --font: 'Be Vietnam Pro', Inter, 'Segoe UI', system-ui, sans-serif;
+}

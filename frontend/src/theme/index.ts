@@ -9,14 +9,14 @@ import { shbComponentOverrides } from './componentOverrides';
 export const shbTheme: ThemeConfig = {
   token: {
     // Thương hiệu
-    colorPrimary: shbColors.orange[500],
-    colorPrimaryHover: shbColors.orange[400],
+    colorPrimary: '#C44D0E',
+    colorPrimaryHover: '#A9410B',
     colorPrimaryActive: shbColors.orange[600],
     colorPrimaryBg: shbColors.orange[50],
     colorPrimaryBgHover: shbColors.orange[100],
     colorPrimaryBorder: shbColors.orange[200],
 
-    colorLink: shbColors.orange[600],
+    colorLink: '#2F2E79',
     colorLinkHover: shbColors.orange[500],
     colorLinkActive: shbColors.orange[700],
 
@@ -28,14 +28,14 @@ export const shbTheme: ThemeConfig = {
     colorTextDescription: shbColors.neutral.textSecondary,
 
     // Nền
-    colorBgLayout: shbColors.neutral.canvas,
+    colorBgLayout: '#F6F4F0',
     colorBgContainer: shbColors.neutral.surface,
     colorBgElevated: shbColors.neutral.white,
     colorBgSpotlight: shbColors.navy[800],
 
     // Viền
     colorBorder: shbColors.neutral.border,
-    colorBorderSecondary: shbColors.neutral.border,
+    colorBorderSecondary: '#F0EBE4',
 
     // Ngữ nghĩa
     colorSuccess: shbColors.semantic.success,
@@ -44,7 +44,7 @@ export const shbTheme: ThemeConfig = {
     colorInfo: shbColors.semantic.info,
 
     // Hình dạng
-    borderRadius: shbRadius.medium,
+    borderRadius: 8,
     borderRadiusLG: shbRadius.large,
     borderRadiusSM: shbRadius.small,
     borderRadiusXS: 6,
@@ -52,19 +52,20 @@ export const shbTheme: ThemeConfig = {
     // Typography
     fontFamily: shbTypography.fontFamily,
     fontFamilyCode: shbTypography.fontFamilyCode,
-    fontSize: shbTypography.size.body,
+    fontSize: 14,
     fontSizeLG: shbTypography.size.bodyLarge,
     fontSizeSM: shbTypography.size.supporting,
     fontSizeHeading1: 34,
     fontSizeHeading2: 26,
     fontSizeHeading3: 20,
-    fontSizeHeading4: 17,
+    fontSizeHeading4: 20,
+    fontSizeHeading5: 16,
     lineHeight: shbTypography.lineHeight.body,
 
     // Control
-    controlHeight: 40,
+    controlHeight: 36,
     controlHeightLG: 46,
-    controlHeightSM: 32,
+    controlHeightSM: 30,
 
     // Motion — micro-interaction do CSS/Motion đảm nhiệm, giữ AntD nhanh & nhẹ.
     motionDurationFast: '0.12s',

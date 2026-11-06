@@ -42,7 +42,26 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: unknown) => Promise.reject(normalizeError(error)),
+  async (error: unknown) => {
+    // 401: token có thể vừa hết hạn phía server. Làm mới cưỡng bức rồi gửi lại đúng một lần;
+    // làm mới lỗi thì getValidAccessToken tự chuyển về /login.
+    if (axios.isAxiosError(error) && error.response?.status === 401 && error.config) {
+      const config = error.config as InternalAxiosRequestConfig & { _retried?: boolean };
+      if (!config._retried) {
+        config._retried = true;
+        try {
+          const token = await getValidAccessToken(true);
+          if (token) {
+            config.headers.set('Authorization', `Bearer ${token}`);
+            return apiClient.request(config);
+          }
+        } catch (refreshError) {
+          return Promise.reject(normalizeError(refreshError));
+        }
+      }
+    }
+    return Promise.reject(normalizeError(error));
+  },
 );
 
 /* ---------------- Error normalization ---------------- */

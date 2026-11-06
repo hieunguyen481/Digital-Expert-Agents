@@ -43,13 +43,28 @@ export async function login(returnTo = '/'): Promise<void> {
   await client.login({ redirectUri: `${window.location.origin}${returnTo}` });
 }
 
-/** Return a short-lived in-memory token; tokens are never written to browser storage. */
-export async function getValidAccessToken(): Promise<string | null> {
+/** Đưa người dùng về /login kèm đường quay lại (dùng khi phiên không làm mới được). */
+export function redirectToLogin(): void {
+  const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+  window.location.assign(`/login?returnTo=${returnTo}`);
+}
+
+/**
+ * Trả token ngắn hạn trong bộ nhớ (không ghi vào storage). Tự làm mới khi sắp hết hạn;
+ * làm mới lỗi (phiên Keycloak đã mất) thì chuyển về /login giữ đường quay lại.
+ * `force` buộc làm mới dù token còn hạn (dùng khi backend trả 401).
+ */
+export async function getValidAccessToken(force = false): Promise<string | null> {
   if (useMockApi) return null;
 
   const client = getKeycloak();
   if (!client.authenticated) return null;
-  await client.updateToken(30);
+  try {
+    await client.updateToken(force ? -1 : 30);
+  } catch {
+    redirectToLogin();
+    throw new Error('Phiên đăng nhập đã hết hạn. Đang chuyển về trang đăng nhập.');
+  }
   return client.token ?? null;
 }
 

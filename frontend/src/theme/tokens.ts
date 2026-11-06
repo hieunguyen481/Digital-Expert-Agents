@@ -91,7 +91,7 @@ export const shbShadow = {
 /** Typography. */
 export const shbTypography = {
   fontFamily:
-    'Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
+    '"Be Vietnam Pro", Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
   fontFamilyCode:
     'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
   size: {
