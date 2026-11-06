@@ -261,23 +261,37 @@ class CustomerRepository:
     ) -> Record | None:
         """Atomically claim an unassigned customer or renew the same employee's claim."""
 
+        # Da la chu: tra ban ghi hien tai, khong UPDATE (khong tang version).
+        # Chua co chu: nhan khach voi kiem tra version lac quan.
         return await execute_returning(
             self.session,
             """
-            UPDATE customer.customer
-            SET relationship_manager_id = :employee_id,
-                updated_at = CURRENT_TIMESTAMP,
-                version = version + 1
-            WHERE id = :customer_id
-              AND version = :expected_version
-              AND (
-                  relationship_manager_id IS NULL
-                  OR relationship_manager_id = :employee_id
-              )
-            RETURNING id AS customer_id,
-                      relationship_manager_id AS assigned_employee_id,
-                      version AS assignment_version,
-                      updated_at
+            WITH claimed AS (
+                UPDATE customer.customer
+                SET relationship_manager_id = :employee_id,
+                    updated_at = CURRENT_TIMESTAMP,
+                    version = version + 1
+                WHERE id = :customer_id
+                  AND version = :expected_version
+                  AND relationship_manager_id IS NULL
+                RETURNING id AS customer_id,
+                          relationship_manager_id AS assigned_employee_id,
+                          version AS assignment_version,
+                          updated_at
+            ),
+            owned AS (
+                SELECT id AS customer_id,
+                       relationship_manager_id AS assigned_employee_id,
+                       version AS assignment_version,
+                       updated_at
+                FROM customer.customer
+                WHERE id = :customer_id
+                  AND relationship_manager_id = :employee_id
+            )
+            SELECT * FROM claimed
+            UNION ALL
+            SELECT * FROM owned
+            LIMIT 1
             """,
             {
                 "customer_id": customer_id,

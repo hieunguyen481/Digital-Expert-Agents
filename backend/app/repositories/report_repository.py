@@ -61,7 +61,7 @@ class ReportRepository:
         now = datetime.now(UTC)
         await self.session.execute(
             text("SELECT pg_advisory_xact_lock(hashtextextended(CAST(:case_id AS text), 1))"),
-            {"case_id": analysis_case_id},
+            {"case_id": str(analysis_case_id)},
         )
         row = await execute_returning(
             self.session,
@@ -76,12 +76,12 @@ class ReportRepository:
                    COALESCE((SELECT max(version_number) FROM ai.report
                              WHERE analysis_case_id = ac.id), 0) + 1,
                    '{}'::jsonb, NULL, :now
-            FROM ai.analysis_case AS ac WHERE ac.id = :case_id
+            FROM ai.analysis_case AS ac WHERE ac.id = :case_uuid
             RETURNING *
             """,
             {
                 "report_id": report_id,
-                "case_id": analysis_case_id,
+                "case_uuid": analysis_case_id,
                 "report_type": report_type,
                 "now": now,
             },
@@ -225,13 +225,14 @@ class ReportRepository:
             UPDATE ai.report
             SET status = :status,
                 reviewed_by = :reviewer_id,
-                approved_by = CASE WHEN :status = 'APPROVED' THEN :reviewer_id ELSE approved_by END,
+                approved_by = CASE WHEN CAST(:status_text AS text) = 'APPROVED'
+                                   THEN :reviewer_id ELSE approved_by END,
                 json_payload = jsonb_set(
                     json_payload, '{review}',
                     jsonb_build_object(
-                        'status', :status,
-                        'reviewer_id', CAST(:reviewer_id AS text),
-                        'note', :review_note,
+                        'status', CAST(:status_text AS text),
+                        'reviewer_id', CAST(:reviewer_text AS text),
+                        'note', CAST(:review_note AS text),
                         'reviewed_at', to_jsonb(CURRENT_TIMESTAMP)
                     ), true
                 )
@@ -241,7 +242,9 @@ class ReportRepository:
             {
                 "report_id": report_id,
                 "reviewer_id": reviewer_id,
+                "reviewer_text": str(reviewer_id),
                 "status": status,
+                "status_text": status,
                 "review_note": review_note,
             },
         )

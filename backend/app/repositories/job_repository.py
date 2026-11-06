@@ -176,7 +176,7 @@ class JobRepository:
         """Append one event with per-job transaction-level serialization."""
         await self.session.execute(
             text("SELECT pg_advisory_xact_lock(hashtextextended(CAST(:job_id AS text), 0))"),
-            {"job_id": job_id},
+            {"job_id": str(job_id)},
         )
         return await execute_returning(
             self.session,

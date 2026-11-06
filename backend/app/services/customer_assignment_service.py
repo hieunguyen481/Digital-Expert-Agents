@@ -280,10 +280,10 @@ class CustomerAssignmentService:
         reason: str,
         request_id: UUID | None = None,
     ) -> Mapping[str, Any]:
-        """Allow only a credit manager/admin to replace the current handler."""
+        """Allow only a credit manager to replace the current handler."""
 
         require_permission(principal, "customer:read")
-        require_role(principal, "credit_manager", "admin")
+        require_role(principal, "credit_manager")
         row = await self._repository.takeover_assignment(
             customer_id,
             employee_id=principal.employee_id,

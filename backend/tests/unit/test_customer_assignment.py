@@ -87,10 +87,13 @@ class FakeAssignmentRepository:
         employee_id: UUID,
         expected_version: int,
     ) -> dict[str, Any] | None:
+        if customer_id != self.row["customer_id"]:
+            return None
+        if self.row["assigned_employee_id"] == employee_id:
+            return dict(self.row)  # da la chu: tra ban ghi hien tai, khong tang version
         if (
-            customer_id != self.row["customer_id"]
-            or expected_version != self.row["assignment_version"]
-            or self.row["assigned_employee_id"] not in (None, employee_id)
+            expected_version != self.row["assignment_version"]
+            or self.row["assigned_employee_id"] is not None
         ):
             return None
         self.row["assigned_employee_id"] = employee_id
@@ -244,7 +247,7 @@ async def test_claim_is_atomic_and_returns_an_opaque_versioned_lease() -> None:
 
 
 @pytest.mark.asyncio
-async def test_claim_conflicts_for_another_employee_but_allows_same_employee() -> None:
+async def test_claim_other_owner_conflicts() -> None:
     customer_id = uuid4()
     owner_id = uuid4()
     repository = FakeAssignmentRepository(
@@ -261,11 +264,21 @@ async def test_claim_conflicts_for_another_employee_but_allows_same_employee() -
     assert conflict.value.code == "CUSTOMER_ALREADY_ASSIGNED"
     assert repository.row["assignment_version"] == 4
 
+
+@pytest.mark.asyncio
+async def test_claim_same_owner_does_not_bump_version() -> None:
+    customer_id = uuid4()
+    owner_id = uuid4()
+    repository = FakeAssignmentRepository(
+        customer_id, assigned_employee_id=owner_id, assignment_version=4
+    )
+    assignment_service = service(repository, FakeRedis(), FakeAudit())
+
     result = await assignment_service.claim(
-        principal(owner_id), customer_id, expected_version=4
+        principal(owner_id), customer_id, expected_version=3
     )
     assert result["assigned_employee_id"] == owner_id
-    assert result["assignment_version"] == 5
+    assert result["assignment_version"] == 4
 
 
 @pytest.mark.asyncio
@@ -356,7 +369,7 @@ async def test_release_requires_both_persistent_owner_and_lease_owner() -> None:
 
 
 @pytest.mark.asyncio
-async def test_takeover_requires_manager_or_admin_and_is_audited() -> None:
+async def test_takeover_requires_manager_and_is_audited() -> None:
     customer_id = uuid4()
     old_owner_id = uuid4()
     repository = FakeAssignmentRepository(
