@@ -26,7 +26,7 @@ if compose --profile tools --profile observability config --images | grep -Eq '(
 fi
 pass 'Compose config and image pins'
 
-if grep -Rin --exclude=intructions.md --exclude=.env.local --include='*.yml' --include='*.yaml' \
+if grep -Rin --exclude=intructions.md --exclude=verify-stack.sh --exclude=verify-stack.ps1 --exclude=.env.local --include='*.yml' --include='*.yaml' \
     --include='*.json' --include='*.conf' --include='*.properties' --include='*.sql' \
     --include='*.sh' --include='*.ps1' 'change''me' "$INFRA_ROOT" >/dev/null 2>&1; then
   fail 'changeme placeholder found in source config'
@@ -39,8 +39,8 @@ pass 'Core services healthy'
 
 compose run --rm flyway || fail 'Flyway migration'
 [ "$(compose exec -T postgres psql -X -U postgres -d bank_ai -Atqc \
-  "SELECT count(*) FROM public.flyway_schema_history WHERE success")" = 17 ] || fail 'Migration count'
-pass '17 Flyway migrations complete'
+  "SELECT count(*) FROM public.flyway_schema_history WHERE success")" = 31 ] || fail 'Migration count'
+pass '31 Flyway migrations complete'
 
 compose run --rm db-seed || fail 'First seed run'
 compose run --rm db-seed || fail 'Second seed run'

@@ -48,6 +48,7 @@ risk_officer
 loan_approver
 auditor
 admin
+credit_appraiser
 ```
 
 Realm roles express coarse authorization claims. The backend must still resolve
@@ -67,6 +68,10 @@ compliance@example.local
 approver@example.local
 auditor@example.local
 admin@example.local
+appraiser@example.local
+risk@example.local
+director.hn@example.local
+approver2@example.local
 ```
 
 Their password comes from `SEED_USER_PASSWORD` in untracked `.env.local` and is
@@ -108,7 +113,7 @@ Tokens, authorization codes and client secrets must not be logged.
 The stack verification checks:
 
 1. realm discovery returns issuer `.../realms/bank-ai`;
-2. all three clients and all eight roles exist;
+2. all three clients and all nine roles exist;
 3. the eleven demo users exist;
 4. a demo token can be obtained using the supported test path;
 5. the signature validates against JWKS and `aud` contains `bank-ai-api`; and

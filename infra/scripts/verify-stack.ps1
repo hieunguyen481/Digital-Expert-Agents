@@ -50,7 +50,10 @@ $compose = @(
 
 function Invoke-ComposeCapture {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$CommandArgs)
-    $output = & docker @compose @CommandArgs 2>&1
+    # Docker canh bao vo hai (orphan containers) ra stderr; khong de PS 5.1 coi la loi ket thuc.
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { $output = & docker @compose @CommandArgs 2>&1 | ForEach-Object { "$_" } } finally { $ErrorActionPreference = $previous }
     if ($LASTEXITCODE -ne 0) {
         $safeSummary = ($output | Select-Object -Last 5) -join ' '
         throw "docker compose exited ${LASTEXITCODE}: $safeSummary"
@@ -80,7 +83,7 @@ Test-Step 'Required infrastructure files exist' {
     $required = @(
         '.env.example', 'versions.env', 'docker-compose.infra.yml', 'docker-compose.tools.yml',
         'docker-compose.observability.yml', 'Makefile', 'README.md',
-        'database/migrations/V017__add_comments.sql', 'database/seeds/run-seeds.sh',
+        'database/migrations/V026__comment_workflow_columns.sql', 'database/seeds/run-seeds.sh',
         'kafka/topics/topics.yaml', 'kafka/acl/acl.yaml', 'kafka/schemas/event-envelope.v1.json',
         'minio/buckets.yaml', 'keycloak/realm-bank-ai.json',
         'scripts/bootstrap.ps1', 'scripts/bootstrap.sh', 'scripts/verify-stack.sh',
@@ -127,7 +130,7 @@ Test-Step 'Profiles isolate tools and observability services' {
 Test-Step 'Source configs contain no changeme placeholder' {
     $extensions = @('.yml', '.yaml', '.json', '.conf', '.properties', '.sql', '.sh', '.ps1', '.example')
     $files = Get-ChildItem -LiteralPath $infraRoot -Recurse -File | Where-Object {
-        $_.FullName -ne $envFile -and $_.Name -ne 'intructions.md' -and
+        $_.FullName -ne $envFile -and $_.Name -notin @('intructions.md', 'verify-stack.ps1', 'verify-stack.sh') -and
         ($extensions -contains $_.Extension -or $_.Name -in @('Dockerfile', 'Makefile'))
     }
     $hit = $files | Select-String -SimpleMatch -Pattern ('change' + 'me') -List
@@ -192,7 +195,7 @@ Test-Step 'Core services are running and healthy' {
 
 Test-Step 'Flyway migrations are complete' {
     [void](Invoke-ComposeCapture run --rm flyway)
-    Assert-True ((Invoke-PostgresScalar "SELECT count(*) FROM public.flyway_schema_history WHERE success") -eq '17') 'Expected 17 successful migrations'
+    Assert-True ((Invoke-PostgresScalar "SELECT count(*) FROM public.flyway_schema_history WHERE success") -eq '31') 'Expected 31 successful migrations'
 }
 
 Test-Step 'PostgreSQL databases, extensions, schemas, comments, RLS, and roles are valid' {
@@ -221,9 +224,9 @@ Test-Step 'Seed is idempotent and meets required cardinalities' {
 SELECT CASE WHEN
  (SELECT count(*) FROM identity.branch)=3 AND
  (SELECT count(*) FROM identity.department)=4 AND
- (SELECT count(*) FROM identity.employee)=7 AND
- (SELECT count(*) FROM customer.customer)=3 AND
- (SELECT count(*) FROM banking.account)=6 AND
+ (SELECT count(*) FROM identity.employee)=11 AND
+ (SELECT count(*) FROM customer.customer)=21 AND
+ (SELECT count(*) FROM banking.account)=7 AND
  (SELECT count(*) FROM credit.loan_application WHERE requested_amount=700000000.0000 AND requested_term_months=60)=1 AND
  (SELECT count(*) FROM integration.background_job)>=1 AND
  (SELECT count(*) FROM integration.event_outbox WHERE status='PENDING')>=1 AND

@@ -136,6 +136,7 @@ for specification in "${user_specs[@]}"; do
     # Users API ignores a client-supplied id; partialImport keeps it, so the
     # token subject equals identity.employee.identity_subject.
     partial_file="$(mktemp)"
+    trap 'rm -f "$partial_file"' EXIT
     printf '{"ifResourceExists":"SKIP","users":[{"id":"%s","username":"%s","email":"%s","enabled":true,"emailVerified":true}]}' \
       "$expected_id" "$username" "$username" > "$partial_file"
     kcadm create partialImport -r "$KEYCLOAK_REALM" -f "$partial_file" >/dev/null

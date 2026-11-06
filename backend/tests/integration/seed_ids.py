@@ -34,7 +34,7 @@ APPROVER2_HO = UUID("10000000-0000-4000-8000-000000000011")  # HO, tier 2 (Pham 
 ACCOUNT_A_HO = UUID("60000000-0000-4000-8000-000000000007")
 
 # Du lieu mau SME dot 1 (R__seed_sme_batch1.sql). Quy uoc UUID: <tien to>-0000-4000-8000-0000000000NN,
-# NN la so thu tu ho so / khach (01..17) ben duoi. Buoc, tai lieu, co... dung ham
+# NN la so thu tu ho so / khach (01..18) ben duoi. Buoc, tai lieu, co... dung ham
 # pg_temp.sid(<tien to>, a, b) trong seed: <tien to>-0000-4000-8000-<a 6 so><b 6 so>.
 SME_PARTY_PREFIX = "55000000"
 SME_CUSTOMER_PREFIX = "56000000"

@@ -11,7 +11,20 @@ tables.
   required extensions during first PostgreSQL volume initialization.
 - `bootstrap/create-roles.sh` creates the five least-privilege login roles,
   isolates the two databases, and grants `pg_monitor` to `bank_readonly`.
-- `migrations/V001...V017` are ordered Flyway versioned migrations.
+- `migrations/` holds 31 ordered Flyway versioned migrations (`V021_1` etc. are
+  Flyway versions 21.1):
+  - V001 databases and extensions, V002 schemas, V003 identity, V004 customer,
+    V005 banking, V006 storage, V007 documents, V008 credit, V009 policy,
+    V010 AI, V011 integration, V012 audit, V013 indexes, V014 RLS functions,
+    V015 RLS policies, V016 views, V017 comments;
+  - V018 audit chain lock grants, V019 RLS parameter shadowing fix,
+    V020 separate admin from business roles;
+  - V021 workflow core, V021_1 restrict RM history, V022 documents and CIC
+    related, V023 workflow access and functions, V023_1 split read/write
+    policies, V024 separation and exposure, V024_1 exposure latest snapshot;
+  - V025 workflow transition function, V025_1 compliance risk actions,
+    V025_2 compliance reader on risk review;
+  - V026 column comments for the workflow tables.
 - `seeds/run-seeds.sh` applies the four repeatable, idempotent seed files in
   their required dependency order.
 - `partitions/create-future-partitions.sql` creates one future UTC calendar

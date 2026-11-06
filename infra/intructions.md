@@ -1861,16 +1861,20 @@ version INTEGER NOT NULL DEFAULT 1
 Status:
 
 ```text
-DRAFT
-DOCUMENT_COLLECTION
-UNDER_ANALYSIS
-NEEDS_INFORMATION
-READY_FOR_REVIEW
-SUBMITTED_FOR_APPROVAL
-APPROVED
-APPROVED_WITH_CONDITIONS
-REJECTED
-WITHDRAWN
+DRAFT  -- Nháp, RM đang soạn hồ sơ
+CHECKING  -- Đang kiểm tra hồ sơ/điều kiện đầu vào
+RETURNED_TO_RM  -- Trả về RM để bổ sung/chỉnh sửa
+APPRAISAL  -- Đang thẩm định
+APPRAISAL_PENDING_INFO  -- Thẩm định chờ bổ sung thông tin
+RISK_REVIEW  -- Đang cho ý kiến rủi ro
+RISK_PENDING_INFO  -- Ý kiến rủi ro chờ bổ sung thông tin
+RISK_HOLD_FRAUD  -- Tạm dừng do nghi ngờ gian lận
+APPROVAL  -- Đang chờ cấp có thẩm quyền phê duyệt
+COUNCIL_SESSION  -- Trình hội đồng tín dụng
+APPROVED  -- Đã phê duyệt
+APPROVED_WITH_CONDITIONS  -- Phê duyệt có điều kiện
+REJECTED  -- Từ chối
+WITHDRAWN  -- Khách/RM rút hồ sơ
 ```
 
 ---
