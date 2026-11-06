@@ -1,0 +1,136 @@
+{
+  "version": "v1",
+  "written_before_any_run": true,
+  "note": "Đáp án viết từ dữ liệu seed (infra/database/seeds) + docs/business/rules.md + CS-TD-SME/2025 TRƯỚC khi chạy bất kỳ chế độ nào. Không sửa sau khi có kết quả; muốn đổi thì tạo cases_v2.json.",
+  "grading": {
+    "text_scope": "Chấm trên phần KẾT LUẬN (summary + findings + conditions + narrative). KHÔNG tính evidence/quote, vì multi-agent tự đính kèm đoạn RAG thô vào evidence và sẽ khớp mẫu ngẫu nhiên.",
+    "findings": "required_findings: khớp khi MỌI regex trong 'all' đều có mặt trong văn bản kết luận (không phân biệt hoa thường).",
+    "false_findings": "forbidden: mỗi regex khớp = 1 phát hiện sai.",
+    "citations": "required_citations: regex trên nguồn trích dẫn (evidence.source + chuỗi § trong kết luận). Trích § không có trong corpus CS-TD-SME/2025 = trích sai.",
+    "tools": "required_tools: công cụ MCP phải được gọi (đếm từ audit.engine_mcp_call, cùng nguồn cho cả hai chế độ).",
+    "gate": "expected_gate: trạng thái cuối chấp nhận được. PENDING_APPROVAL = chờ người xác nhận (single-agent: decision=approve VÀ requires_human_approval=true); NEEDS_INFO = need_more_info; REJECTED = reject; single-agent approve mà không chờ người = AUTO_APPROVED (sai cổng).",
+    "llm_judge": "không dùng"
+  },
+  "cases": [
+    {
+      "id": "C1",
+      "title": "VinaNova 40 tỷ có TSBĐ: mâu thuẫn DSCR, TSBĐ chưa xác minh, tổng cấp tín dụng vượt 100 tỷ",
+      "request": {"business_id": "56000000-0000-4000-8000-000000000001", "amount": 40000000000, "term_months": 36,
+                  "purpose": "Bổ sung vốn lưu động và đầu tư máy móc", "has_collateral": true,
+                  "collateral_id": "77100000-0000-4000-8000-000001000001"},
+      "required_findings": [
+        {"id": "dscr_conflict", "desc": "DSCR ghi 1,34 (cần xác minh) lệch với tính lại từ gốc 50 + lãi 17,8 = 67,8 tỷ trên EBITDA 98 tỷ ≈ 1,445", "all": ["1[.,]34", "1[.,]4(4|5)"]},
+        {"id": "dscr_threshold", "desc": "So với ngưỡng DSCR tối thiểu 1,25", "all": ["1[.,]25"]},
+        {"id": "collateral_unverified", "desc": "Giá trị TSBĐ 145 tỷ ở trạng thái cần xác minh, chưa đối chiếu chứng thư định giá", "all": ["145", "(xác minh|NEEDS_VERIFICATION|declared|chưa đối chiếu|chưa được xác)"]},
+        {"id": "total_exposure", "desc": "Dư nợ hiện hữu 98 tỷ + đề xuất 40 tỷ = 138 tỷ, vượt 100 tỷ nên lên cấp phê duyệt cao nhất", "all": ["(138|98)", "(>\\s*100|trên 100|vượt\\s*(ngưỡng\\s*)?100|hội sở|head[_ ]office|cấp cao nhất)"]},
+        {"id": "audited_fs", "desc": "Tổng cấp tín dụng > 20 tỷ nên BCTC phải kiểm toán", "all": ["kiểm toán"]}
+      ],
+      "required_citations": [
+        {"id": "cite_dscr", "pattern": "§\\s*4\\.2"},
+        {"id": "cite_authority", "pattern": "§\\s*3\\.1"}
+      ],
+      "required_tools": ["get_financials", "get_existing_loans", "get_collateral", "get_cic_status", "check_blacklist"],
+      "forbidden": [
+        {"id": "false_cic_bad", "pattern": "CIC\\s*nhóm\\s*[2-5]"},
+        {"id": "false_dscr_below", "pattern": "DSCR[^.\\n]{0,60}(dưới|thấp hơn|<)\\s*(ngưỡng\\s*)?(tối thiểu\\s*)?1[.,]25"},
+        {"id": "false_kyc_unverified", "pattern": "(KYC|AML)[^.\\n]{0,60}(chưa\\s*(có|được|xác)|thiếu|không\\s*đạt)"},
+        {"id": "false_blacklist", "pattern": "(danh sách đen|blacklist)[^.\\n]{0,40}(trùng|có tên|hit)"}
+      ],
+      "expected_gate": ["PENDING_APPROVAL", "NEEDS_INFO"]
+    },
+    {
+      "id": "C2",
+      "title": "Mekong Flex 60 tỷ: thiếu AML, thiếu số liệu nợ/vốn, EBITDA giảm, máy móc chưa xác nhận pháp lý",
+      "request": {"business_id": "56000000-0000-4000-8000-000000000002", "amount": 60000000000, "term_months": 36,
+                  "purpose": "Đầu tư dây chuyền in flexo", "has_collateral": true,
+                  "collateral_id": "77100000-0000-4000-8000-000002000001"},
+      "required_findings": [
+        {"id": "aml_unscreened", "desc": "Chưa có đánh giá KYC/AML trong hệ thống, cần tra cứu trước khi trình", "all": ["(AML|KYC)[^.\\n]{0,100}(chưa|thiếu|không có)"]},
+        {"id": "fs_missing", "desc": "Thiếu nợ vay/vốn chủ sở hữu nên không tính được đòn bẩy/DSCR", "all": ["(thiếu|chưa có|không có)[^.\\n]{0,80}(DSCR|nợ vay|vốn chủ|total_debt|equity|đòn bẩy)"]},
+        {"id": "ebitda_decline", "desc": "EBITDA 2025 là 38 tỷ giảm từ 43 tỷ năm 2024 dù doanh thu tăng", "all": ["38", "43"]},
+        {"id": "machinery_legal", "desc": "Dây chuyền máy móc 28 tỷ có pháp lý ai_proposed, chưa xác nhận, không tính vào TSBĐ hợp lệ", "all": ["(máy|dây chuyền|machinery)", "(ai_proposed|chưa (được )?(xác nhận|hoàn thiện)|AI đề xuất)"]},
+        {"id": "audited_fs", "desc": "Đề xuất > 20 tỷ nên BCTC phải kiểm toán", "all": ["kiểm toán"]},
+        {"id": "no_bank_flow", "desc": "Không có tài khoản/sao kê tại ngân hàng nên không xác minh được dòng tiền", "all": ["(sao kê|dòng tiền|tài khoản)[^.\\n]{0,80}(không có|chưa có|thiếu)"]}
+      ],
+      "required_citations": [
+        {"id": "cite_ltv", "pattern": "§\\s*7\\.1"},
+        {"id": "cite_audit", "pattern": "§\\s*(4\\.1|6\\.1)"}
+      ],
+      "required_tools": ["get_financials", "get_collateral", "get_cic_status", "check_blacklist", "get_existing_loans"],
+      "forbidden": [
+        {"id": "false_cic_bad", "pattern": "CIC\\s*nhóm\\s*[2-5]"},
+        {"id": "false_blacklist", "pattern": "(danh sách đen|blacklist)[^.\\n]{0,40}(trùng|có tên|hit)"},
+        {"id": "false_existing_loan", "pattern": "(đang có|hiện hữu)[^.\\n]{0,30}[1-9]\\s*khoản vay"}
+      ],
+      "expected_gate": ["NEEDS_INFO"]
+    },
+    {
+      "id": "C3",
+      "title": "Đại Thành Global 30 tỷ không TSBĐ: EBITDA âm, chưa tra CIC, chưa AML",
+      "request": {"business_id": "56000000-0000-4000-8000-000000000011", "amount": 30000000000, "term_months": 24,
+                  "purpose": "Bổ sung vốn lưu động", "has_collateral": false},
+      "required_findings": [
+        {"id": "ebitda_negative", "desc": "EBITDA 2025 âm 22 tỷ nên không có khả năng trả nợ, không đạt DSCR 1,25", "all": ["(-\\s*22|âm\\s*22|\\(22|22\\s*tỷ[^.\\n]{0,20}âm)"]},
+        {"id": "cic_missing", "desc": "Chưa có kết quả tra cứu CIC", "all": ["CIC[^.\\n]{0,100}(chưa|không có|thiếu)"]},
+        {"id": "aml_unscreened", "desc": "Chưa có đánh giá KYC/AML", "all": ["(AML|KYC)[^.\\n]{0,100}(chưa|thiếu|không có)"]},
+        {"id": "no_collateral", "desc": "Không có tài sản bảo đảm", "all": ["(không có|chưa có|không)[^.\\n]{0,40}(TSBĐ|TSĐB|tài sản bảo đảm|tài sản đảm bảo)"]},
+        {"id": "audited_fs", "desc": "Đề xuất 30 tỷ > 20 tỷ nên BCTC phải kiểm toán", "all": ["kiểm toán"]}
+      ],
+      "required_citations": [
+        {"id": "cite_dscr", "pattern": "§\\s*4\\.2"}
+      ],
+      "required_tools": ["get_financials", "get_cic_status", "check_blacklist", "get_collateral"],
+      "forbidden": [
+        {"id": "false_cic_group", "pattern": "CIC\\s*nhóm\\s*[1-5]"},
+        {"id": "false_ebitda_positive", "pattern": "EBITDA[^.\\n]{0,40}(tăng|dương|ổn định)"},
+        {"id": "false_blacklist", "pattern": "(danh sách đen|blacklist)[^.\\n]{0,40}(trùng|có tên|hit)"}
+      ],
+      "expected_gate": ["REJECTED", "NEEDS_INFO"]
+    },
+    {
+      "id": "C4",
+      "title": "VinaNova 5 tỷ không TSBĐ: khoản nhỏ nhưng tổng cấp tín dụng 103 tỷ quyết định cấp phê duyệt và kiểm toán",
+      "request": {"business_id": "56000000-0000-4000-8000-000000000001", "amount": 5000000000, "term_months": 12,
+                  "purpose": "Bổ sung vốn lưu động ngắn hạn", "has_collateral": false},
+      "required_findings": [
+        {"id": "total_exposure", "desc": "Dư nợ hiện hữu 98 tỷ + 5 tỷ = 103 tỷ > 100 tỷ nên lên cấp phê duyệt cao nhất dù khoản đề xuất nhỏ", "all": ["(103|98)", "(>\\s*100|trên 100|vượt\\s*(ngưỡng\\s*)?100|hội sở|head[_ ]office|cấp cao nhất)"]},
+        {"id": "audited_fs", "desc": "Tổng cấp tín dụng > 20 tỷ nên BCTC phải kiểm toán dù đề xuất chỉ 5 tỷ", "all": ["kiểm toán"]},
+        {"id": "dscr_conflict", "desc": "DSCR ghi 1,34 (cần xác minh) lệch với tính lại ≈ 1,445", "all": ["1[.,]34", "1[.,]4(4|5)"]},
+        {"id": "existing_loans", "desc": "Hai khoản vay hiện hữu tại TCTD A (56 tỷ) và TCTD B (42 tỷ)", "all": ["56", "42"]}
+      ],
+      "required_citations": [
+        {"id": "cite_authority", "pattern": "§\\s*3\\.1"},
+        {"id": "cite_dscr", "pattern": "§\\s*4\\.2"}
+      ],
+      "required_tools": ["get_financials", "get_existing_loans", "get_cic_status", "check_blacklist"],
+      "forbidden": [
+        {"id": "false_cic_bad", "pattern": "CIC\\s*nhóm\\s*[2-5]"},
+        {"id": "false_kyc_unverified", "pattern": "(KYC|AML)[^.\\n]{0,60}(chưa\\s*(có|được|xác)|thiếu|không\\s*đạt)"},
+        {"id": "false_branch_level", "pattern": "(cấp|thẩm quyền)\\s*chi nhánh[^.\\n]{0,30}(đủ|phê duyệt)|giám đốc chi nhánh\\s*(phê duyệt|có thể)"}
+      ],
+      "expected_gate": ["PENDING_APPROVAL", "NEEDS_INFO"]
+    },
+    {
+      "id": "C5",
+      "title": "Cảng Xanh Hải Phòng 25 tỷ không TSBĐ: chưa có BCTC, chưa AML, không được bịa DSCR",
+      "request": {"business_id": "56000000-0000-4000-8000-000000000008", "amount": 25000000000, "term_months": 36,
+                  "purpose": "Mua xe đầu kéo và container", "has_collateral": false},
+      "required_findings": [
+        {"id": "no_financials", "desc": "Chưa có số liệu tài chính/BCTC nên không tính được DSCR", "all": ["(chưa có|không có|thiếu)[^.\\n]{0,80}(BCTC|báo cáo tài chính|số liệu tài chính|DSCR)"]},
+        {"id": "aml_unscreened", "desc": "Chưa có đánh giá KYC/AML", "all": ["(AML|KYC)[^.\\n]{0,100}(chưa|thiếu|không có)"]},
+        {"id": "audited_fs", "desc": "Đề xuất 25 tỷ > 20 tỷ nên BCTC phải kiểm toán", "all": ["kiểm toán"]},
+        {"id": "no_collateral", "desc": "Không có tài sản bảo đảm", "all": ["(không có|chưa có|không)[^.\\n]{0,40}(TSBĐ|TSĐB|tài sản bảo đảm|tài sản đảm bảo)"]}
+      ],
+      "required_citations": [
+        {"id": "cite_audit", "pattern": "§\\s*(4\\.1|6\\.1)"}
+      ],
+      "required_tools": ["get_financials", "get_cic_status", "check_blacklist", "get_collateral"],
+      "forbidden": [
+        {"id": "false_dscr_number", "pattern": "DSCR\\s*(của[^.\\n]{0,20})?(đạt|là|=|:|ở mức)\\s*\\d[.,]\\d"},
+        {"id": "false_cic_bad", "pattern": "CIC\\s*nhóm\\s*[2-5]"},
+        {"id": "false_blacklist", "pattern": "(danh sách đen|blacklist)[^.\\n]{0,40}(trùng|có tên|hit)"}
+      ],
+      "expected_gate": ["NEEDS_INFO"]
+    }
+  ]
+}
