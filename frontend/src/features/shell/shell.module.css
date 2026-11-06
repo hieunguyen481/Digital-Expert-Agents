@@ -9,3 +9,71 @@
   border-radius: var(--r-lg);
 }
 .noAccessIcon { font-size: 40px; color: var(--text-3); }
+
+/* ---------- Khung ứng dụng (design-system §2) ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr) 0;
+  height: 100dvh;
+  background: var(--canvas);
+  --page-h: calc(100dvh - var(--topbar-h));
+}
+.layoutAiOpen { grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--ai-w); }
+.mainCol { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.content { flex: 1; min-height: 0; overflow: auto; background: var(--surface); }
+
+.rail {
+  background: var(--navy-900, #1b1a46);
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0;
+}
+.railLogo {
+  width: 36px; height: 36px; border-radius: 8px; background: #f37021; color: #fff;
+  display: grid; place-items: center; font-weight: 700; font-size: 12px; margin-bottom: 8px;
+}
+.railItem {
+  position: relative; width: 44px; height: 44px; display: grid; place-items: center;
+  color: rgba(255, 255, 255, 0.78); font-size: 20px; border: 0; background: transparent;
+  border-radius: 8px; cursor: pointer; text-decoration: none;
+}
+.railItem:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.railItem[aria-disabled='true'] { opacity: 0.55; cursor: default; }
+.railActive { background: rgba(255, 255, 255, 0.13); color: #fff; }
+.railActive::before {
+  content: ''; position: absolute; left: -10px; top: 8px; bottom: 8px; width: 3px;
+  background: #f37021; border-radius: 0 3px 3px 0;
+}
+.railAi { margin-top: auto; }
+.railBadge {
+  position: absolute; top: 4px; right: 3px; min-width: 18px; height: 18px; border-radius: 9px;
+  background: rgba(255, 255, 255, 0.2); color: #fff; font-size: 11px; line-height: 1; font-weight: 600;
+  display: grid; place-items: center; padding: 0 4px;
+}
+
+.topbar {
+  height: var(--topbar-h); flex: none; display: flex; align-items: center; gap: 16px; padding: 0 24px;
+  background: var(--surface); border-bottom: 1px solid var(--divider);
+}
+.appName { font-weight: 600; color: var(--navy-800, #23224f); white-space: nowrap; }
+.search {
+  display: flex; align-items: center; gap: 8px; height: 36px; width: 300px; max-width: 300px; padding: 0 12px;
+  background: var(--soft-2); border-radius: 8px; color: var(--text-3);
+}
+.search:focus-within { outline: 2px solid var(--navy-600, #3c3a96); }
+.search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 13px; }
+.spacer { flex: 1; }
+.bell { position: relative; font-size: 18px; color: var(--text-2); display: grid; place-items: center; width: 32px; height: 32px; }
+.bellDot { position: absolute; top: 4px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--error); }
+.user { display: flex; align-items: center; gap: 8px; border: 0; background: transparent; cursor: pointer; font: inherit; }
+.avatar { background: var(--navy-700, #2f2e79); font-size: 12px; }
+.userText { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.25; white-space: nowrap; }
+.userText b { font-size: 13px; font-weight: 600; color: var(--text); }
+.userText small { font-size: 12px; color: var(--text-3); }
+
+.pageHead {
+  display: flex; align-items: center; gap: 16px; padding: 12px 32px; background: var(--surface);
+  border-bottom: 1px solid var(--divider);
+}
+.pageTitle { margin: 0 !important; font-size: 20px !important; max-width: 55%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pageMeta { flex: 1; min-width: 0; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pageActions { flex: none; display: flex; gap: 8px; align-items: center; }
+.skeletonWrap { padding: 32px; }

@@ -1,8 +1,8 @@
 .shell {
   display: flex;
   /* 100dvh: đúng chiều cao khả dụng trên mobile khi có thanh địa chỉ. */
-  height: 100dvh;
-  max-height: 100dvh;
+  height: var(--page-h, 100dvh);
+  max-height: var(--page-h, 100dvh);
   overflow: hidden;
   background: var(--shb-canvas);
 }

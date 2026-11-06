@@ -1,5 +1,5 @@
 .page {
-  min-height: 100dvh;
+  min-height: var(--page-h, 100dvh);
   background: var(--shb-canvas);
   padding-bottom: 48px;
 }
