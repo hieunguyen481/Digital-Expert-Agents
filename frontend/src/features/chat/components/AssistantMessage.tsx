@@ -18,6 +18,7 @@ import { MessageBlocks } from './MessageBlocks';
 import { SuggestedQuestions } from './SuggestedQuestions';
 import { ThinkingIndicator } from './ThinkingIndicator';
 import { AgentTrace } from './AgentTrace';
+import { EnginePanel } from './EnginePanel';
 import type { ChatMessage, MessageFeedback } from '@/types/chat';
 import type { LoanApplication, LoanApplicationStatus } from '@/types/customer';
 import styles from './AssistantMessage.module.css';
@@ -159,6 +160,10 @@ export function AssistantMessage({
           ) : (
             <MarkdownContent content={message.content} />
           ))}
+
+        {isComplete && message.engine && (
+          <EnginePanel caseId={message.engine.caseId} loanApplicationId={message.engine.loanApplicationId} />
+        )}
 
         {(isComplete || isStopped) && (
           <div className={styles.actions}>

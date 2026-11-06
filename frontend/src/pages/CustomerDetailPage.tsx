@@ -20,7 +20,7 @@ import { shbColors } from '@/theme/tokens';
 import {
   findCustomerById,
   findLoansByCustomer,
-} from '@/features/chat/constants/mockCustomers';
+} from '@/mocks/mockCustomers';
 import {
   LOAN_STATUS_COLOR,
   LOAN_STATUS_LABEL,

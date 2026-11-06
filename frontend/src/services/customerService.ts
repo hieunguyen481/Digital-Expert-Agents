@@ -1,5 +1,5 @@
 import apiClient, { USE_MOCK_API } from './apiClient';
-import { MOCK_CUSTOMERS } from '@/features/chat/constants/mockCustomers';
+import { MOCK_CUSTOMERS } from '@/mocks/mockCustomers';
 import type { Customer, RiskLevel } from '@/types/customer';
 import type {
   BackendCustomer,

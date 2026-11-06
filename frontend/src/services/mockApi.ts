@@ -10,12 +10,12 @@ import type { ChatAttachment } from '@/types/attachment';
 import type { ApiError, StreamEvent } from '@/types/api';
 import { API_ERROR_CODES } from '@/types/api';
 import { ATTACHMENT_LIMITS, ACCEPTED_MIME_TYPES } from '@/types/attachment';
-import { MOCK_CONVERSATIONS } from '@/features/chat/constants/mockConversations';
+import { MOCK_CONVERSATIONS } from '@/mocks/mockConversations';
 import {
   MOCK_LOAN_SOURCES,
   MOCK_LOAN_SUGGESTIONS,
   MOCK_MESSAGES_BY_CONVERSATION,
-} from '@/features/chat/constants/mockMessages';
+} from '@/mocks/mockMessages';
 import { calculateAnnuityLoan } from '@/features/chat/utils/loanCalculator';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { normalizeVietnamese } from '@/utils/detectSensitiveContent';
@@ -24,7 +24,7 @@ import {
   MOCK_CUSTOMERS,
   MOCK_LOAN_APPLICATIONS,
   findLoanByCustomer,
-} from '@/features/chat/constants/mockCustomers';
+} from '@/mocks/mockCustomers';
 
 /**
  * Mock API — cho phép toàn bộ frontend demo chạy khi chưa có backend.

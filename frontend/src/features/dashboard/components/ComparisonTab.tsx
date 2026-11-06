@@ -7,7 +7,7 @@ import {
   COMPARISON_CASE,
   MOCK_COMPARISON,
   MOCK_COMPARISON_CHART,
-} from '@/features/chat/constants/mockDashboard';
+} from '@/mocks/mockDashboard';
 import type { ComparisonMetric } from '@/types/dashboard';
 import styles from '@/pages/AgentDashboardPage.module.css';
 

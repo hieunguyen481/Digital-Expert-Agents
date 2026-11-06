@@ -36,6 +36,9 @@ export function toChatMessage(
     metadata?.highlight_segments,
   );
   const suggestions = toSuggestions(metadata?.suggested_questions);
+  const routeInfo = (value.route ?? {}) as Record<string, unknown>;
+  const engineCaseId = metadata?.engine_case_id ?? routeInfo.engine_case_id;
+  const engineLoanId = metadata?.loan_application_id ?? routeInfo.loan_application_id;
   return {
     id: value.id,
     conversationId: value.conversation_id,
@@ -46,6 +49,9 @@ export function toChatMessage(
     ...(sources?.length ? { sources } : {}),
     ...(highlightDocuments?.length ? { highlightDocuments } : {}),
     ...(suggestions?.length ? { suggestions } : {}),
+    ...(typeof engineCaseId === 'string'
+      ? { engine: { caseId: engineCaseId, ...(typeof engineLoanId === 'string' ? { loanApplicationId: engineLoanId } : {}) } }
+      : {}),
   };
 }
 

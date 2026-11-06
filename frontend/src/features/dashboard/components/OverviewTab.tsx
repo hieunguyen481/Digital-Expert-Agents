@@ -20,7 +20,7 @@ import {
   MOCK_AGENT_METRICS,
   MOCK_AGENT_RUNS,
   MOCK_COLLABORATION,
-} from '@/features/chat/constants/mockDashboard';
+} from '@/mocks/mockDashboard';
 import { AGENT_LABEL, type AgentRole } from '@/types/agent';
 import type { AgentMetric } from '@/types/dashboard';
 import styles from '@/pages/AgentDashboardPage.module.css';

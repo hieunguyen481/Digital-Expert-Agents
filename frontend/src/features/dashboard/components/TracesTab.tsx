@@ -1,7 +1,7 @@
 import { Card, Tag, Tooltip, Typography } from 'antd';
 import { DataTable } from '@/components/tables/DataTable';
 import { formatDateTime } from '@/utils/formatDate';
-import { MOCK_AGENT_RUNS } from '@/features/chat/constants/mockDashboard';
+import { MOCK_AGENT_RUNS } from '@/mocks/mockDashboard';
 import { AGENT_LABEL, AGENT_SHORT_LABEL, type AgentRole } from '@/types/agent';
 import {
   TASK_DECISION_LABEL,

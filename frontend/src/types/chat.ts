@@ -199,6 +199,8 @@ export interface ChatMessage {
    * Hiển thị dưới dạng chuỗi bước có thể mở/đóng phía trên nội dung.
    */
   trace?: AgentTrace;
+  /** Hồ sơ phân tích multi-agent thật (engine) gắn với câu trả lời này. */
+  engine?: { caseId: string; loanApplicationId?: string };
   /** Thông báo lỗi hiển thị cho người dùng khi status = 'error'. */
   errorMessage?: string;
 }

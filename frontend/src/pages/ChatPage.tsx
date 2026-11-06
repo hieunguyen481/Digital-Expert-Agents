@@ -1,17 +1,12 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { App, Drawer, Grid } from 'antd';
+import { App, Button, Drawer, Grid } from 'antd';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { AppShell } from '@/components/layout/AppShell';
-import { AppHeader } from '@/components/layout/AppHeader';
 import { ConversationSidebar } from '@/features/chat/components/ConversationSidebar';
 import { MobileNavigationDrawer } from '@/components/layout/MobileNavigationDrawer';
 import { ChatWorkspace } from '@/features/chat/components/ChatWorkspace';
 import { SourceDrawer } from '@/features/chat/components/SourceDrawer';
 import { HighlightDocumentViewer, type HighlightDocument } from '@/features/chat/components/HighlightDocumentViewer';
 import { CustomerWorkspacePanel } from '@/features/customer/components/CustomerWorkspacePanel';
-import {
-  findLoansByCustomer,
-} from '@/features/chat/constants/mockCustomers';
 import { uiRoleFromRoles } from '@/auth/roleFromMe';
 import { useMe } from '@/auth/session';
 import styles from './ChatPage.module.css';
@@ -26,7 +21,6 @@ import { useDeleteConversation } from '@/hooks/useDeleteConversation';
 import { useTogglePinnedConversation } from '@/hooks/useTogglePinnedConversation';
 import { useSendMessage } from '@/hooks/useSendMessage';
 import { getErrorMessage } from '@/services/apiClient';
-import { USE_MOCK_API } from '@/services/apiClient';
 import { useCustomers } from '@/hooks/useCustomers';
 import { claimCustomerAssignment } from '@/services/customerAssignmentService';
 import { getAssignedLoanApplicationId } from '@/services/customerService';
@@ -63,12 +57,11 @@ export default function ChatPage() {
 
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [highlightDoc, setHighlightDoc] = useState<HighlightDocument | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [sourceDrawerOpen, setSourceDrawerOpen] = useState(false);
   const [activeSources, setActiveSources] = useState<ChatSource[]>([]);
   const [composerValue, setComposerValue] = useState('');
-  const [mode, setMode] = useState<ChatMode>('general');
+  const [mode] = useState<ChatMode>('general');
   const [activeCustomer, setActiveCustomer] = useState<Customer | null>(null);
   const [activeAssignmentLeaseToken, setActiveAssignmentLeaseToken] = useState<string>();
   const [panelOpen, setPanelOpen] = useState(false);
@@ -113,15 +106,6 @@ export default function ChatPage() {
     !messagesQuery.error &&
     messages.length === 0 &&
     !streamingMessage;
-
-  /** Nguồn của câu trả lời AI gần nhất — dùng cho nút "Xem nguồn" trên header. */
-  const latestSources = useMemo(() => {
-    for (let index = messages.length - 1; index >= 0; index -= 1) {
-      const message = messages[index];
-      if (message.role === 'assistant' && message.sources?.length) return message.sources;
-    }
-    return [];
-  }, [messages]);
 
   /* ---------------- Handlers ---------------- */
 
@@ -238,11 +222,6 @@ export default function ChatPage() {
     setActiveSources(message.sources ?? []);
     setSourceDrawerOpen(true);
   }, []);
-
-  const handleViewLatestSources = useCallback(() => {
-    setActiveSources(latestSources);
-    setSourceDrawerOpen(true);
-  }, [latestSources]);
 
   /* ---------------- Khách hàng & phê duyệt ---------------- */
 
@@ -361,49 +340,6 @@ export default function ChatPage() {
     [messageApi],
   );
 
-  const handleShare = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      messageApi.success('Đã sao chép liên kết cuộc trò chuyện');
-    } catch {
-      messageApi.error('Không sao chép được liên kết');
-    }
-  }, [messageApi]);
-
-  const handleExport = useCallback(() => {
-    if (!messages.length) {
-      messageApi.info('Cuộc trò chuyện chưa có nội dung để xuất');
-      return;
-    }
-
-    const content = messages
-      .map((item) => `${item.role === 'user' ? 'Bạn' : 'SH-AI'}:\n${item.content}`)
-      .join('\n\n---\n\n');
-
-    // Xuất file phía client, không gửi nội dung hội thoại đi đâu.
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${activeConversation?.title ?? 'cuoc-tro-chuyen'}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
-
-    messageApi.success('Đã xuất nội dung cuộc trò chuyện');
-  }, [activeConversation, messageApi, messages]);
-
-  const handleFindBranch = useCallback(() => {
-    handleQuickPrompt('Hãy giúp tôi tìm ATM hoặc chi nhánh SHB.');
-  }, [handleQuickPrompt]);
-
-  const handleModeChange = useCallback(
-    (next: ChatMode) => {
-      setMode(next);
-      messageApi.info(`Đã chuyển sang chế độ: ${next === 'general' ? 'Tư vấn chung' : next}`);
-    },
-    [messageApi],
-  );
-
   const showAiPolicy = useCallback(() => {
     modal.info({
       title: 'Chính sách sử dụng SH-AI',
@@ -428,7 +364,7 @@ export default function ChatPage() {
 
   const showPanel = panelOpen && activeCustomer !== null;
   const customerRecords = useMemo(
-    () => (activeCustomer && USE_MOCK_API ? findLoansByCustomer(activeCustomer.id) : []),
+    () => ([] as LoanApplication[]),
     [activeCustomer],
   );
 
@@ -490,33 +426,26 @@ export default function ChatPage() {
 
   return (
     <>
-      {/* Skip link: người dùng bàn phím bỏ qua sidebar để tới nội dung chính. */}
-      <a className="skip-link" href="#main-content">
-        Bỏ qua để tới nội dung chính
-      </a>
-
-      <AppShell
-        sidebarCollapsed={sidebarCollapsed}
-        sidebar={<ConversationSidebar {...sidebarProps} collapsed={sidebarCollapsed} />}
-        header={
-          <AppHeader
-            title={activeConversation?.title ?? 'Trợ lý SHB'}
-            mode={mode}
-            onModeChange={handleModeChange}
-            user={user}
-            sidebarCollapsed={sidebarCollapsed}
-            onToggleSidebar={() => setSidebarCollapsed((value) => !value)}
-            onOpenMobileNav={() => setMobileNavOpen(true)}
-            onCreateConversation={() => void handleCreateConversation()}
-            onViewSources={handleViewLatestSources}
-            onShare={() => void handleShare()}
-            onExport={handleExport}
-            onFindBranch={handleFindBranch}
-            hasSources={latestSources.length > 0}
-            titleAsHeading={!showWelcome}
-          />
-        }
-      >
+      <div className={styles.frame}>
+        {!isMobile && (
+          <aside className={styles.convCol} aria-label="Danh sách cuộc trò chuyện">
+            <ConversationSidebar {...sidebarProps} collapsed={false} />
+          </aside>
+        )}
+        <div className={styles.mainCol}>
+          <div className={styles.toolbar}>
+            {isMobile && (
+              <Button aria-label="Mở danh sách cuộc trò chuyện" onClick={() => setMobileNavOpen(true)}>
+                ☰
+              </Button>
+            )}
+            {showWelcome ? (
+              <span className={styles.toolbarTitle}>{activeConversation?.title ?? 'Trợ lý SHB'}</span>
+            ) : (
+              <h1 className={styles.toolbarTitle}>{activeConversation?.title ?? 'Trợ lý SHB'}</h1>
+            )}
+            <Button onClick={() => void handleCreateConversation()}>Cuộc trò chuyện mới</Button>
+          </div>
         {/* Split-view: chat bên trái, panel hồ sơ khách hàng bên phải (desktop). */}
         <div className={styles.splitRow}>
           <div className={styles.chatCol}>
@@ -578,7 +507,8 @@ export default function ChatPage() {
             </div>
           )}
         </div>
-      </AppShell>
+        </div>
+      </div>
 
       {isMobile && (
         <MobileNavigationDrawer

@@ -94,7 +94,8 @@ const USER_MESSAGE: Record<string, string> = {
  * Nhờ vậy UI chỉ cần xử lý một hình dạng lỗi duy nhất.
  */
 export function normalizeError(error: unknown): ApiError {
-  if (isApiError(error)) return error;
+  // AxiosError cũng có `code` + `message` nên phải xử lý nhánh axios trước type guard.
+  if (!axios.isAxiosError(error) && isApiError(error)) return error;
 
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<ServerErrorBody>;
@@ -118,6 +119,13 @@ export function normalizeError(error: unknown): ApiError {
     const code = resolveCodeFromStatus(status);
 
     const backendError = body?.error;
+    if (backendError?.code === 'ACCESS_DENIED') {
+      return {
+        code: 'ACCESS_DENIED',
+        message:
+          'Vai trò của bạn không có quyền thực hiện thao tác này (ví dụ phân tích sâu hồ sơ tín dụng). Hãy chuyển hồ sơ cho cán bộ thẩm định hoặc người có thẩm quyền.',
+      };
+    }
     return {
       code: backendError?.code ?? body?.code ?? code,
       // Ưu tiên message từ backend nếu có, nhưng luôn có fallback an toàn.
