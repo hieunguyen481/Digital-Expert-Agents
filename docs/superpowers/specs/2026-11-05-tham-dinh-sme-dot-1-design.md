@@ -220,10 +220,10 @@ Tên cột, tên endpoint, cách chia component, cách cài hàm SLA, miễn là
 | Q-E | Tính SLA khi tạm dừng giữa ngày? | Còn lại = số ngày LV từ ngày tạm dừng đến hạn; hạn mới = ngày HTTD ghi đạt + số còn lại, 17:00 |
 | Q-F | Ngày nghỉ lấy từ đâu? | Bảng do Quản trị nhập, seed lễ Việt Nam 2026–2027 |
 | Q-G | OCR, LLM, CIC thật hay giả? | CIC giả lập có nhãn; OCR, LLM thật cấu hình được, có che PII; dữ liệu seed làm dự phòng |
-| Q-H | `agent_engine` trong đợt này? | Không nối vào 4 trang; tắt `AGENT_ENGINE_URL` |
+| Q-H | `agent_engine` trong đợt này? | **Đổi ngày 07/11/2026 theo đề bài:** đội agent (planner + agent chuyên môn) phải nối vào hệ thống thật và dùng công cụ thật, sau khi thêm xác thực cho gateway và bỏ dữ liệu cố định `B001` |
 | Q-I | Kiểm toán thấy phiếu khi phiên đang mở? | Không, kể cả trong nhật ký |
 | Q-J | Quản trị có truy cập khẩn cấp? | Không |
-| Q-K | Giữ `/chat`, `/dashboard`? | Giữ `/chat` cho Trợ lý AI; ẩn `/dashboard`, `/foundation`; simulation chỉ dùng khi dev |
+| Q-K | Giữ `/chat`, `/dashboard`? | **Đổi ngày 07/11/2026 theo đề bài:** giữ `/chat` cho Trợ lý AI; `/dashboard` là dashboard trace của đội agent và hiện trên điều hướng; chỉ ẩn `/foundation`; simulation chỉ dùng khi dev |
 | Q-L | Tờ trình thẩm định làm đến đâu? Mockup 02b coi đây là điều kiện để trình Rủi ro và mở nút quyết định, nhưng tài liệu này chưa có bảng, API, lát nào cho nó | Có trong đợt 1: 7 mục, tự lưu, AI chèn nội dung phải xác nhận. Lúc trình chốt một phiên bản không sửa được, Rủi ro và cấp phê duyệt đọc đúng bản đó; trả lại thì tạo bản mới. Xuất PDF để cuối. Thêm 1 lát cỡ L |
 | Q-M | Sau khi vá RLS, ai đọc được hồ sơ nào? | Người được phân công đọc và ghi đúng bước của mình; người đã làm xong một bước vẫn đọc được, không ghi. Cùng chi nhánh không tự thấy nhau, trừ GĐ chi nhánh. Hội sở đọc hồ sơ được phân công. Kiểm toán đọc toàn hệ thống. Cấp phê duyệt gắn theo thuộc tính nhân viên (cấp + đơn vị). Bị E8 loại thì chuyển người cùng cấp trước, hết người mới lên cấp cao hơn. QHKH và HTTD không đọc được nội dung kết luận AML/gian lận |
 | Q-N | Bước Ý kiến Rủi ro xong khi nào? Tuân thủ kết luận bất lợi thì sao? | Một bước, 2 ý kiến con (Rủi ro, Tuân thủ), chung SLA 3 ngày, có thể một người giữ cả hai ở dữ liệu mẫu. "Có dấu hiệu không xác thực": **tạm dừng** chờ xử lý, không tự kết thúc và không cho rút hồ sơ; đóng xử lý thì hồ sơ vẫn tới cấp phê duyệt kèm kết luận, cấp đó quyết định. "Chưa đủ căn cứ": dùng cơ chế chờ bổ sung (5 ngày LV, HTTD kiểm tra). "Không phát hiện vấn đề": đi tiếp |

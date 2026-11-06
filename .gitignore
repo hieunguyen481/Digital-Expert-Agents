@@ -96,3 +96,12 @@ docker-compose*.override.yml
 # Agent engine local runtime
 agent_engine/data/
 agent_engine/logs/
+
+# Claude Code local settings (hook graphify trỏ đường dẫn máy cá nhân)
+.claude/settings.local.json
+
+# Graphify knowledge graph (build lại bằng `graphify update .`; graph.json ~6MB đổi mỗi lần build)
+graphify-out/
+
+# Brainstorm mockups (visual companion)
+.superpowers/

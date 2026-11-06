@@ -1,0 +1,13 @@
+# Graphify: loại khỏi knowledge graph (không ảnh hưởng git)
+# Ảnh/scan hồ sơ khách hàng demo - dữ liệu mẫu, không phải tri thức code
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.pdf
+Hồ sơ Doanh nghiệp, Khách hàng/
+agent_engine/tran_quoc_bao_test/
+agent_engine/sample_docs/
+# Lockfile / output build
+package-lock.json
+graphify-out/

@@ -11,6 +11,10 @@ Before editing code, read the most relevant files:
 3. The nearest `AGENTS.md` in the area you are editing.
 4. Relevant files under `docs/business/` when changing product behavior.
 
+## Knowledge Graph (graphify)
+
+If `graphify-out/graph.json` exists, locate code and docs with `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<name>"` before grepping or reading raw files. Treat INFERRED/AMBIGUOUS edges as hints and verify them in source. After code changes, run `graphify update .`. Full rules: `CLAUDE.md`.
+
 ## Project Areas
 
 - `backend/`: Backend application code.
