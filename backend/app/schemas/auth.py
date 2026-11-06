@@ -12,3 +12,8 @@ class MeResponse(APIModel):
     roles: list[str]
     permissions: list[str]
     is_admin: bool
+    full_name: str
+    email: str | None = None
+    branch_code: str
+    branch_name: str
+    approval_tier: int | None = None

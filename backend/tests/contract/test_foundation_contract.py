@@ -15,7 +15,9 @@ from fastapi.testclient import TestClient
 
 from app.auth.jwt_validator import JWTValidator, SigningKeyNotFoundError
 from app.auth.principal import EmployeeAccessRecord
+from app.api.dependencies import get_rls_session
 from app.config import Settings
+from app.repositories.employee_repository import EmployeeProfile, EmployeeRepository
 from app.main import create_app
 from app.middleware.audit import AuditRecord
 
@@ -124,7 +126,7 @@ def _token(private_key: Any) -> str:
 
 
 @pytest.mark.contract
-def test_foundation_http_and_openapi_contract() -> None:
+def test_foundation_http_and_openapi_contract(monkeypatch: pytest.MonkeyPatch) -> None:
     private_key, jwk = _identity()
     employee_id, branch_id = uuid4(), uuid4()
     audit_sink = CapturingAuditSink()
@@ -141,6 +143,15 @@ def test_foundation_http_and_openapi_contract() -> None:
         readiness_probe=ReadyProbe(),
         audit_sink=audit_sink,
     )
+
+    async def _fake_session() -> Any:
+        yield None
+
+    async def _fake_profile(self: Any, employee_id: UUID) -> EmployeeProfile:
+        return EmployeeProfile("Test User", None, "HO", "Hoi so", None)
+
+    application.dependency_overrides[get_rls_session] = _fake_session
+    monkeypatch.setattr(EmployeeRepository, "get_profile", _fake_profile)
 
     with TestClient(application) as client:
         live = client.get("/health/live", headers={"Origin": "http://localhost:3000"})
