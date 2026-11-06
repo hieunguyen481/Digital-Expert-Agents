@@ -35,10 +35,26 @@ class ToolDef:
         }
 
 
+def _log_usage(resp) -> None:
+    """Ghi token/chi phí mỗi lượt gọi LLM ra log container (không ghi nội dung, không ghi khóa)."""
+    u = getattr(resp, "usage", None)
+    if u is not None:
+        print("LLM_USAGE", json.dumps(u.model_dump() if hasattr(u, "model_dump") else str(u), default=str), flush=True)
+
+
 def _client():
     from openai import AsyncOpenAI
 
-    return AsyncOpenAI(api_key=config.LLM_API_KEY, base_url=config.LLM_BASE_URL)
+    client = AsyncOpenAI(api_key=config.LLM_API_KEY, base_url=config.LLM_BASE_URL)
+    create = client.chat.completions.create
+
+    async def create_logged(*a, **kw):
+        resp = await create(*a, **kw)
+        _log_usage(resp)
+        return resp
+
+    client.chat.completions.create = create_logged  # type: ignore[method-assign]
+    return client
 
 
 def parse_json_loose(text: str) -> dict:

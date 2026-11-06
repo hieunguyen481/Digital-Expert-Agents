@@ -141,7 +141,7 @@ async def reject(case_id: str, body: RejectBody,
                  user: Principal = Depends(require_roles(*config.APPROVER_ROLES))) -> dict:
     db.update_case(case_id, state=CaseState.REJECTED.value, approver=user.employee_id)
     await broadcast(db.add_event(case_id, "hitl", "rejected",
-                                 {"approver": body.approver, "reason": body.reason}))
+                                 {"approver": user.employee_id, "reason": body.reason}))
     return {"status": "rejected"}
 
 

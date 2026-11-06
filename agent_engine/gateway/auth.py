@@ -44,7 +44,8 @@ class HttpJwks:
             async with httpx.AsyncClient(timeout=5) as c:
                 r = await c.get(self._url)
                 r.raise_for_status()
-            self._keys = {k["kid"]: jwt.PyJWK(k).key for k in r.json()["keys"] if "kid" in k}
+            self._keys = {k["kid"]: jwt.PyJWK(k).key for k in r.json()["keys"]
+                          if "kid" in k and k.get("use", "sig") == "sig" and k.get("kty") == "RSA"}
             self._at = time.time()
         if kid not in self._keys:
             raise KeyError(kid)
