@@ -1,0 +1,44 @@
+import { describe, expect, it } from 'vitest';
+import { formatBillion, slaText, statusLabel, STATUS_LABEL, workdaysBetween } from './format';
+import type { WorkItem } from './types';
+
+const base = {
+  paused: false,
+  remaining_workdays: null,
+  sla_level: 'ok',
+  due_at: null,
+} as unknown as WorkItem;
+const item = (o: Partial<WorkItem>): WorkItem => ({ ...base, ...o });
+
+describe('formatBillion', () => {
+  it('định dạng tỷ', () => {
+    expect(formatBillion('80000000000')).toBe('80 tỷ');
+    expect(formatBillion('12500000000.00')).toBe('12,5 tỷ');
+  });
+});
+
+describe('slaText', () => {
+  const today = new Date(2026, 10, 6); // thứ Sáu 06/11/2026
+  it('tạm dừng', () => {
+    expect(slaText(item({ paused: true, sla_level: 'pause' }), today)).toBe('tạm dừng');
+  });
+  it('hạn hôm nay', () => {
+    expect(slaText(item({ sla_level: 'today', due_at: new Date(2026, 10, 6, 17).toISOString() }), today)).toBe('hạn hôm nay');
+  });
+  it('còn n ngày LV (bỏ cuối tuần)', () => {
+    expect(slaText(item({ due_at: new Date(2026, 10, 10, 17).toISOString() }), today)).toBe('còn 2 ngày LV');
+  });
+  it('quá hạn n ngày LV', () => {
+    expect(slaText(item({ sla_level: 'over', due_at: new Date(2026, 10, 4, 17).toISOString() }), today)).toBe('quá hạn 2 ngày LV');
+  });
+  it('workdaysBetween', () => {
+    expect(workdaysBetween(today, new Date(2026, 10, 9))).toBe(1);
+  });
+});
+
+describe('nhãn trạng thái', () => {
+  it('đủ 14 trạng thái', () => {
+    expect(Object.keys(STATUS_LABEL)).toHaveLength(14);
+    expect(statusLabel('APPRAISAL_PENDING_INFO')).toBe('Thẩm định – chờ bổ sung');
+  });
+});
