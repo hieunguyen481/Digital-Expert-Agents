@@ -34,10 +34,6 @@ SERVICES = [
 
 
 def main() -> None:
-    if not config.CORE_BANKING_DB.exists():
-        print("Seed dữ liệu core banking...")
-        subprocess.run([sys.executable, "-m", "mcp_core_banking.seed"], cwd=BACKEND, check=True)
-
     procs: list[tuple[str, subprocess.Popen]] = []
     for name, cmd in SERVICES:
         log = open(config.LOGS_DIR / f"{name}.log", "w", encoding="utf-8")

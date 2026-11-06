@@ -42,7 +42,8 @@ class Settings(BaseSettings):
 
     # Agentic Core Engine (optional; unset keeps deep analysis on the single LLM).
     agent_engine_url: str | None = None
-    agent_engine_business_id: str = "B001"
+    # Không còn mã cố định: B2 sẽ truyền customer id thật của hồ sơ (kèm JWT người dùng).
+    agent_engine_business_id: str | None = None
     agent_engine_wait_seconds: int = Field(default=90, ge=10, le=570)
 
     # Rule-based account gate (all optional; an empty value disables that rule).

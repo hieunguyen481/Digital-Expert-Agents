@@ -250,7 +250,10 @@ async def handle_info(env: Envelope) -> dict:
         sao_ke = extracted.get("sao_ke") or {}
         if sao_ke.get("avg_monthly_inflow"):
             return {"verified_annual_inflow": sao_ke["avg_monthly_inflow"] * 12}
-        return {"verified_annual_inflow": None}
+        # Không có sao kê trích xuất: lấy tiền về TK thật từ banking.account_monthly_summary.
+        real = await mcp_client.call_tool(
+            "get_annual_inflow", {"business_id": env.payload.get("business_id", "")})
+        return {"verified_annual_inflow": (real or {}).get("verified_annual_inflow")}
     return {"extractions": extracted}
 
 

@@ -45,8 +45,15 @@ async def _rules_task(env: Envelope) -> Verdict:
                        decision=VerdictDecision.NEED_MORE_INFO,
                        summary="Không có số liệu tài chính — yêu cầu bổ sung BCTC")
     latest = max(fins, key=lambda f: f["year"])
-    dscr = latest["ebitda"] / latest["debt_service"] if latest["debt_service"] else 99
-    leverage = latest["total_debt"] / latest["equity"] if latest["equity"] else 99
+    # DSCR lấy nguyên số đã ghi trong hồ sơ (kèm trạng thái xác minh); không tự dựng debt_service.
+    rep_dscr = (latest.get("reported_ratios") or {}).get("dscr")
+    warnings = latest.get("warnings") or []
+    if not rep_dscr:
+        return Verdict(agent=CARD.agent_id, task_id=env.task_id or "",
+                       decision=VerdictDecision.NEED_MORE_INFO,
+                       summary="Chưa có DSCR trong hồ sơ — yêu cầu bổ sung khoản trả nợ/BCTC")
+    dscr = rep_dscr["value"]
+    leverage = latest["total_debt"] / latest["equity"] if latest.get("equity") and latest.get("total_debt") else 0.0
 
     evidence = [
         Evidence(source="core-banking:get_financials",
@@ -56,8 +63,11 @@ async def _rules_task(env: Envelope) -> Verdict:
     for p in rag.search("credit", "DSCR tối thiểu hạn mức vốn lưu động doanh thu"):
         evidence.append(Evidence(source=f"RAG:{p['source']}", quote=p["text"][:300]))
 
-    findings: list[str] = []
+    findings: list[str] = list(warnings)
     conditions: list[str] = []
+    if rep_dscr["status"] != "CONFIRMED":
+        findings.append(f"DSCR {dscr:.2f} ở trạng thái {rep_dscr['status']} (dữ liệu mẫu) — cần xác minh")
+        conditions.append("Xác minh DSCR và EBITDA trước khi trình phê duyệt")
     revenue_basis = latest["revenue"]
 
     # A2A: hỏi Document Agent dòng tiền thực tế về tài khoản để đối chiếu doanh thu
@@ -66,7 +76,7 @@ async def _rules_task(env: Envelope) -> Verdict:
             case_id=env.case_id, task_id=env.task_id,
             from_agent=CARD.agent_id, to_agent="document",
             type=MessageType.INFO_REQUEST,
-            payload={"field": "verified_annual_inflow"},
+            payload={"field": "verified_annual_inflow", "business_id": business_id},
         ))
         inflow = resp.payload.get("verified_annual_inflow")
         if inflow and inflow < revenue_basis * 0.7:

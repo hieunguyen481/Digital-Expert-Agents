@@ -10,14 +10,29 @@ from typing import Any
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
-from . import config
+from . import config, identity
 
 
 async def call_tool(name: str, arguments: dict[str, Any] | None = None) -> Any:
-    async with streamablehttp_client(config.MCP_CORE_BANKING_URL) as (read, write, _):
+    async with streamablehttp_client(config.MCP_CORE_BANKING_URL, headers=identity.headers_for()) as (read, write, _):
         async with ClientSession(read, write) as session:
             await session.initialize()
             result = await session.call_tool(name, arguments or {})
+    return _guard(_unwrap(result))
+
+
+class McpDenied(PermissionError):
+    """MCP từ chối (thiếu danh tính / không có quyền): agent không được đi tiếp với dữ liệu rỗng."""
+
+
+def _guard(value: Any) -> Any:
+    first = value[0] if isinstance(value, list) and len(value) == 1 else value
+    if isinstance(first, dict) and str(first.get("error", "")).startswith("từ chối"):
+        raise McpDenied(first["error"])
+    return value
+
+
+def _unwrap(result) -> Any:
     if result.structuredContent is not None:
         sc = result.structuredContent
         # FastMCP bọc giá trị trả về đơn trong {"result": ...}
@@ -31,7 +46,7 @@ async def call_tool(name: str, arguments: dict[str, Any] | None = None) -> Any:
 
 
 async def list_tools() -> list[dict]:
-    async with streamablehttp_client(config.MCP_CORE_BANKING_URL) as (read, write, _):
+    async with streamablehttp_client(config.MCP_CORE_BANKING_URL, headers=identity.headers_for()) as (read, write, _):
         async with ClientSession(read, write) as session:
             await session.initialize()
             res = await session.list_tools()

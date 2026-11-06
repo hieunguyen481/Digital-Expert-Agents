@@ -11,7 +11,7 @@ import traceback
 
 import httpx
 
-from common import config
+from common import config, identity
 from common.schemas import (
     ApprovalPackage, CaseState, Envelope, MessageType, Plan, Verdict, VerdictDecision,
 )
@@ -28,13 +28,21 @@ def _set_state(case_id: str, state: CaseState) -> None:
     db.update_case(case_id, state=state.value)
 
 
+def _bind_identity(payload: dict) -> None:
+    """Đặt danh tính người tạo case (đã xác thực ở gateway) cho mọi lời gọi xuống agent/MCP."""
+    i = (payload or {}).get("_identity")
+    identity.set_current(identity.Identity(i["employee_id"], i["branch_id"], bool(i.get("is_admin")))
+                         if i else None)
+
+
 async def _dispatch(case_id: str, task_id: str, agent: str, payload: dict) -> Verdict:
     """Gửi task_request A2A tới agent, nhận task_result."""
     env = Envelope(case_id=case_id, task_id=task_id, from_agent="orchestrator",
                    to_agent=agent, type=MessageType.TASK_REQUEST, payload=payload)
     async with httpx.AsyncClient(timeout=600) as client:
         resp = await client.post(f"{config.agent_url(agent)}/a2a",
-                                 json=env.model_dump(mode="json"))
+                                 json=env.model_dump(mode="json"),
+                                 headers=identity.headers_for())
         resp.raise_for_status()
     reply = Envelope(**resp.json())
     if reply.type == MessageType.ERROR:
@@ -48,6 +56,7 @@ async def run_analysis(case_id: str) -> None:
     if case is None:
         return
     payload = case["payload"]
+    _bind_identity(payload)
     version = case["replan_count"] + 1
 
     try:
@@ -157,6 +166,7 @@ async def approve_and_commit(case_id: str, approver: str) -> dict:
     case = db.get_case(case_id)
     if not case or case["state"] != CaseState.PENDING_APPROVAL.value:
         return {"error": f"case không ở trạng thái Pending Approval"}
+    _bind_identity(case["payload"])
     package = case["package"]
 
     tok = approval.issue(case_id, package, approver)

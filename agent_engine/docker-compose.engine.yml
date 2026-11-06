@@ -1,0 +1,36 @@
+# Dùng cùng infra: docker compose -f infra/docker-compose.infra.yml -f agent_engine/docker-compose.engine.yml up -d engine
+# (đường dẫn tương đối tính từ thư mục của file compose đầu tiên, tức infra/).
+services:
+  engine:
+    build:
+      context: ../agent_engine
+      dockerfile: Dockerfile
+    image: bank-ai-engine:0.1.0
+    restart: unless-stopped
+    env_file:
+      - ../agent_engine/.env        # khóa LLM (OpenRouter); không commit
+    environment:
+      BIND_HOST: 0.0.0.0
+      GATEWAY_PORT: "8010"
+      DATABASE_URL: postgresql://${POSTGRES_APP_USER:-bank_app}:${POSTGRES_APP_PASSWORD:?Generate infra/.env.local}@postgres:5432/bank_ai
+      ENGINE_SERVICE_TOKEN: ${ENGINE_SERVICE_TOKEN:?Add ENGINE_SERVICE_TOKEN to infra/.env.local}
+      KEYCLOAK_ISSUER_URL: http://localhost:8080/realms/bank-ai
+      KEYCLOAK_JWKS_INTERNAL_URL: http://keycloak:8080/realms/bank-ai/protocol/openid-connect/certs
+      OIDC_EXPECTED_AUDIENCE: bank-ai-api
+      LLM_MODE: ${ENGINE_LLM_MODE:-rules}
+    ports:
+      - 127.0.0.1:8010:8010        # chỉ gateway; MCP và 5 agent chỉ nghe trong container
+    networks:
+      - bank-edge                  # cổng ra OpenRouter + Keycloak
+      - bank-data                  # Postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8010/health', timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true

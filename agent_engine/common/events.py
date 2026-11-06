@@ -5,7 +5,7 @@ from typing import Any
 
 import httpx
 
-from . import config, pii
+from . import config, identity, pii
 
 
 async def emit(case_id: str, agent: str, etype: str, payload: dict[str, Any] | None = None):
@@ -18,6 +18,7 @@ async def emit(case_id: str, agent: str, etype: str, payload: dict[str, Any] | N
     }
     try:
         async with httpx.AsyncClient(timeout=5) as client:
-            await client.post(f"{config.GATEWAY_URL}/internal/events", json=body)
+            await client.post(f"{config.GATEWAY_URL}/internal/events", json=body,
+                              headers=identity.headers_for())
     except Exception:  # noqa: BLE001
         pass

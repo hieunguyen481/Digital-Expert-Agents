@@ -75,6 +75,12 @@ SELECT format(
 
 GRANT pg_monitor TO bank_readonly;
 
+-- V028: vai tro doc cho agent engine. Khong dang nhap, khong BYPASSRLS; bank_app SET ROLE vao.
+SELECT 'CREATE ROLE bank_engine NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS'
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bank_engine')
+\gexec
+GRANT bank_engine TO bank_app;
+
 ALTER DATABASE bank_ai OWNER TO bank_migrator;
 ALTER DATABASE keycloak OWNER TO keycloak_app;
 

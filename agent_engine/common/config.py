@@ -20,14 +20,15 @@ AGENT_PORTS = {
 }
 
 HOST = os.getenv("BIND_HOST", "127.0.0.1")
-GATEWAY_URL = os.getenv("GATEWAY_URL", f"http://{HOST}:{GATEWAY_PORT}")
+_CONNECT = "127.0.0.1" if HOST in ("0.0.0.0", "") else HOST
+GATEWAY_URL = os.getenv("GATEWAY_URL", f"http://{_CONNECT}:{GATEWAY_PORT}")
 MCP_CORE_BANKING_URL = os.getenv(
-    "MCP_CORE_BANKING_URL", f"http://{HOST}:{MCP_CORE_BANKING_PORT}/mcp"
+    "MCP_CORE_BANKING_URL", f"http://{_CONNECT}:{MCP_CORE_BANKING_PORT}/mcp"
 )
 
 
 def agent_url(name: str) -> str:
-    return f"http://{HOST}:{AGENT_PORTS[name]}"
+    return f"http://{_CONNECT}:{AGENT_PORTS[name]}"
 
 
 # ---- LLM ----
@@ -58,14 +59,31 @@ MAX_REPLAN_ROUNDS = int(os.getenv("MAX_REPLAN_ROUNDS", "2"))
 MAX_CHALLENGE_ROUNDS = int(os.getenv("MAX_CHALLENGE_ROUNDS", "2"))
 APPROVAL_SLA_SECONDS = int(os.getenv("APPROVAL_SLA_SECONDS", "60"))  # rút ngắn để demo
 LTV_MAX = float(os.getenv("LTV_MAX", "0.70"))
-DSCR_MIN = float(os.getenv("DSCR_MIN", "1.20"))
+# Q-R: CS-TD-SME/2025 là chuẩn (DSCR >= 1,25); rag_corpus/credit_policy.md (ghi 1,2) không còn là nguồn.
+DSCR_MIN = float(os.getenv("DSCR_MIN", "1.25"))
 # Thẩm quyền phê duyệt theo hạn mức (VND)
 BRANCH_APPROVAL_LIMIT = float(os.getenv("BRANCH_APPROVAL_LIMIT", "8000000000"))
+
+# ---- Danh tính & dữ liệu thật (Postgres) ----
+# Engine nối bằng role bank_app rồi SET LOCAL ROLE bank_engine (không BYPASSRLS) cho từng lời gọi.
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+# Khóa dịch vụ nội bộ: ký danh tính gateway -> agent -> MCP và bảo vệ /internal/*.
+ENGINE_SERVICE_TOKEN = os.getenv("ENGINE_SERVICE_TOKEN", "")
+KEYCLOAK_ISSUER_URL = os.getenv("KEYCLOAK_ISSUER_URL", "http://localhost:8080/realms/bank-ai")
+KEYCLOAK_JWKS_URL = os.getenv(
+    "KEYCLOAK_JWKS_INTERNAL_URL",
+    "http://keycloak:8080/realms/bank-ai/protocol/openid-connect/certs")
+OIDC_AUDIENCE = os.getenv("OIDC_EXPECTED_AUDIENCE", "bank-ai-api")
+# Vai trò DB được phép dùng gateway / các route nhạy cảm
+GATEWAY_ROLES = frozenset({
+    "credit_officer", "credit_appraiser", "credit_manager", "risk_officer",
+    "compliance_officer", "document_reviewer", "loan_approver", "auditor", "admin"})
+APPROVER_ROLES = frozenset({"loan_approver", "admin"})
+AUDIT_ROLES = frozenset({"auditor", "admin"})
 
 # ---- Paths ----
 DATA_DIR = BACKEND_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
-CORE_BANKING_DB = DATA_DIR / "core_banking.db"
 GATEWAY_DB = DATA_DIR / "gateway.db"
 RAG_CORPUS_DIR = BACKEND_DIR / "rag_corpus"
 UPLOADS_DIR = DATA_DIR / "uploads"

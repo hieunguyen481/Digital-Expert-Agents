@@ -138,7 +138,7 @@ class LLMConversationResponder:
         llm: LLMProvider,
         *,
         engine: Any | None = None,
-        engine_business_id: str = "B001",
+        engine_business_id: str | None = None,
         engine_wait_seconds: int = 90,
         transaction_page_size: int = 15,
         highlighter: DocumentHighlighter | None = None,
@@ -389,6 +389,8 @@ class LLMConversationResponder:
         base_metadata: Mapping[str, Any],
     ) -> ConversationReply | None:
         """Chạy phân tích sâu qua Agentic Core Engine; trả None để rơi về LLM đơn."""
+        if not self._engine_business_id:
+            return None  # chưa có định danh khách thật: rơi về LLM đơn, không dùng mã cố định
         loans = context.get("loan_applications") or []
         loan: Mapping[str, Any] = loans[0] if loans else {}
         amount = None

@@ -15,9 +15,9 @@ from typing import Awaitable, Callable, Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import httpx  # noqa: E402
-from fastapi import FastAPI  # noqa: E402
+from fastapi import FastAPI, HTTPException, Request  # noqa: E402
 
-from common import config, events  # noqa: E402
+from common import config, events, identity  # noqa: E402
 from common.schemas import AgentCard, Envelope, MessageType, Verdict  # noqa: E402
 
 TaskHandler = Callable[[Envelope], Awaitable[Verdict]]
@@ -32,7 +32,8 @@ async def a2a_send(from_agent: str, to_agent: str, env: Envelope) -> Envelope:
         {"to": to_agent, "task_id": env.task_id, "payload": env.payload},
     )
     async with httpx.AsyncClient(timeout=120) as client:
-        resp = await client.post(url, json=env.model_dump(mode="json"))
+        resp = await client.post(url, json=env.model_dump(mode="json"),
+                                 headers=identity.headers_for())
         resp.raise_for_status()
     return Envelope(**resp.json())
 
@@ -54,7 +55,11 @@ def build_agent_app(
         return {"status": "ok", "agent": card.agent_id}
 
     @app.post("/a2a")
-    async def a2a_endpoint(env: Envelope) -> dict:
+    async def a2a_endpoint(env: Envelope, request: Request) -> dict:
+        try:
+            identity.set_current(identity.verify(request.headers))
+        except identity.IdentityError as e:
+            raise HTTPException(status_code=401, detail=str(e)) from e
         try:
             if env.type == MessageType.TASK_REQUEST:
                 await events.emit(env.case_id, card.agent_id, "task_started",

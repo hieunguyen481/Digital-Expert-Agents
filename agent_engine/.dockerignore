@@ -1,6 +1,6 @@
 .env
+.env.*
+data/
 logs/
 __pycache__/
-**/__pycache__/
 *.pyc
-data/core_banking.db

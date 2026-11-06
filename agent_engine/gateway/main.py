@@ -14,14 +14,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import httpx  # noqa: E402
 import uvicorn  # noqa: E402
-from fastapi import BackgroundTasks, FastAPI  # noqa: E402
+from fastapi import BackgroundTasks, Depends, FastAPI  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 from sse_starlette.sse import EventSourceResponse  # noqa: E402
 
-from common import config, mcp_client, rag  # noqa: E402
+from common import config, identity, mcp_client, rag  # noqa: E402
 from common.schemas import CaseCreate, CaseState, new_id  # noqa: E402
 from gateway import approval, db, orchestrator, planner  # noqa: E402
+from gateway.auth import (Principal, current_principal, internal_only,  # noqa: E402
+                          require_roles)
+
+USER = Depends(require_roles())
 
 app = FastAPI(title="SHB Digital Expert Agents — Gateway")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"],
@@ -36,6 +40,11 @@ async def broadcast(event: dict) -> None:
         await q.put(event)
 
 
+@app.get("/health")
+async def health() -> dict:
+    return {"status": "ok"}
+
+
 @app.on_event("startup")
 async def startup() -> None:
     db.init()
@@ -44,19 +53,23 @@ async def startup() -> None:
 
 # ---- Cases ----
 @app.post("/cases")
-async def create_case(body: CaseCreate) -> dict:
+async def create_case(body: CaseCreate, user: Principal = USER) -> dict:
     case_id = new_id("case")
-    db.create_case(case_id, body.model_dump(mode="json"))
+    payload = body.model_dump(mode="json")
+    payload["submitted_by"] = user.employee_id  # danh tính từ JWT, không tin giá trị client gửi
+    payload["_identity"] = {"employee_id": user.employee_id, "branch_id": user.branch_id,
+                            "is_admin": user.is_admin}
+    db.create_case(case_id, payload)
     await broadcast(db.add_event(case_id, "gateway", "case_created", {
         "request": body.request.model_dump(mode="json"),
-        "submitted_by": body.submitted_by,
+        "submitted_by": user.employee_id,
         "documents": [d.get("doc_type") for d in body.documents],
     }))
     return {"case_id": case_id, "state": CaseState.DRAFT.value}
 
 
 @app.post("/cases/{case_id}/run")
-async def run_case(case_id: str, background: BackgroundTasks) -> dict:
+async def run_case(case_id: str, background: BackgroundTasks, user: Principal = USER) -> dict:
     if db.get_case(case_id) is None:
         return {"error": "case không tồn tại"}
     background.add_task(orchestrator.run_analysis, case_id)
@@ -64,7 +77,7 @@ async def run_case(case_id: str, background: BackgroundTasks) -> dict:
 
 
 @app.get("/cases/{case_id}")
-async def get_case(case_id: str) -> dict:
+async def get_case(case_id: str, user: Principal = USER) -> dict:
     case = db.get_case(case_id)
     if case is None:
         return {"error": "case không tồn tại"}
@@ -73,12 +86,12 @@ async def get_case(case_id: str) -> dict:
 
 
 @app.get("/cases/{case_id}/events")
-async def get_events(case_id: str, after: int = 0) -> list[dict]:
+async def get_events(case_id: str, after: int = 0, user: Principal = USER) -> list[dict]:
     return db.get_events(case_id, after)
 
 
 @app.get("/cases/{case_id}/stream")
-async def stream_events(case_id: str):
+async def stream_events(case_id: str, user: Principal = USER):
     q: asyncio.Queue = asyncio.Queue()
     _subscribers.setdefault(case_id, []).append(q)
 
@@ -111,27 +124,29 @@ class SupplementBody(BaseModel):
 
 
 @app.post("/cases/{case_id}/approve")
-async def approve(case_id: str, body: ApproveBody, background: BackgroundTasks) -> dict:
+async def approve(case_id: str, body: ApproveBody, background: BackgroundTasks,
+                  user: Principal = Depends(require_roles(*config.APPROVER_ROLES))) -> dict:
     case = db.get_case(case_id)
     if not case or case["state"] != CaseState.PENDING_APPROVAL.value:
         return {"error": "case không ở trạng thái Pending Approval"}
     required = (case.get("package") or {}).get("required_approver_level", "branch_director")
     if body.approver_level != required:
         return {"error": f"sai thẩm quyền: cần {required}, nhận {body.approver_level}"}
-    background.add_task(orchestrator.approve_and_commit, case_id, body.approver)
+    background.add_task(orchestrator.approve_and_commit, case_id, user.employee_id)
     return {"status": "approving"}
 
 
 @app.post("/cases/{case_id}/reject")
-async def reject(case_id: str, body: RejectBody) -> dict:
-    db.update_case(case_id, state=CaseState.REJECTED.value, approver=body.approver)
+async def reject(case_id: str, body: RejectBody,
+                 user: Principal = Depends(require_roles(*config.APPROVER_ROLES))) -> dict:
+    db.update_case(case_id, state=CaseState.REJECTED.value, approver=user.employee_id)
     await broadcast(db.add_event(case_id, "hitl", "rejected",
                                  {"approver": body.approver, "reason": body.reason}))
     return {"status": "rejected"}
 
 
 @app.post("/cases/{case_id}/supplement")
-async def supplement(case_id: str, body: SupplementBody) -> dict:
+async def supplement(case_id: str, body: SupplementBody, user: Principal = USER) -> dict:
     return await orchestrator.supplement_and_replan(case_id, body.documents)
 
 
@@ -141,7 +156,7 @@ class AskBody(BaseModel):
 
 
 @app.post("/ask")
-async def direct_answer(body: AskBody) -> dict:
+async def direct_answer(body: AskBody, user: Principal = USER) -> dict:
     hits = (rag.search("credit", body.question, k=2)
             + rag.search("compliance", body.question, k=2)
             + rag.search("ops", body.question, k=2))
@@ -158,7 +173,7 @@ class EventBody(BaseModel):
     payload: dict = {}
 
 
-@app.post("/internal/events")
+@app.post("/internal/events", dependencies=[Depends(internal_only)])
 async def post_event(body: EventBody) -> dict:
     await broadcast(db.add_event(body.case_id, body.agent, body.type, body.payload))
     return {"ok": True}
@@ -169,20 +184,22 @@ class TokenVerifyBody(BaseModel):
     token: str
 
 
-@app.post("/internal/tokens/verify")
+@app.post("/internal/tokens/verify", dependencies=[Depends(internal_only)])
 async def verify_token(body: TokenVerifyBody) -> dict:
     return approval.verify(body.case_id, body.token)
 
 
 # ---- Registry & audit ----
 @app.get("/agents")
-async def agents() -> list[dict]:
+async def agents(user: Principal = USER) -> list[dict]:
     registry = await planner.get_registry()
     return [c.model_dump() for c in registry.values()]
 
 
 @app.get("/audit/mcp")
-async def mcp_audit(limit: int = 30) -> list[dict]:
+async def mcp_audit(limit: int = 30,
+                    user: Principal = Depends(require_roles(*config.AUDIT_ROLES))) -> list[dict]:
+    identity.set_current(user.identity())
     return await mcp_client.call_tool("get_audit_log", {"limit": limit})
 
 

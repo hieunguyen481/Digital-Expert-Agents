@@ -39,7 +39,7 @@ async def _rules_task(env: Envelope) -> Verdict:
 
     biz = await mcp_client.call_tool("get_business", {"business_id": business_id})
     bl = await mcp_client.call_tool("check_blacklist", {
-        "name": biz.get("legal_rep_name", ""), "cccd": biz.get("legal_rep_cccd", "")})
+        "business_id": business_id})
     cic = await mcp_client.call_tool("get_cic_status", {"business_id": business_id})
 
     evidence = [
@@ -55,6 +55,9 @@ async def _rules_task(env: Envelope) -> Verdict:
     findings: list[str] = []
     conditions: list[str] = []
 
+    if not bl.get("screened", True):
+        findings.append(bl.get("note", "Chưa có kết quả tra cứu AML/danh sách đen"))
+        conditions.append("Tra cứu AML/danh sách đen trước khi trình phê duyệt")
     if bl.get("hit"):
         return Verdict(
             agent=CARD.agent_id, task_id=env.task_id or "",
@@ -65,10 +68,10 @@ async def _rules_task(env: Envelope) -> Verdict:
         )
 
     decision = VerdictDecision.APPROVE
-    if cic.get("cic_group", 1) >= 3:
+    if (cic.get("cic_group") or 1) >= 3:
         decision = VerdictDecision.REJECT
         findings.append(f"CIC nhóm {cic['cic_group']}: không đủ điều kiện cấp tín dụng")
-    elif cic.get("cic_group", 1) == 2:
+    elif (cic.get("cic_group") or 1) == 2:
         decision = VerdictDecision.FLAG
         findings.append("CIC nhóm 2: cần phê duyệt cấp cao hơn và điều kiện tăng cường")
         conditions.append("Bổ sung giải trình lịch sử nợ nhóm 2 và nguồn trả nợ")
@@ -123,8 +126,8 @@ async def _llm_task(env: Envelope) -> Verdict:
     async def t_biz() -> dict:
         return await mcp_client.call_tool("get_business", {"business_id": business_id})
 
-    async def t_blacklist(name: str, cccd: str = "") -> dict:
-        return await mcp_client.call_tool("check_blacklist", {"name": name, "cccd": cccd})
+    async def t_blacklist() -> dict:
+        return await mcp_client.call_tool("check_blacklist", {"business_id": business_id})
 
     async def t_cic() -> dict:
         return await mcp_client.call_tool("get_cic_status", {"business_id": business_id})
@@ -138,8 +141,7 @@ async def _llm_task(env: Envelope) -> Verdict:
     tools = [
         llm.ToolDef("get_business", "Hồ sơ pháp nhân", {"type": "object", "properties": {}}, t_biz),
         llm.ToolDef("check_blacklist", "Tra danh sách đen AML",
-                    {"type": "object", "properties": {"name": {"type": "string"},
-                     "cccd": {"type": "string"}}, "required": ["name"]}, t_blacklist),
+                    {"type": "object", "properties": {}}, t_blacklist),
         llm.ToolDef("get_cic_status", "Tra CIC", {"type": "object", "properties": {}}, t_cic),
         llm.ToolDef("get_collateral", "Hồ sơ TSĐB", {"type": "object", "properties": {}}, t_collateral),
         llm.ToolDef("search_compliance_policy", "Tra cứu quy định tuân thủ nội bộ",
