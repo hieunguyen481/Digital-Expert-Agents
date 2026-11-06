@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { App, Button, Drawer, Grid } from 'antd';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ConversationSidebar } from '@/features/chat/components/ConversationSidebar';
@@ -56,6 +56,9 @@ export default function ChatPage() {
   /* ---------------- Local UI state (không dùng TanStack Query) ---------------- */
 
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const activeConversationIdRef = useRef<string | null>(null);
+  activeConversationIdRef.current = activeConversationId;
+  const openingCustomerRef = useRef<Promise<void> | null>(null);
   const [highlightDoc, setHighlightDoc] = useState<HighlightDocument | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [sourceDrawerOpen, setSourceDrawerOpen] = useState(false);
@@ -111,7 +114,10 @@ export default function ChatPage() {
 
   const handleSend = useCallback(
     async (content: string, attachments: ChatAttachment[]) => {
-      let conversationId = activeConversationId;
+      // Đang mở hội thoại của khách vừa chọn -> chờ xong để tin nhắn gắn đúng khách hàng.
+      const opening = openingCustomerRef.current;
+      if (opening) await opening;
+      let conversationId = activeConversationIdRef.current;
 
       // Chưa có hội thoại nào -> tạo mới trước khi gửi.
       if (!conversationId) {
@@ -232,14 +238,22 @@ export default function ChatPage() {
   const openCustomerConversation = useCallback(
     async (customer: Customer) => {
       try {
-        const lease = await claimCustomerAssignment(
-          customer.id,
-          customer.assignmentVersion ?? 1,
-        );
-        setActiveAssignmentLeaseToken(lease?.lease_token);
+        try {
+          const lease = await claimCustomerAssignment(
+            customer.id,
+            customer.assignmentVersion ?? 1,
+          );
+          setActiveAssignmentLeaseToken(lease?.lease_token);
+        } catch (error) {
+          // Không nhận được phân công: vẫn mở hội thoại có khách hàng để xem; quyền và
+          // phân công được backend kiểm khi phân tích nên người dùng nhận lý do rõ ràng.
+          setActiveAssignmentLeaseToken(undefined);
+          messageApi.warning(getErrorMessage(error));
+        }
 
         const existing = conversations.find((item) => item.customerId === customer.id);
         if (existing) {
+          activeConversationIdRef.current = existing.id;
           setActiveConversationId(existing.id);
           return;
         }
@@ -255,6 +269,7 @@ export default function ChatPage() {
           customerName: customer.fullName,
           loanApplicationId,
         });
+        activeConversationIdRef.current = created.id;
         setActiveConversationId(created.id);
         setComposerValue('');
       } catch (error) {
@@ -270,7 +285,10 @@ export default function ChatPage() {
       setActiveCustomer(customer);
       setHighlightDoc(null);
       setPanelOpen(true);
-      void openCustomerConversation(customer);
+      const opening = openCustomerConversation(customer).finally(() => {
+        if (openingCustomerRef.current === opening) openingCustomerRef.current = null;
+      });
+      openingCustomerRef.current = opening;
     },
     [openCustomerConversation],
   );
