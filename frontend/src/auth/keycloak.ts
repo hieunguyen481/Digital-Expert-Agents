@@ -1,6 +1,6 @@
 import Keycloak, { type KeycloakTokenParsed } from 'keycloak-js';
 
-const useMockApi = import.meta.env.VITE_USE_MOCK_API !== 'false';
+const useMockApi = import.meta.env.VITE_USE_MOCK_API === 'true';
 
 let keycloak: Keycloak | null = null;
 

@@ -149,7 +149,7 @@ export function getErrorMessage(error: unknown): string {
   return normalizeError(error).message;
 }
 
-/** Cờ bật mock API — đọc từ biến môi trường, mặc định bật cho demo. */
-export const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API !== 'false';
+/** Cờ bật mock API — chỉ bật khi VITE_USE_MOCK_API đặt đúng `true`; mặc định tắt. */
+export const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API === 'true';
 
 export default apiClient;

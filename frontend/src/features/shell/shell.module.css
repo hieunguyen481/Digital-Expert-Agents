@@ -1,0 +1,11 @@
+.noAccessWrap { padding: 12px 32px; }
+.noAccessHead { margin: 0 0 24px; }
+.noAccess {
+  max-width: 520px;
+  margin: 48px auto;
+  text-align: center;
+  background: var(--canvas);
+  padding: 32px;
+  border-radius: var(--r-lg);
+}
+.noAccessIcon { font-size: 40px; color: var(--text-3); }
