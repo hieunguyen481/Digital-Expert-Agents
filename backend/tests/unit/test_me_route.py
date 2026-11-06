@@ -7,13 +7,13 @@ from uuid import UUID, uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from tests.contract.test_foundation_contract import _settings
 
 from app.api.dependencies import get_rls_session
 from app.auth.dependencies import get_current_principal
 from app.auth.principal import CurrentPrincipal
 from app.main import create_app
 from app.repositories.employee_repository import EmployeeProfile, EmployeeRepository
-from tests.contract.test_foundation_contract import _settings
 
 
 def _client(monkeypatch: pytest.MonkeyPatch, profile: EmployeeProfile | None) -> tuple[TestClient, dict[str, Any]]:

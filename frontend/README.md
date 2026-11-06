@@ -39,6 +39,8 @@ npm run dev     # dev server  -> http://localhost:3000
 npm run build   # production build (tsc -b && vite build)
 npm run preview # xem thử bản build -> http://localhost:4173
 npm run typecheck
+npm test        # vitest (unit/component)
+npm run e2e     # Playwright trên stack thật, xem e2e/README.md
 ```
 
 Yêu cầu: Node.js ≥ 20 (đã kiểm thử trên Node 24).
@@ -73,9 +75,10 @@ Không lưu secret trong frontend.
 
 ### Bật / tắt mock API
 
-- `VITE_USE_MOCK_API=true` *(mặc định)* → toàn bộ dữ liệu từ `src/services/mockApi.ts`.
-  Ứng dụng chạy đầy đủ **không cần backend**.
-- `VITE_USE_MOCK_API=false` → service gọi backend thật qua `src/services/apiClient.ts`.
+- `VITE_USE_MOCK_API=false` *(mặc định)* → service gọi backend thật qua `src/services/apiClient.ts`; đăng nhập Keycloak thật.
+- `VITE_USE_MOCK_API=true` → dữ liệu từ `src/services/mockApi.ts`, chạy không cần backend (chỉ để demo giao diện).
+
+Tài khoản demo (mật khẩu ở `SEED_USER_PASSWORD` trong `infra/.env.local`, không ghi ở đây): `credit.officer`, `document.reviewer`, `appraiser`, `risk`, `approver`, `auditor`, `admin` (đuôi `@example.local`).
 
 Chuyển đổi được xử lý tập trung trong lớp service — hook và component **không cần thay đổi**.
 
@@ -85,10 +88,11 @@ Chuyển đổi được xử lý tập trung trong lớp service — hook và c
 
 | Route | Mô tả |
 | --- | --- |
-| `/` | Giao diện trò chuyện với hệ chuyên gia số |
+| `/` | Chuyển sang `/viec-cua-toi` |
+| `/viec-cua-toi` | Việc của tôi (trang 03), dữ liệu thật từ `/work-items`, mọi trang nằm trong khung AppLayout |
+| `/chat` | Giao diện trò chuyện với hệ chuyên gia số |
 | `/dashboard` | **Giám sát agent** — traces, task status, decisions, collaboration flows, so sánh hiệu năng |
-| `/?view=foundation` | Foundation Page — kiểm chứng các thư viện nền tảng |
-| `/foundation` | Foundation Page (đường dẫn trực tiếp) |
+| `/foundation` | Foundation Page (chỉ khi chạy dev) |
 | `*` | Trang 404 |
 
 Toàn bộ route khai báo tập trung tại `src/app/routes.tsx`.

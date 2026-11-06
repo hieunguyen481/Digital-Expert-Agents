@@ -3,14 +3,21 @@
 from __future__ import annotations
 
 import os
-from collections.abc import AsyncIterator
 from uuid import UUID
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from tests.integration.seed_ids import (
-    ADMIN_HO, APPROVER_HO, AUDITOR_HO, BRANCH_HN, BRANCH_HO, COMPLIANCE_HO,
-    CREDIT_APPRAISER, CREDIT_OFFICER, DOCUMENT_REVIEWER, RISK_HO,
+    ADMIN_HO,
+    APPROVER_HO,
+    AUDITOR_HO,
+    BRANCH_HN,
+    BRANCH_HO,
+    COMPLIANCE_HO,
+    CREDIT_APPRAISER,
+    CREDIT_OFFICER,
+    DOCUMENT_REVIEWER,
+    RISK_HO,
 )
 
 from app.db.rls_context import rls_transaction
@@ -42,14 +49,13 @@ async def _run(employee: UUID, filter_: str = "all"):  # type: ignore[no-untyped
         pytest.skip("TEST_APP_DSN chua dat")
     engine = create_async_engine(dsn.replace("postgresql://", "postgresql+asyncpg://"))
     try:
-        async with AsyncSession(engine) as session:
-            async with rls_transaction(
-                session, employee_id=employee, branch_id=ROLES[employee][1],
-                is_admin=employee == ADMIN_HO,
-            ):
-                return await WorkItemService(WorkItemRepository(session)).list(
-                    _P(employee, {"loan:read"}), filter_=filter_
-                )
+        async with AsyncSession(engine) as session, rls_transaction(
+            session, employee_id=employee, branch_id=ROLES[employee][1],
+            is_admin=employee == ADMIN_HO,
+        ):
+            return await WorkItemService(WorkItemRepository(session)).list(
+                _P(employee, {"loan:read"}), filter_=filter_
+            )
     finally:
         await engine.dispose()
 

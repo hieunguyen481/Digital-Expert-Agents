@@ -38,7 +38,12 @@ export function AiPanel() {
     if (open) {
       el.removeAttribute('inert');
       // Đợi panel hiện ra (visibility) rồi mới chuyển focus vào trong.
-      const id = window.setTimeout(() => el.querySelector<HTMLElement>('textarea, input, button')?.focus(), 50);
+      // Không cướp focus nếu người dùng đã đặt con trỏ trong panel (đang gõ).
+      const id = window.setTimeout(() => {
+        if (!el.contains(document.activeElement)) {
+          el.querySelector<HTMLElement>('textarea, input, button')?.focus();
+        }
+      }, 50);
       return () => window.clearTimeout(id);
     } else {
       el.setAttribute('inert', '');

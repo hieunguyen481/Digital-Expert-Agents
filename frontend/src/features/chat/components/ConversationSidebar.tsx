@@ -23,7 +23,7 @@ import { PageError } from '@/components/common/PageError';
 import { filterConversations, groupConversations } from '@/features/chat/utils/groupConversations';
 import type { Conversation } from '@/types/conversation';
 import type { UserProfile } from '@/types/user';
-import { STAFF_ROLE_LABEL } from '@/types/user';
+import { UI_ROLE_LABEL } from '@/auth/roleFromMe';
 import styles from './ConversationSidebar.module.css';
 
 export interface ConversationSidebarProps {
@@ -347,7 +347,7 @@ export function ConversationSidebar({
             <span className={styles.profileBody}>
               <span className={styles.profileName}>{user.displayName}</span>
               <span className={styles.profileRole}>
-                {STAFF_ROLE_LABEL[user.role]} • {user.branch}
+                {user.role ? UI_ROLE_LABEL[user.role] : 'Chưa gán vai trò'} • {user.branch}
               </span>
             </span>
           </button>

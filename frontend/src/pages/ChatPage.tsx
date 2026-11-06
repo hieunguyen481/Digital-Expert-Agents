@@ -10,9 +10,10 @@ import { SourceDrawer } from '@/features/chat/components/SourceDrawer';
 import { HighlightDocumentViewer, type HighlightDocument } from '@/features/chat/components/HighlightDocumentViewer';
 import { CustomerWorkspacePanel } from '@/features/customer/components/CustomerWorkspacePanel';
 import {
-  DEMO_APPROVAL_LIMIT,
   findLoansByCustomer,
 } from '@/features/chat/constants/mockCustomers';
+import { uiRoleFromRoles } from '@/auth/roleFromMe';
+import { useMe } from '@/auth/session';
 import styles from './ChatPage.module.css';
 import type { Customer, LoanApplication, LoanApplicationStatus } from '@/types/customer';
 import { LOAN_STATUS_LABEL } from '@/types/customer';
@@ -37,20 +38,6 @@ import type { UserProfile } from '@/types/user';
 
 const FoundationPage = lazy(() => import('./FoundationPage'));
 
-/**
- * Người dùng demo — CHUYÊN VIÊN NGÂN HÀNG, không phải khách hàng.
- * Theo đề bài, hệ chuyên gia số phục vụ vận hành nội bộ của SHB.
- * Khi có auth thật sẽ lấy từ phiên đăng nhập.
- */
-const DEMO_USER: UserProfile = {
-  id: 'staff-demo',
-  displayName: 'Nguyễn Minh Anh',
-  role: 'credit-officer',
-  department: 'Khối Tín dụng',
-  branch: 'CN Hà Nội',
-  approvalLimit: DEMO_APPROVAL_LIMIT,
-};
-
 export default function ChatPage() {
   const { message: messageApi, modal } = App.useApp();
   const screens = Grid.useBreakpoint();
@@ -59,6 +46,18 @@ export default function ChatPage() {
   const location = useLocation();
 
   const isMobile = !screens.md;
+
+  // Người dùng thật từ GET /me (không còn người dùng demo).
+  const me = useMe().data;
+  const user: UserProfile = useMemo(
+    () => ({
+      id: me?.employee_id ?? '',
+      displayName: me?.full_name ?? '',
+      role: me ? uiRoleFromRoles(me.roles) : null,
+      branch: me?.branch_name ?? '',
+    }),
+    [me],
+  );
 
   /* ---------------- Local UI state (không dùng TanStack Query) ---------------- */
 
@@ -481,7 +480,7 @@ export default function ChatPage() {
     loading: conversationsQuery.isLoading,
     error: conversationsQuery.error,
     onRetry: () => void conversationsQuery.refetch(),
-    user: DEMO_USER,
+    user,
     onSelectConversation: handleSelectConversation,
     onCreateConversation: () => void handleCreateConversation(),
     onRenameConversation: handleRename,
@@ -504,7 +503,7 @@ export default function ChatPage() {
             title={activeConversation?.title ?? 'Trợ lý SHB'}
             mode={mode}
             onModeChange={handleModeChange}
-            user={DEMO_USER}
+            user={user}
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={() => setSidebarCollapsed((value) => !value)}
             onOpenMobileNav={() => setMobileNavOpen(true)}
@@ -536,7 +535,7 @@ export default function ChatPage() {
               onViewSources={handleViewSources}
               isStreaming={isStreaming}
               showWelcome={showWelcome}
-              staffName={DEMO_USER.displayName}
+              staffName={user.displayName}
               customers={customers}
               onSelectCustomer={handleSelectCustomer}
               onCustomerAutoCreated={handleCustomerAutoCreated}

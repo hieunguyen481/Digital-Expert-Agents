@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 from sqlalchemy.ext.asyncio import create_async_engine
 from tests.integration.seed_ids import (
@@ -15,7 +17,6 @@ from tests.integration.seed_ids import (
 
 from app.db.rls_context import rls_transaction
 from app.repositories.employee_repository import EmployeeRepository
-import os
 
 
 @pytest.mark.parametrize(
@@ -35,11 +36,10 @@ async def test_profile(employee, branch, admin, code, tier) -> None:  # type: ig
     try:
         from sqlalchemy.ext.asyncio import AsyncSession
 
-        async with AsyncSession(engine) as session:
-            async with rls_transaction(
-                session, employee_id=employee, branch_id=branch, is_admin=admin
-            ):
-                profile = await EmployeeRepository(session).get_profile(employee)
+        async with AsyncSession(engine) as session, rls_transaction(
+            session, employee_id=employee, branch_id=branch, is_admin=admin
+        ):
+            profile = await EmployeeRepository(session).get_profile(employee)
     finally:
         await engine.dispose()
     assert profile is not None

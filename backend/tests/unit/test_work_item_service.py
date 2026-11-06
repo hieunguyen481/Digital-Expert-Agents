@@ -13,7 +13,7 @@ NOW = datetime(2026, 11, 6, 5, 0, tzinfo=UTC)
 
 
 def _lvl(**kw):  # type: ignore[no-untyped-def]
-    base = dict(due_at=NOW + timedelta(days=5), now=NOW, paused=False, due_is_today=False, workdays_to_due=3)
+    base = {"due_at": NOW + timedelta(days=5), "now": NOW, "paused": False, "due_is_today": False, "workdays_to_due": 3}
     base.update(kw)
     return sla_level(**base)
 

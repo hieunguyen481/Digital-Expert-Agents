@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -77,6 +77,7 @@ describe('AiPanel', () => {
     const opener = screen.getByText('Hỏi AI 1');
     opener.focus();
     await userEvent.click(opener);
+    await waitFor(() => expect(screen.getByLabelText('Đóng Trợ lý AI')).toHaveFocus());
     await userEvent.keyboard('{Escape}');
     expect(screen.getByTestId('state')).toHaveTextContent('closed');
     await Promise.resolve();

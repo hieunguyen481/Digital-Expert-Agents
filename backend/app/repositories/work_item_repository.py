@@ -36,10 +36,15 @@ FROM credit.case_step AS step
 JOIN credit.loan_application AS loan ON loan.id = step.loan_application_id
 WHERE (CAST(:loan_ids AS uuid[]) IS NULL OR step.loan_application_id = ANY(CAST(:loan_ids AS uuid[])))
   AND {MINE_STEP_PREDICATE}
-"""
+"""  # noqa: S608 - chỉ nối hằng số cột, không có dữ liệu người dùng
 
 # bank_app co quyen SELECT theo cot tren case_step (khong gom ``reason``), nen khong dung ``*``.
-_STEP_COLS = "id, loan_application_id, step_code, assignee_employee_id, received_at, due_at, paused_at, remaining_workdays, resumed_at, completed_at, result"
+_STEP_COLS = (
+    "id, loan_application_id, step_code, assignee_employee_id, "
+    "received_at, due_at, paused_at, remaining_workdays, resumed_at, completed_at, result"
+)
+
+
 def _cols(alias: str) -> str:
     return ", ".join(f"{alias}.{c.strip()}" for c in _STEP_COLS.split(","))
 
@@ -153,7 +158,7 @@ JOIN credit.loan_party AS lp
   ON lp.loan_application_id = loan.id AND lp.party_role = 'PRIMARY_BORROWER'
 JOIN customer.party AS party ON party.id = lp.party_id
 CROSS JOIN ctx
-"""
+"""  # noqa: S608 - chỉ nối hằng số cột, không có dữ liệu người dùng
 
 AUDIT_SQL = f"""
 WITH {_CTX},
@@ -182,7 +187,7 @@ JOIN credit.loan_party AS lp
 JOIN customer.party AS party ON party.id = lp.party_id
 CROSS JOIN ctx
 ORDER BY recent.last_at DESC NULLS LAST
-"""
+"""  # noqa: S608 - chỉ nối hằng số cột, không có dữ liệu người dùng
 
 
 class WorkItemRepository:
