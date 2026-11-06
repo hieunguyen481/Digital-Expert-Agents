@@ -7,10 +7,10 @@ from decimal import Decimal
 from typing import Any, Protocol
 from uuid import UUID
 
+from app.exceptions import ValidationError
 from app.services.access import require_permission, require_role
 from app.services.audit_service import AuditService
 from app.services.protocols import PrincipalLike
-from app.services.state_machine import LOAN_TRANSITIONS, require_transition
 
 
 class LoanRepositoryLike(Protocol):
@@ -38,24 +38,21 @@ class LoanRepositoryLike(Protocol):
 
     async def list_analyses(self, loan_application_id: UUID) -> Sequence[Mapping[str, Any]]: ...
 
-    async def submit(
-        self, loan_application_id: UUID, *, actor_id: UUID, expected_version: int
-    ) -> Mapping[str, Any] | None: ...
+    async def latest_decision(self, loan_application_id: UUID) -> Mapping[str, Any] | None: ...
 
-    async def create_decision(
+
+class WorkflowLike(Protocol):
+    async def transition(
         self,
-        loan_application_id: UUID,
+        principal: PrincipalLike,
+        loan_id: UUID,
+        action: str,
         *,
-        decision_type: str,
-        approved_amount: Decimal | None,
-        approved_term_months: int | None,
-        conditions: Sequence[Mapping[str, Any]],
-        rationale: str,
-        decision_maker_id: UUID,
-        approval_request_id: UUID | None,
-        is_override: bool,
-        override_reason: str | None,
-    ) -> Mapping[str, Any]: ...
+        expected_version: int,
+        reason: str | None = None,
+        params: Mapping[str, Any] | None = None,
+        request_id: UUID | None = None,
+    ) -> Any: ...
 
 
 class CustomerAssignmentGuardLike(Protocol):
@@ -78,7 +75,6 @@ _PARTY_ROLES = frozenset(
         "LEGAL_REPRESENTATIVE",
     }
 )
-_DECISION_TYPES = frozenset({"APPROVED", "APPROVED_WITH_CONDITIONS", "REJECTED"})
 
 
 class LoanService:
@@ -87,10 +83,12 @@ class LoanService:
         repository: LoanRepositoryLike,
         audit: AuditService | None = None,
         customer_assignment: CustomerAssignmentGuardLike | None = None,
+        workflow: WorkflowLike | None = None,
     ) -> None:
         self._repository = repository
         self._audit = audit
         self._customer_assignment = customer_assignment
+        self._workflow = workflow
 
     async def create(
         self, principal: PrincipalLike, values: Mapping[str, Any]
@@ -135,6 +133,12 @@ class LoanService:
         expected_version: int,
     ) -> Mapping[str, Any]:
         require_permission(principal, "loan:update")
+        if "status" in values:
+            # Trang thai chi doi qua POST /loan-applications/{id}/transitions (WorkflowService).
+            raise ValidationError(
+                "STATUS_READ_ONLY",
+                "Loan status changes only through the workflow transitions endpoint.",
+            )
         current = await self.get(principal, loan_application_id)
         _require_assigned_handler(principal, current)
         requested_assignee = values.get("assigned_employee_id")
@@ -142,10 +146,6 @@ class LoanService:
             assignee_id = UUID(str(requested_assignee))
             if assignee_id != principal.employee_id and not _can_reassign(principal):
                 raise PermissionError("Only a credit manager can reassign a loan application")
-        if "status" in values:
-            require_transition(str(current["status"]), str(values["status"]), LOAN_TRANSITIONS)
-            if str(values["status"]) in {"APPROVED", "APPROVED_WITH_CONDITIONS", "REJECTED"}:
-                raise PermissionError("Final loan status can only be set by the human decision endpoint")
         row = await self._repository.update(
             loan_application_id,
             values={**values, "updated_by": principal.employee_id},
@@ -215,36 +215,6 @@ class LoanService:
         require_permission(principal, "loan:read")
         return await self._repository.list_analyses(loan_application_id)
 
-    async def submit(
-        self,
-        principal: PrincipalLike,
-        loan_application_id: UUID,
-        *,
-        expected_version: int,
-        request_id: UUID | None = None,
-    ) -> Mapping[str, Any]:
-        require_permission(principal, "loan:submit")
-        current = await self.get(principal, loan_application_id)
-        _require_assigned_handler(principal, current)
-        require_transition(str(current["status"]), "APPROVAL", LOAN_TRANSITIONS)
-        row = await self._repository.submit(
-            loan_application_id, actor_id=principal.employee_id, expected_version=expected_version
-        )
-        if row is None:
-            raise RuntimeError("Optimistic locking conflict")
-        if self._audit is not None:
-            await self._audit.record(
-                principal=principal,
-                action="LOAN_SUBMITTED",
-                resource_type="LOAN_APPLICATION",
-                resource_id=loan_application_id,
-                loan_application_id=loan_application_id,
-                result="SUCCESS",
-                request_id=request_id,
-                correlation_id=request_id,
-            )
-        return row
-
     async def decide(
         self,
         principal: PrincipalLike,
@@ -262,33 +232,31 @@ class LoanService:
     ) -> Mapping[str, Any]:
         require_permission(principal, "loan:approve")
         require_role(principal, "loan_approver")
+        if self._workflow is None:
+            raise RuntimeError("Workflow service is not configured")
         current = await self.get(principal, loan_application_id)
-        if str(current["status"]) != "APPROVAL":
-            raise ValueError("Loan application is not awaiting an authorized human decision")
-        if decision_type not in _DECISION_TYPES:
-            raise ValueError(f"decision_type must be one of {sorted(_DECISION_TYPES)}")
-        if decision_type.startswith("APPROVED") and (
-            approved_amount is None or approved_amount <= 0 or not approved_term_months
-        ):
-            raise ValueError("Approved decisions require a positive amount and term")
-        if decision_type == "APPROVED_WITH_CONDITIONS" and not conditions:
-            raise ValueError("APPROVED_WITH_CONDITIONS requires at least one condition")
-        if not rationale.strip():
-            raise ValueError("A human rationale is required")
-        if is_override and not (override_reason or "").strip():
-            raise ValueError("An override reason is required")
-        row = await self._repository.create_decision(
+        # Hop dong cu khong co version: dung phien ban vua doc; WorkflowService va
+        # credit.apply_transition van chan ghi de dong thoi (VERSION_CONFLICT).
+        await self._workflow.transition(
+            principal,
             loan_application_id,
-            decision_type=decision_type,
-            approved_amount=approved_amount,
-            approved_term_months=approved_term_months,
-            conditions=list(conditions),
-            rationale=rationale,
-            decision_maker_id=principal.employee_id,
-            approval_request_id=approval_request_id,
-            is_override=is_override,
-            override_reason=override_reason,
+            "decide",
+            expected_version=int(current["version"]),
+            reason=rationale,
+            params={
+                "decision_type": decision_type,
+                "approved_amount": approved_amount,
+                "approved_term_months": approved_term_months,
+                "conditions": list(conditions),
+                "approval_request_id": approval_request_id,
+                "is_override": is_override,
+                "override_reason": override_reason,
+            },
+            request_id=request_id,
         )
+        row = await self._repository.latest_decision(loan_application_id)
+        if row is None:
+            raise RuntimeError("Recorded loan decision could not be read back")
         if self._audit is not None:
             await self._audit.record(
                 principal=principal,

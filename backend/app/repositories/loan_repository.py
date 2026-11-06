@@ -6,15 +6,15 @@ before related, otherwise-unprotected child rows are returned.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from datetime import datetime
-from app.compat import UTC
 from typing import Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.compat import UTC
 from app.repositories.base import (
     Record,
     execute_returning,
@@ -69,9 +69,7 @@ _LOAN_UPDATABLE = frozenset(
         "loan_purpose",
         "interest_rate_assumption",
         "repayment_method",
-        "status",
         "assigned_employee_id",
-        "submitted_at",
         "updated_by",
     }
 )
@@ -79,25 +77,6 @@ _LOAN_PARTY_COLUMNS = frozenset({"id", "loan_application_id", "party_id", "party
 _DOCUMENT_LINK_COLUMNS = frozenset(
     {"id", "document_id", "entity_type", "entity_id", "relationship_type", "created_at"}
 )
-_DECISION_COLUMNS = frozenset(
-    {
-        "id",
-        "loan_application_id",
-        "approval_request_id",
-        "decision_type",
-        "approved_amount",
-        "approved_term_months",
-        "conditions",
-        "rationale",
-        "decision_maker_id",
-        "decision_at",
-        "is_override",
-        "override_reason",
-        "created_at",
-    }
-)
-
-
 class LoanRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
@@ -276,86 +255,20 @@ class LoanRepository:
             {"loan_id": loan_application_id},
         )
 
-    async def submit(
-        self,
-        loan_application_id: UUID,
-        actor_id: UUID,
-        expected_version: int,
-    ) -> Record | None:
-        return await execute_returning(
+    async def latest_decision(self, loan_application_id: UUID) -> Record | None:
+        """Quyet dinh moi nhat (credit.loan_decision chi them, ghi qua WorkflowService)."""
+        return await fetch_one(
             self.session,
             """
-            UPDATE credit.loan_application
-            SET status = 'APPROVAL',
-                submitted_at = CURRENT_TIMESTAMP,
-                updated_at = CURRENT_TIMESTAMP,
-                updated_by = :actor_id,
-                version = version + 1
-            WHERE id = :loan_id
-              AND version = :expected_version
-              AND status IN ('APPRAISAL', 'APPRAISAL_PENDING_INFO')
-            RETURNING *
+            SELECT decision.*
+            FROM credit.loan_application AS la
+            JOIN credit.loan_decision AS decision ON decision.loan_application_id = la.id
+            WHERE la.id = :loan_id
+            ORDER BY decision.decision_at DESC, decision.created_at DESC
+            LIMIT 1
             """,
-            {
-                "loan_id": loan_application_id,
-                "actor_id": actor_id,
-                "expected_version": expected_version,
-            },
+            {"loan_id": loan_application_id},
         )
-
-    async def create_decision(
-        self,
-        loan_application_id: UUID,
-        *,
-        decision_type: str,
-        approved_amount: Any | None,
-        approved_term_months: int | None,
-        conditions: Sequence[Mapping[str, Any]],
-        rationale: str,
-        decision_maker_id: UUID,
-        approval_request_id: UUID | None,
-        is_override: bool,
-        override_reason: str | None,
-    ) -> Record:
-        now = datetime.now(UTC)
-        values = {
-            "id": uuid4(),
-            "loan_application_id": loan_application_id,
-            "approval_request_id": approval_request_id,
-            "decision_type": decision_type,
-            "approved_amount": approved_amount,
-            "approved_term_months": approved_term_months,
-            "conditions": conditions,
-            "rationale": rationale,
-            "decision_maker_id": decision_maker_id,
-            "decision_at": now,
-            "is_override": is_override,
-            "override_reason": override_reason,
-            "created_at": now,
-        }
-        # A decision and the official application status are one transaction.
-        updated = await execute_returning(
-            self.session,
-            """
-            UPDATE credit.loan_application
-            SET status = :decision_type, updated_at = :decision_at,
-                updated_by = :decision_maker_id, version = version + 1
-            WHERE id = :loan_application_id
-              AND status = 'APPROVAL'
-            RETURNING id
-            """,
-            values,
-        )
-        if updated is None:
-            raise RuntimeError("Loan is not awaiting a decision or is unauthorized")
-        row = await execute_returning(
-            self.session,
-            insert_sql("credit.loan_decision", values, _DECISION_COLUMNS),
-            values,
-        )
-        if row is None:
-            raise RuntimeError("Loan decision insert returned no row")
-        return row
 
     async def can_access(self, loan_application_id: UUID) -> bool:
         row = await fetch_one(

@@ -83,6 +83,9 @@ class Settings(BaseSettings):
     redis_key_prefix: str = "bank-ai"
     redis_socket_timeout: float = Field(default=5.0, gt=0, le=60)
     customer_assignment_lease_ttl_seconds: int = Field(default=300, ge=30, le=3600)
+    # F5: van hanh bat khi he thong CIC gian doan; cong QHKH gui HTTD khi do khong
+    # chan CIC het hieu luc (van phai tra lai truoc khi trinh phe duyet).
+    cic_system_outage: bool = False
 
     # MinIO contract. Endpoint values include the http(s) scheme.
     minio_internal_endpoint: str

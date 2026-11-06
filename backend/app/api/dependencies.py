@@ -27,6 +27,7 @@ from app.repositories.notification_repository import NotificationRepository
 from app.repositories.policy_repository import PolicyRepository
 from app.repositories.report_repository import ReportRepository
 from app.repositories.transaction_repository import TransactionRepository
+from app.repositories.workflow_repository import WorkflowRepository
 from app.services.agent_simulation_service import AgentSimulationService
 from app.services.analysis_service import AnalysisService
 from app.services.audit_service import AuditService
@@ -46,6 +47,7 @@ from app.services.report_service import ReportService
 from app.services.transaction_service import TransactionService
 from app.services.upload_service import UploadService
 from app.storage.interface import Storage
+from app.workflow.service import WorkflowService
 
 PrincipalDep = Annotated[CurrentPrincipal, Depends(get_current_principal)]
 
@@ -166,7 +168,20 @@ def get_loan_service(request: Request, session: SessionDep) -> LoanService:
         audit,
         lease_ttl_seconds=settings.customer_assignment_lease_ttl_seconds,
     )
-    return LoanService(LoanRepository(session), audit, assignment)
+    return LoanService(
+        LoanRepository(session), audit, assignment, _workflow(request, session, audit)
+    )
+
+
+def _workflow(request: Request, session: AsyncSession, audit: AuditService) -> WorkflowService:
+    settings = get_settings_from_state(request)
+    return WorkflowService(
+        WorkflowRepository(session, cic_outage=settings.cic_system_outage), audit
+    )
+
+
+def get_workflow_service(request: Request, session: SessionDep) -> WorkflowService:
+    return _workflow(request, session, AuditService(AuditRepository(session)))
 
 
 def get_analysis_service(session: SessionDep) -> AnalysisService:

@@ -27,6 +27,7 @@ class LoanUpdateRequest(APIModel):
     loan_purpose: str | None = Field(default=None, max_length=40)
     interest_rate_assumption: DecimalString | None = None
     repayment_method: str | None = Field(default=None, max_length=40)
+    # Chi doc: gui status -> 422 STATUS_READ_ONLY (dung /transitions).
     status: str | None = None
     assigned_employee_id: UUID | None = None
     version: int = Field(gt=0)
@@ -53,10 +54,6 @@ class LoanPartyRequest(APIModel):
 
 class AnalysisRequest(APIModel):
     objective: str = Field(min_length=1, max_length=2000)
-
-
-class SubmitLoanRequest(APIModel):
-    version: int = Field(gt=0)
 
 
 class LoanDecisionRequest(APIModel):

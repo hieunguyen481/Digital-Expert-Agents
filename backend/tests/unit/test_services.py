@@ -15,7 +15,8 @@ from app.services.idempotency_service import (
     canonical_request_hash,
 )
 from app.services.loan_service import LoanService
-from app.services.state_machine import LOAN_TRANSITIONS, can_transition, require_transition
+from app.exceptions import ValidationError
+from app.services.state_machine import UPLOAD_TRANSITIONS, can_transition, require_transition
 from app.services.upload_service import validate_upload_request
 
 
@@ -52,16 +53,30 @@ class FakeLoanRepository:
     async def get(self, _loan_id: UUID) -> dict[str, Any]:
         return self.current
 
-    async def create_decision(self, _loan_id: UUID, **values: Any) -> dict[str, Any]:
-        self.decision = {"id": uuid4(), **values}
+    async def latest_decision(self, _loan_id: UUID) -> dict[str, Any] | None:
         return self.decision
 
 
-def test_loan_state_machine_denies_ai_shortcut_to_approval() -> None:
-    assert can_transition("APPRAISAL", "APPROVAL", LOAN_TRANSITIONS)
-    assert not can_transition("APPRAISAL", "APPROVED", LOAN_TRANSITIONS)
+class FakeWorkflow:
+    """Ghi lai loi goi; WorkflowService that ghi quyet dinh qua credit.apply_transition."""
+
+    def __init__(self, repository: FakeLoanRepository) -> None:
+        self.repository = repository
+        self.calls: list[dict[str, Any]] = []
+
+    async def transition(self, principal: Any, loan_id: UUID, action: str, **kw: Any) -> None:
+        self.calls.append({"loan_id": loan_id, "action": action, **kw})
+        self.repository.decision = {
+            "id": uuid4(),
+            "decision_maker_id": principal.employee_id,
+            "decision_type": kw["params"]["decision_type"],
+        }
+
+
+def test_upload_state_machine_is_explicit() -> None:
+    assert can_transition("UPLOADED", "VERIFYING", UPLOAD_TRANSITIONS)
     with pytest.raises(ValueError, match="not allowed"):
-        require_transition("DRAFT", "APPROVED", LOAN_TRANSITIONS)
+        require_transition("CREATED", "COMPLETED", UPLOAD_TRANSITIONS)
 
 
 def test_request_hash_is_canonical() -> None:
@@ -137,7 +152,8 @@ def test_upload_validation_rejects_unsafe_input(
 @pytest.mark.asyncio
 async def test_only_authorized_human_approver_can_create_decision() -> None:
     repository = FakeLoanRepository()
-    service = LoanService(repository)  # type: ignore[arg-type]
+    workflow = FakeWorkflow(repository)
+    service = LoanService(repository, workflow=workflow)  # type: ignore[arg-type]
     principal = Principal(
         employee_id=uuid4(),
         branch_id=uuid4(),
@@ -158,6 +174,24 @@ async def test_only_authorized_human_approver_can_create_decision() -> None:
     )
     assert result["decision_maker_id"] == principal.employee_id
     assert result["decision_type"] == "APPROVED"
+    # decide di qua WorkflowService voi phien ban vua doc va ly do = rationale.
+    assert workflow.calls[0]["action"] == "decide"
+    assert workflow.calls[0]["expected_version"] == 2
+    assert workflow.calls[0]["reason"] == "Authorized human review completed."
+
+
+@pytest.mark.asyncio
+async def test_patch_status_is_read_only() -> None:
+    repository = FakeLoanRepository()
+    service = LoanService(repository)  # type: ignore[arg-type]
+    principal = Principal(
+        employee_id=uuid4(), branch_id=uuid4(), roles={"credit_officer"},
+        permissions={"loan:read", "loan:update"},
+    )
+    with pytest.raises(ValidationError) as error:
+        await service.update(principal, repository.current["id"], {"status": "APPROVED"}, expected_version=2)
+    assert error.value.code == "STATUS_READ_ONLY"
+    assert error.value.status == 422
 
 
 @pytest.mark.asyncio

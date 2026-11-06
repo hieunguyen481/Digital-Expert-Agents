@@ -20,7 +20,6 @@ from app.schemas.loan import (
     LoanPartyRequest,
     LoanResponse,
     LoanUpdateRequest,
-    SubmitLoanRequest,
 )
 from app.services.analysis_service import AnalysisService
 from app.services.loan_service import LoanService
@@ -181,34 +180,6 @@ async def list_loan_analyses(
         AnalysisCaseResponse.model_validate(row)
         for row in await service.analyses(principal, loan_application_id)
     ]
-
-
-@router.post("/{loan_application_id}/submit", response_model=LoanResponse)
-async def submit_loan_application(
-    loan_application_id: UUID,
-    body: SubmitLoanRequest,
-    request: Request,
-    idempotency_key: Annotated[UUID, Header(alias="Idempotency-Key")],
-    principal: Annotated[CurrentPrincipal, Depends(require_permissions("loan:submit"))],
-    service: Annotated[LoanService, Depends(get_loan_service)],
-    session: SessionDep,
-) -> LoanResponse:
-    row = await execute_idempotent(
-        session=session,
-        actor_id=principal.employee_id,
-        operation_name="SUBMIT_LOAN_APPLICATION",
-        idempotency_key=idempotency_key,
-        request_payload={"loan_application_id": str(loan_application_id), **body.model_dump()},
-        response_status=status.HTTP_200_OK,
-        resource_type="LOAN_APPLICATION",
-        operation=lambda: service.submit(
-            principal,
-            loan_application_id,
-            expected_version=body.version,
-            request_id=request_uuid(request),
-        ),
-    )
-    return LoanResponse.model_validate(row)
 
 
 @router.post("/{loan_application_id}/decisions", response_model=dict[str, Any])

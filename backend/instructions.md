@@ -1279,11 +1279,12 @@ GET /api/v1/loan-applications/{loan_application_id}/policy-checks
 POST /api/v1/loan-applications/{loan_application_id}/analyses
 GET /api/v1/loan-applications/{loan_application_id}/analyses
 
-POST /api/v1/loan-applications/{loan_application_id}/submit
+POST /api/v1/loan-applications/{loan_application_id}/transitions
+GET /api/v1/loan-applications/{loan_application_id}/steps
 POST /api/v1/loan-applications/{loan_application_id}/decisions
 ```
 
-Decision endpoint chỉ dành cho nhân viên có thẩm quyền.
+Mọi chuyển bước (gửi HTTD, chuyển Thẩm định, trình Rủi ro, trình Phê duyệt, quyết định, rút hồ sơ…) đi qua `POST …/transitions` (`WorkflowService`); `status` trong PATCH bị từ chối 422 `STATUS_READ_ONLY`. Decision endpoint chỉ dành cho nhân viên có thẩm quyền và gọi `WorkflowService` action `decide`.
 
 ## Conversations
 
