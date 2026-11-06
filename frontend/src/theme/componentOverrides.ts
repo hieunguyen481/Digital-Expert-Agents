@@ -117,8 +117,8 @@ export const shbComponentOverrides: ThemeConfig['components'] = {
 
   Skeleton: {
     // Skeleton beige/cam rất nhạt thay vì xám lạnh mặc định.
-    color: 'rgba(234, 227, 218, 0.55)',
-    colorGradientEnd: 'rgba(255, 247, 240, 0.9)',
+    gradientFromColor: 'rgba(234, 227, 218, 0.55)',
+    gradientToColor: 'rgba(255, 247, 240, 0.9)',
     borderRadiusSM: shbRadius.small,
   },
 

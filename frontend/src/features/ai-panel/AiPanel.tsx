@@ -37,7 +37,9 @@ export function AiPanel() {
     if (!el) return;
     if (open) {
       el.removeAttribute('inert');
-      el.querySelector<HTMLElement>('textarea, input, button')?.focus();
+      // Đợi panel hiện ra (visibility) rồi mới chuyển focus vào trong.
+      const id = window.setTimeout(() => el.querySelector<HTMLElement>('textarea, input, button')?.focus(), 50);
+      return () => window.clearTimeout(id);
     } else {
       el.setAttribute('inert', '');
     }

@@ -97,7 +97,7 @@ function Content() {
       {head}
       <div className={styles.page}>
         {readOnly && (
-          <Alert type="info" showIcon message="Bạn đang xem ở chế độ chỉ đọc (Kiểm toán nội bộ)." />
+          <Alert type="info" showIcon title="Bạn đang xem ở chế độ chỉ đọc (Kiểm toán nội bộ)." />
         )}
         {all.data.items.length === 0 ? (
           <EmptyState

@@ -32,3 +32,8 @@ dist-ssr
 *.sw?
 .vercel
 .env*
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.auth/
