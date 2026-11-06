@@ -159,10 +159,47 @@ async def _fresh_approval_loan() -> tuple[str, str]:
     return new_loan, customer
 
 
+async def _purge_test_loans() -> None:
+    """Xoá hồ sơ HSV-TEST-* (và bản ghi con) để test không làm đổi hồ sơ mẫu / số đếm của DB dùng chung.
+
+    loan_decision là append-only (trigger); chủ schema tắt trigger trong chính giao dịch này, chỉ cho
+    các hồ sơ TEST do test này tự dựng."""
+    import asyncpg
+    con = await asyncpg.connect(os.environ["TEST_ADMIN_DATABASE_URL"])
+    try:
+        async with con.transaction():
+            ids = [r[0] for r in await con.fetch(
+                "SELECT id FROM credit.loan_application WHERE application_number LIKE 'HSV-TEST-%'")]
+            if not ids:
+                return
+            kids = await con.fetch(
+                """SELECT c.conrelid::regclass::text AS tbl, a.attname AS col FROM pg_constraint c
+                   JOIN pg_attribute a ON a.attrelid=c.conrelid AND a.attnum=c.conkey[1]
+                   WHERE c.confrelid='credit.loan_application'::regclass AND c.contype='f'""")
+            await con.execute("ALTER TABLE credit.loan_decision DISABLE TRIGGER trg_loan_decision_append_only")
+            for k in kids:
+                if k["tbl"] == "ai.conversation":
+                    await con.execute(f"UPDATE {k['tbl']} SET {k['col']}=NULL WHERE {k['col']} = ANY($1::uuid[])", ids)
+                else:
+                    await con.execute(f"DELETE FROM {k['tbl']} WHERE {k['col']} = ANY($1::uuid[])", ids)
+            await con.execute("DELETE FROM credit.loan_application WHERE id = ANY($1::uuid[])", ids)
+            await con.execute("ALTER TABLE credit.loan_decision ENABLE TRIGGER trg_loan_decision_append_only")
+    finally:
+        await con.close()
+
+
 async def test_valid_confirmation_writes_real_action(api):
     if not os.getenv("TEST_ADMIN_DATABASE_URL"):
         pytest.skip("cần TEST_ADMIN_DATABASE_URL để dựng hồ sơ thử ở bước APPROVAL")
+    await _purge_test_loans()
     new_loan, customer = await _fresh_approval_loan()
+    try:
+        await _confirm_and_check(api, new_loan, customer)
+    finally:
+        await _purge_test_loans()
+
+
+async def _confirm_and_check(api, new_loan: str, customer: str) -> None:
     assert await _status(new_loan) == "APPROVAL"
     approver = await kc_token("approver@example.local")
     cid = f"case_ok_{uuid.uuid4().hex[:8]}"

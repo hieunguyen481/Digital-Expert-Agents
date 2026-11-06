@@ -1,4 +1,4 @@
--- V031: luu tru ben vung cua gateway agent engine (thay SQLite): hoso phan tich, trace/su kien,
+-- V030: luu tru ben vung cua gateway agent engine (thay SQLite): hoso phan tich, trace/su kien,
 -- ke hoach planner, approval token, nhat ky hanh dong da thuc thi. RLS: chi nguoi nop hoac nguoi
 -- doc duoc khach hang (identity.can_read_customer) moi thay; bang con di theo hoso cha.
 CREATE SCHEMA IF NOT EXISTS agent;

@@ -87,11 +87,11 @@ async def test_authorised_employee_reads_vinanova_seed():
     assert cic["cic_group"] == 1 and cic["total_outstanding"] == 98e9
     col = await server.get_collateral(VINA, ctx)
     assert col[0]["valuation"] == 145e9 and col[0]["legal_status"] == "clear"
-    loans = await server.get_existing_loans(VINA, ctx)   # V030: 2 nghĩa vụ mẫu có nhãn
+    loans = await server.get_existing_loans(VINA, ctx)   # seed VinaNova: 2 nghĩa vụ mẫu có nhãn
     assert sorted(l["outstanding"] for l in loans) == [42e9, 56e9]
     assert all("(mau)" in l["lender"] for l in loans)
     bl = await server.check_blacklist(VINA, ctx)
-    assert bl["hit"] is False and bl["screened"] is True   # V030 có KYC mẫu
+    assert bl["hit"] is False and bl["screened"] is True   # seed VinaNova có KYC mẫu
 
 
 async def test_agent_cannot_commit_or_disburse():

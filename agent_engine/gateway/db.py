@@ -1,4 +1,4 @@
-"""Store của gateway trong Postgres (schema agent, V031): cases, events/trace, plans, approval tokens.
+"""Store của gateway trong Postgres (schema agent, V030): cases, events/trace, plans, approval tokens.
 
 Mọi truy vấn chạy trong giao dịch `SET LOCAL ROLE bank_engine` + danh tính nhân viên (app.employee_id
 ...), nên RLS quyết định ai thấy hồ sơ/trace nào. Danh tính lấy từ contextvar `identity.current()`
