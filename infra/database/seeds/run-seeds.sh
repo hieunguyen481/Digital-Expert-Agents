@@ -13,7 +13,8 @@ for seed_file in \
     R__seed_roles_permissions.sql \
     R__seed_reference_data.sql \
     R__seed_demo_customers.sql \
-    R__seed_demo_transactions.sql
+    R__seed_demo_transactions.sql \
+    R__seed_sme_batch1.sql
 do
     full_path="${seed_directory}/${seed_file}"
     if [ ! -r "${full_path}" ]; then

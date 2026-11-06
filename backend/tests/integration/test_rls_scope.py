@@ -15,7 +15,21 @@ from tests.integration.seed_ids import (
 
 async def test_approver_without_scope_sees_no_branch2_customer(db):
     await act_as(db, APPROVER_HO, BRANCH_HO)
-    rows = await db.fetch("SELECT id FROM customer.customer WHERE home_branch_id = $1", BRANCH_HN)
+    # Khach cua ho so ma nguoi phe duyet dang nhan buoc (seed SME: Thanh Dat, Minh Tam) thi
+    # doc duoc theo Q-M; ngoai ra khong thay khach nao cua chi nhanh HN.
+    rows = await db.fetch(
+        """
+        SELECT c.id FROM customer.customer AS c
+        WHERE c.home_branch_id = $1
+          AND NOT EXISTS (
+              SELECT 1 FROM credit.loan_application AS la
+              JOIN credit.case_step AS s ON s.loan_application_id = la.id
+              WHERE la.primary_customer_id = c.id AND s.assignee_employee_id = $2
+          )
+        """,
+        BRANCH_HN,
+        APPROVER_HO,
+    )
     assert rows == []
 
 
