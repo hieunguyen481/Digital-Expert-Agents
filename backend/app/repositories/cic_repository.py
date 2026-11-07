@@ -46,6 +46,7 @@ SELECT item.id AS item_id, item.requirement_code::text AS code, item.document_ty
            SELECT 1 FROM credit.case_exception AS exc
            WHERE exc.loan_application_id = item.loan_application_id AND exc.kind = 'DOCUMENT'
              AND exc.checklist_code = item.requirement_code::text
+             AND exc.withdrawn_at IS NULL
              AND (exc.decision IS NULL OR exc.decision = 'ACCEPTED')
        ) AS has_exception
 FROM credit.loan_checklist_item AS item

@@ -2,8 +2,16 @@ import { Alert, Button, Input, Space, Tag, Typography } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { getErrorMessage } from '@/services/apiClient';
-import { confirmConsent, fetchCic, fetchProposalDocuments, lookupCic } from './proposalService';
-import type { CicStatus, ProposalDocument } from './types';
+import {
+  confirmConsent,
+  fetchCic,
+  fetchProposalDocuments,
+  fetchSubmitConditions,
+  lookupCic,
+  proposeException,
+  withdrawException,
+} from './proposalService';
+import type { CicStatus, ExceptionItem, ProposalDocument } from './types';
 
 const fmt = (iso: string | null) => (iso ? iso.split('-').reverse().join('/') : '');
 
@@ -38,6 +46,34 @@ function ConsentForm({ loanId, documentId, onDone }: { loanId: string; documentI
         </Button>
       </Space>
       {save.isError && <Alert type="error" showIcon message={getErrorMessage(save.error)} />}
+    </Space>
+  );
+}
+
+function ExceptionControl({
+  loanId, doc, active, editable, onDone,
+}: { loanId: string; doc: ProposalDocument; active: ExceptionItem | undefined; editable: boolean; onDone: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const propose = useMutation({ mutationFn: () => proposeException(loanId, doc.code, reason.trim()), onSuccess: () => { setOpen(false); setReason(''); onDone(); } });
+  const withdraw = useMutation({ mutationFn: (id: string) => withdrawException(loanId, id), onSuccess: onDone });
+  if (!editable) return null;
+  if (active) {
+    return active.decision ? null : (
+      <Button size="small" disabled={withdraw.isPending} onClick={() => withdraw.mutate(active.id)}>Rút đề xuất ngoại lệ</Button>
+    );
+  }
+  if (!doc.mandatory || doc.state === 'OK' || CIC_CODES.has(doc.document_type ?? '') || doc.document_type === 'CIC_CONSENT') return null;
+  return (
+    <Space direction="vertical" size={4}>
+      <Button size="small" onClick={() => setOpen((v) => !v)}>Đề xuất ngoại lệ</Button>
+      {open && (
+        <Space.Compact style={{ width: 420 }}>
+          <Input aria-label={`Lý do ngoại lệ: ${doc.code}`} placeholder="Lý do (tối thiểu 10 ký tự)" value={reason} onChange={(e) => setReason(e.target.value)} />
+          <Button disabled={reason.trim().length < 10 || propose.isPending} onClick={() => propose.mutate()}>Gửi đề xuất ngoại lệ</Button>
+        </Space.Compact>
+      )}
+      {(propose.isError || withdraw.isError) && <Alert type="error" showIcon message={getErrorMessage(propose.error ?? withdraw.error)} />}
     </Space>
   );
 }
@@ -88,13 +124,14 @@ export function DocumentsSection({ loanId }: { loanId: string }) {
   const qc = useQueryClient();
   const docs = useQuery({ queryKey: ['proposal-documents', loanId], queryFn: () => fetchProposalDocuments(loanId) });
   const cic = useQuery({ queryKey: ['proposal-cic', loanId], queryFn: () => fetchCic(loanId) });
+  const conds = useQuery({ queryKey: ['proposal-conditions', loanId], queryFn: () => fetchSubmitConditions(loanId) });
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ['proposal-cic', loanId] });
     void qc.invalidateQueries({ queryKey: ['proposal-documents', loanId] });
     void qc.invalidateQueries({ queryKey: ['proposal-conditions', loanId] });
   };
   if (docs.isError || cic.isError) return <Alert type="error" showIcon message={getErrorMessage(docs.error ?? cic.error)} />;
-  if (!docs.data || !cic.data) return <div aria-busy>Đang tải hồ sơ tài liệu…</div>;
+  if (!docs.data || !cic.data || !conds.data) return <div aria-busy>Đang tải hồ sơ tài liệu…</div>;
   const consentDoc = docs.data.find((d) => d.document_type === 'CIC_CONSENT')?.document_id ?? null;
   const left = docs.data.filter((d) => d.mandatory && d.state !== 'OK' && !d.has_exception).length;
   return (
@@ -117,8 +154,16 @@ export function DocumentsSection({ loanId }: { loanId: string }) {
                   <Tag color={s.color}>{s.text}</Tag>
                   <b>{d.title ?? d.code}</b>
                   {!d.mandatory && <Tag>Có điều kiện</Tag>}
+                  {d.note && <span>{d.note}</span>}
                   {d.valid_until && <span>hiệu lực đến {fmt(d.valid_until)}</span>}
                   {d.has_exception && <Tag color="warning">Đã đề xuất ngoại lệ</Tag>}
+                  <ExceptionControl
+                    loanId={loanId}
+                    doc={d}
+                    editable={cic.data.editable}
+                    onDone={refresh}
+                    active={conds.data.exceptions.find((x) => x.checklist_code === d.code && !x.withdrawn_at && x.decision !== 'REJECTED')}
+                  />
                 </Space>
               </li>
             );

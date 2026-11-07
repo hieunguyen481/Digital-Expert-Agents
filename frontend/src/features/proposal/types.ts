@@ -99,3 +99,60 @@ export interface CicStatus {
   lock_reason: string | null;
   today: string;
 }
+
+export interface ExposureLine {
+  party_id: string;
+  name: string;
+  relation: 'PRIMARY' | 'RELATED';
+  status: 'PROPOSED' | 'CONFIRMED' | 'NOT_IN_GROUP' | null;
+  basis: string | null;
+  proposed_by_ai: boolean;
+  outstanding: string;
+  off_balance: string;
+}
+
+export interface RelatedParties {
+  editable: boolean;
+  lines: ExposureLine[];
+  total_exposure: string;
+  required_tier: number;
+}
+
+export interface CollateralItem {
+  id: string;
+  collateral_type: string;
+  description: string | null;
+  owner_name: string;
+  on_leased_land: boolean;
+  land_lease_payment: 'ANNUAL' | 'ONE_TIME' | null;
+  has_lease_proof: boolean;
+}
+
+export interface ExceptionItem {
+  id: string;
+  checklist_code: string | null;
+  kind: string;
+  reason: string;
+  proposed_at: string;
+  decision: string | null;
+  withdrawn_at: string | null;
+}
+
+export interface SubmitCondition {
+  code: string;
+  label: string;
+  kind: 'BLOCKER' | 'CARRIED';
+  met: boolean;
+  detail: string | null;
+  section: 'docs' | 'need' | 'related' | 'collateral' | 'summary';
+}
+
+export interface SubmitConditions {
+  editable: boolean;
+  can_submit: boolean;
+  lock_reason: string | null;
+  required_tier: number;
+  conditions: SubmitCondition[];
+  exceptions: ExceptionItem[];
+  collaterals: CollateralItem[];
+}

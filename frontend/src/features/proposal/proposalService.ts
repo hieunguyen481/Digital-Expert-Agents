@@ -1,5 +1,16 @@
 import apiClient from '@/services/apiClient';
-import type { CicStatus, CustomerOption, Draft, DraftSaveBody, LoanProduct, ProposalDocument } from './types';
+import type {
+  CicStatus,
+  CollateralItem,
+  CustomerOption,
+  Draft,
+  DraftSaveBody,
+  ExceptionItem,
+  LoanProduct,
+  ProposalDocument,
+  RelatedParties,
+  SubmitConditions,
+} from './types';
 
 export async function fetchDraft(loanId: string): Promise<Draft> {
   return (await apiClient.get<Draft>(`/loan-applications/${loanId}/draft`)).data;
@@ -69,4 +80,45 @@ export async function confirmConsent(
   body: { document_id: string; signed_on: string; valid_until: string | null },
 ): Promise<CicStatus> {
   return (await apiClient.post<CicStatus>(`/loan-applications/${loanId}/cic-consent`, body)).data;
+}
+
+const base = (loanId: string) => `/loan-applications/${loanId}`;
+
+export async function fetchRelatedParties(loanId: string): Promise<RelatedParties> {
+  return (await apiClient.get<RelatedParties>(`${base(loanId)}/related-parties`)).data;
+}
+
+export async function decideRelatedParty(
+  loanId: string,
+  partyId: string,
+  body: { status: 'CONFIRMED' | 'NOT_IN_GROUP'; basis: string | null },
+): Promise<RelatedParties> {
+  return (await apiClient.put<RelatedParties>(`${base(loanId)}/related-parties/${partyId}`, body)).data;
+}
+
+export async function chooseLeasePayment(loanId: string, collateralId: string, payment: 'ANNUAL' | 'ONE_TIME') {
+  return (
+    await apiClient.put<CollateralItem[]>(`${base(loanId)}/collaterals/${collateralId}/lease-payment`, {
+      land_lease_payment: payment,
+    })
+  ).data;
+}
+
+export async function fetchSubmitConditions(loanId: string): Promise<SubmitConditions> {
+  return (await apiClient.get<SubmitConditions>(`${base(loanId)}/submit-conditions`)).data;
+}
+
+export async function proposeException(loanId: string, checklistCode: string, reason: string): Promise<ExceptionItem> {
+  return (await apiClient.post<ExceptionItem>(`${base(loanId)}/exceptions`, { checklist_code: checklistCode, reason })).data;
+}
+
+export async function withdrawException(loanId: string, exceptionId: string): Promise<void> {
+  await apiClient.post(`${base(loanId)}/exceptions/${exceptionId}/withdraw`);
+}
+
+export async function submitProposal(
+  loanId: string,
+  expectedVersion: number,
+): Promise<{ status: string; step_code: string | null; carried_flags: string[] }> {
+  return (await apiClient.post(`${base(loanId)}/submissions`, { expected_version: expectedVersion })).data;
 }

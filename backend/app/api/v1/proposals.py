@@ -5,27 +5,39 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
-from app.api.dependencies import get_cic_service, get_proposal_service
+from app.api.dependencies import get_cic_service, get_proposal_service, get_submission_service
+from app.api.v1._utils import request_uuid
 from app.auth.dependencies import require_permissions
 from app.auth.principal import CurrentPrincipal
 from app.schemas.proposal import (
     CicStatus,
+    CollateralItem,
     ConsentCreateRequest,
     DraftResponse,
     DraftSaveRequest,
+    ExceptionCreateRequest,
+    ExceptionItem,
+    LeaseChoice,
     LoanProductResponse,
     ProposalDocument,
+    RelatedParties,
+    RelatedPartyDecision,
+    SubmitConditions,
+    SubmitRequest,
+    SubmitResult,
 )
 from app.services.cic_service import CicService
 from app.services.proposal_service import ProposalService
+from app.services.submission_service import SubmissionService
 
 router = APIRouter(tags=["proposals"])
 PREFIX = "/loan-applications"
 
 ServiceDep = Annotated[ProposalService, Depends(get_proposal_service)]
 CicDep = Annotated[CicService, Depends(get_cic_service)]
+SubDep = Annotated[SubmissionService, Depends(get_submission_service)]
 
 
 @router.get(PREFIX + "/{loan_application_id}/draft", response_model=DraftResponse)
@@ -98,3 +110,61 @@ async def lookup_cic(
     service: CicDep,
 ) -> CicStatus:
     return CicStatus.model_validate(await service.lookup(principal, loan_application_id))
+
+
+READ = Annotated[CurrentPrincipal, Depends(require_permissions("loan:read"))]
+WRITE = Annotated[CurrentPrincipal, Depends(require_permissions("loan:update"))]
+LOAN = PREFIX + "/{loan_application_id}"
+
+
+@router.get(LOAN + "/related-parties", response_model=RelatedParties)
+async def get_related_parties(loan_application_id: UUID, principal: READ, service: SubDep) -> RelatedParties:
+    return RelatedParties.model_validate(await service.related_parties(principal, loan_application_id))
+
+
+@router.put(LOAN + "/related-parties/{party_id}", response_model=RelatedParties)
+async def decide_related_party(
+    loan_application_id: UUID, party_id: UUID, body: RelatedPartyDecision, principal: WRITE, service: SubDep
+) -> RelatedParties:
+    result = await service.decide_related_party(
+        principal, loan_application_id, party_id, status=body.status, basis=body.basis
+    )
+    return RelatedParties.model_validate(result)
+
+
+@router.put(LOAN + "/collaterals/{collateral_id}/lease-payment", response_model=list[CollateralItem])
+async def choose_lease_payment(
+    loan_application_id: UUID, collateral_id: UUID, body: LeaseChoice, principal: WRITE, service: SubDep
+) -> list[CollateralItem]:
+    rows = await service.choose_lease_payment(principal, loan_application_id, collateral_id, body.land_lease_payment)
+    return [CollateralItem.model_validate(r) for r in rows]
+
+
+@router.post(LOAN + "/exceptions", response_model=ExceptionItem, status_code=201)
+async def propose_exception(
+    loan_application_id: UUID, body: ExceptionCreateRequest, principal: WRITE, service: SubDep
+) -> ExceptionItem:
+    row = await service.propose_exception(
+        principal, loan_application_id, checklist_code=body.checklist_code, reason=body.reason
+    )
+    return ExceptionItem.model_validate(row)
+
+
+@router.post(LOAN + "/exceptions/{exception_id}/withdraw", status_code=204)
+async def withdraw_exception(loan_application_id: UUID, exception_id: UUID, principal: WRITE, service: SubDep) -> None:
+    await service.withdraw_exception(principal, loan_application_id, exception_id)
+
+
+@router.get(LOAN + "/submit-conditions", response_model=SubmitConditions)
+async def get_submit_conditions(loan_application_id: UUID, principal: READ, service: SubDep) -> SubmitConditions:
+    return SubmitConditions.model_validate(await service.conditions(principal, loan_application_id))
+
+
+@router.post(LOAN + "/submissions", response_model=SubmitResult)
+async def submit_proposal(
+    loan_application_id: UUID, body: SubmitRequest, request: Request, principal: WRITE, service: SubDep
+) -> SubmitResult:
+    result = await service.submit(
+        principal, loan_application_id, expected_version=body.expected_version, request_id=request_uuid(request)
+    )
+    return SubmitResult.model_validate(result)

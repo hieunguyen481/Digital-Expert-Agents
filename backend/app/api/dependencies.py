@@ -17,6 +17,7 @@ from app.exceptions import DependencyUnavailableError
 from app.repositories.account_repository import AccountRepository
 from app.repositories.analysis_repository import AnalysisRepository
 from app.repositories.audit_repository import AuditRepository
+from app.repositories.cic_repository import CicRepository
 from app.repositories.conversation_repository import ConversationRepository
 from app.repositories.customer_repository import CustomerRepository
 from app.repositories.document_repository import DocumentRepository
@@ -25,11 +26,11 @@ from app.repositories.job_repository import JobRepository
 from app.repositories.loan_repository import LoanRepository
 from app.repositories.notification_repository import NotificationRepository
 from app.repositories.policy_repository import PolicyRepository
-from app.repositories.cic_repository import CicRepository
 from app.repositories.proposal_repository import ProposalRepository
-from app.repositories.work_item_repository import WorkItemRepository
 from app.repositories.report_repository import ReportRepository
+from app.repositories.submission_repository import SubmissionRepository
 from app.repositories.transaction_repository import TransactionRepository
+from app.repositories.work_item_repository import WorkItemRepository
 from app.repositories.workflow_repository import WorkflowRepository
 from app.services.agent_simulation_service import AgentSimulationService
 from app.services.analysis_service import AnalysisService
@@ -47,10 +48,11 @@ from app.services.job_service import JobService
 from app.services.loan_service import LoanService
 from app.services.notification_service import NotificationService
 from app.services.policy_service import PolicyService
+from app.services.proposal_service import ProposalService
 from app.services.report_service import ReportService
+from app.services.submission_service import SubmissionService
 from app.services.transaction_service import TransactionService
 from app.services.upload_service import UploadService
-from app.services.proposal_service import ProposalService
 from app.services.work_item_service import WorkItemService
 from app.storage.interface import Storage
 from app.workflow.service import WorkflowService
@@ -251,6 +253,18 @@ def get_work_item_service(session: SessionDep) -> WorkItemService:
 
 def get_proposal_service(session: SessionDep) -> ProposalService:
     return ProposalService(ProposalRepository(session))
+
+
+def get_submission_service(request: Request, session: SessionDep) -> SubmissionService:
+    settings = get_settings_from_state(request)
+    proposals = ProposalService(ProposalRepository(session))
+    return SubmissionService(
+        proposals,
+        SubmissionRepository(session),
+        WorkflowRepository(session, cic_outage=settings.cic_system_outage),
+        get_workflow_service(request, session),
+        CicService(proposals, CicRepository(session)),
+    )
 
 
 def get_cic_service(session: SessionDep) -> CicService:

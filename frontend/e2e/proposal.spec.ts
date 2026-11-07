@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { expect, test, type Page } from '@playwright/test';
 import { loginAs } from './helpers';
 
@@ -74,4 +75,60 @@ test('qhkh: nút tra CIC bị khóa kèm lý do khi văn bản đồng ý quá h
   const btn = page.getByRole('button', { name: 'Tra cứu CIC mới' });
   await expect(btn).toHaveAttribute('aria-disabled', 'true');
   await expect(btn).toHaveAttribute('title', /quá hạn ghi trên văn bản/);
+});
+
+// Mekong Flex: từ nháp đến gửi HTTD. Cùng file với các test trên để chạy tuần tự (cùng một hồ sơ).
+// Gửi đổi trạng thái hồ sơ nên test phải trả seed về như cũ: đặt E2E_RESEED_CMD là lệnh nạp lại seed
+// (vd. `docker compose -p <dự án> ... run --rm --no-deps db-seed`); seed R__ chạy lại được và đưa Mekong về nháp.
+// Không đặt thì phải tự nạp seed trước lần chạy sau.
+
+test.afterAll(() => {
+  const cmd = process.env.E2E_RESEED_CMD;
+  if (cmd) execSync(cmd, { stdio: 'ignore', timeout: 240_000 });
+});
+
+test('qhkh: Mekong đi từ nháp đến gửi HTTD, nút gửi khóa đến khi đủ điều kiện', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  await page.goto(MEKONG);
+  await expect(page.getByText('Đề xuất đã gửi; nội dung chỉ để xem.'), 'Mekong đã gửi từ lần trước: nạp lại seed').toHaveCount(0);
+
+  const submitBtn = page.getByRole('button', { name: 'Gửi Hỗ trợ tín dụng' });
+  const conditions = page.getByRole('table', { name: 'Bảng điều kiện gửi' });
+
+  // 1. Chưa đủ điều kiện: nút gửi khóa, kèm lý do.
+  await page.getByRole('menuitem', { name: 'Tóm tắt và gửi' }).click();
+  await expect(conditions).toBeVisible();
+  await expect(submitBtn).toHaveAttribute('aria-disabled', 'true');
+  await expect(submitBtn).toHaveAttribute('title', /Chưa đủ điều kiện/);
+
+  // 2. Hồ sơ tài liệu: CIC mô phỏng và ngoại lệ cho từng mục thiếu.
+  await page.getByRole('menuitem', { name: 'Hồ sơ tài liệu' }).click();
+  const cic = page.getByRole('region', { name: 'Tra cứu CIC' });
+  await cic.getByRole('button', { name: 'Tra cứu CIC mới' }).click();
+  await expect(cic.getByText('Dữ liệu mô phỏng')).toBeVisible();
+  for (const code of ['SME-09-QUARTERLY-FS', 'SME-15-SALES-CONTRACTS']) {
+    const row = page.getByTestId(`doc-${code}`);
+    await row.getByRole('button', { name: 'Đề xuất ngoại lệ', exact: true }).click();
+    await row.getByLabel(`Lý do ngoại lệ: ${code}`).fill('Khách hàng cam kết bổ sung trong 3 ngày làm việc.');
+    await row.getByRole('button', { name: 'Gửi đề xuất ngoại lệ', exact: true }).click();
+    await expect(row.getByRole('button', { name: 'Rút đề xuất ngoại lệ' })).toBeVisible();
+  }
+
+  // 3. Nhóm liên quan và thuê đất: người quyết định, không có giá trị tự điền.
+  await page.getByRole('menuitem', { name: 'Nhóm liên quan và tài sản' }).click();
+  await page.getByRole('button', { name: 'Xác nhận thuộc nhóm' }).click();
+  await expect(page.getByText('Thuộc nhóm', { exact: true })).toBeVisible();
+  await page.getByLabel(/Cách trả tiền thuê đất/).getByText('Trả tiền thuê đất hằng năm').click();
+  await expect(page.getByText(/Tổng cấp tín dụng của nhóm/)).toBeVisible();
+
+  // 4. Đủ điều kiện: bảng đạt hết, nút mở, gửi thành công.
+  await page.getByRole('menuitem', { name: 'Tóm tắt và gửi' }).click();
+  await expect(conditions.getByText('Chưa đạt')).toHaveCount(0);
+  await expect(submitBtn).toHaveAttribute('aria-disabled', 'false');
+  await submitBtn.click();
+  await expect(page.getByText('Đã gửi đề xuất sang Hỗ trợ tín dụng.')).toBeVisible();
+
+  // 5. Sau khi gửi hồ sơ chuyển sang chỉ xem.
+  await page.reload();
+  await expect(page.getByText('Đề xuất đã gửi; nội dung chỉ để xem.')).toBeVisible();
 });

@@ -8,15 +8,19 @@ import { useAiPanel } from '@/features/ai-panel/AiPanelContext';
 import { PageHead } from '@/features/shell/PageHead';
 import { DocumentsSection } from './DocumentsSection';
 import { NeedSection } from './NeedSection';
+import { RelatedSection } from './RelatedSection';
+import { SummarySection } from './SummarySection';
 import { ConflictBanner, SaveStatusText } from './SaveStatus';
 import { fetchProducts } from './proposalService';
 import styles from './proposal.module.css';
 import { useDraftAutosave } from './useDraftAutosave';
 
-type SectionKey = 'need' | 'docs';
+type SectionKey = 'need' | 'docs' | 'related' | 'summary';
 const SECTIONS: Array<{ key: SectionKey; label: string }> = [
   { key: 'need', label: 'Nhu cầu vay' },
   { key: 'docs', label: 'Hồ sơ tài liệu' },
+  { key: 'related', label: 'Nhóm liên quan và tài sản' },
+  { key: 'summary', label: 'Tóm tắt và gửi' },
 ];
 
 function Editor({ loanId }: { loanId: string }) {
@@ -69,6 +73,16 @@ function Editor({ loanId }: { loanId: string }) {
               />
             )}
             {section === 'docs' && <DocumentsSection loanId={loanId} />}
+            {section === 'related' && <RelatedSection loanId={loanId} />}
+            {section === 'summary' && (
+              <SummarySection
+                loanId={loanId}
+                blocked={state.kind === 'conflict'}
+                saveNow={saveNow}
+                onGoto={(s) => setSection(s === 'collateral' ? 'related' : (s as SectionKey))}
+                onSubmitted={() => void reload()}
+              />
+            )}
           </main>
         </div>
       </div>

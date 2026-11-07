@@ -514,6 +514,7 @@ SELECT item.requirement_code AS code,
            WHERE exception_record.loan_application_id = item.loan_application_id
              AND exception_record.kind = 'DOCUMENT'
              AND exception_record.checklist_code = item.requirement_code::text
+             AND exception_record.withdrawn_at IS NULL
              AND (exception_record.decision IS NULL OR exception_record.decision = 'ACCEPTED')
        ) AS has_exception
 FROM credit.loan_application AS la

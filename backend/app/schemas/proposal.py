@@ -107,3 +107,84 @@ class ProposalDocument(APIModel):
     valid_until: date | None = None
     has_exception: bool = False
     note: str | None = None
+
+
+class ExposureLine(APIModel):
+    party_id: UUID
+    name: str
+    relation: str
+    status: str | None
+    basis: str | None
+    proposed_by_ai: bool
+    outstanding: DecimalString
+    off_balance: DecimalString
+
+
+class RelatedParties(APIModel):
+    editable: bool
+    lines: list[ExposureLine]
+    total_exposure: DecimalString
+    required_tier: int
+
+
+class RelatedPartyDecision(APIModel):
+    status: str = Field(pattern="^(CONFIRMED|NOT_IN_GROUP)$")
+    basis: str | None = Field(default=None, max_length=1000)
+
+
+class CollateralItem(APIModel):
+    id: UUID
+    collateral_type: str
+    description: str | None
+    owner_name: str
+    on_leased_land: bool
+    land_lease_payment: str | None
+    has_lease_proof: bool
+
+
+class LeaseChoice(APIModel):
+    land_lease_payment: str = Field(pattern="^(ANNUAL|ONE_TIME)$")
+
+
+class ExceptionItem(APIModel):
+    id: UUID
+    checklist_code: str | None
+    kind: str
+    reason: str
+    proposed_at: datetime
+    decision: str | None
+    withdrawn_at: datetime | None
+
+
+class ExceptionCreateRequest(APIModel):
+    checklist_code: str = Field(min_length=1, max_length=100)
+    reason: str = Field(min_length=10, max_length=1000)
+
+
+class SubmitCondition(APIModel):
+    code: str
+    label: str
+    kind: str
+    met: bool
+    detail: str | None
+    section: str
+
+
+class SubmitConditions(APIModel):
+    editable: bool
+    can_submit: bool
+    lock_reason: str | None
+    required_tier: int
+    conditions: list[SubmitCondition]
+    exceptions: list[ExceptionItem]
+    collaterals: list[CollateralItem]
+
+
+class SubmitRequest(APIModel):
+    expected_version: int = Field(ge=1)
+
+
+class SubmitResult(APIModel):
+    status: str
+    step_code: str | None
+    carried_flags: list[str]

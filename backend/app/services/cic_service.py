@@ -146,6 +146,8 @@ def _document_state(row: Mapping[str, Any], today: date) -> tuple[str, str | Non
         until = validity.statement_valid_until(issued)
     if until is not None and until < today:
         return "EXPIRED", None, until
+    if row["status"] == "INCOMPLETE":
+        return "MISSING", "Tài liệu chưa đầy đủ", until
     if row["verification_status"] == "AI_PROPOSED":
         return "AI", None, until
     return "OK", None, until
