@@ -90,6 +90,12 @@ class AgentEngineClient:
     async def reject(self, case_id: str, body: dict[str, Any], jwt: str | None = None) -> Any:
         return await self._call("POST", f"/cases/{case_id}/reject", jwt=jwt, json=body)
 
+    async def benchmark_runs(self, jwt: str | None = None) -> dict[str, Any]:
+        return await self._call("GET", "/benchmark/runs", jwt=jwt)
+
+    async def benchmark_run(self, run_id: str, jwt: str | None = None) -> dict[str, Any]:
+        return await self._call("GET", f"/benchmark/runs/{run_id}", jwt=jwt)
+
     async def benchmark_latest(self, jwt: str | None = None) -> dict[str, Any]:
         """Kết quả benchmark single-agent vs multi-agent mới nhất (engine đọc dưới RLS)."""
         return await self._call("GET", "/benchmark/latest", jwt=jwt)

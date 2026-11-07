@@ -248,6 +248,19 @@ async def benchmark_latest(user: Principal = USER) -> dict:
     return {"status": "ok", "run": run} if run else {"status": "empty", "run": None}
 
 
+@app.get("/benchmark/runs")
+async def benchmark_runs(user: Principal = USER) -> dict:
+    return {"runs": await db.list_benchmarks()}
+
+
+@app.get("/benchmark/runs/{run_id}")
+async def benchmark_run(run_id: str, user: Principal = USER) -> dict:
+    run = await db.get_benchmark(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="không có lượt đo này")
+    return {"status": "ok", "run": run}
+
+
 # ---- Internal ----
 class EventBody(BaseModel):
     case_id: str

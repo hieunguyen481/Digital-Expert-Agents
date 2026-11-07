@@ -1,14 +1,16 @@
-import { Alert, Card, Empty, Skeleton, Typography } from 'antd';
+import { useState } from 'react';
+import { Alert, Card, Empty, Select, Skeleton, Typography } from 'antd';
 import { CheckCircleFilled, ThunderboltOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
 import { LazyBaseChart } from '@/components/charts/LazyBaseChart';
 import { shbColors } from '@/theme/tokens';
-import { getLatestBenchmark } from '@/services/benchmarkService';
+import { getBenchmarkRun, getBenchmarkRuns, getLatestBenchmark } from '@/services/benchmarkService';
 import type {
   BenchmarkMode,
   BenchmarkModeSummary,
   BenchmarkRun,
+  BenchmarkRunMeta,
   BenchmarkStat,
 } from '@/types/dashboard';
 import styles from '@/pages/AgentDashboardPage.module.css';
@@ -99,8 +101,20 @@ function chartData(run: BenchmarkRun) {
   });
 }
 
+export function runOptionLabel(m: BenchmarkRunMeta): string {
+  const when = new Date(m.created_at).toLocaleString('vi-VN');
+  const kind = m.regrade_of ? 'chấm lại dữ liệu cũ' : 'đo mới';
+  return `Bộ ca ${m.cases_version} · bộ chấm ${m.grader_version} · chế độ ${m.llm_mode} · ${kind} · ${when}`;
+}
+
 export function ComparisonTab() {
-  const q = useQuery({ queryKey: ['agent-benchmark-latest'], queryFn: getLatestBenchmark });
+  const [selected, setSelected] = useState<string | null>(null);
+  const runsQ = useQuery({ queryKey: ['agent-benchmark-runs'], queryFn: getBenchmarkRuns });
+  // Mặc định: lượt đo mới nhất của bộ ca mới nhất (engine quyết định); chọn thì đọc đúng lượt đó.
+  const q = useQuery({
+    queryKey: ['agent-benchmark', selected],
+    queryFn: () => (selected ? getBenchmarkRun(selected) : getLatestBenchmark()),
+  });
 
   if (q.isLoading) return <Skeleton active />;
   if (q.isError) {
@@ -122,10 +136,24 @@ export function ComparisonTab() {
   const cases = Object.keys(run.per_case).sort();
   return (
     <>
+      <Card size="small" className={styles.section}>
+        <span style={{ marginRight: 8 }}>Lượt đo:</span>
+        <Select
+          data-testid="cmp-select"
+          style={{ minWidth: 560, maxWidth: '100%' }}
+          value={selected ?? run.run_id}
+          onChange={setSelected}
+          options={(runsQ.data ?? []).map((m) => ({ value: m.run_id, label: runOptionLabel(m) }))}
+          loading={runsQ.isLoading}
+        />
+        <Text type="secondary" style={{ display: 'block', marginTop: 6, fontSize: 12 }} data-testid="cmp-label">
+          {run.label || `Đo mới, bộ chấm ${run.grader_version}`}
+        </Text>
+      </Card>
       <div className={styles.cmpHead} data-testid="cmp-meta">
         <ThunderboltOutlined />
         <span>
-          Bộ ca <strong>{run.cases_version}</strong> · {cases.length} ca × {run.runs_per_case} lượt × 2 chế độ ·{' '}
+          Bộ ca <strong>{run.cases_version}</strong> · bộ chấm <strong>{run.grader_version}</strong> · {cases.length} ca × {run.runs_per_case} lượt × 2 chế độ ·{' '}
           Planner <strong>{run.planner_model}</strong> · Specialist/đơn agent <strong>{run.specialist_model}</strong> ·{' '}
           chế độ {run.llm_mode} · chi phí đo thật{' '}
           <strong>{run.total_cost_usd === null ? '—' : `$${run.total_cost_usd.toFixed(4)}`}</strong> · {run.run_id}

@@ -102,6 +102,10 @@ export interface BenchmarkRun {
   created_at: string;
   label: string;
   cases_version: string;
+  /** Phiên bản bộ chấm (v1 gốc; v2 hiểu câu phủ định). */
+  grader_version: string;
+  /** run_id gốc nếu đây là chấm lại dữ liệu cũ bằng bộ chấm mới (không đo mới). */
+  regrade_of: string | null;
   llm_mode: string;
   planner_model: string;
   specialist_model: string;
@@ -110,6 +114,19 @@ export interface BenchmarkRun {
   total_cost_usd: number | null;
   summary: Partial<Record<BenchmarkMode, BenchmarkModeSummary>>;
   per_case: Record<string, Partial<Record<BenchmarkMode, BenchmarkModeSummary>>>;
+}
+
+/** Một dòng trong danh sách lượt đo để chọn. */
+export interface BenchmarkRunMeta {
+  run_id: string;
+  created_at: string;
+  label: string;
+  cases_version: string;
+  grader_version: string;
+  regrade_of: string | null;
+  llm_mode: string;
+  runs_per_case: number;
+  total_cost_usd: number | null;
 }
 
 export interface BenchmarkLatest {

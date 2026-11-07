@@ -136,3 +136,22 @@ async def benchmark_latest(request: Request, principal: PrincipalDep) -> Any:
         return await _engine(request).benchmark_latest()
     except AgentEngineError as e:
         raise _raise(e) from e
+
+
+@benchmark_router.get("/runs", operation_id="list_agent_benchmark_runs")
+async def benchmark_runs(request: Request, principal: PrincipalDep) -> Any:
+    """Các lượt đo đã lưu (v1 gốc, v1 chấm lại bằng bộ chấm mới, v2) để dashboard chọn."""
+    del principal
+    try:
+        return await _engine(request).benchmark_runs()
+    except AgentEngineError as e:
+        raise _raise(e) from e
+
+
+@benchmark_router.get("/runs/{run_id}", operation_id="get_agent_benchmark_run")
+async def benchmark_run(run_id: str, request: Request, principal: PrincipalDep) -> Any:
+    del principal
+    try:
+        return await _engine(request).benchmark_run(run_id)
+    except AgentEngineError as e:
+        raise _raise(e) from e

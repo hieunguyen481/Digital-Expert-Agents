@@ -257,18 +257,46 @@ async def get_action_by_key(key: str) -> dict | None:
     return dict(r) if r else None
 
 
-# ---- benchmark (V032): chỉ đọc, dưới RLS ----
-async def latest_benchmark() -> dict | None:
-    """Lần chạy benchmark mới nhất. Không trả văn bản kết luận (runs[].conclusion_text) của từng lượt."""
-    async with tx() as con:
-        r = await con.fetchrow(
-            "SELECT run_id, created_at, label, cases_version, llm_mode, planner_model, specialist_model,"
-            " git_commit, runs_per_case, total_cost_usd, summary, per_case, runs"
-            " FROM agent.benchmark_run ORDER BY created_at DESC LIMIT 1")
-    if r is None:
-        return None
+# ---- benchmark (V032, V033): chỉ đọc, dưới RLS ----
+_BENCH_COLS = ("run_id, created_at, label, cases_version, grader_version, regrade_of, llm_mode, planner_model,"
+               " specialist_model, git_commit, runs_per_case, total_cost_usd, summary, per_case, runs")
+
+
+def _bench_row(r) -> dict:
+    """Không trả văn bản kết luận / nguồn của từng lượt (runs[].conclusion_text, sources)."""
     d = dict(r)
     d["created_at"] = d["created_at"].isoformat()
     d["total_cost_usd"] = float(d["total_cost_usd"]) if d["total_cost_usd"] is not None else None
-    d["runs"] = [{k: v for k, v in x.items() if k not in ("conclusion_text",)} for x in d["runs"]]
+    d["runs"] = [{k: v for k, v in x.items() if k not in ("conclusion_text", "sources")} for x in d["runs"]]
     return d
+
+
+async def latest_benchmark() -> dict | None:
+    """Lượt mặc định: lượt đo thật (không phải chấm lại), bộ ca mới nhất, rồi theo thời gian."""
+    async with tx() as con:
+        r = await con.fetchrow(
+            f"SELECT {_BENCH_COLS} FROM agent.benchmark_run"
+            " ORDER BY (regrade_of IS NULL) DESC, cases_version DESC, created_at DESC LIMIT 1")
+    return _bench_row(r) if r else None
+
+
+async def get_benchmark(run_id: str) -> dict | None:
+    async with tx() as con:
+        r = await con.fetchrow(f"SELECT {_BENCH_COLS} FROM agent.benchmark_run WHERE run_id=$1", run_id)
+    return _bench_row(r) if r else None
+
+
+async def list_benchmarks() -> list[dict]:
+    """Danh sách lượt đo để chọn trên dashboard (không kèm số liệu chi tiết)."""
+    async with tx() as con:
+        rows = await con.fetch(
+            "SELECT run_id, created_at, label, cases_version, grader_version, regrade_of, llm_mode,"
+            " runs_per_case, total_cost_usd FROM agent.benchmark_run"
+            " ORDER BY (regrade_of IS NULL) DESC, cases_version DESC, created_at DESC")
+    out = []
+    for r in rows:
+        d = dict(r)
+        d["created_at"] = d["created_at"].isoformat()
+        d["total_cost_usd"] = float(d["total_cost_usd"]) if d["total_cost_usd"] is not None else None
+        out.append(d)
+    return out

@@ -35,3 +35,15 @@ def test_engine_error_maps_to_app_error():
     with pytest.raises(AppError) as e:
         asyncio.run(agent_cases.benchmark_latest(_Req(_Engine(exc=AgentEngineError(403, "không đủ quyền"))), None))
     assert e.value.status_code == 403
+
+
+def test_runs_and_run_forward_to_engine():
+    class _E(_Engine):
+        async def benchmark_runs(self):
+            return {"runs": [{"run_id": "a"}]}
+
+        async def benchmark_run(self, run_id):
+            return {"status": "ok", "run": {"run_id": run_id}}
+
+    assert asyncio.run(agent_cases.benchmark_runs(_Req(_E()), None)) == {"runs": [{"run_id": "a"}]}
+    assert asyncio.run(agent_cases.benchmark_run("a", _Req(_E()), None))["run"]["run_id"] == "a"
