@@ -16,7 +16,7 @@
    "id": "D1",
    "title": "Nhiều TSĐB, một tài sản chưa rõ pháp lý: tổng cấp tín dụng 27 tỷ, LTV chỉ tính tài sản rõ pháp lý",
    "request": {
-    "business_id": "56000000-0000-4000-8000-000000000021",
+    "business_id": "56000000-0000-4000-8000-000021000000",
     "amount": 15000000000.0,
     "term_months": 36,
     "purpose": "Mua nguyên liệu và bổ sung vốn lưu động",
@@ -114,7 +114,7 @@
    "id": "D2",
    "title": "Nợ vay trên BCTC (30 tỷ) thấp hơn dư nợ CIC ở TCTD khác (45 tỷ): tính lại Nợ vay/EBITDA vượt 3,5",
    "request": {
-    "business_id": "56000000-0000-4000-8000-000000000022",
+    "business_id": "56000000-0000-4000-8000-000022000000",
     "amount": 10000000000.0,
     "term_months": 24,
     "purpose": "Bổ sung vốn lưu động",
@@ -193,7 +193,7 @@
    "id": "D3",
    "title": "TSĐB khai báo 40 tỷ nhưng thẩm định 25 tỷ: LTV theo giá thẩm định 80% vượt trần, tổng cấp tín dụng 30 tỷ",
    "request": {
-    "business_id": "56000000-0000-4000-8000-000000000023",
+    "business_id": "56000000-0000-4000-8000-000023000000",
     "amount": 20000000000.0,
     "term_months": 36,
     "purpose": "Đầu tư máy móc",
@@ -292,7 +292,7 @@
    "id": "D4",
    "title": "Tổng cấp tín dụng 110 tỷ vượt 100 tỷ và CIC nhóm 2: cấp phê duyệt cao nhất, kiểm toán bắt buộc",
    "request": {
-    "business_id": "56000000-0000-4000-8000-000000000024",
+    "business_id": "56000000-0000-4000-8000-000024000000",
     "amount": 50000000000.0,
     "term_months": 60,
     "purpose": "Mua phương tiện vận tải",
@@ -381,7 +381,7 @@
    "id": "D5",
    "title": "Tổng đúng 20 tỷ (ranh giới) và tiền về tài khoản 90 tỷ chỉ bằng 30% doanh thu BCTC 300 tỷ",
    "request": {
-    "business_id": "56000000-0000-4000-8000-000000000025",
+    "business_id": "56000000-0000-4000-8000-000025000000",
     "amount": 20000000000.0,
     "term_months": 12,
     "purpose": "Bổ sung vốn lưu động",
@@ -456,7 +456,7 @@
    "id": "D6",
    "title": "Hồ sơ sạch có TSĐB 30 tỷ nhưng doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng",
    "request": {
-    "business_id": "56000000-0000-4000-8000-000000000026",
+    "business_id": "56000000-0000-4000-8000-000026000000",
     "amount": 12000000000.0,
     "term_months": 24,
     "purpose": "Bổ sung vốn lưu động",
@@ -534,7 +534,7 @@
    "id": "D7",
    "title": "Tổng 20,5 tỷ vừa vượt ngưỡng 20 tỷ, CIC nhóm 2 và hai TSĐB rõ pháp lý (tổng 25 tỷ)",
    "request": {
-    "business_id": "56000000-0000-4000-8000-000000000027",
+    "business_id": "56000000-0000-4000-8000-000027000000",
     "amount": 10000000000.0,
     "term_months": 24,
     "purpose": "Bổ sung vốn lưu động",
@@ -623,7 +623,7 @@
    "id": "D8",
    "title": "Chủ thể trùng khớp danh sách trừng phạt (POSSIBLE_MATCH): dừng cứng dù tài chính và TSĐB tốt",
    "request": {
-    "business_id": "56000000-0000-4000-8000-000000000028",
+    "business_id": "56000000-0000-4000-8000-000028000000",
     "amount": 8000000000.0,
     "term_months": 24,
     "purpose": "Bổ sung vốn lưu động",
