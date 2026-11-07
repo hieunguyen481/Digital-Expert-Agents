@@ -28,7 +28,7 @@ export function ConflictPanel({ loanId, conflicts, canResolve, onOpenField }: Pr
   );
 }
 
-function ConflictCard({ loanId, conflict, canResolve, onOpenField }: Props & { conflict: ReconConflict }) {
+function ConflictCard({ loanId, conflict, canResolve, onOpenField }: Omit<Props, 'conflicts'> & { conflict: ReconConflict }) {
   const qc = useQueryClient();
   const [chosen, setChosen] = useState<string | null>(conflict.chosen_field_id);
   const [reason, setReason] = useState('');
