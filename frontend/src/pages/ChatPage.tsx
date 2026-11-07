@@ -95,6 +95,29 @@ export default function ChatPage() {
     }
   }, [activeConversationId, conversations]);
 
+  // Mở lại hội thoại đã gắn khách hàng (thanh bên hoặc tự mở) cũng phải nhận phân công
+  // như khi chọn khách hàng, nếu không backend từ chối phân tích sâu với 409.
+  const activeConversationCustomerId = conversations.find(
+    (item) => item.id === activeConversationId,
+  )?.customerId;
+  useEffect(() => {
+    if (!activeConversationCustomerId) return;
+    const customer = customers.find((item) => item.id === activeConversationCustomerId);
+    if (!customer) return;
+    let cancelled = false;
+    claimCustomerAssignment(customer.id, customer.assignmentVersion ?? 1)
+      .then((lease) => {
+        if (!cancelled) setActiveAssignmentLeaseToken(lease?.lease_token);
+      })
+      .catch(() => {
+        // Không nhận được phân công: vẫn xem được; backend nêu lý do khi phân tích.
+        if (!cancelled) setActiveAssignmentLeaseToken(undefined);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeConversationCustomerId, customers]);
+
   const activeConversation = useMemo(
     () => conversations.find((item) => item.id === activeConversationId) ?? null,
     [conversations, activeConversationId],
