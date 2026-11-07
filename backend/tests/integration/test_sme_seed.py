@@ -275,7 +275,7 @@ async def test_vinanova_flags_and_conflicts(db: asyncpg.Connection) -> None:
         " WHERE loan_application_id = $1",
         LOAN_VINANOVA,
     )
-    assert sorted(c["code"] for c in conflicts) == ["cfo", "debt"]
+    assert sorted(c["code"] for c in conflicts) == ["cfo", "debt", "dscr"]
     assert all(c["n"] >= 2 and c["chosen_field_id"] is None for c in conflicts)
 
 
