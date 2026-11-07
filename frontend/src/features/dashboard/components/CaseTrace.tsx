@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAgentCase, getAgentCaseEvents, streamAgentCase, type AgentCaseEvent } from '@/services/agentCaseService';
 import {
   DECISION_LABEL, STATE_COLOR, agentName, collaboration, dagLevels, decisions, latestPlan,
-  llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState,
+  llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
 } from '../agentTrace';
 
 const { Text } = Typography;
@@ -66,7 +66,18 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
   const usage = llmUsage(events);
   const decided = decisions(events);
   const pkg = caseQ.data.package ?? packageOf(events);
-  const sources = (pkg?.verdicts ?? []).flatMap((v) => (v.evidence ?? []).map((e) => ({ agent: v.agent, ...e })));
+  // Chỉ hồ sơ đạt mới có gói phê duyệt; Cần bổ sung/Từ chối vẫn có ý kiến từng agent trong sự kiện.
+  const verdicts: TraceVerdict[] =
+    pkg?.verdicts ??
+    events
+      .filter((e) => e.type === 'task_finished' && e.payload?.verdict)
+      .map((e) => e.payload!.verdict as TraceVerdict);
+  const stopEvent = [...events].reverse().find((e) => e.type === 'state_changed' && e.payload?.state === state);
+  const stopReason =
+    (state === 'Needs Info' || state === 'Rejected') && typeof stopEvent?.payload?.reason === 'string'
+      ? stopEvent.payload.reason
+      : undefined;
+  const sources = verdicts.flatMap((v) => (v.evidence ?? []).map((e) => ({ agent: v.agent, ...e })));
 
   return (
     <div data-testid="case-trace">
@@ -170,7 +181,12 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             {pkg.required_approver_level && ` · Cấp xác nhận: ${pkg.required_approver_level}`}
           </div>
         )}
-        {(pkg?.verdicts ?? []).map((v) => (
+        {stopReason && (
+          <div style={{ fontSize: 13, marginBottom: 6 }} data-testid="trace-stop-reason">
+            {state === 'Rejected' ? 'Hội đồng agent đề xuất từ chối' : 'Hội đồng agent đề nghị bổ sung hồ sơ'}: <b>{stopReason}</b>
+          </div>
+        )}
+        {verdicts.map((v) => (
           <div key={v.agent + v.summary} style={{ fontSize: 13 }}>
             <b>{agentName(v.agent)}</b>: {DECISION_LABEL[v.decision] ?? v.decision} — {v.summary}
           </div>
@@ -184,7 +200,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         {state === 'Pending Approval' && decided.length === 0 && (
           <Text type="secondary" style={{ fontSize: 13 }}>Đang chờ người có thẩm quyền xác nhận; agent không tự phê duyệt.</Text>
         )}
-        {!pkg && decided.length === 0 && state !== 'Pending Approval' && (
+        {!pkg && !stopReason && verdicts.length === 0 && decided.length === 0 && state !== 'Pending Approval' && (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có quyết định cho case này." />
         )}
       </section>

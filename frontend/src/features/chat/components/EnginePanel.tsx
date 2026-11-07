@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
 import {
   TERMINAL_STATES,
+  type AgentVerdict,
   confirmAgentCase,
   getAgentCase,
   getAgentCaseEvents,
@@ -58,11 +59,19 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
   if (!c) return <Alert type="info" message="Đang tải kết quả hội đồng agent…" />;
 
   const pkg = c.package ?? {};
-  const verdicts = pkg.verdicts ?? [];
+  const events = eventsQ.data ?? [];
+  // Chỉ hồ sơ đạt mới có gói phê duyệt; khi dừng ở Cần bổ sung/Từ chối vẫn phải thấy ý kiến từng agent.
+  const verdicts: AgentVerdict[] =
+    pkg.verdicts ??
+    events
+      .filter((e) => e.type === 'task_finished' && e.payload?.verdict)
+      .map((e) => e.payload!.verdict as AgentVerdict);
   const sources = verdicts.flatMap((v) => (v.evidence ?? []).map((e) => ({ agent: v.agent, ...e })));
   const roles = me.data?.roles ?? [];
   const canDecide = roles.includes('loan_approver');
-  const events = eventsQ.data ?? [];
+  const stopEvent = [...events].reverse().find((e) => e.type === 'state_changed' && e.payload?.state === c.state);
+  const stopReason = typeof stopEvent?.payload?.reason === 'string' ? stopEvent.payload.reason : undefined;
+  const stopFindings = Array.isArray(stopEvent?.payload?.findings) ? (stopEvent!.payload!.findings as string[]) : [];
   const flow = events.filter((e) => e.type === 'task_finished' || e.type === 'plan_created');
 
   const decide = async (decision: 'APPROVED' | 'REJECTED') => {
@@ -113,6 +122,27 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
             ))}
           </ul>
         </details>
+      )}
+      {(c.state === 'Needs Info' || c.state === 'Rejected') && (
+        <Alert
+          style={{ marginTop: 12 }}
+          type={c.state === 'Rejected' ? 'error' : 'info'}
+          showIcon
+          data-testid="stop-card"
+          message={
+            c.state === 'Rejected'
+              ? 'Hội đồng agent đề xuất từ chối — người có thẩm quyền quyết định'
+              : 'Hội đồng agent đề nghị bổ sung hồ sơ trước khi trình — chưa tới bước phê duyệt'
+          }
+          description={
+            <div>
+              {stopReason && <div>{stopReason}</div>}
+              {stopFindings.map((f) => (
+                <div key={f}>• {f}</div>
+              ))}
+            </div>
+          }
+        />
       )}
       {c.state === 'Pending Approval' && (
         <Alert

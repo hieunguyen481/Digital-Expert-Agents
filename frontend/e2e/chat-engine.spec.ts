@@ -27,7 +27,18 @@ test('thẩm định viên: yêu cầu phức tạp → multi-agent thật → c
   }
   await expect(page.locator('#main-content').getByTestId('engine-verdicts')).toContainText('Credit');
   await expect(page.locator('#main-content').getByTestId('engine-sources')).toContainText('Nguồn trích dẫn');
-  await expect(page.locator('#main-content').getByTestId('confirm-card')).toContainText('Đang chờ người có thẩm quyền xác nhận');
+  // Engine chế độ llm có thể dừng ở Chờ xác nhận hoặc Cần bổ sung/Từ chối (đáp án C1 của benchmark là Cần bổ sung);
+  // cả hai đều phải dừng chờ người, có lý do, và agent không bao giờ tự phê duyệt.
+  const gate = page.locator('#main-content').getByTestId('confirm-card').or(page.locator('#main-content').getByTestId('stop-card'));
+  await expect(gate).toBeVisible();
+  if (await page.locator('#main-content').getByTestId('confirm-card').isVisible()) {
+    await expect(page.locator('#main-content').getByTestId('confirm-card')).toContainText('Đang chờ người có thẩm quyền xác nhận');
+  } else {
+    const stop = page.locator('#main-content').getByTestId('stop-card');
+    await expect(stop).toContainText(/bổ sung hồ sơ|đề xuất từ chối/);
+    await expect(stop).toContainText(/\S{10,}/);
+  }
+  await expect(panel).not.toContainText(/Completed|Executing/);
   // Thẩm định viên không có quyền duyệt: không có nút xác nhận phê duyệt.
   await expect(page.locator('#main-content').getByRole('button', { name: 'Xác nhận phê duyệt' })).toHaveCount(0);
 });

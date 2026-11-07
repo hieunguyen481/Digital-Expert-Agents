@@ -135,7 +135,8 @@ async def _llm_task(env: Envelope) -> Verdict:
     async def t_ask_document(field: str) -> dict:
         resp = await a2a_send(CARD.agent_id, "document", Envelope(
             case_id=env.case_id, task_id=env.task_id, from_agent=CARD.agent_id,
-            to_agent="document", type=MessageType.INFO_REQUEST, payload={"field": field}))
+            to_agent="document", type=MessageType.INFO_REQUEST,
+            payload={"field": field, "business_id": business_id}))
         return resp.payload
 
     tools = [

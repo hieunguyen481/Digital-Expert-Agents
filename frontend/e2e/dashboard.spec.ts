@@ -19,7 +19,10 @@ test('dashboard hiện đúng case vừa chạy ở /chat: DAG, task, luồng ph
   await page.getByPlaceholder(/Hỏi SH-AI/).fill(REQUEST);
   await page.getByRole('button', { name: 'Gửi' }).click();
   const caseId = /(case_[0-9a-f]+)$/.exec((await caseResp).url())![1];
-  await expect(page.locator('#main-content').getByTestId('confirm-card')).toBeVisible({ timeout: 120_000 });
+  // Engine llm dừng ở Chờ xác nhận hoặc Cần bổ sung/Từ chối; cả hai đều chờ người, không tự duyệt.
+  const confirm = page.locator('#main-content').getByTestId('confirm-card');
+  await expect(confirm.or(page.locator('#main-content').getByTestId('stop-card'))).toBeVisible({ timeout: 120_000 });
+  const pending = await confirm.isVisible();
 
   await openCases(page);
   const row = page.getByTestId(`case-row-${caseId}`);
@@ -27,7 +30,7 @@ test('dashboard hiện đúng case vừa chạy ở /chat: DAG, task, luồng ph
   await row.click();
 
   const trace = page.getByTestId('case-trace');
-  await expect(trace.getByTestId('case-state')).toContainText('Chờ xác nhận');
+  await expect(trace.getByTestId('case-state')).toContainText(pending ? 'Chờ xác nhận' : /Cần bổ sung|Từ chối/);
   await expect(trace.getByTestId('trace-dag')).toContainText('Credit');
   await expect(trace.getByTestId('trace-dag')).toContainText('Compliance');
   await expect(trace.getByTestId('trace-dag')).toContainText('Validation');
@@ -37,7 +40,12 @@ test('dashboard hiện đúng case vừa chạy ở /chat: DAG, task, luồng ph
   await expect(trace.getByTestId('trace-flow')).toContainText('Validation');
   await expect(trace.getByTestId('trace-flow').getByText(/challenge|không phát challenge/).first()).toBeVisible();
   await expect(trace.getByTestId('trace-tools')).toContainText('get_');
-  await expect(trace.getByTestId('trace-decisions')).toContainText('Đang chờ người có thẩm quyền xác nhận');
+  if (pending) {
+    await expect(trace.getByTestId('trace-decisions')).toContainText('Đang chờ người có thẩm quyền xác nhận');
+  } else {
+    await expect(trace.getByTestId('trace-stop-reason')).toContainText(/bổ sung hồ sơ|đề xuất từ chối/);
+  }
+  await expect(trace.getByTestId('trace-decisions')).toContainText('Credit');
   await expect(trace.getByTestId('trace-sources')).toContainText('Nguồn trích dẫn');
 });
 
