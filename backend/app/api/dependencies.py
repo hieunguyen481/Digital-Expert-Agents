@@ -25,6 +25,7 @@ from app.repositories.job_repository import JobRepository
 from app.repositories.loan_repository import LoanRepository
 from app.repositories.notification_repository import NotificationRepository
 from app.repositories.policy_repository import PolicyRepository
+from app.repositories.cic_repository import CicRepository
 from app.repositories.proposal_repository import ProposalRepository
 from app.repositories.work_item_repository import WorkItemRepository
 from app.repositories.report_repository import ReportRepository
@@ -33,6 +34,7 @@ from app.repositories.workflow_repository import WorkflowRepository
 from app.services.agent_simulation_service import AgentSimulationService
 from app.services.analysis_service import AnalysisService
 from app.services.audit_service import AuditService
+from app.services.cic_service import CicService
 from app.services.conversation_service import (
     ConversationProcessingGuard,
     ConversationService,
@@ -249,3 +251,7 @@ def get_work_item_service(session: SessionDep) -> WorkItemService:
 
 def get_proposal_service(session: SessionDep) -> ProposalService:
     return ProposalService(ProposalRepository(session))
+
+
+def get_cic_service(session: SessionDep) -> CicService:
+    return CicService(ProposalService(ProposalRepository(session)), CicRepository(session))

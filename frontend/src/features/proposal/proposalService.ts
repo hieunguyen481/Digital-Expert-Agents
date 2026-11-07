@@ -1,5 +1,5 @@
 import apiClient from '@/services/apiClient';
-import type { CustomerOption, Draft, DraftSaveBody, LoanProduct } from './types';
+import type { CicStatus, CustomerOption, Draft, DraftSaveBody, LoanProduct, ProposalDocument } from './types';
 
 export async function fetchDraft(loanId: string): Promise<Draft> {
   return (await apiClient.get<Draft>(`/loan-applications/${loanId}/draft`)).data;
@@ -50,4 +50,23 @@ export async function createLoan(input: {
     { headers: { 'Idempotency-Key': crypto.randomUUID() } },
   );
   return res.data;
+}
+
+export async function fetchProposalDocuments(loanId: string): Promise<ProposalDocument[]> {
+  return (await apiClient.get<ProposalDocument[]>(`/loan-applications/${loanId}/proposal-documents`)).data;
+}
+
+export async function fetchCic(loanId: string): Promise<CicStatus> {
+  return (await apiClient.get<CicStatus>(`/loan-applications/${loanId}/cic`)).data;
+}
+
+export async function lookupCic(loanId: string): Promise<CicStatus> {
+  return (await apiClient.post<CicStatus>(`/loan-applications/${loanId}/cic-lookups`)).data;
+}
+
+export async function confirmConsent(
+  loanId: string,
+  body: { document_id: string; signed_on: string; valid_until: string | null },
+): Promise<CicStatus> {
+  return (await apiClient.post<CicStatus>(`/loan-applications/${loanId}/cic-consent`, body)).data;
 }

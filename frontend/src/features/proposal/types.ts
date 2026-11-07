@@ -33,7 +33,7 @@ export interface Draft {
   saved_by_name: string | null;
 }
 
-/** Nội dung form (đơn vị tiền: tỷ đồng, đúng mockup). */
+/** Nội dung form (đơn vị tiền: tỷ đồng, theo đặc tả giao diện). */
 export interface DraftForm {
   productId: string;
   amountBillion: string;
@@ -57,4 +57,45 @@ export interface CustomerOption {
   id: string;
   display_name: string;
   customer_number: string;
+}
+
+export interface ProposalDocument {
+  item_id: string;
+  code: string;
+  document_type: string | null;
+  mandatory: boolean;
+  state: 'OK' | 'AI' | 'MISSING' | 'EXPIRED';
+  document_id: string | null;
+  title: string | null;
+  verification_status: string | null;
+  issued_date: string | null;
+  valid_until: string | null;
+  has_exception: boolean;
+  note: string | null;
+}
+
+export interface CicStatus {
+  editable: boolean;
+  consent: {
+    code: 'OK' | 'MISSING' | 'UNCONFIRMED' | 'EXPIRED';
+    usable: boolean;
+    lock_reason: string | null;
+    signed_on: string | null;
+    valid_until: string | null;
+    confirmed_by_name: string | null;
+  };
+  report: {
+    looked_up_on: string;
+    valid_until: string;
+    looked_up_by_name: string | null;
+    source: string;
+    source_label: string | null;
+    summary: Record<string, unknown>;
+  } | null;
+  report_status: 'NONE' | 'VALID' | 'EXPIRED';
+  relookup_flag: boolean;
+  relookup_flag_text: string | null;
+  lookup_locked: boolean;
+  lock_reason: string | null;
+  today: string;
 }

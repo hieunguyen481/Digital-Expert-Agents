@@ -6,14 +6,18 @@ import { RequireRole } from '@/auth/RequireRole';
 import { PageError } from '@/components/common/PageError';
 import { useAiPanel } from '@/features/ai-panel/AiPanelContext';
 import { PageHead } from '@/features/shell/PageHead';
+import { DocumentsSection } from './DocumentsSection';
 import { NeedSection } from './NeedSection';
 import { ConflictBanner, SaveStatusText } from './SaveStatus';
 import { fetchProducts } from './proposalService';
 import styles from './proposal.module.css';
 import { useDraftAutosave } from './useDraftAutosave';
 
-type SectionKey = 'need';
-const SECTIONS: Array<{ key: SectionKey; label: string }> = [{ key: 'need', label: 'Nhu cầu vay' }];
+type SectionKey = 'need' | 'docs';
+const SECTIONS: Array<{ key: SectionKey; label: string }> = [
+  { key: 'need', label: 'Nhu cầu vay' },
+  { key: 'docs', label: 'Hồ sơ tài liệu' },
+];
 
 function Editor({ loanId }: { loanId: string }) {
   const { draft, form, loadError, state, change, saveNow, reload } = useDraftAutosave(loanId);
@@ -64,6 +68,7 @@ function Editor({ loanId }: { loanId: string }) {
                 onChange={change}
               />
             )}
+            {section === 'docs' && <DocumentsSection loanId={loanId} />}
           </main>
         </div>
       </div>

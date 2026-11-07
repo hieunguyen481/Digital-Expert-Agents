@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import Field
@@ -56,3 +56,54 @@ class LoanProductResponse(APIModel):
     max_amount: DecimalString | None
     min_term_months: int | None
     max_term_months: int | None
+
+
+class ConsentState(APIModel):
+    code: str  # OK | MISSING | UNCONFIRMED | EXPIRED
+    usable: bool
+    lock_reason: str | None = None
+    signed_on: date | None = None
+    valid_until: date | None = None
+    confirmed_by_name: str | None = None
+
+
+class CicReport(APIModel):
+    looked_up_on: date
+    valid_until: date
+    looked_up_by_name: str | None = None
+    source: str
+    source_label: str | None = None
+    summary: dict[str, object] = Field(default_factory=dict)
+
+
+class CicStatus(APIModel):
+    editable: bool
+    consent: ConsentState
+    report: CicReport | None = None
+    report_status: str  # NONE | VALID | EXPIRED
+    relookup_flag: bool
+    relookup_flag_text: str | None = None
+    lookup_locked: bool
+    lock_reason: str | None = None
+    today: date
+
+
+class ConsentCreateRequest(APIModel):
+    document_id: UUID
+    signed_on: date
+    valid_until: date | None = None
+
+
+class ProposalDocument(APIModel):
+    item_id: UUID
+    code: str
+    document_type: str | None = None
+    mandatory: bool
+    state: str  # OK | AI | MISSING | EXPIRED
+    document_id: UUID | None = None
+    title: str | None = None
+    verification_status: str | None = None
+    issued_date: date | None = None
+    valid_until: date | None = None
+    has_exception: bool = False
+    note: str | None = None

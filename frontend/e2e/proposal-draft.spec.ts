@@ -45,3 +45,33 @@ test('qhkh: hai tab cùng sửa thì tab sau bị chặn kèm thông báo', asyn
   await setPurpose(b, SEED_PURPOSE);
   await ctx.close();
 });
+
+test('qhkh: Mekong tra CIC mô phỏng, kết quả có nhãn và hạn hiệu lực', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  await page.goto(MEKONG);
+  await page.getByRole('menuitem', { name: 'Hồ sơ tài liệu' }).click();
+  const cic = page.getByRole('region', { name: 'Tra cứu CIC' });
+  await expect(cic).toContainText('Văn bản đồng ý: đã xác nhận');
+  await cic.getByRole('button', { name: 'Tra cứu CIC mới' }).click();
+  await expect(cic).toContainText('hiệu lực đến hết');
+  await expect(cic.getByText('Dữ liệu mô phỏng')).toBeVisible();
+  await expect(page.getByTestId('doc-SME-09-QUARTERLY-FS')).toContainText('Thiếu');
+});
+
+test('qhkh: nút tra CIC bị khóa kèm lý do khi văn bản đồng ý quá hạn', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  // Giả lập phản hồi API của cùng hợp đồng để kiểm tra riêng hành vi khóa nút; dữ liệu seed không đổi.
+  await page.route('**/loan-applications/*/cic', async (route) => {
+    const res = await route.fetch();
+    const body = await res.json();
+    body.consent = { ...body.consent, code: 'EXPIRED', usable: false, lock_reason: 'Chưa tra cứu CIC được: văn bản đồng ý tra cứu CIC đã quá hạn ghi trên văn bản. Cần văn bản đồng ý mới của khách (§6.1).' };
+    body.lookup_locked = true;
+    body.lock_reason = body.consent.lock_reason;
+    await route.fulfill({ response: res, json: body });
+  });
+  await page.goto(MEKONG);
+  await page.getByRole('menuitem', { name: 'Hồ sơ tài liệu' }).click();
+  const btn = page.getByRole('button', { name: 'Tra cứu CIC mới' });
+  await expect(btn).toHaveAttribute('aria-disabled', 'true');
+  await expect(btn).toHaveAttribute('title', /quá hạn ghi trên văn bản/);
+});

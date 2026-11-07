@@ -39,6 +39,17 @@ class ProposalService:
             raise LookupError("Loan application was not found or is outside the authorized scope")
         return {**row, "editable": row["status"] in EDITABLE_STATUSES}
 
+    async def editable_loan(self, principal: PrincipalLike, loan_id: UUID) -> dict[str, Any]:
+        """Hồ sơ mà người gọi được sửa: quyền `loan:update`, còn nháp/bị trả lại, đúng người phụ trách."""
+        require_permission(principal, "loan:update")
+        current = await self.get_draft(principal, loan_id)
+        if not current["editable"]:
+            raise ConflictError("DRAFT_LOCKED", "Đề xuất đã gửi, không sửa được nháp.")
+        assigned = current.get("assigned_employee_id")
+        if assigned is not None and UUID(str(assigned)) != principal.employee_id:
+            raise PermissionError("Loan application is being handled by another employee")
+        return current
+
     async def save_draft(
         self,
         principal: PrincipalLike,
@@ -47,13 +58,7 @@ class ProposalService:
         *,
         expected_version: int,
     ) -> dict[str, Any]:
-        require_permission(principal, "loan:update")
-        current = await self.get_draft(principal, loan_id)
-        if not current["editable"]:
-            raise ConflictError("DRAFT_LOCKED", "Đề xuất đã gửi, không sửa được nháp.")
-        assigned = current.get("assigned_employee_id")
-        if assigned is not None and UUID(str(assigned)) != principal.employee_id:
-            raise PermissionError("Loan application is being handled by another employee")
+        current = await self.editable_loan(principal, loan_id)
         if not await self._repo.save_draft(
             loan_id, values=values, expected_version=expected_version,
             employee_id=principal.employee_id,
