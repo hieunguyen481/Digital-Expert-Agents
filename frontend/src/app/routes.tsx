@@ -31,6 +31,8 @@ const AgentDashboardPage = lazy(() => import('@/pages/AgentDashboardPage'));
 const MyWorkPage = lazy(() => import('@/features/my-work/MyWorkPage'));
 const ProposalPage = lazy(() => import('@/features/proposal/ProposalPage'));
 const NewProposalPage = lazy(() => import('@/features/proposal/NewProposalPage'));
+const ReconciliationPage = lazy(() => import('@/features/reconciliation/ReconciliationPage'));
+const ReconciliationIndexPage = lazy(() => import('@/features/reconciliation/ReconciliationIndexPage'));
 const CustomerDetailPage = lazy(() => import('@/pages/CustomerDetailPage'));
 
 function withSuspense(node: React.ReactNode) {
@@ -53,6 +55,8 @@ export const routeObjects: RouteObject[] = [
       { path: '/viec-cua-toi', element: withSuspense(<MyWorkPage />) },
       { path: '/de-xuat-vay', element: withSuspense(<NewProposalPage />) },
       { path: '/de-xuat-vay/:loanId', element: withSuspense(<ProposalPage />) },
+      { path: '/doi-chieu', element: withSuspense(<ReconciliationIndexPage />) },
+      { path: '/doi-chieu/:loanId', element: withSuspense(<ReconciliationPage />) },
       { path: '/chat', element: <ChatPage /> },
       { path: '/dashboard', element: withSuspense(<AgentDashboardPage />) },
       { path: '/customer/:id', element: withSuspense(<CustomerDetailPage />) },

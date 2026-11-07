@@ -37,7 +37,7 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
   ],
   httd: [
     item(2, 'Việc của tôi', 'inbox', MY_WORK_PATH),
-    item(5, 'Đối chiếu tài liệu', 'filecheck'),
+    item(5, 'Đối chiếu tài liệu', 'filecheck', '/doi-chieu'),
     item(4, 'Khách hàng SME', 'building'),
     item(7, 'Tra cứu chính sách', 'book'),
     ...KEPT,
@@ -45,7 +45,7 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
   ],
   tdinh: [
     item(2, 'Việc của tôi', 'inbox', MY_WORK_PATH),
-    item(5, 'Đối chiếu tài liệu', 'filecheck'),
+    item(5, 'Đối chiếu tài liệu', 'filecheck', '/doi-chieu'),
     item(4, 'Khách hàng SME', 'building'),
     item(7, 'Tra cứu chính sách', 'book'),
     ...KEPT,

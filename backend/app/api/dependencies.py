@@ -50,6 +50,8 @@ from app.services.notification_service import NotificationService
 from app.services.policy_service import PolicyService
 from app.services.proposal_service import ProposalService
 from app.services.report_service import ReportService
+from app.repositories.reconciliation_repository import ReconciliationRepository
+from app.services.reconciliation_service import ReconciliationService
 from app.services.submission_service import SubmissionService
 from app.services.transaction_service import TransactionService
 from app.services.upload_service import UploadService
@@ -269,3 +271,12 @@ def get_submission_service(request: Request, session: SessionDep) -> SubmissionS
 
 def get_cic_service(session: SessionDep) -> CicService:
     return CicService(ProposalService(ProposalRepository(session)), CicRepository(session))
+
+
+def get_reconciliation_service(request: Request, session: SessionDep) -> ReconciliationService:
+    settings = get_settings_from_state(request)
+    return ReconciliationService(
+        ReconciliationRepository(session),
+        WorkflowRepository(session, cic_outage=settings.cic_system_outage),
+        get_workflow_service(request, session),
+    )

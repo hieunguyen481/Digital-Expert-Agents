@@ -565,7 +565,7 @@ DELETE FROM credit.loan_draft WHERE loan_application_id IN (SELECT id FROM sme_l
 DELETE FROM credit.case_exception WHERE loan_application_id IN (SELECT id FROM sme_loan);
 DELETE FROM document.field_conflict
 WHERE loan_application_id IN (SELECT id FROM sme_loan)
-  AND id NOT IN (SELECT pg_temp.id('78100000', k) FROM generate_series(1, 2) AS k);
+  AND id NOT IN (SELECT pg_temp.id('78100000', k) FROM generate_series(1, 3) AS k);
 DELETE FROM credit.case_flag
 WHERE loan_application_id IN (SELECT id FROM sme_loan)
   AND id NOT IN (SELECT pg_temp.sid('78000000', a, b)
@@ -820,6 +820,14 @@ INSERT INTO sme_doc VALUES
     (8, 1, 'DONGY', 'CIC_CONSENT', NULL, 'Văn bản đồng ý tra cứu CIC', -19, NULL, FALSE, TRUE, NULL, 'VERIFIED', -3),
     (10, 1, 'DONGY', 'CIC_CONSENT', NULL, 'Văn bản đồng ý tra cứu CIC', -13, NULL, FALSE, TRUE, NULL, 'VERIFIED', -3);
 
+-- Dong A (HSV-2026-00213, dang o buoc Kiem tra ho so): ho so du 16 tai lieu BAN SEED de trang 05 kiem tra
+-- tung muc danh muc truoc khi chuyen Tham dinh. Sao chep tai lieu VinaNova, ten ghi ro la du lieu mau.
+INSERT INTO sme_doc
+SELECT 9, k, code, document_type, document_subtype, title || ' · bản seed Đông Á', doc_off, doc_date,
+       issued, counts, item, verification_status, uploaded_off
+FROM sme_doc
+WHERE n = 1 AND k <= 16;
+
 DELETE FROM credit.checklist_item_document
 WHERE checklist_item_id IN (
     SELECT item.id FROM credit.loan_checklist_item AS item
@@ -877,12 +885,12 @@ CREATE TEMP TABLE sme_item ON COMMIT DROP AS
 SELECT case_no.n, r.k, r.code, r.document_type, r.mandatory_level,
        CASE
            WHEN case_no.n = 1 THEN 'VALID'
-           WHEN r.k = 13 THEN 'EXPIRED'
-           WHEN r.k = 15 THEN 'INCOMPLETE'  -- moi co 1/2 hop dong dau ra
-           WHEN EXISTS (SELECT 1 FROM sme_doc AS d WHERE d.n = 2 AND d.item = r.k) THEN 'RECEIVED'
+           WHEN case_no.n = 2 AND r.k = 13 THEN 'EXPIRED'
+           WHEN case_no.n = 2 AND r.k = 15 THEN 'INCOMPLETE'  -- moi co 1/2 hop dong dau ra
+           WHEN EXISTS (SELECT 1 FROM sme_doc AS d WHERE d.n = case_no.n AND d.item = r.k) THEN 'RECEIVED'
            ELSE 'REQUIRED'
        END AS requirement_status
-FROM (VALUES (1), (2)) AS case_no(n)
+FROM (VALUES (1), (2), (9)) AS case_no(n)
 CROSS JOIN sme_requirement AS r;
 
 DELETE FROM credit.loan_checklist_item
@@ -915,7 +923,7 @@ SET loan_application_id = EXCLUDED.loan_application_id,
 INSERT INTO credit.checklist_item_document (checklist_item_id, document_id)
 SELECT pg_temp.sid('77000000', d.n, d.item), pg_temp.sid('57000000', d.n, d.k)
 FROM sme_doc AS d
-WHERE d.item IS NOT NULL AND d.n IN (1, 2)
+WHERE d.item IS NOT NULL AND d.n IN (1, 2, 9)
 ON CONFLICT DO NOTHING;
 
 -- Phien ban tai lieu (chi cho tai lieu mang so lieu trich xuat): object chua co tren MinIO.
@@ -1014,7 +1022,9 @@ INSERT INTO sme_field VALUES
     (27, 13, 'debt_group', 'TEXT', '1', 1, 1, 'CONFIRMED', 'SYSTEM_CIC', NULL),
     (28, 13, 'outstanding_tctd_a', 'MONEY', '56', 56000000000, 1, 'CONFIRMED', 'SYSTEM_CIC', NULL),
     (29, 13, 'outstanding_tctd_b', 'MONEY', '42', 42000000000, 1, 'CONFIRMED', 'SYSTEM_CIC', NULL),
-    (30, 13, 'total', 'MONEY', '98', 98000000000, 1, 'CONFIRMED', 'SYSTEM_CIC', NULL);
+    (30, 13, 'total', 'MONEY', '98', 98000000000, 1, 'CONFIRMED', 'SYSTEM_CIC', NULL),
+    -- Mau thuan DSCR (seed): cung BCTC 2025, tinh lai voi EBITDA 128 thay vi 98 (co BCTC 2025 khong nhat quan).
+    (31, 8, 'dscr_ebitda128', 'RATIO', '1,76', 1.76, 3, 'NEEDS_VERIFICATION', 'AI_OCR', 'Tính lại với EBITDA 128 (62,2 + 17,8 + 48): khác 1,34 tính với EBITDA 98');
 
 DELETE FROM document.extracted_field
 WHERE document_version_id IN (SELECT pg_temp.sid('57100000', n, k) FROM sme_version)
@@ -1027,7 +1037,9 @@ INSERT INTO document.extracted_field (
     updated_at, source_type
 )
 SELECT pg_temp.sid('57300000', 1, f.k), pg_temp.sid('57100000', 1, f.doc_k), f.field_name,
-       f.value_type, f.shown, f.value_number::TEXT, NULL, f.value_number, NULL, f.page, NULL,
+       f.value_type, f.shown, f.value_number::TEXT, NULL, f.value_number, NULL, f.page,
+       -- Vung to la du lieu mau (toa do 0..1 trong trang), khong phai ket qua OCR that (lat 8 chua lam).
+       jsonb_build_object('x', 0.08, 'y', round(0.12 + 0.065 * (f.rn - 1), 3), 'w', 0.84, 'h', 0.05),
        CASE f.source_type WHEN 'SYSTEM_CIC' THEN 'Hệ thống CIC · tra cứu (giả lập)'
                           ELSE 'Dữ liệu mẫu · ' || f.field_name END,
        CASE f.source_type WHEN 'SYSTEM_CIC' THEN NULL ELSE 0.93000 END,
@@ -1039,9 +1051,13 @@ SELECT pg_temp.sid('57300000', 1, f.k), pg_temp.sid('57100000', 1, f.doc_k), f.f
             WHEN f.status <> 'AI_PROPOSED' THEN pg_temp.at(-1, '11:00') END,
        pg_temp.txt(f.reason),
        pg_temp.at(-6, '10:00'), CURRENT_TIMESTAMP, f.source_type
-FROM sme_field AS f
+FROM (
+    SELECT sf.*, row_number() OVER (PARTITION BY sf.doc_k, sf.page ORDER BY sf.k) AS rn
+    FROM sme_field AS sf
+) AS f
 ON CONFLICT (id) DO UPDATE
 SET document_version_id = EXCLUDED.document_version_id,
+    bounding_box = EXCLUDED.bounding_box,
     field_name = EXCLUDED.field_name,
     value_type = EXCLUDED.value_type,
     ocr_value_text = EXCLUDED.ocr_value_text,
@@ -1058,7 +1074,7 @@ SET document_version_id = EXCLUDED.document_version_id,
     updated_at = CURRENT_TIMESTAMP,
     source_type = EXCLUDED.source_type;
 
--- 2 mau thuan chua giai quyet (02b/05): debt (BCDKT 56 vs CIC 98), cfo (LCTT 93,2 vs Phieu 81).
+-- 3 mau thuan chua giai quyet (02b/05): debt (BCDKT 56 vs CIC 98), cfo (LCTT 93,2 vs Phieu 81), dscr (1,34 vs 1,76).
 INSERT INTO document.field_conflict (
     id, loan_application_id, code, field_ids, chosen_field_id, resolution_reason, resolved_by,
     resolved_at, created_at
@@ -1069,6 +1085,9 @@ VALUES
      pg_temp.at(-4, '16:00')),
     (pg_temp.id('78100000', 2), pg_temp.id('75000000', 1), 'cfo',
      ARRAY[pg_temp.sid('57300000', 1, 23), pg_temp.sid('57300000', 1, 26)], NULL, NULL, NULL, NULL,
+     pg_temp.at(-4, '16:00')),
+    (pg_temp.id('78100000', 3), pg_temp.id('75000000', 1), 'dscr',
+     ARRAY[pg_temp.sid('57300000', 1, 1), pg_temp.sid('57300000', 1, 31)], NULL, NULL, NULL, NULL,
      pg_temp.at(-4, '16:00'))
 ON CONFLICT (id) DO UPDATE
 SET loan_application_id = EXCLUDED.loan_application_id,
