@@ -104,7 +104,7 @@ function chartData(run: BenchmarkRun) {
 export function runOptionLabel(m: BenchmarkRunMeta): string {
   const when = new Date(m.created_at).toLocaleString('vi-VN');
   const kind = m.regrade_of ? 'chấm lại dữ liệu cũ' : 'đo mới';
-  return `Bộ ca ${m.cases_version} · bộ chấm ${m.grader_version} · chế độ ${m.llm_mode} · ${kind} · ${when}`;
+  return `Bộ ca ${m.cases_version} · bộ chấm ${m.grader_version} · chế độ ${m.llm_mode} · ${kind} · ${when}${m.label ? ` · ${m.label}` : ''}`;
 }
 
 export function ComparisonTab() {

@@ -5,7 +5,9 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
   fullyParallel: false,
-  workers: 2,
+  // Mọi spec dùng chung một DB seed; spec đổi trạng thái tự nạp lại seed (E2E_RESEED_CMD),
+  // chạy song song thì lần nạp lại của file này phá dữ liệu file kia đang dùng.
+  workers: 1,
   reporter: [['list']],
   use: {
     baseURL: 'http://localhost:3000',

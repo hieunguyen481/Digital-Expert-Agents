@@ -46,7 +46,8 @@ test('ComparisonTab mặc định là lượt v2 đo mới nhất và chọn đ�
     await page.getByTestId('cmp-select').click();
     const kind = stored.regrade_of ? 'chấm lại dữ liệu cũ' : 'đo mới';
     const re = new RegExp(`Bộ ca ${stored.cases_version} · bộ chấm ${stored.grader_version ?? 'v1'} · chế độ ${stored.llm_mode} · ${kind}`);
-    await page.locator('.ant-select-item-option', { hasText: re }).first().click();
+    // Nhiều lượt có thể cùng bộ ca/bộ chấm/chế độ: chọn đúng lượt theo nhãn riêng của nó.
+    await page.locator('.ant-select-item-option', { hasText: re }).filter({ hasText: stored.label }).first().click();
     await expectRun(page, stored);
   }
 });
