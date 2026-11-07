@@ -54,13 +54,9 @@ function Content() {
       </span>
     </Tooltip>
   ) : role === 'qhkh' ? (
-    <Tooltip title="Tạo đề xuất vay sẽ có ở Kế hoạch 3">
-      <span>
-        <Button type="primary" icon={<PlusOutlined />} disabled>
-          Tạo đề xuất vay
-        </Button>
-      </span>
-    </Tooltip>
+    <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/de-xuat-vay')}>
+      Tạo đề xuất vay
+    </Button>
   ) : null;
 
   const head = (

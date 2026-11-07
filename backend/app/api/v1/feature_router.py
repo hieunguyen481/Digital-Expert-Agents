@@ -15,6 +15,7 @@ from app.api.v1 import (
     loans,
     notifications,
     policies,
+    proposals,
     reports,
     work_items,
     workflow,
@@ -25,6 +26,7 @@ router.include_router(agent_simulations.router)
 router.include_router(customers.router)
 router.include_router(documents.router)
 router.include_router(loans.router)
+router.include_router(proposals.router)
 router.include_router(workflow.router)
 router.include_router(conversations.router)
 router.include_router(analyses.router)

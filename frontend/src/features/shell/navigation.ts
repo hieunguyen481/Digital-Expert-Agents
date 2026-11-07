@@ -29,7 +29,7 @@ const KEPT: RailItem[] = [
 export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
   qhkh: [
     item(2, 'Việc của tôi', 'inbox', MY_WORK_PATH),
-    item(3, 'Tạo đề xuất vay', 'plus'),
+    item(3, 'Tạo đề xuất vay', 'plus', '/de-xuat-vay'),
     item(4, 'Khách hàng SME', 'building'),
     item(7, 'Tra cứu chính sách', 'book'),
     ...KEPT,

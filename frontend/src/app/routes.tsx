@@ -14,6 +14,7 @@ import { AppLayout } from '@/features/shell/AppLayout';
  * - `/` chuyển `/viec-cua-toi` (Việc của tôi); `/chat`: trò chuyện SH-AI.
  * - Tất cả nằm trong layout route AppLayout (rail, topbar, panel AI).
  * - `/dashboard`    : bảng điều khiển agent.
+ * - `/de-xuat-vay`   : tạo đề xuất vay (04); `/de-xuat-vay/:loanId`: soạn nháp.
  * - `/customer/:id` : hồ sơ chi tiết khách hàng.
  * - `/foundation`   : trang kiểm thử nền tảng (chỉ khi DEV).
  * - `*`             : trang không tìm thấy.
@@ -28,6 +29,8 @@ const FoundationPage = lazy(() => import('@/pages/FoundationPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const AgentDashboardPage = lazy(() => import('@/pages/AgentDashboardPage'));
 const MyWorkPage = lazy(() => import('@/features/my-work/MyWorkPage'));
+const ProposalPage = lazy(() => import('@/features/proposal/ProposalPage'));
+const NewProposalPage = lazy(() => import('@/features/proposal/NewProposalPage'));
 const CustomerDetailPage = lazy(() => import('@/pages/CustomerDetailPage'));
 
 function withSuspense(node: React.ReactNode) {
@@ -48,6 +51,8 @@ export const routeObjects: RouteObject[] = [
     children: [
       { path: '/', element: <Navigate to="/viec-cua-toi" replace /> },
       { path: '/viec-cua-toi', element: withSuspense(<MyWorkPage />) },
+      { path: '/de-xuat-vay', element: withSuspense(<NewProposalPage />) },
+      { path: '/de-xuat-vay/:loanId', element: withSuspense(<ProposalPage />) },
       { path: '/chat', element: <ChatPage /> },
       { path: '/dashboard', element: withSuspense(<AgentDashboardPage />) },
       { path: '/customer/:id', element: withSuspense(<CustomerDetailPage />) },

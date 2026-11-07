@@ -561,6 +561,7 @@ ALTER TABLE credit.loan_decision DISABLE TRIGGER trg_loan_decision_append_only;
 DELETE FROM credit.loan_decision WHERE loan_application_id IN (SELECT id FROM sme_loan);
 ALTER TABLE credit.loan_decision ENABLE TRIGGER trg_loan_decision_append_only;
 
+DELETE FROM credit.loan_draft WHERE loan_application_id IN (SELECT id FROM sme_loan);
 DELETE FROM credit.case_exception WHERE loan_application_id IN (SELECT id FROM sme_loan);
 DELETE FROM document.field_conflict
 WHERE loan_application_id IN (SELECT id FROM sme_loan)
@@ -574,6 +575,15 @@ DELETE FROM identity.employee_scope
 WHERE scope_type = 'LOAN_APPLICATION'
   AND scope_id IN (SELECT id FROM sme_loan);
 DELETE FROM credit.case_step WHERE loan_application_id IN (SELECT id FROM sme_loan);
+
+-- Noi dung nhap cua Mekong Flex (mockup 04 buoc 2): du lieu seed, QHKH duoc sua tren trang.
+INSERT INTO credit.loan_draft (loan_application_id, purpose_text, repayment_source_text, secured, saved_by)
+VALUES (
+    pg_temp.id('75000000', 2),
+    'Bổ sung vốn lưu động mua giấy cuộn, hạt nhựa PP/PE và mực in cho đơn hàng 2027.',
+    'Trả từ tiền thu bán hàng. Mỗi khoản giải ngân trả gốc cuối kỳ, lãi trả hằng tháng.',
+    TRUE, '10000000-0000-4000-8000-000000000001'
+);
 
 -- ---------------------------------------------------------------------------
 -- 5. Buoc xu ly (case_step). Offset = ngay lam viec so voi anchor (mockup 05/11 = 0).

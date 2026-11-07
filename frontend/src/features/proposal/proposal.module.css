@@ -1,0 +1,4 @@
+.page { padding: 24px 32px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.ws { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 24px; align-items: start; }
+.toc { border-inline-end: 1px solid var(--ant-color-border-secondary); }
+.content { max-width: 720px; min-width: 0; }

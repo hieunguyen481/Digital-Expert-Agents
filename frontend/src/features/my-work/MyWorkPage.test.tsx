@@ -128,9 +128,9 @@ describe('MyWorkPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Không có quyền');
   });
 
-  it('QHKH: nút Tạo đề xuất vay bị khóa', () => {
+  it('QHKH: nút Tạo đề xuất vay mở được (trang 04 đã có)', () => {
     setup('credit_officer', ok(data([item({})])));
     const head = screen.getByRole('banner');
-    expect(within(head).getByRole('button', { name: /Tạo đề xuất vay/ })).toBeDisabled();
+    expect(within(head).getByRole('button', { name: /Tạo đề xuất vay/ })).toBeEnabled();
   });
 });

@@ -25,6 +25,7 @@ from app.repositories.job_repository import JobRepository
 from app.repositories.loan_repository import LoanRepository
 from app.repositories.notification_repository import NotificationRepository
 from app.repositories.policy_repository import PolicyRepository
+from app.repositories.proposal_repository import ProposalRepository
 from app.repositories.work_item_repository import WorkItemRepository
 from app.repositories.report_repository import ReportRepository
 from app.repositories.transaction_repository import TransactionRepository
@@ -47,6 +48,7 @@ from app.services.policy_service import PolicyService
 from app.services.report_service import ReportService
 from app.services.transaction_service import TransactionService
 from app.services.upload_service import UploadService
+from app.services.proposal_service import ProposalService
 from app.services.work_item_service import WorkItemService
 from app.storage.interface import Storage
 from app.workflow.service import WorkflowService
@@ -243,3 +245,7 @@ def require_state_adapter(request: Request, name: str) -> Any:
 
 def get_work_item_service(session: SessionDep) -> WorkItemService:
     return WorkItemService(WorkItemRepository(session))
+
+
+def get_proposal_service(session: SessionDep) -> ProposalService:
+    return ProposalService(ProposalRepository(session))
