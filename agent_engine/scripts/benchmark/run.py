@@ -156,15 +156,46 @@ def import_file(a, path: Path) -> None:
     s = lambda x: "'" + str(x).replace("'", "''") + "'"  # noqa: E731
     sql = (
         "INSERT INTO agent.benchmark_run(run_id, created_at, label, cases_version, llm_mode, planner_model, "
-        "specialist_model, git_commit, runs_per_case, total_cost_usd, summary, per_case, runs) VALUES ("
+        "specialist_model, git_commit, runs_per_case, total_cost_usd, summary, per_case, runs, grader_version, regrade_of) VALUES ("
         f"{s(d['run_id'])}, {s(d['created_at'])}::timestamptz, {s(d['label'])}, {s(d['cases_version'])}, "
         f"{s(d['llm_mode'])}, {s(d['planner_model'])}, {s(d['specialist_model'])}, {s(d['git_commit'])}, "
         f"{int(d['runs_per_case'])}, {d['total_cost_usd'] if d['total_cost_usd'] is not None else 'NULL'}, "
-        f"{sql_lit(d['summary'])}::jsonb, {sql_lit(d['per_case'])}::jsonb, {sql_lit(d['runs'])}::jsonb) "
+        f"{sql_lit(d['summary'])}::jsonb, {sql_lit(d['per_case'])}::jsonb, {sql_lit(d['runs'])}::jsonb, "
+        f"{s(d.get('grader_version', 'v1'))}, {s(d['regrade_of']) if d.get('regrade_of') else 'NULL'}) "
         "ON CONFLICT (run_id) DO NOTHING;")
     sh(["docker", "exec", "-i", a.postgres, "psql", "-U", "postgres", "-d", "bank_ai",
         "-v", "ON_ERROR_STOP=1", "-q"], stdin=sql)
     print(f"đã nạp {d['run_id']} vào agent.benchmark_run")
+
+
+def regrade_file(a, path: Path) -> Path:
+    """Chấm lại dữ liệu đã lưu bằng bộ chấm hiện tại + cases_file (không gọi LLM, không đổi bản gốc).
+    Lượt cũ không lưu `sources` nên chỉ số trích dẫn chỉ dựa trên văn bản kết luận."""
+    d = json.loads(path.read_text())
+    spec = json.loads(Path(a.cases_file).read_text())
+    byid = {c["id"]: c for c in spec["cases"]}
+    runs = []
+    for r in d["runs"]:
+        r = dict(r)
+        if not r.get("error"):
+            r["grade"] = G.grade(byid[r["case_id"]], {
+                "conclusion_text": r["conclusion_text"], "sources": r.get("sources", []),
+                "tools_called": r["tools_called"], "gate": r["gate"]})
+        runs.append(r)
+    ok = [r for r in runs if not r["error"]]
+    res = dict(d)
+    res.update({
+        "run_id": f"{d['run_id']}-regrade-{G.GRADER_VERSION}",
+        "created_at": datetime.now(timezone.utc).isoformat(), "regrade_of": d["run_id"],
+        "grader_version": G.GRADER_VERSION,
+        "label": f"dữ liệu {d['cases_version']}, bộ chấm {G.GRADER_VERSION} (chấm lại, không đo mới; trích dẫn chỉ tính trên văn bản kết luận vì lượt cũ không lưu nguồn)",
+        "summary": G.summarize(ok),
+        "per_case": {cid: G.summarize([r for r in ok if r["case_id"] == cid]) for cid in sorted({r["case_id"] for r in ok})},
+        "runs": runs})
+    out = path.with_name(res["run_id"] + ".json")
+    out.write_text(json.dumps(res, ensure_ascii=False, indent=1))
+    print(f"đã lưu {out}")
+    return out
 
 
 def main() -> None:
@@ -172,7 +203,7 @@ def main() -> None:
     p.add_argument("--cases", default="all", help="vd C1,C3 hoặc all")
     p.add_argument("--runs", type=int, default=3)
     p.add_argument("--modes", default="single,multi")
-    p.add_argument("--cases-file", default=str(HERE / "cases_v1.json"))
+    p.add_argument("--cases-file", default=str(HERE / "cases_v2.json"))
     p.add_argument("--label", default="")
     p.add_argument("--max-cost", type=float, default=2.0, help="dừng nếu tổng chi phí vượt (USD)")
     p.add_argument("--gateway", default="http://127.0.0.1:8010")
@@ -182,9 +213,13 @@ def main() -> None:
     p.add_argument("--timeout", type=int, default=600)
     p.add_argument("--no-import", action="store_true")
     p.add_argument("--import-file")
+    p.add_argument("--regrade-file", help="chấm lại file kết quả cũ bằng --cases-file và bộ chấm hiện tại")
     a = p.parse_args()
     if a.import_file:
         return import_file(a, Path(a.import_file))
+    if a.regrade_file:
+        out = regrade_file(a, Path(a.regrade_file))
+        return None if a.no_import else import_file(a, out)
 
     spec = json.loads(Path(a.cases_file).read_text())
     cases = [c for c in spec["cases"] if a.cases == "all" or c["id"] in a.cases.split(",")]
@@ -209,7 +244,7 @@ def main() -> None:
                     row.update({
                         "latency_s": r["latency_s"], "calls": r["calls"], "tokens": r["tokens"],
                         "cost_usd": r["cost_usd"], "llm_requests": r.get("llm_requests"),
-                        "gate": r["gate"], "case_id_engine": r.get("case_id"),
+                        "gate": r["gate"], "case_id_engine": r.get("case_id"), "sources": r.get("sources", []),
                         "grade": G.grade(case, r), "conclusion_text": r["conclusion_text"],
                         "tools_called": r["tools_called"]})
                     spent += r["cost_usd"] or 0.0
@@ -228,7 +263,7 @@ def main() -> None:
     res = {
         "run_id": now.strftime("%Y%m%dT%H%M%SZ") + (f"-{a.label}" if a.label else ""),
         "created_at": now.isoformat(), "started_at": started.isoformat(), "label": a.label,
-        "cases_version": spec["version"], "llm_mode": envv.get("LLM_MODE", "?"),
+        "cases_version": spec["version"], "grader_version": G.GRADER_VERSION, "llm_mode": envv.get("LLM_MODE", "?"),
         "planner_model": envv.get("PLANNER_MODEL", "?"), "specialist_model": envv.get("SPECIALIST_MODEL", "?"),
         "git_commit": sh(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"]).strip(),
         "runs_per_case": a.runs, "cases": [c["id"] for c in cases],

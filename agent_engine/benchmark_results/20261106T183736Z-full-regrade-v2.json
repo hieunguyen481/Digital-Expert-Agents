@@ -1,0 +1,2333 @@
+{
+ "run_id": "20261106T183736Z-full-regrade-v2",
+ "created_at": "2026-11-07T00:00:08.631385+00:00",
+ "started_at": "2026-11-06T18:24:31.740856+00:00",
+ "label": "dữ liệu v1, bộ chấm v2 (chấm lại, không đo mới; trích dẫn chỉ tính trên văn bản kết luận vì lượt cũ không lưu nguồn)",
+ "cases_version": "v1",
+ "llm_mode": "hybrid",
+ "planner_model": "anthropic/claude-haiku-5.5",
+ "specialist_model": "openai/gpt-6-luna",
+ "git_commit": "e0ff7ba",
+ "runs_per_case": 3,
+ "cases": [
+  "C1",
+  "C2",
+  "C3",
+  "C4",
+  "C5"
+ ],
+ "total_cost_usd": 0.05628810000000002,
+ "summary": {
+  "multi": {
+   "runs": 15,
+   "errors": 0,
+   "finding_recall": {
+    "mean": 0.35333333333333333,
+    "sd": 0.14896468101693164
+   },
+   "citation_recall": {
+    "mean": 0.0,
+    "sd": 0.0
+   },
+   "tool_recall": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "false_findings": {
+    "mean": 0.0,
+    "sd": 0.0
+   },
+   "invalid_citations": {
+    "mean": 0.0,
+    "sd": 0.0
+   },
+   "gate_ok": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "tool_calls": {
+    "mean": 9.2,
+    "sd": 1.2071217242444348
+   },
+   "latency_s": {
+    "mean": 15.225086466471355,
+    "sd": 3.7922472102865132
+   },
+   "total_tokens": {
+    "mean": 5923.266666666666,
+    "sd": 3576.661261700971
+   },
+   "cost_usd": {
+    "mean": 0.001990833333333333,
+    "sd": 0.0012315322579538677
+   }
+  },
+  "single": {
+   "runs": 15,
+   "errors": 0,
+   "finding_recall": {
+    "mean": 0.7255555555555555,
+    "sd": 0.22597817940265288
+   },
+   "citation_recall": {
+    "mean": 0.23333333333333334,
+    "sd": 0.3199702367110922
+   },
+   "tool_recall": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "false_findings": {
+    "mean": 0.0,
+    "sd": 0.0
+   },
+   "invalid_citations": {
+    "mean": 0.0,
+    "sd": 0.0
+   },
+   "gate_ok": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "tool_calls": {
+    "mean": 7.0,
+    "sd": 0.0
+   },
+   "latency_s": {
+    "mean": 28.977123336462924,
+    "sd": 5.490159854584021
+   },
+   "total_tokens": {
+    "mean": 11396.133333333333,
+    "sd": 2031.3706444758168
+   },
+   "cost_usd": {
+    "mean": 0.0017617066666666668,
+    "sd": 0.00035742567644330255
+   }
+  }
+ },
+ "per_case": {
+  "C1": {
+   "multi": {
+    "runs": 3,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.20000000000000004,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 11.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 16.116859753926594,
+     "sd": 4.697585254539236
+    },
+    "total_tokens": {
+     "mean": 5841.0,
+     "sd": 1517.703528361188
+    },
+    "cost_usd": {
+     "mean": 0.0019247666666666668,
+     "sd": 0.0005086177870791909
+    }
+   },
+   "single": {
+    "runs": 3,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.6,
+     "sd": 0.2
+    },
+    "citation_recall": {
+     "mean": 0.3333333333333333,
+     "sd": 0.28867513459481287
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 7.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 36.77928100266339,
+     "sd": 4.086658940580228
+    },
+    "total_tokens": {
+     "mean": 12601.666666666666,
+     "sd": 481.70772604696026
+    },
+    "cost_usd": {
+     "mean": 0.002247315,
+     "sd": 0.00022547228438324742
+    }
+   }
+  },
+  "C2": {
+   "multi": {
+    "runs": 3,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.3333333333333333,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 9.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 17.18037986755371,
+     "sd": 6.580954416399764
+    },
+    "total_tokens": {
+     "mean": 9141.666666666666,
+     "sd": 7902.770737743398
+    },
+    "cost_usd": {
+     "mean": 0.0031080333333333332,
+     "sd": 0.0027278647351606953
+    }
+   },
+   "single": {
+    "runs": 3,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.611111111111111,
+     "sd": 0.0962250448649376
+    },
+    "citation_recall": {
+     "mean": 0.16666666666666666,
+     "sd": 0.28867513459481287
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 7.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 28.57181684166426,
+     "sd": 2.0501567533608007
+    },
+    "total_tokens": {
+     "mean": 12485.0,
+     "sd": 2585.8667792444376
+    },
+    "cost_usd": {
+     "mean": 0.0017608766666666667,
+     "sd": 0.0001376535048893901
+    }
+   }
+  },
+  "C3": {
+   "multi": {
+    "runs": 3,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.4000000000000001,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 8.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 12.707595586776733,
+     "sd": 0.5681315798849725
+    },
+    "total_tokens": {
+     "mean": 4333.666666666667,
+     "sd": 202.5569878659666
+    },
+    "cost_usd": {
+     "mean": 0.0014468333333333336,
+     "sd": 0.00010127849393298329
+    }
+   },
+   "single": {
+    "runs": 3,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 0.3333333333333333,
+     "sd": 0.5773502691896257
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 7.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 25.335152703997057,
+     "sd": 2.0358723513747705
+    },
+    "total_tokens": {
+     "mean": 11707.0,
+     "sd": 2529.02095681313
+    },
+    "cost_usd": {
+     "mean": 0.0016175383333333331,
+     "sd": 0.0001356186227379312
+    }
+   }
+  },
+  "C4": {
+   "multi": {
+    "runs": 3,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.25,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 10.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 16.084039847056072,
+     "sd": 3.8673511356134314
+    },
+    "total_tokens": {
+     "mean": 5768.333333333333,
+     "sd": 1568.242753317653
+    },
+    "cost_usd": {
+     "mean": 0.0019230999999999999,
+     "sd": 0.0005333626533607317
+    }
+   },
+   "single": {
+    "runs": 3,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.5,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 0.3333333333333333,
+     "sd": 0.28867513459481287
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 7.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 31.473581258323975,
+     "sd": 1.5895140835006139
+    },
+    "total_tokens": {
+     "mean": 11478.0,
+     "sd": 426.31091940038317
+    },
+    "cost_usd": {
+     "mean": 0.0019090766666666665,
+     "sd": 0.00010780932118018996
+    }
+   }
+  },
+  "C5": {
+   "multi": {
+    "runs": 3,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.5833333333333334,
+     "sd": 0.14433756729740643
+    },
+    "citation_recall": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 8.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 14.036557277043661,
+     "sd": 0.5938296421210729
+    },
+    "total_tokens": {
+     "mean": 4531.666666666667,
+     "sd": 107.43525181863416
+    },
+    "cost_usd": {
+     "mean": 0.0015514333333333334,
+     "sd": 5.37176259093171e-05
+    }
+   },
+   "single": {
+    "runs": 3,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.9166666666666666,
+     "sd": 0.14433756729740643
+    },
+    "citation_recall": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 7.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 22.725784875665948,
+     "sd": 1.9993993455070111
+    },
+    "total_tokens": {
+     "mean": 8709.0,
+     "sd": 666.6175815263201
+    },
+    "cost_usd": {
+     "mean": 0.0012737266666666667,
+     "sd": 0.00014073282615769978
+    }
+   }
+  }
+ },
+ "runs": [
+  {
+   "mode": "single",
+   "case_id": "C1",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 32.06312562499079,
+   "calls": 7,
+   "tokens": {
+    "prompt": 9064,
+    "completion": 3048,
+    "total": 12112
+   },
+   "cost_usd": 0.00199219,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "dscr_conflict": false,
+     "dscr_threshold": true,
+     "collateral_unverified": true,
+     "total_exposure": false,
+     "audited_fs": false
+    },
+    "findings_hit": 2,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": true,
+     "cite_authority": false
+    },
+    "citations_hit": 1,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Khuyến nghị sơ bộ: có thể xem xét hạn mức tối đa 40 tỷ đồng/36 tháng, nhưng chưa đủ căn cứ để trình duyệt cấp tín dụng. AML không hit; CIC nhóm 1, không quá hạn; doanh thu 2025 là 705 tỷ đồng, thuộc ngưỡng SME nội bộ. Tuy nhiên DSCR chưa thể xác nhận do số liệu gốc/cấu phần trả nợ mâu thuẫn và thiếu lịch trả nợ; dữ liệu dư nợ giữa BCTC và xác nhận dư nợ không khớp. TSBĐ có LTV sơ bộ 27,6% (40/145 tỷ) nhưng giá trị định giá còn cần xác minh. Đây là khuyến nghị thẩm định, không phải quyết định phê duyệt.\nKYB: hồ sơ doanh nghiệp ghi trạng thái ACTIVE, KYC VERIFIED; nhưng trường người đại diện pháp luật trống. Chưa có bằng chứng trong dữ liệu trả về về đối chiếu đăng ký doanh nghiệp, giấy tờ người đại diện và UBO theo yêu cầu KYB.\nAML: đã sàng lọc, hit=false; mức rủi ro AML LOW, không PEP.\nCIC: nhóm 1, dư nợ tổng 98 tỷ đồng, quá hạn 0; hai khoản vay đã xác minh có dư nợ 56 tỷ và 42 tỷ, tổng 98 tỷ. CIC phải được tra lại theo hiệu lực hồ sơ và trước giải ngân.\nTài chính 2025: doanh thu 705 tỷ, EBITDA 98 tỷ; có cảnh báo EBITDA 128 tỷ và DSCR OCR 1,34 cần xác minh. Nợ vay BCTC 56 tỷ không khớp với dư nợ xác nhận/CIC 98 tỷ.\nDSCR không thể kết luận chắc chắn: BCTC không có debt_service; trường gốc/ghi nhận DSCR có cảnh báo và số liệu trả nợ không nhất quán. Nghĩa vụ hiện hữu theo khoản vay là 2,1 tỷ/tháng (25,2 tỷ/năm). Không nên dùng phép tính sơ bộ thay thế lịch trả nợ và dòng tiền xác minh.\nĐòn bẩy sơ bộ nếu lấy dư nợ xác nhận 98 tỷ cộng khoản đề nghị 40 tỷ: nợ/EBITDA 1,41x với EBITDA 98 tỷ (hoặc 1,08x nếu EBITDA 128 tỷ được xác minh), dưới ngưỡng chính sách 3,5x. Nếu lấy nợ BCTC 56 tỷ thì kết quả khác; cần đối chiếu trước khi kết luận.\nKhả năng thanh khoản trên số liệu 2025: tài sản ngắn hạn/nợ ngắn hạn khoảng 2,80x; EBIT/chi phí lãi vay chưa thể kiểm tra vì thiếu EBIT. Số liệu có nhãn dữ liệu mẫu, cần xác minh chứng từ.\nDòng tiền tài khoản báo 668,8 tỷ đồng với 11 tháng dữ liệu; không nên diễn giải thành số liệu đủ 12 tháng. Đối chiếu với doanh thu và sao kê gốc trước khi dùng.\nTSBĐ là nhà xưởng và QSDĐ, tình trạng pháp lý ghi clear nhưng định giá 145 tỷ ở trạng thái declared/NEEDS_VERIFICATION. LTV sơ bộ đề nghị 27,6%, trong ngưỡng tối đa 70%, chỉ có giá trị sau khi xác minh định giá và hồ sơ pháp lý.\nBổ sung/đối chiếu BCTC 2025 và chứng từ xác nhận dư nợ; giải trình chênh lệch nợ 56 tỷ với CIC/đối chiếu khoản vay 98 tỷ, đồng thời xác minh EBITDA 98/128 tỷ.\nLập lịch trả nợ dự kiến cho khoản vay 40 tỷ/36 tháng theo lãi suất và phương thức trả nợ được đề xuất; tính lại DSCR hợp nhất gồm các nghĩa vụ hiện hữu, xác nhận đạt tối thiểu 1,25x theo CS-TD-SME/2025 §4.2 (mức 1,2x được yêu cầu trong đề bài thấp hơn ngưỡng chính sách tìm được).\nXác minh EBIT và chi phí lãi vay để kiểm tra tỷ lệ EBIT/lãi vay tối thiểu 2,0x; xác minh nguồn trả nợ và dòng tiền tài khoản đủ 12 tháng.\nHoàn thiện KYB: giấy đăng ký doanh nghiệp, mã số thuế, xác minh người đại diện theo pháp luật và UBO; giải quyết trường thông tin người đại diện đang trống.\nXác minh độc lập giá trị/hiệu lực chứng thư định giá và quyền sở hữu, tình trạng pháp lý, khả năng đăng ký biện pháp bảo đảm của nhà xưởng/QSDĐ; duy trì LTV không quá 70%.\nKiểm tra hiệu lực CIC, sao kê và xác nhận dư nợ tại thời điểm trình; tra CIC lại trước giải ngân và dừng thực hiện nếu phát sinh quá hạn/nợ nhóm không đạt điều kiện.\nNếu hồ sơ sau xác minh đáp ứng chính sách và được cấp có thẩm quyền chấp thuận, hạn mức đề xuất tối đa 40 tỷ đồng, kỳ hạn 36 tháng; quyết định cuối cùng thuộc người có thẩm quyền.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C1",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 13.361196279525757,
+   "calls": 11,
+   "tokens": {
+    "prompt": 2128,
+    "completion": 2801,
+    "total": 4929
+   },
+   "cost_usd": 0.0016133000000000002,
+   "llm_requests": 2,
+   "gate": "PENDING_APPROVAL",
+   "case_id_engine": "case_4d2435121fa1",
+   "grade": {
+    "findings": {
+     "dscr_conflict": true,
+     "dscr_threshold": false,
+     "collateral_unverified": false,
+     "total_exposure": false,
+     "audited_fs": false
+    },
+    "findings_hit": 1,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": false,
+     "cite_authority": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "PENDING_APPROVAL",
+    "gate_ok": true
+   },
+   "conclusion_text": "Đủ điều kiện tín dụng. Đề xuất hạn mức 40,000,000,000 VND (DSCR 1.34, đòn bẩy 0.05)\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nĐạt các kiểm tra tuân thủ KYB/AML/CIC. Giới hạn cho vay có bảo đảm: 101,500,000,000 VND\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nĐiều kiện vận hành đạt. Đã tạo bản nháp draft-case_4d2435121fa1 (chưa hiệu lực)\nĐỀ XUẤT PHÊ DUYỆT hạn mức 40,000,000,000 VND\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nKhuyến nghị: Đề xuất PHÊ DUYỆT hạn mức tín dụng 40.000.000.000 VND, với điều kiện xác minh và bổ sung hồ sơ trước khi giải ngân. Hạn mức này nằm trong giới hạn cho vay có bảo đảm 101.500.000.000 VND do bộ phận tuân thủ xác định. Lý do chính: khách hàng đạt các kiểm tra KYB/AML/CIC, đòn bẩy tài chính thấp (0,05), và điều kiện vận hành đã đạt. Bộ phận vận hành đã tạo bản nháp hồ sơ draft-case_4d2435121fa1, bản nháp này chưa có hiệu lực. Điểm cần lưu ý: (1) Chỉ số DSCR 1,34 hiện ở trạng thái cần xác minh và đang dựa trên dữ liệu mẫu. Khi tính lại, kết quả phụ thuộc vào EBITDA: khoảng 1,445 với EBITDA 98 tỷ và khoảng 1,888 với EBITDA 128 tỷ (cờ BCTC 2025), trong khi số ghi nhận là khoảng 1,76, nên có sự lệch cần giải thích về nguồn khoản trả nợ. Cần xác minh DSCR và EBITDA trước khi trình phê duyệt chính thức. (2) Khách hàng đang có 2 khoản vay hiện hữu tại ngân hàng, cần rà soát tổng dư nợ khi xem xét hạn mức. (3) Trước giải ngân đợt 2, cần bổ sung BCTC quý gần nhất. (4) Trước giải ngân, cần hoàn tất đăng ký giao dịch bảo đảm.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_annual_inflow",
+    "get_collateral",
+    "get_business",
+    "create_loan_draft"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C1",
+   "iteration": 2,
+   "error": null,
+   "latency_s": 38.998830222000834,
+   "calls": 7,
+   "tokens": {
+    "prompt": 8785,
+    "completion": 3833,
+    "total": 12618
+   },
+   "cost_usd": 0.00232992,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "dscr_conflict": true,
+     "dscr_threshold": true,
+     "collateral_unverified": true,
+     "total_exposure": false,
+     "audited_fs": false
+    },
+    "findings_hit": 3,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": false,
+     "cite_authority": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Khuyến nghị CHƯA trình phê duyệt khoản vay 40 tỷ đồng/36 tháng; yêu cầu bổ sung và đối soát hồ sơ trước khi kết luận khả năng trả nợ. Không phát hiện hit AML; KYC hiển thị VERIFIED, CIC nhóm 1, dư nợ quá hạn 0. Doanh thu 2025 là 705 tỷ đồng, nằm trong ngưỡng SME nội bộ. Tuy nhiên, DSCR chưa thể xác nhận: số liệu tài chính ghi DSCR 1,34 ở trạng thái NEEDS_VERIFICATION, cảnh báo tính lại từ EBITDA 98 tỷ đồng và nghĩa vụ nợ 67,8 tỷ đồng ra 1,445; đồng thời khoản trả nợ theo danh sách dư nợ hiện hữu chỉ tương đương 25,2 tỷ đồng/năm, không khớp với 67,8 tỷ đồng. Nếu dùng 67,8 tỷ đồng làm nghĩa vụ nợ hiện tại, khoản vay mới sẽ làm DSCR thấp hơn ngưỡng chính sách 1,25 theo phép tính kịch bản minh họa; cần lịch trả nợ và dòng tiền trả nợ đã xác minh để tính đúng. Đòn bẩy sơ bộ sau khoản vay là 0,98x theo nợ tài chính 56 tỷ đồng, hoặc 1,41x nếu lấy tổng dư nợ CIC 98 tỷ đồng; cả hai dưới trần Nợ vay/EBITDA 3,5x nhưng chênh lệch dữ liệu cần đối soát. TSĐB có giá khai báo 145 tỷ đồng, LTV lý thuyết khoản đề nghị 27,6% và hạn mức theo 70% là 101,5 tỷ đồng, nhưng định giá đang NEEDS_VERIFICATION nên chưa thể xác nhận giá trị bảo đảm. Chưa đủ điều kiện vận hành để trình: hồ sơ KYB trả về thiếu thông tin người đại diện, chưa thấy đối chiếu giấy đăng ký doanh nghiệp/mã số thuế/UBO; cần hoàn thiện và xác minh. Dòng tiền vào 668,8 tỷ đồng chỉ bao phủ 11 tháng, không dùng như số liệu đủ 12 tháng. Sau khi bổ sung hồ sơ pháp lý/KYB, định giá và pháp lý tài sản, xác nhận nghĩa vụ trả nợ hiện hữu và lập dự phóng DSCR đạt tối thiểu 1,25x, có thể thẩm định lại khoản vay tối đa 40 tỷ đồng; đây chưa phải quyết định cấp tín dụng.\nAML: đã sàng lọc, không hit; rủi ro AML thấp, NOT_PEP.\nKYC doanh nghiệp hiển thị VERIFIED; tuy nhiên hồ sơ KYB trả về legal representative name và CCCD trống, chưa có bằng chứng dữ liệu về giấy đăng ký doanh nghiệp, mã số thuế và UBO.\nCIC nhóm 1, dư nợ quá hạn 0; dư nợ CIC 98 tỷ đồng. Cần cập nhật CIC tại thời điểm giải ngân theo chính sách.\nTài chính 2025: doanh thu 705 tỷ, EBITDA 98 tỷ, tổng nợ 56 tỷ, vốn chủ sở hữu 1.018,5 tỷ; các năm 2023–2024 thiếu nợ, vốn chủ sở hữu và dữ liệu thanh khoản nên chưa đủ để đánh giá xu hướng đòn bẩy/thanh khoản.\nDSCR tài chính ghi 1,34 nhưng NEEDS_VERIFICATION; cảnh báo nội bộ cho phép tính từ EBITDA 98 tỷ và nghĩa vụ nợ 67,8 tỷ ra 1,445. Dư nợ đã xác minh cho khoản thanh toán 2,1 tỷ/tháng, tương đương 25,2 tỷ/năm, mâu thuẫn đáng kể với 67,8 tỷ; chưa đủ căn cứ kết luận DSCR sau vay.\nKịch bản minh họa, không phải số liệu xác nhận: nếu lãi suất 9,5%/năm và trả góp đều 36 tháng, khoản 40 tỷ có thể trả khoảng 1,28 tỷ/tháng (~15,4 tỷ/năm); cộng khoản trả nợ theo danh sách hiện hữu 25,2 tỷ/năm cho tổng khoảng 40,6 tỷ/năm. EBITDA 98 tỷ chia cho con số này ~2,42x, nhưng không thay thế DSCR chính thức dựa trên dòng tiền khả dụng và lịch trả nợ đầy đủ. Nếu nghĩa vụ nợ hiện tại là 67,8 tỷ/năm như cảnh báo tài chính thì phép tính tương ứng ~1,18x, dưới chuẩn 1,25x.\nĐòn bẩy sơ bộ: (56+40)/98 = 0,98x theo tổng nợ trên BCTC; (98+40)/98 = 1,41x nếu sử dụng dư nợ CIC hiện tại. Cần đối chiếu chênh lệch nợ trước khi chốt.\nTSĐB bất động sản có tình trạng pháp lý ghi clear nhưng định giá declared và NEEDS_VERIFICATION. Giá khai báo 145 tỷ; 70% tương đương 101,5 tỷ; LTV khoản vay đề nghị theo giá khai báo 27,6%. Chỉ công nhận hạn mức sau định giá được chấp thuận, xác minh hồ sơ quyền sử dụng đất và hoàn tất đăng ký giao dịch bảo đảm trước giải ngân.\nTiền vào tài khoản 668,8 tỷ đồng trong 11 tháng; cần sao kê/đối soát và đủ kỳ 12 tháng để đánh giá dòng tiền.\nBổ sung, xác minh hồ sơ KYB: đăng ký doanh nghiệp, mã số thuế, người đại diện theo pháp luật, giấy tờ tùy thân và UBO; giải trình mọi sai lệch trước khi trình.\nĐối soát BCTC, dư nợ CIC 98 tỷ đồng, dư nợ ghi nhận trên BCTC 56 tỷ đồng, lịch trả gốc/lãi và khoản nghĩa vụ nợ 67,8 tỷ đồng; cung cấp dự phóng dòng tiền và xác nhận DSCR sau vay đạt tối thiểu 1,25x theo chính sách.\nHoàn thiện sao kê đủ 12 tháng và xác minh dòng tiền kinh doanh; lập đánh giá khả năng trả nợ sau khi tính các nghĩa vụ, thuế và nhu cầu vốn lưu động/đầu tư.\nĐịnh giá độc lập/được ngân hàng chấp thuận và xác minh pháp lý nhà xưởng, quyền sử dụng đất, tranh chấp/quy hoạch; hạn mức bảo đảm không vượt 70% giá trị được chấp thuận và đăng ký giao dịch bảo đảm trước giải ngân.\nTra CIC lại tại thời điểm giải ngân; nếu có nợ nhóm 3 trở lên thì không đủ điều kiện theo chính sách.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C1",
+   "iteration": 2,
+   "error": null,
+   "latency_s": 13.448452949523926,
+   "calls": 11,
+   "tokens": {
+    "prompt": 3212,
+    "completion": 4381,
+    "total": 7593
+   },
+   "cost_usd": 0.0025117,
+   "llm_requests": 3,
+   "gate": "PENDING_APPROVAL",
+   "case_id_engine": "case_1de3d9efdcd7",
+   "grade": {
+    "findings": {
+     "dscr_conflict": true,
+     "dscr_threshold": false,
+     "collateral_unverified": false,
+     "total_exposure": false,
+     "audited_fs": false
+    },
+    "findings_hit": 1,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": false,
+     "cite_authority": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "PENDING_APPROVAL",
+    "gate_ok": true
+   },
+   "conclusion_text": "Đủ điều kiện tín dụng. Đề xuất hạn mức 40,000,000,000 VND (DSCR 1.34, đòn bẩy 0.05)\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nĐạt các kiểm tra tuân thủ KYB/AML/CIC. Giới hạn cho vay có bảo đảm: 101,500,000,000 VND\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nĐiều kiện vận hành đạt. Đã tạo bản nháp draft-case_1de3d9efdcd7 (chưa hiệu lực)\nĐỀ XUẤT PHÊ DUYỆT hạn mức 40,000,000,000 VND\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nKHUYẾN NGHỊ: Phê duyệt có điều kiện hạn mức tín dụng 40.000.000.000 VND. Hạn mức này nằm trong giới hạn cho vay có bảo đảm 101.500.000.000 VND do bộ phận tuân thủ xác định. Bộ phận vận hành đạt điều kiện; bản nháp hồ sơ draft-case_1de3d9efdcd7 đã được tạo nhưng chưa có hiệu lực. Nhật ký kiểm chứng ghi nhận 0 vấn đề về bằng chứng trên 3 kết luận. LÝ DO CHÍNH: Bộ phận tín dụng đánh giá khách hàng đủ điều kiện tín dụng, với DSCR ghi nhận 1,34 và đòn bẩy 0,05. Khách hàng đạt các kiểm tra KYB, AML và CIC. ĐIỂM CẦN LƯU Ý: (1) Chỉ số DSCR 1,34 đang ở trạng thái cần xác minh và hiện dựa trên dữ liệu mẫu. Khi tính lại từ số gốc cộng lãi 67,8 tỷ, DSCR đạt 1,445 với EBITDA 98 tỷ. Với EBITDA 128 tỷ theo cờ BCTC 2025, kết quả tính lại là 1,888, trong khi số ghi nhận khoảng 1,76; mức chênh lệch này chưa được giải thích. (2) Khách hàng đang có 2 khoản vay hiện hữu tại ngân hàng, cần được tính vào nghĩa vụ trả nợ. (3) Điều kiện trước phê duyệt: xác minh DSCR và EBITDA, đặc biệt nguồn khoản trả nợ. (4) Điều kiện trước giải ngân: hoàn thiện đăng ký giao dịch bảo đảm và bổ sung BCTC quý gần nhất trước khi giải ngân đợt 2.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_annual_inflow",
+    "get_collateral",
+    "get_business",
+    "create_loan_draft"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C1",
+   "iteration": 3,
+   "error": null,
+   "latency_s": 39.275887160998536,
+   "calls": 7,
+   "tokens": {
+    "prompt": 9230,
+    "completion": 3845,
+    "total": 13075
+   },
+   "cost_usd": 0.002419835,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "dscr_conflict": true,
+     "dscr_threshold": true,
+     "collateral_unverified": true,
+     "total_exposure": false,
+     "audited_fs": true
+    },
+    "findings_hit": 4,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": true,
+     "cite_authority": false
+    },
+    "citations_hit": 1,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Khuyến nghị CHƯA trình phê duyệt khoản vay 40 tỷ/36 tháng; cần bổ sung và đối soát hồ sơ trước. Khách hàng đang hoạt động, KYC/KYB trạng thái VERIFIED, AML/blacklist không hit và CIC nhóm 1, không quá hạn — không có dấu hiệu hard-stop từ các kiểm tra này. Kết quả tài chính có khả năng đáp ứng sơ bộ: doanh thu 2025 705 tỷ; EBITDA 98 tỷ; dư nợ theo danh sách khoản vay hiện hữu 98 tỷ, do đó nợ/EBITDA sau vay theo cơ sở này khoảng 1,41 lần (dưới trần 3,5 lần). Tuy nhiên số dư nợ trên BCTC là 56 tỷ, không khớp CIC/danh sách khoản vay; DSCR và số liệu trả nợ BCTC có cảnh báo/lệch, chưa thể xác nhận DSCR dự phóng theo ngưỡng chính sách 1,25 lần (ngưỡng đề bài 1,2 lần). TSBĐ có LTV sơ bộ 27,6% (40/145 tỷ), dưới mức tối đa 70%, nhưng định giá cần xác minh. Đề nghị xem xét tối đa 40 tỷ chỉ sau khi xử lý các điều kiện dưới đây và xác minh đầy đủ nguồn trả nợ; đây không phải quyết định cấp tín dụng.\nKYB: pháp nhân trạng thái ACTIVE, KYC VERIFIED; dữ liệu trả về để trống tên và CCCD người đại diện theo pháp luật. Chưa đủ thông tin để xác nhận bộ hồ sơ pháp nhân, người đại diện và UBO đầy đủ/đối khớp theo yêu cầu.\nAML: đã sàng lọc, không hit; rủi ro AML LOW, NOT PEP.\nCIC: nhóm 1, dư nợ báo cáo 98 tỷ, quá hạn 0; ngày báo cáo 28/10/2026. Danh sách khoản vay hiện hữu xác nhận tổng dư nợ 98 tỷ và trả góp 2,1 tỷ/tháng (25,2 tỷ/năm).\nTài chính 2025: doanh thu 705 tỷ, EBITDA 98 tỷ, tổng nợ BCTC 56 tỷ, vốn chủ sở hữu 1.018,5 tỷ. Tổng nợ 56 tỷ trên BCTC không khớp tổng dư nợ 98 tỷ ở CIC/khoản vay; cần đối chiếu dư nợ và phạm vi hợp nhất.\nDSCR BCTC được ghi 1,34 nhưng NEEDS_VERIFICATION; ghi chú nguồn nêu tính lại 1,445 với EBITDA 98 tỷ và có cảnh báo thêm về EBITDA 128 tỷ/DSCR khác biệt. Debt service không có số liệu, principal OCR -50 tỷ là bất thường; không thể coi DSCR đã xác minh hay dùng làm cơ sở cấp hạn mức.\nSơ bộ, tổng dư nợ sau đề nghị là 138 tỷ nếu lấy 98 tỷ dư nợ hiện hữu, tương đương 1,41x EBITDA 98 tỷ, dưới trần Nợ vay/EBITDA 3,5x. Đây chỉ là phép tính sàng lọc; chưa đối soát dư nợ và chưa xác nhận đầy đủ nghĩa vụ/trả nợ.\nKhông có EBIT hoặc lịch trả nợ được xác minh để xác nhận EBIT/chi phí lãi vay tối thiểu 2,0x và DSCR dự phóng. Phải tính lại lịch trả nợ cho khoản vay đề nghị cùng toàn bộ dư nợ hiện hữu; nếu khoản mới trả gốc đều 36 tháng thì riêng gốc mới khoảng 13,33 tỷ/năm, ngoài lãi và nghĩa vụ hiện hữu.\nTSBĐ là nhà xưởng/QSDĐ, pháp lý khai báo clear, giá trị 145 tỷ nhưng valuation_status NEEDS_VERIFICATION và valuation_basis declared. LTV sơ bộ 27,6% ở khoản vay 40 tỷ, nhưng chưa thể dựa vào định giá này khi chưa xác minh chứng thư, quyền sở hữu và khả năng nhận bảo đảm.\nDòng tiền về tài khoản được xác minh 668,8 tỷ trong 11 tháng, không phải đủ 12 tháng; cần bổ sung/đối chiếu kỳ sao kê đủ 12 tháng. Khoản vay đề nghị 40 tỷ vượt ngưỡng tổng cấp tín dụng 20 tỷ trong chính sách danh mục hồ sơ, cần BCTC kiểm toán theo chính sách.\nChưa hoàn tất kiểm tra vận hành để trình: bổ sung giấy đăng ký doanh nghiệp/mã số thuế, thông tin người đại diện và UBO; BCTC kiểm toán và giải trình chênh lệch số liệu; xác nhận dư nợ/lịch trả nợ; sao kê 12 tháng; hồ sơ và định giá TSBĐ. Cần kiểm tra tính hiệu lực (30 ngày) của CIC, sao kê và xác nhận dư nợ tại ngày trình.\nĐối soát dư nợ BCTC 56 tỷ với CIC và các khoản vay hiện hữu 98 tỷ; xác nhận đầy đủ dư nợ, hạn mức và lịch trả nợ từ tất cả TCTD.\nNộp BCTC kiểm toán theo yêu cầu đối với tổng cấp tín dụng trên 20 tỷ; giải trình/chứng minh các trường doanh thu, EBITDA 98/128 tỷ, chi phí lãi 17,8 tỷ, DSCR và khoản gốc OCR -50 tỷ; lập lại DSCR dự phóng đạt ít nhất 1,25x theo CS-TD-SME/2025 §4.2.\nXác minh EBIT/chi phí lãi vay đạt ít nhất 2,0x và Nợ vay/EBITDA sau cấp tín dụng không vượt 3,5x trên cơ sở dư nợ đầy đủ.\nBổ sung sao kê đủ 12 tháng và hồ sơ KYB bắt buộc: đăng ký doanh nghiệp, mã số thuế, thông tin/giấy tờ người đại diện và UBO; xác minh đối chiếu nhất quán.\nThẩm định lại pháp lý, quyền sở hữu và định giá độc lập/chứng thư TSBĐ; chỉ nhận bảo đảm khi giá trị và LTV đáp ứng chính sách tối đa 70%.\nKiểm tra lại CIC, sao kê và xác nhận dư nợ còn hiệu lực theo thời hạn chính sách tại ngày trình; kiểm tra CIC lại trước giải ngân.\nChỉ trình cấp có thẩm quyền xem xét sau khi hoàn tất các điều kiện; mọi quyết định cấp tín dụng cần người có thẩm quyền phê duyệt.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C1",
+   "iteration": 3,
+   "error": null,
+   "latency_s": 21.540930032730103,
+   "calls": 11,
+   "tokens": {
+    "prompt": 2128,
+    "completion": 2873,
+    "total": 5001
+   },
+   "cost_usd": 0.0016493,
+   "llm_requests": 2,
+   "gate": "PENDING_APPROVAL",
+   "case_id_engine": "case_1913a042e8d5",
+   "grade": {
+    "findings": {
+     "dscr_conflict": true,
+     "dscr_threshold": false,
+     "collateral_unverified": false,
+     "total_exposure": false,
+     "audited_fs": false
+    },
+    "findings_hit": 1,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": false,
+     "cite_authority": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "PENDING_APPROVAL",
+    "gate_ok": true
+   },
+   "conclusion_text": "Đủ điều kiện tín dụng. Đề xuất hạn mức 40,000,000,000 VND (DSCR 1.34, đòn bẩy 0.05)\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nĐạt các kiểm tra tuân thủ KYB/AML/CIC. Giới hạn cho vay có bảo đảm: 101,500,000,000 VND\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nĐiều kiện vận hành đạt. Đã tạo bản nháp draft-case_1913a042e8d5 (chưa hiệu lực)\nĐỀ XUẤT PHÊ DUYỆT hạn mức 40,000,000,000 VND\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nKẾT LUẬN: Hội đồng tín dụng đề xuất PHÊ DUYỆT, với hạn mức đề xuất 40.000.000.000 VND. Hạn mức này nằm trong giới hạn cho vay có bảo đảm 101.500.000.000 VND do bộ phận tuân thủ xác định. Điều kiện vận hành đạt; bản nháp hồ sơ draft-case_1913a042e8d5 đã được tạo nhưng chưa có hiệu lực.\n\nLÝ DO CHÍNH: Khách hàng đủ điều kiện tín dụng theo đánh giá của bộ phận tín dụng. Bộ phận tuân thủ đã đạt các kiểm tra KYB/AML/CIC. Nhật ký kiểm chứng ghi nhận 3 kết luận được xác thực, không có vấn đề về bằng chứng.\n\nĐIỂM CẦN LƯU Ý:\n1) Chỉ số DSCR 1.34 hiện ở trạng thái cần xác minh (dữ liệu mẫu). Khi tính lại từ số gốc cộng lãi 67,8 tỷ, DSCR đạt 1.445 với EBITDA 98 tỷ. Với EBITDA 128 tỷ theo cờ BCTC 2025, kết quả tính lại là 1.888, trong khi hồ sơ ghi khoảng 1.76. Hai mức này chưa khớp, cần làm rõ nguồn khoản trả nợ.\n2) Khách hàng đang có 2 khoản vay hiện hữu tại ngân hàng, cần tính đến trong đánh giá khả năng trả nợ.\n\nĐIỀU KIỆN TRƯỚC KHI GIẢI NGÂN/TRÌNH DUYỆT:\n- Xác minh DSCR và EBITDA trước khi trình phê duyệt chính thức.\n- Hoàn thiện đăng ký giao dịch bảo đảm trước khi giải ngân.\n- Bổ sung BCTC quý gần nhất trước khi giải ngân đợt 2.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_annual_inflow",
+    "get_collateral",
+    "get_business",
+    "create_loan_draft"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C2",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 26.639848619990516,
+   "calls": 7,
+   "tokens": {
+    "prompt": 8742,
+    "completion": 2442,
+    "total": 11184
+   },
+   "cost_usd": 0.001659865,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "aml_unscreened": true,
+     "fs_missing": true,
+     "ebitda_decline": true,
+     "machinery_legal": false,
+     "audited_fs": false,
+     "no_bank_flow": true
+    },
+    "findings_hit": 4,
+    "findings_total": 6,
+    "citations": {
+     "cite_ltv": false,
+     "cite_audit": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa đủ căn cứ để khuyến nghị cấp khoản vay 60 tỷ đồng/36 tháng. Doanh nghiệp đang hoạt động, KYC trạng thái VERIFIED; doanh thu 2025 là 530 tỷ đồng, phù hợp ngưỡng SME nội bộ. CIC ghi nhận nhóm 1, dư nợ 0 và không có khoản vay hiện hữu được trả về. Tuy nhiên, trạng thái AML là chưa được sàng lọc (screened=false), không thể xem là xác nhận sạch; thiếu dữ liệu cần thiết để tính DSCR, tổng đòn bẩy và khả năng trả nợ; không có dòng tiền tài khoản xác minh. TSBĐ được chỉ định có giá trị khai báo 50 tỷ đồng, chưa thẩm định; nếu tạm dùng giá trị này thì khoản vay 60 tỷ tương đương LTV 120%, vượt mức tối đa 70% (giới hạn tham chiếu 35 tỷ đồng trước khi thẩm định, không phải hạn mức được duyệt).\nKYB: doanh nghiệp ACTIVE, KYC VERIFIED; doanh thu 2025 530 tỷ đồng, thuộc ngưỡng SME nội bộ doanh thu ≤1.000 tỷ đồng.\nAML: kết quả hit=false nhưng screened=false và ghi rõ chưa có đánh giá KYC/AML; phải hoàn tất tra soát trước khi xem xét tiếp. Chính sách compliance Điều 6 quy định AML/list hit là điều kiện dừng bắt buộc; dữ liệu hiện tại không xác nhận đã sàng lọc.\nCIC: nhóm 1, dư nợ 0, quá hạn 0, báo cáo ngày 2026-10-05; cần kiểm tra tính hiệu lực và tra cứu lại tại thời điểm giải ngân.\nTài chính: doanh thu 2023/2024/2025 lần lượt 420/485/530 tỷ; EBITDA 42/43/38 tỷ. Các số liệu được gắn nhãn DU_LIEU_MAU. Thiếu total_debt, equity, current_assets, current_liabilities và debt_service nên không tính được đòn bẩy thực tế, DSCR, EBIT/chi phí lãi vay hoặc vốn lưu động.\nKhoản vay hiện hữu: không có bản ghi trả về; inflow tài khoản 12 tháng chưa có dữ liệu xác minh.\nTSĐB theo collateral_id chỉ định: nhà xưởng, định giá 50 tỷ theo khai báo, tình trạng định giá DECLARED. LTV đề nghị 60/50=120%; theo trần 70% của giá trị này thì mức tham chiếu tối đa 35 tỷ, trước thẩm định và các điều kiện khác. Quyền thuê đất/máy móc khác không được dùng để bù nếu chưa xác định phạm vi bảo đảm và hoàn thiện thẩm định/pháp lý.\nĐiều kiện vận hành chưa đạt: cần hoàn tất AML screening; bổ sung BCTC/nguồn dữ liệu đáng tin cậy và lịch trả nợ để kiểm tra DSCR tối thiểu; xác minh dư nợ, dòng tiền và CIC còn hiệu lực; thẩm định giá TSBĐ và rà soát hồ sơ pháp lý/khả năng đăng ký bảo đảm. Thông tin người đại diện pháp luật đang để trống trong hồ sơ trả về.\nChỉ xem xét lại sau khi sàng lọc AML/KYC đầy đủ và không có hit; nếu có hit thì từ chối theo điều kiện dừng bắt buộc.\nBổ sung BCTC và số liệu tổng nợ/vốn chủ sở hữu, chi phí lãi vay, dòng tiền trả nợ cùng lịch trả nợ dự kiến để tính các chỉ số theo chính sách: DSCR ≥1,25; Nợ vay/EBITDA sau cấp tín dụng ≤3,5; EBIT/chi phí lãi vay ≥2,0.\nCung cấp sao kê/dòng tiền xác minh và xác nhận đầy đủ dư nợ hiện hữu; cập nhật CIC hợp lệ.\nThẩm định độc lập TSBĐ được đề nghị, hoàn thiện hồ sơ pháp lý và đăng ký giao dịch bảo đảm; hạn mức phải nằm trong LTV ≤70% giá trị đủ điều kiện.\nBổ sung/đối chiếu thông tin người đại diện pháp luật và hồ sơ vận hành còn thiếu. Nếu sau khi hoàn tất thẩm định có đề xuất duyệt, phải trình người có thẩm quyền phê duyệt.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C2",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 13.371445655822754,
+   "calls": 9,
+   "tokens": {
+    "prompt": 1891,
+    "completion": 2686,
+    "total": 4577
+   },
+   "cost_usd": 0.0015321,
+   "llm_requests": 2,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_1da44f817f61",
+   "grade": {
+    "findings": {
+     "aml_unscreened": true,
+     "fs_missing": true,
+     "ebitda_decline": false,
+     "machinery_legal": false,
+     "audited_fs": false,
+     "no_bank_flow": false
+    },
+    "findings_hit": 2,
+    "findings_total": 6,
+    "citations": {
+     "cite_ltv": false,
+     "cite_audit": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa có DSCR trong hồ sơ — yêu cầu bổ sung khoản trả nợ/BCTC\nĐạt các kiểm tra tuân thủ KYB/AML/CIC. Giới hạn cho vay có bảo đảm: 35,000,000,000 VND\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nDoanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân\nESCALATE: mâu thuẫn không tự giải được sau vòng challenge hoặc thiếu evidence\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nKhuyến nghị: Chưa phê duyệt, chuyển cấp phê duyệt theo cơ chế ESCALATE. Quyết định tổng hợp là cần bổ sung thông tin (need_more_info), do mâu thuẫn chưa được giải quyết sau vòng challenge và hồ sơ còn thiếu bằng chứng.\n\nHạn mức: Chưa có hạn mức được phê duyệt. Bộ phận Tín dụng chưa đề xuất hạn mức và chưa xác định hạn mức có bảo đảm tối đa. Con số 35.000.000.000 VND do bộ phận Tuân thủ nêu là trần kiểm tra tuân thủ, không phải hạn mức được duyệt.\n\nLý do chính:\n1. Tín dụng: Hồ sơ chưa có DSCR. Cần bổ sung bảng khoản trả nợ và báo cáo tài chính để đánh giá khả năng trả nợ.\n2. Vận hành: Doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng. Cần mở tài khoản trước khi giải ngân.\n3. Tuân thủ: Hồ sơ đạt các kiểm tra KYB/AML/CIC, nhưng chưa có đánh giá KYC/AML trong hệ thống.\n4. Kiểm chứng: Vòng xác thực ghi nhận 1 vấn đề về bằng chứng (evidence) trong 3 verdict.\n\nĐiểm cần lưu ý:\n- Tra cứu AML và danh sách đen trước khi trình phê duyệt.\n- Hoàn thiện đăng ký giao dịch bảo đảm trước khi giải ngân.\n- Bổ sung DSCR, báo cáo tài chính và khoản trả nợ hiện hữu; sau đó tính lại DSCR.\n- Mở tài khoản thanh toán tại SHB trước giải ngân.\n- Xử lý vấn đề bằng chứng nêu trong nhật ký challenge trước khi trình lại.\n- Chỉ trình phê duyệt lại khi các điều kiện trên được đáp ứng và kết quả kiểm chứng không còn mâu thuẫn.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_collateral",
+    "get_business"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C2",
+   "iteration": 2,
+   "error": null,
+   "latency_s": 28.352994298998965,
+   "calls": 7,
+   "tokens": {
+    "prompt": 8155,
+    "completion": 2653,
+    "total": 10808
+   },
+   "cost_usd": 0.0017051,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "aml_unscreened": true,
+     "fs_missing": true,
+     "ebitda_decline": true,
+     "machinery_legal": false,
+     "audited_fs": false,
+     "no_bank_flow": true
+    },
+    "findings_hit": 4,
+    "findings_total": 6,
+    "citations": {
+     "cite_ltv": true,
+     "cite_audit": false
+    },
+    "citations_hit": 1,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa đủ cơ sở trình duyệt khoản vay 60 tỷ đồng/36 tháng cho Công ty TNHH Bao bì Mekong Flex. Kết quả AML hiện ghi chưa được sàng lọc (screened=false), nên chưa thể xác nhận điều kiện tuân thủ. Dữ liệu tài chính được gắn nhãn mẫu và thiếu nợ, vốn chủ, debt service; không có dòng tiền vào đã xác minh, vì vậy không tính được DSCR hoặc đòn bẩy sau vay. TSBĐ được chỉ định có giá trị khai báo 50 tỷ đồng; khoản vay yêu cầu tương đương LTV 120%, vượt trần chính sách 70% (giá trị tối đa sơ bộ 35 tỷ đồng nếu định giá được chấp nhận), nhưng tài sản chưa có định giá độc lập. Chưa đề xuất hạn mức cuối cùng; cần bổ sung/xác minh các nội dung nêu dưới đây rồi thẩm định lại. Đây chỉ là kết luận thẩm định, không phải phê duyệt.\nKYB: doanh nghiệp trạng thái ACTIVE, KYC status VERIFIED; tuy nhiên thông tin người đại diện pháp luật và CCCD để trống, cần hoàn thiện kiểm tra hồ sơ pháp lý/KYB trước khi trình.\nAML: công cụ trả hit=false nhưng screened=false và ghi chưa có đánh giá KYC/AML trong hệ thống. Không coi đây là kết quả sàng lọc sạch; cần hoàn tất sàng lọc doanh nghiệp và người đại diện. Chính sách AML quy định hit danh sách đen/cảnh báo là hard stop, từ chối cấp tín dụng.\nCIC: nhóm 1, dư nợ quá hạn 0, tổng dư nợ 0 theo kết quả hiện có (ngày báo cáo 2026-10-05). Cần kiểm tra hiệu lực và tra lại CIC tại thời điểm giải ngân theo chính sách.\nTài chính: số liệu 2023–2025 có nhãn DU_LIEU_MAU; doanh thu lần lượt 420, 485, 530 tỷ đồng; EBITDA 42, 43, 38 tỷ đồng. Biên EBITDA giảm xấp xỉ 10,0%, 8,9%, 7,2%. Thiếu tổng nợ, vốn chủ, tài sản/nợ ngắn hạn và debt service; không xác định được đòn bẩy hiện hữu/sau vay, khả năng thanh khoản hay DSCR. Do không có lịch trả nợ/dòng tiền đã xác minh và dư nợ hiện hữu, không thể kết luận đạt DSCR tối thiểu theo chính sách.\nDòng tiền: không có số liệu tiền về tài khoản 12 tháng đã xác minh; yêu cầu sao kê/chứng từ dòng tiền và dự báo dòng tiền trả nợ phù hợp mục đích đầu tư dây chuyền flexo.\nTSBĐ: tài sản được yêu cầu xem xét là nhà xưởng, giá trị khai báo 50 tỷ đồng, tình trạng pháp lý ghi clear nhưng định giá basis declared/status DECLARED. Với khoản vay 60 tỷ đồng, LTV trên giá trị khai báo là 120%; theo trần 70%, mức cho vay tối đa sơ bộ là 35 tỷ đồng trước khi xem xét định giá độc lập, tính đủ điều kiện và hoàn thiện biện pháp bảo đảm. Không dùng các tài sản khác trong danh mục để bù trừ vì đề nghị chỉ định collateral_id này.\nChưa đủ điều kiện vận hành để chuyển trình: cần hoàn tất AML, xác minh hồ sơ pháp lý/người đại diện, bổ sung báo cáo tài chính và nghĩa vụ trả nợ, xác minh sao kê/dòng tiền, thẩm định độc lập tài sản và xác nhận đăng ký/hoàn thiện bảo đảm. Lưu ý CIC phải còn hiệu lực theo quy định khi trình và được kiểm tra lại trước giải ngân.\nHoàn tất screening AML/KYC đối với pháp nhân và người đại diện; nếu có hit danh sách đen/cảnh báo thì từ chối theo hard stop.\nBổ sung hồ sơ pháp lý doanh nghiệp, thông tin và giấy tờ định danh người đại diện pháp luật; đối chiếu KYB.\nCung cấp báo cáo tài chính/hồ sơ kế toán có thể xác minh, lịch trả nợ của toàn bộ nghĩa vụ hiện hữu và dự báo dòng tiền để tính DSCR; chứng minh DSCR dự phóng tối thiểu 1,25 lần, nợ vay/EBITDA sau cấp tín dụng không quá 3,5 lần và EBIT/chi phí lãi vay tối thiểu 2,0 lần theo CS-TD-SME/2025 §4.2.\nCung cấp sao kê và chứng từ dòng tiền 12 tháng; xác minh nguồn trả nợ và tính khả thi của phương án đầu tư.\nĐịnh giá độc lập nhà xưởng, rà soát hồ sơ quyền sở hữu và khả năng nhận bảo đảm; hạn mức phải tuân thủ LTV tối đa 70% theo CS-TD-SME/2025 §7.1 và không thể chốt chỉ dựa trên giá trị khai báo.\nCập nhật/kiểm tra CIC trong thời hạn hiệu lực quy định trước khi trình; tra lại tại thời điểm giải ngân.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C2",
+   "iteration": 2,
+   "error": null,
+   "latency_s": 24.779403686523438,
+   "calls": 9,
+   "tokens": {
+    "prompt": 7189,
+    "completion": 11078,
+    "total": 18267
+   },
+   "cost_usd": 0.006257899999999999,
+   "llm_requests": 7,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_1cfa0eda9866",
+   "grade": {
+    "findings": {
+     "aml_unscreened": true,
+     "fs_missing": true,
+     "ebitda_decline": false,
+     "machinery_legal": false,
+     "audited_fs": false,
+     "no_bank_flow": false
+    },
+    "findings_hit": 2,
+    "findings_total": 6,
+    "citations": {
+     "cite_ltv": false,
+     "cite_audit": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa có DSCR trong hồ sơ — yêu cầu bổ sung khoản trả nợ/BCTC\nĐạt các kiểm tra tuân thủ KYB/AML/CIC. Giới hạn cho vay có bảo đảm: 35,000,000,000 VND\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nDoanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân\nESCALATE: mâu thuẫn không tự giải được sau vòng challenge hoặc thiếu evidence\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nKết luận: CHƯA ĐỦ CƠ SỞ PHÊ DUYỆT. Đề xuất giữ trạng thái need_more_info và chuyển cấp phê duyệt (ESCALATE) do còn thiếu bằng chứng sau vòng kiểm chứng; không có hạn mức được phê duyệt tại thời điểm này.\n\nHạn mức: Chưa xác định. Bộ phận tín dụng chưa đề xuất hạn mức. Bộ phận tuân thủ nêu trần cho vay có bảo đảm là 35.000.000.000 VND, nhưng đây chỉ là giới hạn tối đa do tuân thủ đưa ra, có điều kiện, không phải hạn mức được duyệt.\n\nLý do chính:\n1. Tín dụng: Hồ sơ chưa có chỉ số DSCR. Cần bổ sung thông tin về nghĩa vụ trả nợ và báo cáo tài chính để đánh giá khả năng trả nợ.\n2. Vận hành: Doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng. Phải mở tài khoản trước khi giải ngân.\n3. Tuân thủ: Đã đạt các kiểm tra KYB/AML/CIC, nhưng hệ thống chưa có đánh giá KYC/AML. Việc này phải hoàn tất trước khi trình duyệt.\n4. Kiểm chứng: Vòng xác thực ghi nhận 1 vấn đề về bằng chứng, nên mâu thuẫn chưa được giải quyết nội bộ và cần cấp phê duyệt xem xét.\n\nĐiều kiện cần hoàn thành:\n- Bổ sung DSCR, nghĩa vụ trả nợ và báo cáo tài chính.\n- Mở tài khoản thanh toán tại SHB.\n- Tra cứu AML/danh sách đen và hoàn tất đánh giá KYC/AML trước khi trình phê duyệt.\n- Hoàn thiện đăng ký giao dịch bảo đảm trước khi giải ngân.\n\nLưu ý: Khi đủ hồ sơ, cần thẩm định lại kết quả tín dụng, vì trần 35 tỷ của tuân thủ chỉ có hiệu lực khi các điều kiện trên được đáp ứng. Không giải ngân trước khi hoàn tất các điều kiện trên.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_collateral",
+    "get_business"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C2",
+   "iteration": 3,
+   "error": null,
+   "latency_s": 30.722607606003294,
+   "calls": 7,
+   "tokens": {
+    "prompt": 12648,
+    "completion": 2815,
+    "total": 15463
+   },
+   "cost_usd": 0.001917665,
+   "llm_requests": 4,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "aml_unscreened": true,
+     "fs_missing": true,
+     "ebitda_decline": false,
+     "machinery_legal": false,
+     "audited_fs": true,
+     "no_bank_flow": false
+    },
+    "findings_hit": 3,
+    "findings_total": 6,
+    "citations": {
+     "cite_ltv": false,
+     "cite_audit": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa đủ căn cứ khuyến nghị cấp khoản vay 60 tỷ đồng/36 tháng. Kết quả CIC hiện có là nhóm 1, không quá hạn và dư nợ CIC 0; không thấy khoản vay hiện hữu trong dữ liệu. Tuy nhiên, AML chưa được sàng lọc (screened=false), thông tin KYB còn thiếu, dữ liệu tài chính được gắn nhãn mẫu và thiếu các chỉ tiêu trọng yếu nên chưa xác định được DSCR, đòn bẩy tổng thể hay khả năng trả nợ. TSBĐ được chỉ định có giá trị khai báo 50 tỷ đồng, chưa phải định giá xác nhận; nếu lấy mức này làm cơ sở tham chiếu thì trần LTV 70% tương đương 35 tỷ đồng, không hỗ trợ yêu cầu 60 tỷ đồng. Đây chỉ là phép tính sơ bộ theo giá trị khai báo, không phải hạn mức có thể phê duyệt.\nDoanh nghiệp ACTIVE, KYC status VERIFIED; nhưng thông tin người đại diện trên dữ liệu doanh nghiệp đang trống. Chưa có bằng chứng về đủ hồ sơ KYB/UBO.\nAML: kết quả ghi hit=false nhưng screened=false và nêu chưa có đánh giá KYC/AML trong hệ thống. Không thể coi đây là kết quả sàng lọc đạt; cần hoàn tất screening trước khi tiếp tục.\nCIC ngày 2026-10-05: nhóm 1, quá hạn 0, tổng dư nợ 0. Dữ liệu dư nợ hiện hữu trả về danh sách rỗng.\nFinancials 2023–2025 gắn nhãn DU_LIEU_MAU; doanh thu/EBITDA không được xác nhận là dữ liệu thực. Thiếu tổng nợ, vốn chủ sở hữu, tài sản ngắn hạn, nợ ngắn hạn và debt service; không tính được DSCR, đòn bẩy tổng thể hay khả năng thanh khoản. Không có verified annual inflow.\nTSBĐ ID được yêu cầu là bất động sản có giá trị khai báo 50 tỷ đồng, tình trạng định giá DECLARED và pháp lý hiển thị clear. Theo giới hạn LTV 70%, giá trị tham chiếu tối đa là 35 tỷ đồng; cần định giá độc lập/xác nhận và hoàn tất kiểm tra hồ sơ, đăng ký biện pháp bảo đảm. Các tài sản còn lại không được dùng để nâng hạn mức này khi chưa xác nhận giá trị, khả năng nhận bảo đảm và phạm vi yêu cầu.\nĐề nghị bổ sung báo cáo tài chính đã kiểm toán/xác nhận và lịch trả nợ dự kiến để tính DSCR (chính sách yêu cầu ≥1,25), Nợ vay/EBITDA sau cấp tín dụng (≤3,5 lần), EBIT/chi phí lãi vay (≥2,0 lần); bổ sung sao kê/dòng tiền và xác nhận đầy đủ nghĩa vụ nợ.\nKhông thực hiện quyết định cấp tín dụng, ghi khoản vay hay giải ngân; kết luận này chỉ là khuyến nghị thẩm định.\nHoàn tất sàng lọc AML/KYC cho doanh nghiệp, người đại diện và UBO; nếu có hit danh sách đen/cảnh báo thì dừng và từ chối theo chính sách.\nHoàn thiện KYB: giấy đăng ký doanh nghiệp, mã số thuế, thông tin người đại diện hợp pháp và UBO; đối chiếu giấy tờ và giải trình sai lệch.\nNộp số liệu tài chính thực, đầy đủ và có thể kiểm chứng; cung cấp lịch trả nợ/chi phí lãi vay, dư nợ tại mọi tổ chức tín dụng, dòng tiền và sao kê để tính các chỉ số trả nợ.\nĐịnh giá TSBĐ độc lập, xác minh pháp lý/quyền sở hữu và khả năng đăng ký bảo đảm. Hạn mức phải tuân thủ LTV tối đa 70% trên giá trị đủ điều kiện được ngân hàng chấp nhận; giá trị khai báo hiện tại không đủ căn cứ đề xuất 60 tỷ đồng.\nSau khi bổ sung hồ sơ, thẩm định lại hạn mức và điều kiện; mọi quyết định duyệt cần người có thẩm quyền xác nhận.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C2",
+   "iteration": 3,
+   "error": null,
+   "latency_s": 13.390290260314941,
+   "calls": 9,
+   "tokens": {
+    "prompt": 1891,
+    "completion": 2690,
+    "total": 4581
+   },
+   "cost_usd": 0.0015341,
+   "llm_requests": 2,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_38e9ff278165",
+   "grade": {
+    "findings": {
+     "aml_unscreened": true,
+     "fs_missing": true,
+     "ebitda_decline": false,
+     "machinery_legal": false,
+     "audited_fs": false,
+     "no_bank_flow": false
+    },
+    "findings_hit": 2,
+    "findings_total": 6,
+    "citations": {
+     "cite_ltv": false,
+     "cite_audit": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_collateral": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa có DSCR trong hồ sơ — yêu cầu bổ sung khoản trả nợ/BCTC\nĐạt các kiểm tra tuân thủ KYB/AML/CIC. Giới hạn cho vay có bảo đảm: 35,000,000,000 VND\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nDoanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân\nESCALATE: mâu thuẫn không tự giải được sau vòng challenge hoặc thiếu evidence\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nHoàn thiện đăng ký giao dịch bảo đảm trước giải ngân\nKết luận: Chưa đủ điều kiện phê duyệt. Quyết định tổng hợp là need_more_info và chuyển cấp phê duyệt (ESCALATE) do còn thiếu bằng chứng và mâu thuẫn chưa được giải quyết sau vòng kiểm chứng. Hạn mức: chưa cấp hạn mức tín dụng. Bộ phận Tuân thủ ghi nhận trần cho vay có bảo đảm tối đa 35.000.000.000 VND, nhưng đây không phải hạn mức đã duyệt và chỉ có hiệu lực khi hồ sơ được bổ sung và đáp ứng các điều kiện. Lý do chính: (1) Tín dụng chưa có chỉ số DSCR do hồ sơ thiếu thông tin về khoản trả nợ hoặc báo cáo tài chính, nên chưa đánh giá được khả năng trả nợ. (2) Vận hành ghi nhận doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng, cần mở tài khoản trước khi giải ngân. (3) Tuân thủ đã đạt các kiểm tra KYB/AML/CIC nhưng hệ thống chưa có đánh giá KYC/AML, và vòng xác thực ghi nhận 1 vấn đề về bằng chứng. Điểm cần lưu ý: Cần bổ sung khoản trả nợ hoặc BCTC để tính DSCR; tra cứu AML và danh sách đen trước khi trình phê duyệt; mở tài khoản thanh toán tại SHB; hoàn thiện đăng ký giao dịch bảo đảm trước khi giải ngân. Cấp phê duyệt cần xem xét lại hồ sơ sau khi các thông tin trên được bổ sung.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_collateral",
+    "get_business"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C3",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 23.59058224898763,
+   "calls": 7,
+   "tokens": {
+    "prompt": 7948,
+    "completion": 2181,
+    "total": 10129
+   },
+   "cost_usd": 0.001498655,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "ebitda_negative": true,
+     "cic_missing": true,
+     "aml_unscreened": true,
+     "no_collateral": true,
+     "audited_fs": true
+    },
+    "findings_hit": 5,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": false
+    },
+    "citations_hit": 0,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa đủ cơ sở để khuyến nghị cấp khoản vay 30 tỷ đồng trong 24 tháng. Dữ liệu tài chính được gắn nhãn DỮ LIỆU MẪU, thiếu dư nợ, vốn chủ sở hữu, tài sản/nợ ngắn hạn và nghĩa vụ trả nợ nên chưa thể tính DSCR, đòn bẩy hoặc năng lực trả nợ. EBITDA năm 2025 âm 22 tỷ đồng, là dấu hiệu rủi ro đáng kể cần được giải trình và kiểm chứng. AML chưa được sàng lọc (trạng thái screened=false), chưa có kết quả CIC, chưa có sao kê/dòng tiền xác minh; thông tin người đại diện pháp luật còn trống. Đề nghị bổ sung hồ sơ và thực hiện các bước xác minh trước khi tái thẩm định. Hạn mức hiện chưa thể xác định; đây chỉ là kết luận thẩm định, không phải phê duyệt.\nDoanh nghiệp đang hoạt động, KYC trạng thái VERIFIED; tuy nhiên thông tin người đại diện pháp luật trong hồ sơ đang để trống, chưa đủ dữ liệu để hoàn tất kiểm tra KYB.\nKết quả AML cho biết hit=false nhưng screened=false và chưa có đánh giá KYC/AML trong hệ thống; chưa thể coi là đã hoàn tất sàng lọc. Chính sách AML quy định có tên trong danh sách đen/cảnh báo là điều kiện từ chối bắt buộc.\nChưa có kết quả CIC. Vì vậy chưa thể xác định nhóm nợ; cần tra cứu CIC hiện hành trước khi kết luận điều kiện tín dụng.\nFinancials có nhãn DỮ LIỆU MẪU. EBITDA lần lượt là 14 tỷ (2023), 8 tỷ (2024), âm 22 tỷ (2025); thiếu total_debt, equity, current_assets, current_liabilities và debt_service. Do thiếu dữ liệu, không thể tính DSCR hay nợ vay/EBITDA; số liệu hiện có không chứng minh đạt điều kiện trả nợ.\nChưa có dư nợ hiện hữu được ghi nhận và không có sao kê/tài khoản nên dòng tiền về tài khoản chưa xác minh. Không được hiểu dữ liệu trống là không có nghĩa vụ hoặc dòng tiền.\nYêu cầu vay 30 tỷ đồng vượt ngưỡng 20 tỷ nêu tại chính sách về yêu cầu BCTC kiểm toán khi thuộc diện bắt buộc; hiện chưa có hồ sơ kiểm toán/ý kiến kiểm toán để kiểm tra.\nKhông ghi nhận tài sản bảo đảm, phù hợp thông tin đề nghị vay không có TSĐB; vì vậy không thể áp dụng kiểm tra LTV hoặc tính hạn mức dựa trên TSĐB.\nThông tin doanh nghiệp cho biết chưa có tài khoản tại SHB; quy trình vận hành yêu cầu tài khoản thanh toán còn hoạt động để nhận vốn giải ngân. Điều kiện này và các hồ sơ vận hành khác cần được hoàn tất trước các bước tương ứng.\nBổ sung BCTC và hồ sơ tài chính đầy đủ, có thể kiểm chứng; cung cấp dư nợ, vốn chủ sở hữu, tài sản/nợ ngắn hạn, lịch trả nợ và bằng chứng dòng tiền để tính DSCR, đòn bẩy và khả năng trả nợ.\nLàm rõ và cung cấp chứng từ giải trình nguyên nhân EBITDA âm năm 2025 cùng dự báo dòng tiền khả thi cho kỳ vay 24 tháng.\nHoàn tất sàng lọc AML/KYC cho pháp nhân, người đại diện và các chủ sở hữu hưởng lợi cuối cùng; xác minh hồ sơ KYB, thông tin đại diện và UBO.\nTra cứu CIC mới nhất và xác minh dư nợ/nghĩa vụ tín dụng hiện hữu; đánh giá theo nhóm nợ sau khi có kết quả.\nVới khoản cấp tín dụng 30 tỷ đồng, bổ sung BCTC kiểm toán và ý kiến kiểm toán nếu doanh nghiệp thuộc diện bắt buộc theo chính sách.\nXác minh mục đích sử dụng vốn lưu động bằng hồ sơ giao dịch/phương án sử dụng vốn; hoàn tất điều kiện vận hành, bao gồm tài khoản thanh toán hoạt động tại ngân hàng trước giải ngân.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C3",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 12.405682802200317,
+   "calls": 8,
+   "tokens": {
+    "prompt": 1800,
+    "completion": 2583,
+    "total": 4383
+   },
+   "cost_usd": 0.0014715,
+   "llm_requests": 2,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_bfe9f67eefe9",
+   "grade": {
+    "findings": {
+     "ebitda_negative": false,
+     "cic_missing": true,
+     "aml_unscreened": true,
+     "no_collateral": false,
+     "audited_fs": false
+    },
+    "findings_hit": 2,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": false
+    },
+    "citations_hit": 0,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa có DSCR trong hồ sơ — yêu cầu bổ sung khoản trả nợ/BCTC\nĐạt các kiểm tra tuân thủ KYB/AML/CIC\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nDoanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân\nESCALATE: mâu thuẫn không tự giải được sau vòng challenge hoặc thiếu evidence\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nKết luận: Chưa đủ điều kiện phê duyệt. Đề xuất chuyển cấp phê duyệt với trạng thái NEED_MORE_INFO (ESCALATE), do mâu thuẫn không tự giải được sau vòng challenge và thiếu evidence.\n\nHạn mức: Chưa đề xuất hạn mức tín dụng và chưa đề xuất hạn mức có tài sản bảo đảm.\n\nLý do chính:\n- Tín dụng: Hồ sơ chưa có DSCR. Cần bổ sung khoản trả nợ và báo cáo tài chính để tính được khả năng trả nợ.\n- Tuân thủ: Kết quả là approve (đạt KYB/AML/CIC), nhưng hệ thống chưa có đánh giá KYC/AML. Điều kiện kèm theo là phải tra cứu AML và danh sách đen trước khi trình phê duyệt.\n- Vận hành: Doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng. Cần mở tài khoản trước khi giải ngân.\n- Nhật ký kiểm chứng ghi nhận 1 vấn đề về evidence trong việc xác thực 3 verdict.\n\nĐiểm cần lưu ý:\n1. Chỉ trình phê duyệt sau khi hoàn tất tra cứu AML/danh sách đen và bổ sung DSCR cùng báo cáo tài chính.\n2. Làm rõ vấn đề evidence được ghi nhận trong nhật ký challenge trước khi ra quyết định cuối.\n3. Mở tài khoản thanh toán là điều kiện tiên quyết cho giải ngân, không phải điều kiện cho phê duyệt.\n4. Kết quả approve của bộ phận tuân thủ chỉ có giá trị khi đã hoàn tất điều kiện tra cứu AML nêu trên.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_business"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C3",
+   "iteration": 2,
+   "error": null,
+   "latency_s": 27.572037388017634,
+   "calls": 7,
+   "tokens": {
+    "prompt": 12071,
+    "completion": 2553,
+    "total": 14624
+   },
+   "cost_usd": 0.0017652549999999999,
+   "llm_requests": 4,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "ebitda_negative": true,
+     "cic_missing": true,
+     "aml_unscreened": true,
+     "no_collateral": true,
+     "audited_fs": true
+    },
+    "findings_hit": 5,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": false
+    },
+    "citations_hit": 0,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa đủ cơ sở để khuyến nghị cấp khoản vay 30 tỷ đồng/24 tháng. Dữ liệu tài chính được trả về có nhãn DU_LIEU_MAU, đồng thời thiếu tổng nợ, vốn chủ sở hữu, tài sản/nợ ngắn hạn và debt service; EBITDA 2025 được ghi âm 22 tỷ đồng nên cần BCTC xác thực để đánh giá khả năng trả nợ. DSCR, đòn bẩy sau vay và EBIT/chi phí lãi vay không thể tính được. KYB chưa đầy đủ trên dữ liệu trả về (thiếu người đại diện); AML chưa được sàng lọc (screened=false), CIC chưa có kết quả. Không có tài sản bảo đảm và không có dòng tiền vào tài khoản được xác minh. Vì vậy chưa thể xác nhận điều kiện tuân thủ/vận hành hoặc xác lập hạn mức; đây không phải quyết định phê duyệt.\nDoanh nghiệp có trạng thái ACTIVE, KYC status VERIFIED; tuy nhiên dữ liệu người đại diện pháp luật bị trống. Chưa có đủ thông tin pháp nhân để kết luận KYB hoàn tất.\nAML: hit=false nhưng screened=false, ghi chú chưa có đánh giá KYC/AML trong hệ thống; chưa thể coi là đã hoàn tất sàng lọc.\nCIC chưa có nhóm nợ/kết quả tra cứu; không thể kết luận đạt điều kiện CIC.\nCác số liệu tài chính hiện có mang nhãn DU_LIEU_MAU; doanh thu lần lượt 360 tỷ (2023), 410 tỷ (2024), 395 tỷ (2025), EBITDA 14 tỷ, 8 tỷ và âm 22 tỷ. Thiếu các thành phần để tính DSCR, đòn bẩy và khả năng thanh toán.\nKhông thể tính DSCR cho khoản vay đề nghị; điều kiện chính sách là DSCR dự phóng tối thiểu 1,25 lần, Nợ vay/EBITDA sau cấp tín dụng tối đa 3,5 lần và EBIT/chi phí lãi vay tối thiểu 2,0 lần.\nKhông có dư nợ hiện hữu được ghi nhận trong công cụ, nhưng chưa có CIC để đối chiếu/xác nhận; dòng tiền vào tài khoản 12 tháng không có dữ liệu xác minh.\nKhông ghi nhận tài sản bảo đảm; không đáp ứng cơ sở định giá/LTV cho khoản vay có bảo đảm. Đề nghị hiện là không có TSBĐ.\nĐề nghị 30 tỷ đồng vượt ngưỡng 20 tỷ nêu trong chính sách về yêu cầu BCTC kiểm toán khi tổng cấp tín dụng vượt ngưỡng này; chưa có BCTC xác thực/kiểm toán được cung cấp.\nĐiều kiện vận hành: chính sách yêu cầu tài khoản thanh toán còn hoạt động tại ngân hàng để nhận vốn giải ngân; dữ liệu hiện không có tài khoản. Khoản vay chỉ được khởi tạo chính thức sau phê duyệt có hiệu lực.\nBổ sung BCTC đầy đủ, xác thực và kiểm toán theo yêu cầu áp dụng; gồm nợ, vốn chủ sở hữu, tài sản/nợ ngắn hạn, chi phí lãi vay, lịch trả nợ và dự báo dòng tiền để tính DSCR và các tỷ số theo chính sách.\nHoàn tất sàng lọc AML cho doanh nghiệp/người đại diện; nếu có hit thì từ chối theo hard stop.\nTra CIC mới nhất và làm rõ dư nợ/nghĩa vụ tín dụng; nếu nhóm 3 trở lên thì không đủ điều kiện, nhóm 2 trong 12 tháng gần nhất cần giải trình và trình cấp thẩm quyền cao hơn một cấp.\nHoàn thiện hồ sơ KYB gồm đăng ký doanh nghiệp, mã số thuế, người đại diện và UBO; xác minh tính nhất quán thông tin.\nCung cấp sao kê/dữ liệu dòng tiền 12 tháng, phương án sử dụng vốn lưu động và nguồn trả nợ; xem xét lại hạn mức chỉ sau khi có bằng chứng đủ để đạt các ngưỡng tài chính.\nXác nhận tài khoản thanh toán hoạt động tại ngân hàng trước giải ngân; mọi quyết định cấp tín dụng cần được cấp có thẩm quyền phê duyệt.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C3",
+   "iteration": 2,
+   "error": null,
+   "latency_s": 12.354161262512207,
+   "calls": 8,
+   "tokens": {
+    "prompt": 1800,
+    "completion": 2311,
+    "total": 4111
+   },
+   "cost_usd": 0.0013355,
+   "llm_requests": 2,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_735734a7a0b1",
+   "grade": {
+    "findings": {
+     "ebitda_negative": false,
+     "cic_missing": true,
+     "aml_unscreened": true,
+     "no_collateral": false,
+     "audited_fs": false
+    },
+    "findings_hit": 2,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": false
+    },
+    "citations_hit": 0,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa có DSCR trong hồ sơ — yêu cầu bổ sung khoản trả nợ/BCTC\nĐạt các kiểm tra tuân thủ KYB/AML/CIC\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nDoanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân\nESCALATE: mâu thuẫn không tự giải được sau vòng challenge hoặc thiếu evidence\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nKết luận: Chưa đủ điều kiện phê duyệt; hồ sơ cần bổ sung thông tin và được chuyển cấp phê duyệt (ESCALATE) do mâu thuẫn chưa tự giải được sau vòng kiểm chứng (1 vấn đề về evidence). Hạn mức: Chưa đề xuất hạn mức, cả hạn mức đề xuất và hạn mức có tài sản bảo đảm đều chưa xác định. Lý do chính: (1) Tín dụng yêu cầu bổ sung do chưa có chỉ số DSCR trong hồ sơ, cần khoản trả nợ hoặc báo cáo tài chính để tính; (2) Vận hành yêu cầu doanh nghiệp mở tài khoản thanh toán tại ngân hàng trước khi giải ngân; (3) Tuân thủ ghi nhận đạt các kiểm tra KYB/AML/CIC nhưng kết luận có điều kiện: chưa có đánh giá KYC/AML trong hệ thống, cần tra cứu AML và danh sách đen trước khi trình phê duyệt. Điểm cần lưu ý: Không trình phê duyệt hạn mức khi chưa hoàn tất tra cứu AML/danh sách đen; cần bổ sung DSCR và xác minh lại evidence liên quan đến vấn đề đã nêu trong vòng kiểm chứng; chỉ giải ngân sau khi doanh nghiệp đã có tài khoản thanh toán tại ngân hàng.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_financials",
+    "get_business",
+    "get_existing_loans",
+    "check_blacklist",
+    "get_cic_status",
+    "get_business"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C3",
+   "iteration": 3,
+   "error": null,
+   "latency_s": 24.84283847498591,
+   "calls": 7,
+   "tokens": {
+    "prompt": 7979,
+    "completion": 2389,
+    "total": 10368
+   },
+   "cost_usd": 0.001588705,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "ebitda_negative": true,
+     "cic_missing": true,
+     "aml_unscreened": true,
+     "no_collateral": true,
+     "audited_fs": true
+    },
+    "findings_hit": 5,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": true
+    },
+    "citations_hit": 1,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa đủ điều kiện kết luận cấp khoản vay 30 tỷ đồng/24 tháng. Hồ sơ KYB ghi trạng thái ACTIVE và KYC VERIFIED, nhưng thông tin người đại diện pháp luật đang trống. Tra cứu AML trả về hit=false nhưng screened=false (chưa có đánh giá KYC/AML), do đó chưa thể coi là đã hoàn tất sàng lọc; CIC chưa có kết quả. Số liệu tài chính được gắn nhãn DU_LIEU_MAU, thiếu tổng nợ, vốn chủ sở hữu, tài sản/nợ ngắn hạn và debt service nên không thể tính DSCR hoặc đòn bẩy. EBITDA lần lượt 14 tỷ (2023), 8 tỷ (2024), âm 22 tỷ (2025), cho thấy xu hướng suy giảm nghiêm trọng; theo số liệu 2025 hiện có, khả năng trả nợ chưa được chứng minh. Không có sao kê/dòng tiền vào xác minh, dư nợ hiện hữu không có dữ liệu và không có TSBĐ (khách hàng khai không có). Chưa đề xuất hạn mức; cần bổ sung và xác minh hồ sơ trước khi trình thẩm quyền.\nDoanh thu 2023–2025 lần lượt 360, 410 và 395 tỷ đồng; nằm dưới ngưỡng phân khúc SME 1.000 tỷ theo CS-TD-SME/2025 §1.2, nhưng dữ liệu tài chính mang nhãn DU_LIEU_MAU, cần xác thực.\nEBITDA 2023–2025 lần lượt 14, 8 và âm 22 tỷ đồng. Không thể tính DSCR vì debt_service thiếu; không thể tính đúng Nợ vay/EBITDA sau cấp vì total_debt và equity thiếu, trong khi EBITDA kỳ gần nhất âm. Không có cơ sở chứng minh đáp ứng DSCR ≥1,25 và Nợ vay/EBITDA ≤3,5 theo CS-TD-SME/2025 §4.2.\nAML: hit=false nhưng screened=false và ghi chú chưa có đánh giá KYC/AML; phải hoàn tất sàng lọc khách hàng và người đại diện. Chính sách AML Điều 6 quy định có hit là điều kiện từ chối bắt buộc.\nCIC: chưa có kết quả tra cứu; chưa thể xác định nhóm nợ. Chính sách CIC Điều 7: nợ nhóm 3 trở lên không đủ điều kiện; nợ nhóm 2 trong 12 tháng cần giải trình và trình cấp thẩm quyền cao hơn một cấp.\nKhông có dư nợ hiện hữu được ghi nhận nhưng không có sao kê hoặc xác nhận dư nợ để xác minh; không có tiền vào tài khoản 12 tháng được xác minh.\nKhông có tài sản bảo đảm trong dữ liệu, phù hợp với khai báo không có TSBĐ; không đánh giá được LTV. CS-TD-SME/2025 §7.1 quy định LTV tối đa 70% nếu có TSBĐ.\nVới đề nghị 30 tỷ đồng, cần bổ sung BCTC đã kiểm toán (danh mục hồ sơ CS-TD-SME/2025 §6.1 nêu yêu cầu kiểm toán khi tổng cấp tín dụng >20 tỷ), sao kê 12 tháng, hồ sơ đề nghị và đồng ý tra CIC; đồng thời hoàn thiện thông tin pháp nhân/người đại diện.\nBổ sung BCTC đã kiểm toán và hồ sơ tài chính đầy đủ, có thể kiểm chứng; giải trình nguyên nhân EBITDA âm và cung cấp dự báo dòng tiền/debt service cho kỳ vay.\nHoàn tất sàng lọc AML/KYC cho pháp nhân và người đại diện; cung cấp đầy đủ thông tin người đại diện pháp luật.\nCung cấp kết quả CIC còn hiệu lực; xác minh tổng dư nợ và lịch trả nợ tại các tổ chức tín dụng.\nCung cấp sao kê tài khoản 12 tháng và chứng từ chứng minh mục đích, nhu cầu vốn lưu động.\nSau khi nhận đủ hồ sơ, tính lại DSCR (ngưỡng chính sách ≥1,25), Nợ vay/EBITDA sau cấp (≤3,5), EBIT/chi phí lãi vay (≥2,0) theo CS-TD-SME/2025 §4.2; chỉ đề xuất hạn mức nếu chứng minh đáp ứng.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow",
+    "get_collateral"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C3",
+   "iteration": 3,
+   "error": null,
+   "latency_s": 13.362942695617676,
+   "calls": 8,
+   "tokens": {
+    "prompt": 1800,
+    "completion": 2707,
+    "total": 4507
+   },
+   "cost_usd": 0.0015335000000000001,
+   "llm_requests": 2,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_1dda3bd0bc6e",
+   "grade": {
+    "findings": {
+     "ebitda_negative": false,
+     "cic_missing": true,
+     "aml_unscreened": true,
+     "no_collateral": false,
+     "audited_fs": false
+    },
+    "findings_hit": 2,
+    "findings_total": 5,
+    "citations": {
+     "cite_dscr": false
+    },
+    "citations_hit": 0,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa có DSCR trong hồ sơ — yêu cầu bổ sung khoản trả nợ/BCTC\nĐạt các kiểm tra tuân thủ KYB/AML/CIC\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nDoanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân\nESCALATE: mâu thuẫn không tự giải được sau vòng challenge hoặc thiếu evidence\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nKết luận: Chưa đủ điều kiện phê duyệt. Quyết định tổng hợp là need_more_info và chuyển cấp phê duyệt (ESCALATE) do còn thiếu evidence sau vòng kiểm chứng: xác thực 3 verdict ghi nhận 1 vấn đề về evidence chưa tự giải quyết được.\n\nHạn mức: Chưa đề xuất. Cả hạn mức đề xuất và hạn mức có tài sản bảo đảm đều để trống.\n\nLý do chính:\n- Tín dụng: Hồ sơ chưa có DSCR. Cần bổ sung thông tin khoản trả nợ và/hoặc báo cáo tài chính để tính được chỉ số này.\n- Vận hành: Doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng. Cần mở tài khoản trước khi giải ngân.\n- Tuân thủ: Kết quả là approve theo kiểm tra KYB/AML/CIC, nhưng hệ thống chưa có đánh giá KYC/AML. Điều kiện kèm theo là phải tra cứu AML và danh sách đen trước khi trình phê duyệt.\n\nĐiểm cần lưu ý:\n- Bổ sung DSCR, khoản trả nợ hoặc BCTC trước khi xem xét lại tín dụng.\n- Hoàn tất tra cứu AML/danh sách đen và cập nhật đánh giá KYC/AML trong hệ thống.\n- Mở tài khoản thanh toán tại SHB; đây là điều kiện trước giải ngân.\n- Làm rõ vấn đề evidence được ghi nhận trong nhật ký challenge trước khi trình lại.\n- Hồ sơ chỉ nên được trình lại sau khi các mục trên được hoàn tất.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_business"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C4",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 31.80406540099648,
+   "calls": 7,
+   "tokens": {
+    "prompt": 8497,
+    "completion": 3086,
+    "total": 11583
+   },
+   "cost_usd": 0.00197171,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "total_exposure": false,
+     "audited_fs": false,
+     "dscr_conflict": true,
+     "existing_loans": true
+    },
+    "findings_hit": 2,
+    "findings_total": 4,
+    "citations": {
+     "cite_authority": false,
+     "cite_dscr": true
+    },
+    "citations_hit": 1,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Khuyến nghị CHƯA trình phê duyệt khoản vay 5 tỷ đồng/12 tháng; cần bổ sung và đối chiếu hồ sơ trước khi kết luận hạn mức. KYB hiện chỉ ghi KYC_VERIFIED nhưng thông tin người đại diện theo pháp luật bị trống; chưa có bằng chứng trong dữ liệu trả về về đăng ký doanh nghiệp/UBO. AML đã sàng lọc, không hit, rủi ro thấp; CIC nhóm 1, dư nợ quá hạn bằng 0. Tuy nhiên, số liệu dư nợ không khớp (báo cáo tài chính 2025 ghi nợ 56 tỷ, CIC và tổng hai khoản vay hiện hữu là 98 tỷ), dữ liệu trả nợ/DSCR còn mâu thuẫn hoặc thiếu, nên chưa đủ căn cứ xác nhận khả năng trả nợ theo chính sách. Tài sản bảo đảm có ghi nhận nhưng đề nghị khai báo không có tài sản bảo đảm; không tính tài sản này vào cấu trúc khoản vay khi chưa có xác nhận khách hàng. Chưa khuyến nghị hạn mức giải ngân; sau khi làm rõ dữ liệu và hoàn thiện điều kiện, thẩm định lại. Mọi quyết định duyệt phải do người có thẩm quyền xác nhận.\nPháp nhân Công ty Cổ phần Bao bì VinaNova đang ACTIVE, KYC_VERIFIED; doanh thu 2025 là 705 tỷ đồng, phù hợp ngưỡng SME doanh thu ≤1.000 tỷ theo CS-TD-SME/2025 §1.2. Trường tên và CCCD người đại diện pháp luật đang để trống trong dữ liệu pháp nhân, nên chưa thể xác nhận đầy đủ KYB/UBO.\nAML: đã sàng lọc, không hit, NOT_PEP, mức rủi ro thấp. CIC: nhóm 1, dư nợ quá hạn 0, tổng dư nợ 98 tỷ đồng; ngày báo cáo 28/10/2026.\nTổng dư nợ từ hai khoản vay hiện hữu đã xác minh là 98 tỷ đồng (56 tỷ + 42 tỷ); trong khi BCTC 2025 ghi total_debt 56 tỷ đồng. Cần đối chiếu phạm vi, ngày chốt và dư nợ từng nguồn trước khi tính đòn bẩy.\nTheo dư nợ CIC 98 tỷ và EBITDA 2025 ghi nhận 98 tỷ, dư nợ sau khoản vay đề nghị sẽ khoảng 103 tỷ, tương đương nợ/EBITDA khoảng 1,05 lần. Nếu dùng nợ BCTC 56 tỷ thì kết quả khoảng 0,62 lần. Cả hai phép tính chỉ tham khảo do bất nhất dư nợ; chưa xác định EBITDA 2025 vì dữ liệu có cảnh báo/cờ giá trị 128 tỷ chưa đối chiếu.\nKhả năng trả nợ chưa xác minh: BCTC thiếu debt_service; DSCR báo cáo 1,34 ở trạng thái NEEDS_VERIFICATION, ghi chú tính lại 1,445 dùng EBITDA 98 tỷ và trả nợ 67,8 tỷ, nhưng cảnh báo cũng nêu nguồn khoản trả nợ cần xác minh. EBITDA 128 tỷ thay thế cũng cho số tính khác. Lịch trả gốc/lãi của khoản vay mới và nghĩa vụ nợ đầy đủ chưa có nên không thể tính DSCR dự phóng đáng tin cậy.\nChính sách CS-TD-SME/2025 §4.2 yêu cầu DSCR dự phóng ≥1,25 lần, nợ vay/EBITDA sau cấp tín dụng ≤3,5 lần và EBIT/chi phí lãi vay ≥2,0 lần. Chưa tính được DSCR và EBIT/chi phí lãi vay do thiếu/không nhất quán dữ liệu; không thể xác nhận đạt điều kiện. Chính sách về LTV theo §7.1 giới hạn ≤70%; khách hàng khai không có TSBĐ nên không dùng TSBĐ đang ghi nhận để bảo đảm khoản đề nghị.\nDòng tiền vào được báo cáo 668,8 tỷ đồng nhưng chỉ có 11 tháng dữ liệu; cần xác nhận kỳ đo và bổ sung tháng thiếu. Chưa thể đối chiếu dòng tiền tài khoản với doanh thu và chu kỳ vốn lưu động.\nTài sản nhà xưởng/QSDĐ được ghi nhận giá trị khai báo 145 tỷ, pháp lý trạng thái clear nhưng định giá NEEDS_VERIFICATION; khách hàng lại khai hồ sơ này không có TSBĐ. Không đưa vào phương án bảo đảm trước khi xác nhận ý chí thế chấp và thẩm định/kiểm chứng giá trị.\nĐiều kiện vận hành trước khi trình chưa hoàn tất: cần làm rõ thông tin pháp nhân/người đại diện và UBO; đối chiếu dư nợ và BCTC; xác minh EBITDA, nghĩa vụ trả nợ và dòng tiền; xác nhận mục đích/nguồn trả nợ, lịch trả nợ và việc có hay không dùng tài sản bảo đảm. Tài liệu được cung cấp có nhãn dữ liệu mẫu.\nBổ sung/xác minh hồ sơ pháp nhân, người đại diện theo pháp luật và UBO; giải trình mọi sai lệch trước khi trình phê duyệt (compliance_policy.md Điều 5).\nĐối chiếu dư nợ BCTC 2025 với CIC và xác nhận dư nợ, lịch trả gốc/lãi của toàn bộ khoản vay hiện hữu tại ngày lập tờ trình.\nNộp BCTC và hồ sơ trả nợ/nguồn trả nợ đủ tin cậy; xác minh EBITDA (bao gồm cờ 128 tỷ), debt service, EBIT, chi phí lãi vay và tính lại DSCR dự phóng cho đúng lịch trả khoản vay đề nghị.\nBổ sung sao kê đủ 12 tháng và giải trình dòng tiền vào 668,8 tỷ hiện mới có 11 tháng; làm rõ nhu cầu vốn lưu động và dòng tiền trả nợ.\nXác nhận bằng văn bản khoản vay là không có TSBĐ hay dự kiến thế chấp tài sản nhà xưởng/QSDĐ; nếu dùng TSBĐ, hoàn tất kiểm chứng pháp lý và định giá, áp dụng LTV tối đa 70%.\nSau khi bổ sung hồ sơ, thẩm định lại các tiêu chí chính sách CS-TD-SME/2025 §4.2: DSCR ≥1,25; nợ vay/EBITDA ≤3,5; EBIT/chi phí lãi vay ≥2,0. Quyết định cuối cùng thuộc người có thẩm quyền.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C4",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 14.387668132781982,
+   "calls": 10,
+   "tokens": {
+    "prompt": 2038,
+    "completion": 2903,
+    "total": 4941
+   },
+   "cost_usd": 0.0016553000000000002,
+   "llm_requests": 2,
+   "gate": "PENDING_APPROVAL",
+   "case_id_engine": "case_9e0116a554dd",
+   "grade": {
+    "findings": {
+     "total_exposure": false,
+     "audited_fs": false,
+     "dscr_conflict": true,
+     "existing_loans": false
+    },
+    "findings_hit": 1,
+    "findings_total": 4,
+    "citations": {
+     "cite_authority": false,
+     "cite_dscr": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "PENDING_APPROVAL",
+    "gate_ok": true
+   },
+   "conclusion_text": "Đạt các kiểm tra tuân thủ KYB/AML/CIC\nĐủ điều kiện tín dụng. Đề xuất hạn mức 5,000,000,000 VND (DSCR 1.34, đòn bẩy 0.05)\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nĐiều kiện vận hành đạt. Đã tạo bản nháp draft-case_9e0116a554dd (chưa hiệu lực)\nĐỀ XUẤT PHÊ DUYỆT hạn mức 5,000,000,000 VND\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nKHUYẾN NGHỊ: Đề xuất PHÊ DUYỆT hạn mức tín dụng 5.000.000.000 VND, với điều kiện xác minh các chỉ số tài chính trước khi chốt phê duyệt. Hồ sơ đã qua kiểm tra tuân thủ KYB/AML/CIC và điều kiện vận hành; bản nháp hồ sơ draft-case_9e0116a554dd đã được tạo nhưng chưa có hiệu lực.\n\nLÝ DO CHÍNH: Chuyên gia tín dụng đánh giá khách hàng đủ điều kiện tín dụng ở mức hạn mức đề xuất. Đòn bẩy tài chính 0,05 ở mức thấp. Khách hàng hiện có 2 khoản vay tại SHB.\n\nĐIỂM CẦN LƯU Ý:\n1. DSCR 1,34 ghi nhận hiện ở trạng thái NEEDS_VERIFICATION, và dữ liệu đang là dữ liệu mẫu. Tính lại từ dư nợ gốc cộng lãi 67,8 tỷ VND với EBITDA 98 tỷ VND cho DSCR 1,445.\n2. Nếu dùng EBITDA 128 tỷ VND (cờ BCTC 2025), DSCR tính lại là 1,888, trong khi số ghi nhận khoảng 1,76. Có sự lệch giữa các con số, cần làm rõ nguồn khoản trả nợ và EBITDA.\n3. Điều kiện trước khi trình phê duyệt: xác minh DSCR và EBITDA. Kết quả xác minh có thể làm thay đổi mức độ phù hợp của hạn mức đề xuất.\n4. Điều kiện trước giải ngân đợt 2: bổ sung BCTC quý gần nhất.\n5. Nhật ký kiểm chứng ghi nhận 3 verdict được xác thực, không có vấn đề về bằng chứng.\n\nKHUYẾN NGHỊ HÀNH ĐỘNG: Phê duyệt có điều kiện. Hoàn tất xác minh DSCR/EBITDA và thu thập BCTC quý gần nhất trước khi giải ngân đợt 2.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_annual_inflow",
+    "get_business",
+    "create_loan_draft"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C4",
+   "iteration": 2,
+   "error": null,
+   "latency_s": 32.87187370698666,
+   "calls": 7,
+   "tokens": {
+    "prompt": 8807,
+    "completion": 3035,
+    "total": 11842
+   },
+   "cost_usd": 0.00197093,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "total_exposure": false,
+     "audited_fs": false,
+     "dscr_conflict": true,
+     "existing_loans": true
+    },
+    "findings_hit": 2,
+    "findings_total": 4,
+    "citations": {
+     "cite_authority": false,
+     "cite_dscr": true
+    },
+    "citations_hit": 1,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Khuyến nghị CHƯA trình phê duyệt khoản vay 5 tỷ đồng/12 tháng; cần bổ sung và đối chiếu số liệu trước khi kết luận khả năng trả nợ. AML không có hit, CIC nhóm 1 và không quá hạn; doanh nghiệp đang hoạt động, có tài khoản. Tuy nhiên DSCR chưa được xác minh và dữ liệu dư nợ không khớp giữa BCTC (56 tỷ đồng) với CIC/các khoản vay hiện hữu (98 tỷ đồng); EBITDA 2025 cũng có chênh lệch 98/128 tỷ đồng. Thông tin người đại diện theo pháp luật còn trống, nên hồ sơ KYB chưa đầy đủ. Chưa đề xuất hạn mức giải ngân ở bước này; không dựa vào tài sản bảo đảm vì đề nghị khai báo không có TSBĐ và tài sản tra cứu có định giá cần xác minh.\nTuân thủ: tra cứu AML/KYC có screened=true, hit=false, mức rủi ro thấp; chưa phát hiện căn cứ từ chối AML.\nCIC: nhóm 1, số quá hạn 0; dư nợ CIC 98 tỷ đồng. Hai khoản vay hiện hữu được xác minh có dư nợ 56 tỷ và 42 tỷ, tổng 98 tỷ; trả hàng tháng tổng 2,1 tỷ đồng.\nBCTC 2025 ghi nợ 56 tỷ, vốn chủ sở hữu 1.018,5 tỷ, EBITDA 98 tỷ; các năm 2023–2024 thiếu nhiều chỉ tiêu. Chênh lệch giữa nợ BCTC 56 tỷ và dư nợ CIC/khoản vay 98 tỷ cần đối chiếu trước khi xác nhận đòn bẩy.\nĐòn bẩy sơ bộ theo dư nợ hiện hữu CIC 98 tỷ, cộng khoản vay đề nghị 5 tỷ, chia EBITDA 98 tỷ = khoảng 1,05 lần. Đây là phép tính sơ bộ; cần xác minh số liệu nợ và EBITDA trước khi dùng làm kết luận.\nThanh khoản BCTC 2025: tài sản ngắn hạn/nợ ngắn hạn khoảng 2,80 lần. Không đủ dữ liệu để tính EBIT/chi phí lãi vay theo chính sách do chưa có EBIT xác nhận.\nDSCR chưa thể kết luận đạt: trường dữ liệu ghi 1,34 ở trạng thái NEEDS_VERIFICATION; cảnh báo dữ liệu ghi phép tính lại 1,445 với EBITDA 98 tỷ và 1,888 với EBITDA 128 tỷ nhưng vẫn yêu cầu xác minh nguồn nghĩa vụ trả nợ. Chưa có lịch trả nợ/dòng tiền dự phóng đủ tin cậy để kiểm tra DSCR sau cấp khoản vay.\nDòng tiền vào tài khoản xác minh 668,8 tỷ đồng trong 11 tháng gần nhất; không quy đổi thành 12 tháng. Mức này hỗ trợ đánh giá quy mô hoạt động nhưng không thay thế dự báo dòng tiền trả nợ.\nKYB: pháp nhân ở trạng thái ACTIVE/KYC VERIFIED, nhưng tên và CCCD người đại diện theo pháp luật trên dữ liệu doanh nghiệp để trống; cần bổ sung hồ sơ đăng ký doanh nghiệp, thông tin người đại diện và UBO theo yêu cầu KYB.\nTSBĐ: khách hàng khai báo không có TSBĐ. Có tài sản bất động sản được ghi nhận giá trị 145 tỷ đồng nhưng định giá NEEDS_VERIFICATION; không tính tài sản này vào hạn mức hoặc điều kiện khoản vay hiện tại.\nVận hành: tài khoản doanh nghiệp đang hoạt động. Hồ sơ chưa sẵn sàng trình chính thức cho đến khi hoàn tất bổ sung/đối chiếu; mọi quyết định cấp tín dụng thuộc cấp có thẩm quyền.\nBổ sung BCTC và bảng đối chiếu dư nợ chi tiết để giải thích chênh lệch nợ 56 tỷ trên BCTC với tổng dư nợ 98 tỷ theo CIC/khoản vay; xác nhận đầy đủ nghĩa vụ trả nợ gốc và lãi hiện hữu.\nXác minh EBITDA 2025 (98 tỷ hay 128 tỷ) và cung cấp EBIT, chi phí lãi vay cùng dòng tiền/DSCR dự phóng sau khoản vay; chứng minh DSCR đạt ít nhất 1,25 lần theo CS-TD-SME/2025 §4.2.\nBổ sung hồ sơ pháp nhân, thông tin người đại diện theo pháp luật và UBO; hoàn tất kiểm tra đối chiếu KYB.\nNếu sau này dùng bất động sản làm TSBĐ, phải xác minh định giá và hồ sơ pháp lý; mức cho vay tối đa theo chính sách không vượt 70% giá trị định giá được chấp thuận.\nKiểm tra lại CIC trước khi giải ngân; khoản vay chỉ được khởi tạo chính thức sau khi có phê duyệt còn hiệu lực của cấp thẩm quyền.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow",
+    "get_collateral"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C4",
+   "iteration": 2,
+   "error": null,
+   "latency_s": 20.5096755027771,
+   "calls": 10,
+   "tokens": {
+    "prompt": 3128,
+    "completion": 4449,
+    "total": 7577
+   },
+   "cost_usd": 0.0025373,
+   "llm_requests": 3,
+   "gate": "PENDING_APPROVAL",
+   "case_id_engine": "case_dcba944a602b",
+   "grade": {
+    "findings": {
+     "total_exposure": false,
+     "audited_fs": false,
+     "dscr_conflict": true,
+     "existing_loans": false
+    },
+    "findings_hit": 1,
+    "findings_total": 4,
+    "citations": {
+     "cite_authority": false,
+     "cite_dscr": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "PENDING_APPROVAL",
+    "gate_ok": true
+   },
+   "conclusion_text": "Đạt các kiểm tra tuân thủ KYB/AML/CIC\nĐủ điều kiện tín dụng. Đề xuất hạn mức 5,000,000,000 VND (DSCR 1.34, đòn bẩy 0.05)\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nĐiều kiện vận hành đạt. Đã tạo bản nháp draft-case_dcba944a602b (chưa hiệu lực)\nĐỀ XUẤT PHÊ DUYỆT hạn mức 5,000,000,000 VND\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nKẾT LUẬN: Đề xuất PHÊ DUYỆT hạn mức tín dụng 5.000.000.000 VND. Hồ sơ đủ điều kiện tín dụng; kiểm tra tuân thủ KYB/AML/CIC đạt; điều kiện vận hành đạt. Bản nháp hồ sơ draft-case_dcba944a602b đã được tạo nhưng chưa có hiệu lực.\n\nHẠN MỨC: 5.000.000.000 VND. Không có hạn mức tài sản bảo đảm tối đa được chuyên gia xác định.\n\nLÝ DO CHÍNH: Chỉ số DSCR ghi nhận 1,34 với đòn bẩy 0,05. Khi tính lại từ số gốc cộng lãi 67,8 tỷ đồng với EBITDA 98 tỷ đồng, DSCR đạt 1,445. Kết quả xác thực 3 verdict không ghi nhận vấn đề về bằng chứng.\n\nĐIỂM CẦN LƯU Ý:\n1. DSCR 1,34 đang ở trạng thái cần xác minh (dữ liệu mẫu). Cần xác minh trước khi trình phê duyệt chính thức.\n2. Với EBITDA 128 tỷ đồng theo cờ BCTC 2025, DSCR tính lại đạt 1,888, trong khi số ghi nhận khoảng 1,76. Có sự lệch này, cần xác minh nguồn khoản trả nợ.\n3. Khách hàng đang có 2 khoản vay hiện hữu tại ngân hàng, cần rà soát tổng dư nợ khi xét hạn mức.\n4. Điều kiện giải ngân: bổ sung BCTC quý gần nhất trước khi giải ngân đợt 2.\n\nKHUYẾN NGHỊ: Phê duyệt có điều kiện. Hoàn tất xác minh DSCR và EBITDA, làm rõ chênh lệch về khoản trả nợ, và bổ sung BCTC quý gần nhất trước giải ngân đợt 2.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_financials",
+    "get_business",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_annual_inflow",
+    "get_business",
+    "create_loan_draft"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C4",
+   "iteration": 3,
+   "error": null,
+   "latency_s": 29.744804666988784,
+   "calls": 7,
+   "tokens": {
+    "prompt": 8196,
+    "completion": 2813,
+    "total": 11009
+   },
+   "cost_usd": 0.00178459,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "total_exposure": false,
+     "audited_fs": false,
+     "dscr_conflict": true,
+     "existing_loans": true
+    },
+    "findings_hit": 2,
+    "findings_total": 4,
+    "citations": {
+     "cite_authority": false,
+     "cite_dscr": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Khuyến nghị chưa trình phê duyệt khoản vay 5 tỷ đồng/12 tháng; cần bổ sung và đối soát dữ liệu trước khi kết luận khả năng trả nợ và hạn mức. Các điều kiện sàng lọc hiện có không ghi nhận hit AML, CIC nhóm 1 và doanh nghiệp đang hoạt động/KYC verified. Tuy nhiên hồ sơ tài chính có cảnh báo DSCR chưa xác minh và số nợ/dịch vụ nợ không nhất quán; thông tin KYB về người đại diện còn trống. Tài sản bảo đảm có trong hệ thống nhưng hồ sơ đề nghị ghi không có TSĐB, nên chưa tính vào phương án cấp tín dụng hoặc LTV. Đây là khuyến nghị thẩm định, không phải quyết định cấp tín dụng.\nPháp nhân: Công ty Cổ phần Bao bì VinaNova, trạng thái ACTIVE, KYC VERIFIED; trường tên và CCCD người đại diện theo pháp luật đang để trống. Cần hoàn thiện/đối chiếu hồ sơ KYB, gồm người đại diện và UBO.\nAML: đã sàng lọc, hit=false; PEP NOT_PEP, rủi ro AML LOW. Không thấy điều kiện từ chối AML theo dữ liệu truy vấn.\nCIC: nhóm 1, dư nợ báo cáo 98 tỷ đồng, quá hạn 0; không thuộc ngưỡng từ chối CIC nhóm 3 trở lên. CIC cần được kiểm tra lại trong thời hạn hiệu lực và tại thời điểm thực thi theo chính sách.\nDoanh thu 2025 là 705 tỷ đồng, dưới ngưỡng SME 1.000 tỷ; EBITDA 98 tỷ; vốn chủ sở hữu 1.018,5 tỷ; nợ tài chính ghi nhận 56 tỷ. Nợ vay/EBITDA tính theo số nợ trên BCTC là 0,57x hiện tại và khoảng 0,62x sau khoản đề nghị 5 tỷ; nhưng CIC/khai báo dư nợ hiện hữu là 98 tỷ, tương ứng khoảng 1,05x sau vay. Cần đối soát chênh lệch 42 tỷ trước khi dùng chỉ số đòn bẩy.\nDSCR chưa thể xác nhận: BCTC có DSCR 1,34 ở trạng thái NEEDS_VERIFICATION; cảnh báo nguồn nêu cách tính từ EBITDA 98 tỷ và tổng gốc+lãi 67,8 tỷ cho kết quả khoảng 1,445, đồng thời có cờ EBITDA 128 tỷ và con số trả nợ gốc -50 tỷ bất thường. Khoản vay mới chưa có lịch trả nợ xác nhận, nên không thể tính DSCR dự phóng sau cấp vay một cách tin cậy. Chính sách yêu cầu DSCR dự phóng ≥1,25x, Nợ vay/EBITDA sau cấp tín dụng ≤3,5x và EBIT/chi phí lãi vay ≥2,0x.\nDòng tiền: tiền về tài khoản xác minh 668,8 tỷ đồng trong 11 tháng; cần sao kê/đối chiếu kỳ dữ liệu đủ 12 tháng và xác minh doanh thu, dòng tiền hoạt động. Khoản trả nợ hiện hữu xác minh 2,1 tỷ đồng/tháng (25,2 tỷ đồng/năm), cần đối chiếu với số liệu nghĩa vụ nợ và dịch vụ nợ trong BCTC.\nTSĐB: dữ liệu hệ thống có nhà xưởng/QSDĐ định giá khai báo 145 tỷ đồng, pháp lý ghi clear nhưng định giá NEEDS_VERIFICATION. Đề nghị vay khai báo has_collateral=false nên chưa dựa vào tài sản này; nếu đưa vào phương án bảo đảm phải xác minh định giá/pháp lý và áp dụng LTV tối đa 70%.\nVận hành trước khi trình: cần hoàn thiện hồ sơ KYB (đăng ký doanh nghiệp, mã số thuế, người đại diện và UBO), xác minh BCTC và lịch trả nợ, đối soát dư nợ CIC với khoản vay hiện hữu, bổ sung chứng từ mục đích vốn lưu động và sao kê đủ kỳ; xác nhận phương án có/không có TSĐB. Chưa đề xuất hạn mức vì dữ liệu cốt lõi để kiểm tra DSCR sau vay còn mâu thuẫn.\nBổ sung giấy chứng nhận đăng ký doanh nghiệp, mã số thuế, giấy tờ người đại diện và thông tin UBO; đối chiếu tính nhất quán trước khi trình.\nBổ sung BCTC/giải trình xác nhận EBITDA, khoản trả nợ gốc-lãi và tính lại DSCR dự phóng cho khoản vay 5 tỷ đồng/12 tháng; cần đạt DSCR ≥1,25x theo chính sách.\nĐối soát dư nợ 56 tỷ đồng trên BCTC với dư nợ CIC 98 tỷ đồng và xác nhận đầy đủ các nghĩa vụ trả nợ hiện hữu.\nBổ sung chứng từ mục đích sử dụng vốn và dữ liệu dòng tiền/sao kê đủ kỳ 12 tháng.\nNếu đề nghị dùng nhà xưởng/QSDĐ làm TSĐB, xác minh hồ sơ pháp lý và định giá; LTV không vượt 70%.\nTra cứu lại CIC theo yêu cầu hiệu lực chính sách tại thời điểm trình và trước khi thực thi.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C4",
+   "iteration": 3,
+   "error": null,
+   "latency_s": 13.35477590560913,
+   "calls": 10,
+   "tokens": {
+    "prompt": 2042,
+    "completion": 2745,
+    "total": 4787
+   },
+   "cost_usd": 0.0015766999999999999,
+   "llm_requests": 2,
+   "gate": "PENDING_APPROVAL",
+   "case_id_engine": "case_eb6f90c5a4d8",
+   "grade": {
+    "findings": {
+     "total_exposure": false,
+     "audited_fs": false,
+     "dscr_conflict": true,
+     "existing_loans": false
+    },
+    "findings_hit": 1,
+    "findings_total": 4,
+    "citations": {
+     "cite_authority": false,
+     "cite_dscr": false
+    },
+    "citations_hit": 0,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "PENDING_APPROVAL",
+    "gate_ok": true
+   },
+   "conclusion_text": "Đạt các kiểm tra tuân thủ KYB/AML/CIC\nĐủ điều kiện tín dụng. Đề xuất hạn mức 5,000,000,000 VND (DSCR 1.34, đòn bẩy 0.05)\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nĐiều kiện vận hành đạt. Đã tạo bản nháp draft-case_eb6f90c5a4d8 (chưa hiệu lực)\nĐỀ XUẤT PHÊ DUYỆT hạn mức 5,000,000,000 VND\nDSCR ghi 1.34 (NEEDS_VERIFICATION); tính lại từ gốc + lãi 67.8 tỷ ra 1.445 với EBITDA 98 tỷ\nVới EBITDA 128 tỷ (cờ BCTC 2025) tính lại ra 1.888; số ghi ≈1,76 — lệch, cần xác minh nguồn khoản trả nợ\nDSCR 1.34 ở trạng thái NEEDS_VERIFICATION (dữ liệu mẫu) — cần xác minh\nĐang có 2 khoản vay hiện hữu tại ngân hàng\nXác minh DSCR và EBITDA trước khi trình phê duyệt\nBổ sung BCTC quý gần nhất trước giải ngân đợt 2\nKẾT LUẬN: Hội đồng tổng hợp đề xuất PHÊ DUYỆT hạn mức tín dụng 5.000.000.000 VND. Đề xuất đạt kiểm tra tuân thủ (KYB/AML/CIC) và điều kiện vận hành. Hồ sơ đã tạo bản nháp draft-case_eb6f90c5a4d8, chưa có hiệu lực.\n\nHẠN MỨC: 5.000.000.000 VND. Không có hạn mức có tài sản bảo đảm tối đa được xác định.\n\nLÝ DO CHÍNH: Chuyên gia tín dụng đánh giá khách hàng đủ điều kiện tín dụng, đòn bẩy 0,05. Chỉ số DSCR ghi nhận 1,34 nhưng đang ở trạng thái cần xác minh (dữ liệu mẫu). Kết quả tính lại từ số gốc cộng lãi 67,8 tỷ đồng cho DSCR 1,445 với EBITDA 98 tỷ đồng. Với EBITDA 128 tỷ đồng (cờ BCTC 2025), DSCR tính lại là 1,888, nhưng số ghi nhận khoảng 1,76 chưa khớp, cần làm rõ nguồn khoản trả nợ. Xác thực 3 verdict không phát hiện vấn đề về bằng chứng.\n\nĐIỂM CẦN LƯU Ý:\n1. Xác minh DSCR và EBITDA trước khi trình phê duyệt chính thức. Đối chiếu số ghi nhận với kết quả tính lại và nguồn khoản trả nợ.\n2. Khách hàng đang có 2 khoản vay hiện hữu tại ngân hàng. Cần xem xét tổng dư nợ khi quyết định hạn mức.\n3. Bổ sung BCTC quý gần nhất trước khi giải ngân đợt 2.\n4. Bản nháp hồ sơ chưa có hiệu lực; chỉ kích hoạt sau khi hoàn tất các điều kiện trên.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_annual_inflow",
+    "get_business",
+    "create_loan_draft"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C5",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 22.816174082021462,
+   "calls": 7,
+   "tokens": {
+    "prompt": 7361,
+    "completion": 2106,
+    "total": 9467
+   },
+   "cost_usd": 0.001424235,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "no_financials": true,
+     "aml_unscreened": true,
+     "audited_fs": true,
+     "no_collateral": true
+    },
+    "findings_hit": 4,
+    "findings_total": 4,
+    "citations": {
+     "cite_audit": false
+    },
+    "citations_hit": 0,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa đủ cơ sở để khuyến nghị cấp khoản vay 25 tỷ đồng trong 36 tháng. Chưa có dữ liệu BCTC để tính DSCR/đòn bẩy/khả năng trả nợ, không có dòng tiền vào được xác minh; hồ sơ KYB thiếu thông tin người đại diện và trạng thái tra AML mới ghi nhận chưa được sàng lọc. CIC hiện nhóm 1, không quá hạn, nhưng không thay thế các điều kiện còn thiếu. Chưa xác định hạn mức đề xuất; yêu cầu bổ sung hồ sơ và thẩm định lại trước khi trình người có thẩm quyền.\nPháp nhân đang hoạt động, KYC status ghi VERIFIED; tuy nhiên thông tin người đại diện theo pháp luật trống, chưa đủ dữ liệu KYB để đối chiếu.\nAML trả về hit=false nhưng screened=false và ghi chưa có đánh giá KYC/AML trong hệ thống; chưa thể coi đây là kết quả sàng lọc AML hoàn tất. Nếu có hit thì phải dừng/từ chối theo chính sách.\nKhông có số liệu tài chính nhiều năm; không thể tính DSCR, Nợ vay/EBITDA hoặc EBIT/chi phí lãi vay. Chính sách yêu cầu DSCR dự phóng tối thiểu 1,25 lần, Nợ vay/EBITDA sau cấp tín dụng tối đa 3,5 lần, EBIT/chi phí lãi vay tối thiểu 2,0 lần.\nKhông có tiền về tài khoản được xác minh và không có tài khoản/sao kê tại ngân hàng; chưa có bằng chứng dòng tiền trả nợ.\nCIC gần nhất ghi nhóm 1, dư nợ 0 và quá hạn 0; không có dư nợ hiện hữu trong dữ liệu tra cứu. Cần kiểm tra hiệu lực CIC tại thời điểm trình/giải ngân theo quy định.\nKhông có tài sản bảo đảm trong hồ sơ, phù hợp với khai báo không có TSĐB; chưa có căn cứ để áp dụng LTV hoặc xác định hạn mức trên cơ sở bảo đảm.\nKhoản đề nghị 25 tỷ đồng vượt ngưỡng 20 tỷ, cần bổ sung BCTC kiểm toán theo danh mục hồ sơ chính sách trước khi đánh giá tiếp.\nBổ sung hồ sơ KYB: giấy đăng ký doanh nghiệp, mã số thuế, thông tin giấy tờ người đại diện pháp luật và UBO; đối chiếu tính nhất quán.\nHoàn tất đánh giá KYC/AML và sàng lọc khách hàng, người đại diện và UBO; nếu phát sinh hit thì từ chối theo chính sách.\nBổ sung BCTC các năm và BCTC kiểm toán theo yêu cầu áp dụng cho tổng cấp tín dụng trên 20 tỷ; cung cấp phương án kinh doanh/dòng tiền dự phóng và chứng từ nguồn trả nợ để tính DSCR, đòn bẩy và khả năng trả lãi.\nCung cấp sao kê/dữ liệu dòng tiền 12 tháng và xác nhận các khoản nợ, nghĩa vụ trả nợ hiện hữu; cập nhật CIC còn hiệu lực khi trình.\nBổ sung hồ sơ mục đích vay và báo giá/hợp đồng mua xe đầu kéo, container; thẩm định lại khả năng trả nợ và phương án cấp tín dụng không có TSĐB trước khi đề xuất hạn mức.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C5",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 14.3955979347229,
+   "calls": 8,
+   "tokens": {
+    "prompt": 1786,
+    "completion": 2762,
+    "total": 4548
+   },
+   "cost_usd": 0.0015596,
+   "llm_requests": 2,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_355dba8e35fe",
+   "grade": {
+    "findings": {
+     "no_financials": true,
+     "aml_unscreened": true,
+     "audited_fs": false,
+     "no_collateral": true
+    },
+    "findings_hit": 3,
+    "findings_total": 4,
+    "citations": {
+     "cite_audit": false
+    },
+    "citations_hit": 0,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Không có số liệu tài chính — yêu cầu bổ sung BCTC\nĐạt các kiểm tra tuân thủ KYB/AML/CIC\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nDoanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân\nESCALATE: mâu thuẫn không tự giải được sau vòng challenge hoặc thiếu evidence\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nKết luận: Chưa đủ cơ sở phê duyệt; đề xuất yêu cầu bổ sung thông tin (need_more_info) và chuyển cấp phê duyệt (ESCALATE) do thiếu evidence và vòng xác thực còn 1 vấn đề evidence chưa tự giải được. Hạn mức: chưa đề xuất (không có hạn mức đề xuất, không có hạn mức có tài sản bảo đảm tối đa). Lý do chính: (1) Tuân thủ: kết luận approve nhưng còn điều kiện tiên quyết là chưa có đánh giá KYC/AML trong hệ thống, cần tra cứu AML/danh sách đen trước khi trình phê duyệt. (2) Tín dụng: không có số liệu tài chính, yêu cầu bổ sung báo cáo tài chính (BCTC) trước khi thẩm định hạn mức. (3) Vận hành: doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng, cần mở tài khoản trước khi giải ngân. Điểm cần lưu ý: Cấp phê duyệt cần xem xét mâu thuẫn evidence từ vòng xác thực trước khi quyết định; kết quả tuân thủ chỉ có hiệu lực sau khi hoàn tất tra cứu AML; không giải ngân khi chưa mở tài khoản thanh toán và chưa có BCTC được thẩm định.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_business"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C5",
+   "iteration": 2,
+   "error": null,
+   "latency_s": 20.682723888981855,
+   "calls": 7,
+   "tokens": {
+    "prompt": 6444,
+    "completion": 1770,
+    "total": 8214
+   },
+   "cost_usd": 0.001145405,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "no_financials": true,
+     "aml_unscreened": true,
+     "audited_fs": false,
+     "no_collateral": true
+    },
+    "findings_hit": 3,
+    "findings_total": 4,
+    "citations": {
+     "cite_audit": false
+    },
+    "citations_hit": 0,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa đủ cơ sở thẩm định để khuyến nghị cấp khoản vay 25 tỷ đồng/36 tháng. Hồ sơ pháp nhân đang ACTIVE, KYC hiển thị VERIFIED; CIC nhóm 1, dư nợ/ quá hạn ghi nhận bằng 0. Tuy nhiên không có báo cáo tài chính, dư nợ hiện hữu, dòng tiền vào được xác minh hoặc TSBĐ; AML trả về hit=false nhưng screened=false, nên chưa thể coi là đã hoàn tất sàng lọc. Thiếu thông tin người đại diện theo pháp luật trên hồ sơ và chưa có hồ sơ KYB đầy đủ. Không thể tính DSCR, đòn bẩy hoặc khả năng trả nợ để xác định hạn mức. Chính sách SME truy vấn yêu cầu DSCR dự phóng ≥1,25 lần, Nợ vay/EBITDA sau cấp tín dụng ≤3,5 lần và EBIT/chi phí lãi vay ≥2,0 lần; LTV TSBĐ tối đa 70%. Đề nghị bổ sung hồ sơ rồi thẩm định lại; chưa đề xuất hạn mức tại thời điểm này.\nPháp nhân Công ty Cổ phần Logistics Cảng Xanh Hải Phòng có trạng thái ACTIVE và KYC status VERIFIED; trường thông tin người đại diện theo pháp luật đang để trống.\nAML/blacklist: kết quả hit=false nhưng screened=false và ghi chú yêu cầu tra cứu trước khi trình; cần hoàn tất screening, chưa thể xác nhận tuân thủ.\nCIC: nhóm 1, dư nợ hiện hữu và quá hạn ghi nhận 0 theo báo cáo ngày 2026-10-13.\nKhông có dữ liệu tài chính nhiều năm, không có dư nợ hiện hữu trả về và không có verified annual inflow; không thể tính DSCR, đòn bẩy hoặc đánh giá dòng tiền.\nKhông có tài sản bảo đảm được ghi nhận; đề nghị vay nêu has_collateral=false. Vì vậy không thể áp dụng/kiểm tra LTV và yêu cầu TSBĐ.\nChưa có đủ dữ liệu/hồ sơ để kiểm tra điều kiện vận hành và mục đích mua xe đầu kéo/container trước khi trình.\nHoàn tất tra soát AML/blacklist có trạng thái screened=true; nếu phát sinh hit thì dừng và từ chối theo chính sách AML.\nBổ sung hồ sơ KYB: đăng ký doanh nghiệp, mã số thuế, thông tin người đại diện và UBO; đối chiếu thông tin người đại diện theo yêu cầu chính sách.\nBổ sung báo cáo tài chính và dữ liệu dòng tiền/sao kê đủ để lập dự phóng trả nợ; cung cấp thông tin nghĩa vụ nợ đầy đủ để tính DSCR và đòn bẩy.\nBổ sung báo giá/hợp đồng mua xe đầu kéo và container, chứng từ mục đích vay và hồ sơ vận hành liên quan.\nNếu cấu trúc khoản vay cần TSBĐ, bổ sung hồ sơ pháp lý/định giá và bảo đảm LTV không vượt 70%; nếu vay không TSBĐ, cần đánh giá lại theo chính sách và dữ liệu dòng tiền đầy đủ.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C5",
+   "iteration": 2,
+   "error": null,
+   "latency_s": 13.351120948791504,
+   "calls": 8,
+   "tokens": {
+    "prompt": 1786,
+    "completion": 2631,
+    "total": 4417
+   },
+   "cost_usd": 0.0014941,
+   "llm_requests": 2,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_988b197912ca",
+   "grade": {
+    "findings": {
+     "no_financials": true,
+     "aml_unscreened": true,
+     "audited_fs": false,
+     "no_collateral": false
+    },
+    "findings_hit": 2,
+    "findings_total": 4,
+    "citations": {
+     "cite_audit": false
+    },
+    "citations_hit": 0,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Không có số liệu tài chính — yêu cầu bổ sung BCTC\nĐạt các kiểm tra tuân thủ KYB/AML/CIC\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nDoanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân\nESCALATE: mâu thuẫn không tự giải được sau vòng challenge hoặc thiếu evidence\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nKết luận: Chưa thể phê duyệt. Hồ sơ được chuyển cấp phê duyệt theo cơ chế ESCALATE vì còn thiếu evidence và vòng xác thực ghi nhận 1 vấn đề về evidence chưa tự giải quyết được.\n\nHạn mức: Chưa đề xuất hạn mức, cả hạn mức thường và hạn mức có tài sản bảo đảm đều chưa xác định.\n\nLý do chính:\n- Tín dụng (need_more_info): Chưa có số liệu tài chính. Cần bổ sung báo cáo tài chính (BCTC) để đánh giá năng lực trả nợ.\n- Tuân thủ (approve): Đạt các kiểm tra KYB/AML/CIC, nhưng hệ thống chưa có đánh giá KYC/AML. Cần tra cứu AML và danh sách đen trước khi trình phê duyệt.\n- Vận hành (need_more_info): Doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng. Cần mở tài khoản trước khi giải ngân.\n\nĐiểm cần lưu ý:\n1. Bổ sung BCTC và hoàn tất tra cứu AML/danh sách đen trước khi trình lại.\n2. Giải quyết vấn đề evidence được ghi nhận trong vòng xác thực.\n3. Mở tài khoản thanh toán là điều kiện tiên quyết cho giải ngân, không ảnh hưởng đến việc thẩm định nếu các mục trên đã đáp ứng.\n4. Sau khi bổ sung đủ thông tin, hồ sơ cần được thẩm định lại trước khi quyết định hạn mức.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_financials",
+    "get_business",
+    "get_existing_loans",
+    "check_blacklist",
+    "get_cic_status",
+    "get_business"
+   ]
+  },
+  {
+   "mode": "single",
+   "case_id": "C5",
+   "iteration": 3,
+   "error": null,
+   "latency_s": 24.678456655994523,
+   "calls": 7,
+   "tokens": {
+    "prompt": 6493,
+    "completion": 1953,
+    "total": 8446
+   },
+   "cost_usd": 0.00125154,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "grade": {
+    "findings": {
+     "no_financials": true,
+     "aml_unscreened": true,
+     "audited_fs": true,
+     "no_collateral": true
+    },
+    "findings_hit": 4,
+    "findings_total": 4,
+    "citations": {
+     "cite_audit": false
+    },
+    "citations_hit": 0,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Chưa đủ cơ sở để đề xuất cấp khoản vay 25 tỷ đồng/36 tháng. Khách hàng đang ACTIVE, trạng thái KYB/KYC trên hồ sơ là VERIFIED; tuy nhiên thông tin người đại diện pháp luật bị trống. Kết quả AML trả về hit=false nhưng screened=false và chưa có đánh giá KYC/AML trong hệ thống, nên chưa thể coi là đã hoàn tất sàng lọc. CIC ghi nhận nhóm 1, dư nợ quá hạn 0 và dư nợ hiện hữu 0; cần bảo đảm báo cáo còn hiệu lực tại thời điểm trình. Không có dữ liệu BCTC, dư nợ ngân hàng hiện hữu hoặc dòng tiền vào tài khoản đã xác minh; do đó không thể tính DSCR, đòn bẩy, EBIT/chi phí lãi vay hay đánh giá khả năng trả nợ. Không ghi nhận TSBĐ; không có cơ sở đánh giá LTV. Chưa đề xuất hạn mức. Yêu cầu bổ sung hồ sơ tài chính, sao kê/dòng tiền và hoàn tất AML/KYB trước khi thẩm định lại.\nHồ sơ pháp nhân: ACTIVE; KYC status VERIFIED, nhưng tên và CCCD người đại diện pháp luật để trống; cần xác minh thông tin KYB và thẩm quyền ký.\nAML: kết quả hit=false nhưng screened=false, chưa có đánh giá KYC/AML trong hệ thống. Đây không phải kết quả sàng lọc hoàn tất; cần tra cứu lại. Chính sách AML quy định nếu khách hàng/người đại diện có hit thì từ chối theo hard stop.\nCIC: nhóm 1, overdue_amount=0, total_outstanding=0; không phát hiện dấu hiệu nhóm 2 hoặc nhóm từ 3 trở lên trong báo cáo hiện có.\nKhông có dữ liệu tài chính nhiều năm; không có khoản vay hiện hữu được ghi nhận; verified annual inflow không có. DSCR, nợ vay/EBITDA và EBIT/chi phí lãi vay không thể tính; chưa đạt điều kiện chứng minh khả năng trả nợ.\nKhông có tài sản bảo đảm trong dữ liệu. Vì vậy chưa thể xác định giá trị tài sản/pháp lý/LTV; chính sách giới hạn LTV ≤70% nếu có TSBĐ.\nKhoản vay đề nghị 25 tỷ đồng vượt ngưỡng tổng cấp tín dụng >20 tỷ đồng trong danh mục hồ sơ; cần BCTC kiểm toán theo chính sách. Cần bổ sung hồ sơ đề nghị vay, chấp thuận tra CIC, sao kê 12 tháng và các hồ sơ theo danh mục; CIC/sao kê/xác nhận dư nợ phải còn hiệu lực 30 ngày tính tới ngày trình.\nHoàn tất sàng lọc AML/KYC cho doanh nghiệp và người đại diện; nếu có hit thì từ chối theo chính sách.\nBổ sung hồ sơ pháp lý/KYB đầy đủ, xác minh người đại diện và thẩm quyền ký.\nBổ sung BCTC kiểm toán phù hợp yêu cầu khoản cấp tín dụng trên 20 tỷ đồng, báo cáo tài chính liên quan và phương án dòng tiền/dự báo trả nợ; cung cấp sao kê 12 tháng để tính DSCR, đòn bẩy và khả năng trả lãi.\nXác minh dư nợ và bảo đảm CIC, sao kê, xác nhận dư nợ còn hiệu lực trong 30 ngày khi trình.\nLàm rõ cấu trúc tài trợ và biện pháp bảo đảm cho xe đầu kéo/container; nếu dùng TSBĐ thì thẩm định pháp lý, định giá và tuân thủ LTV tối đa 70%.\nChính sách CS-TD-SME/2025 §4.2 yêu cầu DSCR dự phóng ≥1,25 lần, Nợ vay/EBITDA sau cấp tín dụng ≤3,5 lần và EBIT/chi phí lãi vay ≥2,0 lần; chỉ xem xét đề xuất hạn mức sau khi kiểm chứng được các chỉ tiêu.",
+   "tools_called": [
+    "get_business",
+    "get_financials",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "get_annual_inflow"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "C5",
+   "iteration": 3,
+   "error": null,
+   "latency_s": 14.362952947616577,
+   "calls": 8,
+   "tokens": {
+    "prompt": 1786,
+    "completion": 2844,
+    "total": 4630
+   },
+   "cost_usd": 0.0016006,
+   "llm_requests": 2,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_cc5bf39be128",
+   "grade": {
+    "findings": {
+     "no_financials": true,
+     "aml_unscreened": true,
+     "audited_fs": false,
+     "no_collateral": false
+    },
+    "findings_hit": 2,
+    "findings_total": 4,
+    "citations": {
+     "cite_audit": false
+    },
+    "citations_hit": 0,
+    "citations_total": 1,
+    "tools": {
+     "get_financials": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_existing_loans": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v2",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true
+   },
+   "conclusion_text": "Không có số liệu tài chính — yêu cầu bổ sung BCTC\nĐạt các kiểm tra tuân thủ KYB/AML/CIC\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nDoanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân\nESCALATE: mâu thuẫn không tự giải được sau vòng challenge hoặc thiếu evidence\nchưa có đánh giá KYC/AML trong hệ thống — cần tra cứu trước khi trình\nTra cứu AML/danh sách đen trước khi trình phê duyệt\nKết luận: Cần bổ sung thông tin (need_more_info), chuyển cấp phê duyệt theo quy trình ESCALATE do còn thiếu evidence sau vòng xác thực. Chưa đề xuất hạn mức tín dụng hay hạn mức có tài sản bảo đảm.\n\nLý do chính: (1) Khối tín dụng chưa có số liệu tài chính, cần bổ sung báo cáo tài chính trước khi đánh giá khả năng trả nợ. (2) Khối vận hành ghi nhận doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng, cần mở tài khoản trước khi giải ngân. (3) Khối tuân thủ đánh giá đạt các kiểm tra KYB/AML/CIC, nhưng hệ thống chưa có đánh giá KYC/AML, nên chưa thể coi là hoàn tất. Quy trình xác thực ghi nhận 1 vấn đề về evidence.\n\nĐiểm cần lưu ý: Trước khi trình phê duyệt, cần thực hiện tra cứu AML/danh sách đen và cập nhật đánh giá KYC/AML trong hệ thống. Cần bổ sung BCTC và xác nhận mở tài khoản thanh toán. Sau khi đủ hồ sơ, đề nghị các khối tín dụng, tuân thủ và vận hành đánh giá lại, đồng thời giải quyết vấn đề evidence đã nêu trong nhật ký xác thực.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_business",
+    "get_financials",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_cic_status",
+    "get_business"
+   ]
+  }
+ ],
+ "regrade_of": "20261106T183736Z-full",
+ "grader_version": "v2"
+}
