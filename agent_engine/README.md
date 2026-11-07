@@ -1,4 +1,4 @@
-# SHB Digital Expert Agents — Backend
+# Digital Expert Agents — Backend
 
 Hệ thống multi-agent thẩm định & phê duyệt khoản vay SME end-to-end theo workflow
 Final v1.0: Planner động → specialist agents (A2A) → Validation + challenge →

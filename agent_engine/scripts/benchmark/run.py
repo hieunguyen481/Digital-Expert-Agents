@@ -69,7 +69,7 @@ def get_token(a) -> str:
 def audit_tools(a, t0: float, t1: float) -> list[str]:
     q = (f"SELECT tool FROM audit.engine_mcp_call WHERE employee_id='{OFFICER['employee_id']}' "
          f"AND called_at >= to_timestamp({t0 - 0.5}) AND called_at <= to_timestamp({t1 + 1}) "
-         f"AND outcome <> 'denied' ORDER BY id")
+         f"AND outcome NOT IN ('denied','cache_hit') ORDER BY id")
     out = sh(["docker", "exec", a.postgres, "psql", "-U", "postgres", "-d", "bank_ai", "-Atc", q])
     return [x for x in out.split() if x]
 

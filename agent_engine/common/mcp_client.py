@@ -17,8 +17,12 @@ from . import config, events, identity, trace_ctx
 async def call_tool(name: str, arguments: dict[str, Any] | None = None) -> Any:
     t0 = time.monotonic()
     outcome = "ok"
+    ctx0 = trace_ctx.current()
+    headers = identity.headers_for()
+    if ctx0 is not None:  # cho MCP dùng lại kết quả đọc trong cùng một case
+        headers["x-engine-case"] = ctx0[0]
     try:
-        async with streamablehttp_client(config.MCP_CORE_BANKING_URL, headers=identity.headers_for()) as (read, write, _):
+        async with streamablehttp_client(config.MCP_CORE_BANKING_URL, headers=headers) as (read, write, _):
             async with ClientSession(read, write) as session:
                 await session.initialize()
                 result = await session.call_tool(name, arguments or {})

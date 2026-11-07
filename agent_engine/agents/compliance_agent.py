@@ -160,7 +160,7 @@ async def _llm_task(env: Envelope) -> Verdict:
                     }, "required": ["decision", "summary"]}, None),  # type: ignore[arg-type]
     ]
     result = await llm.tool_loop(
-        system=f"Bạn là chuyên gia pháp chế & tuân thủ ngân hàng SHB. Kiểm tra KYB, "
+        system=f"Bạn là chuyên gia pháp chế & tuân thủ ngân hàng. Kiểm tra KYB, "
                f"blacklist (hit = từ chối ngay), CIC (nhóm >=3 từ chối, nhóm 2 flag), "
                f"pháp lý TSĐB (LTV tối đa {config.LTV_MAX:.0%} — tính max_secured_limit). "
                f"Trích dẫn quy định qua search_compliance_policy. Kết thúc bằng submit_verdict.",

@@ -40,7 +40,7 @@ def _authed(*roles: str):
 
 USER = Depends(_authed())
 
-app = FastAPI(title="SHB Digital Expert Agents — Gateway")
+app = FastAPI(title="Digital Expert Agents — Gateway")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"],
                    allow_headers=["*"])
 

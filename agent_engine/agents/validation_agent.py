@@ -154,7 +154,7 @@ async def _synthesize_narrative(rec_decision, rec: str,
     }
     try:
         data = await llm.chat_json(
-            system="Bạn là thư ký hội đồng tín dụng SHB. Dựa TRÊN CÁC FACTS đã được "
+            system="Bạn là thư ký hội đồng tín dụng. Dựa TRÊN CÁC FACTS đã được "
                    "các chuyên gia chốt (không được thay đổi quyết định hay con số), "
                    "viết một khuyến nghị điều hành ngắn gọn, mạch lạc bằng tiếng Việt "
                    "cho cấp phê duyệt. Nêu rõ: kết luận, hạn mức (nếu có), lý do chính, "

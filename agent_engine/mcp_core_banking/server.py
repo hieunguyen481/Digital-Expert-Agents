@@ -9,8 +9,10 @@ Chạy: python -m mcp_core_banking.server
 """
 from __future__ import annotations
 
+import asyncio
 import datetime as dt
 import sys
+import time
 import uuid
 from decimal import Decimal
 from pathlib import Path
@@ -82,9 +84,48 @@ async def _audit(tool: str, emp: str | None, cust: str | None, arg_keys: list[st
         traceback.print_exc()
 
 
+# Dùng lại kết quả đọc trong cùng một case: nhiều agent (tiến trình khác nhau) cùng hỏi một tool với
+# cùng tham số thì chỉ truy vấn một lần. Khoá theo case + nhân viên + tool + tham số; lời gọi dùng lại
+# vẫn ghi audit với outcome 'cache_hit' (không mất dấu truy cập) nhưng không truy vấn lại DB.
+_CASE_CACHE: dict[tuple, tuple[float, "asyncio.Future[Any]"]] = {}
+_CACHE_TTL_S, _CACHE_MAX = 600.0, 500
+
+
 async def run_tool(tool: str, ctx: Context | None, args: dict[str, Any],
                    fn: Callable[[asyncpg.Connection, uuid.UUID | None], Awaitable[Any]],
                    customer_arg: str | None = "business_id") -> Any:
+    hdr = _headers(ctx)
+    case = hdr.get("x-engine-case")
+    try:
+        emp = identity.verify(hdr).employee_id if case else None
+    except identity.IdentityError:
+        emp = None
+    if not case or emp is None:
+        return await _run_tool(tool, ctx, args, fn, customer_arg)
+    now = time.monotonic()
+    for k in [k for k, (t, _) in _CASE_CACHE.items() if now - t > _CACHE_TTL_S]:
+        _CASE_CACHE.pop(k, None)
+    key = (case, emp, tool, repr(sorted(args.items())))
+    hit = _CASE_CACHE.get(key)
+    if hit is not None:
+        res = await asyncio.shield(hit[1])
+        if not (isinstance(res, dict) and "error" in res):
+            await _audit(tool, emp, str(args.get(customer_arg)) if customer_arg else None,
+                         sorted(args), "cache_hit")
+            return res
+    fut = asyncio.ensure_future(_run_tool(tool, ctx, args, fn, customer_arg))
+    _CASE_CACHE[key] = (now, fut)
+    while len(_CASE_CACHE) > _CACHE_MAX:
+        _CASE_CACHE.pop(next(iter(_CASE_CACHE)), None)
+    res = await fut
+    if isinstance(res, dict) and "error" in res:
+        _CASE_CACHE.pop(key, None)  # lỗi/từ chối không được lưu
+    return res
+
+
+async def _run_tool(tool: str, ctx: Context | None, args: dict[str, Any],
+                    fn: Callable[[asyncpg.Connection, uuid.UUID | None], Awaitable[Any]],
+                    customer_arg: str | None = "business_id") -> Any:
     """Xác thực danh tính -> giao dịch RLS -> kiểm quyền khách hàng -> chạy -> audit."""
     keys = sorted(args)
     try:

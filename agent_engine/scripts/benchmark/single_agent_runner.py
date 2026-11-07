@@ -19,15 +19,17 @@ import time
 sys.path.insert(0, "/engine")
 
 from common import config, identity, llm, mcp_client, rag  # noqa: E402
+from common.policy_checklist import POLICY_CHECKLIST  # noqa: E402
 
 MAX_ITER = 15  # nhiều hơn mặc định 10 của Specialist vì một agent phải làm việc của cả hội đồng
 
 SYSTEM = (
-    "Bạn là chatbot thẩm định tín dụng SME của ngân hàng SHB, làm MỘT MÌNH toàn bộ việc: "
+    "Bạn là chatbot thẩm định tín dụng SME của ngân hàng, làm MỘT MÌNH toàn bộ việc: "
     "thẩm định tài chính, tuân thủ và vận hành. "
     f"Phân tích DSCR (tối thiểu {config.DSCR_MIN}), đòn bẩy, dòng tiền; đề xuất hạn mức. "
     "Kiểm tra KYB, blacklist AML (hit = từ chối ngay), CIC (nhóm >=3 từ chối, nhóm 2 flag), "
     f"pháp lý TSĐB (LTV tối đa {config.LTV_MAX:.0%}). Kiểm tra điều kiện vận hành trước khi trình. "
+    + POLICY_CHECKLIST + " "
     "Dùng công cụ để lấy dữ liệu thật, không bịa số. Trích dẫn chính sách qua search_policy. "
     "Bạn không có quyền phê duyệt: kết luận chỉ là khuyến nghị; nếu đề xuất duyệt thì phải đặt "
     "requires_human_approval=true để người có thẩm quyền xác nhận. Kết thúc bằng submit_verdict."
