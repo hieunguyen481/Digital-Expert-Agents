@@ -12,8 +12,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import asyncio  # noqa: E402
+
 from agents.base import a2a_send, build_agent_app  # noqa: E402
-from common import config  # noqa: E402
+from common import config, mcp_client, recompute  # noqa: E402
+from common.report import merge_verdicts  # noqa: E402
 from common.schemas import (  # noqa: E402
     AgentCard, AgentSkill, Envelope, Evidence, MessageType, Verdict, VerdictDecision,
 )
@@ -34,23 +37,60 @@ CARD = AgentCard(
 )
 
 
-def _find_conflict(verdicts: dict[str, Verdict]) -> dict | None:
-    """Phát hiện mâu thuẫn giữa các verdict — trả về challenge cần gửi (nếu có)."""
+async def _independent_checks(request: dict) -> dict:
+    """Kiểm chứng độc lập: tự gọi công cụ core banking và tính lại, không tin số của chuyên gia."""
+    bid, amount = request.get("business_id"), float(request.get("amount") or 0)
+
+    async def call(name: str) -> list:
+        try:
+            r = await mcp_client.call_tool(name, {"business_id": bid})
+            return r if isinstance(r, list) else []
+        except Exception:  # noqa: BLE001 - thiếu dữ liệu thì bỏ qua phép tính đó, không chặn hồ sơ
+            return []
+
+    cols, loans, fin = await asyncio.gather(
+        call("get_collateral"), call("get_existing_loans"), call("get_financials"))
+    col = recompute.collateral_check(cols, amount) if cols else None
+    exp = recompute.exposure_check(loans, amount)
+    lev = recompute.leverage_check(fin, loans, amount)
+    return {"amount": amount, "collateral": col, "exposure": exp, "leverage": lev,
+            "lines": recompute.describe(col, exp, lev, amount), "has_collateral_data": bool(cols)}
+
+
+def _checked_collateral(v: Verdict | None) -> bool:
+    if not v:
+        return False
+    text = " ".join([v.summary, *v.findings, *v.conditions]).casefold()
+    return (v.max_secured_limit is not None or "ltv" in text or "tsđb" in text
+            or any("get_collateral" in e.source for e in v.evidence))
+
+
+def _find_conflict(verdicts: dict[str, Verdict], verified: dict | None = None,
+                   challenged: frozenset[str] = frozenset()) -> dict | None:
+    """Phát hiện mâu thuẫn giữa các verdict và với số tính lại — trả về challenge cần gửi (nếu có)."""
     credit = verdicts.get("credit")
     compliance = verdicts.get("compliance")
-    if (
-        credit and compliance
-        and credit.proposed_limit and compliance.max_secured_limit
-        and credit.proposed_limit > compliance.max_secured_limit + 1  # sai số float
-    ):
+    col = (verified or {}).get("collateral")
+    # số Validation tự tính lại từ hồ sơ TSĐB thắng số do chuyên gia báo
+    cap = (col["max_secured_limit"] if col and col["eligible_value"]
+           else (compliance.max_secured_limit if compliance else None))
+    if (compliance and verified and verified.get("has_collateral_data") and "compliance" not in challenged
+            and not _checked_collateral(compliance)):
+        return {
+            "target": "compliance",
+            "reason": "Core banking có hồ sơ TSĐB của khách nhưng kết luận tuân thủ chưa kiểm tra "
+                      "pháp lý TSĐB và giới hạn LTV — kiểm tra đầy đủ mọi TSĐB",
+            "check_collateral": True,
+        }
+    if credit and credit.proposed_limit and cap and credit.proposed_limit > cap + 1:  # sai số float
         return {
             "target": "credit",
             "reason": (
                 f"Hạn mức đề xuất {credit.proposed_limit:,.0f} VND vượt giới hạn "
-                f"cho vay có bảo đảm {compliance.max_secured_limit:,.0f} VND "
-                f"(LTV {config.LTV_MAX:.0%} theo chính sách)"
+                f"cho vay có bảo đảm {cap:,.0f} VND "
+                f"(LTV {config.LTV_MAX:.0%} theo chính sách, tính lại từ hồ sơ TSĐB)"
             ),
-            "max_secured_limit": compliance.max_secured_limit,
+            "max_secured_limit": cap,
         }
     return None
 
@@ -61,6 +101,7 @@ async def handle_task(env: Envelope) -> Verdict:
 
     trace: list[str] = []
     challenge_rounds = 0
+    challenged: set[str] = set()
 
     # ---- Bước 1: xác thực cơ bản ----
     issues: list[str] = []
@@ -69,12 +110,18 @@ async def handle_task(env: Envelope) -> Verdict:
             issues.append(f"Verdict của {name} thiếu evidence/citation")
     trace.append(f"Xác thực {len(verdicts)} verdict: {len(issues)} vấn đề evidence")
 
+    request = env.payload.get("params", {}).get("request", {})
+    verified = await _independent_checks(request) if request.get("business_id") else None
+    if verified:
+        trace.append("Kiểm chứng độc lập bằng công cụ: " + " | ".join(verified["lines"]))
+
     # ---- Bước 2: vòng challenge máy-tự-giải ----
     while challenge_rounds < config.MAX_CHALLENGE_ROUNDS:
-        conflict = _find_conflict(verdicts)
+        conflict = _find_conflict(verdicts, verified, frozenset(challenged))
         if conflict is None:
             break
         challenge_rounds += 1
+        challenged.add(conflict["target"])
         trace.append(
             f"Vòng {challenge_rounds}: CHALLENGE {conflict['target']} — {conflict['reason']}"
         )
@@ -82,8 +129,8 @@ async def handle_task(env: Envelope) -> Verdict:
             case_id=env.case_id, task_id=env.task_id,
             from_agent=CARD.agent_id, to_agent=conflict["target"],
             type=MessageType.CHALLENGE,
-            payload={"reason": conflict["reason"],
-                     "max_secured_limit": conflict["max_secured_limit"]},
+            payload={**{k: v for k, v in conflict.items() if k != "target"},
+                     "request": request},
         ))
         if resp.type == MessageType.CHALLENGE_RESPONSE and "verdict" in resp.payload:
             verdicts[conflict["target"]] = Verdict(**resp.payload["verdict"])
@@ -95,13 +142,28 @@ async def handle_task(env: Envelope) -> Verdict:
             trace.append(f"{conflict['target']} không phản hồi hợp lệ — dừng vòng challenge")
             break
 
-    unresolved = _find_conflict(verdicts)
+    unresolved = _find_conflict(verdicts, verified, frozenset({"compliance"}))
 
     # ---- Bước 3: tổng hợp khuyến nghị ----
     decisions = {name: v.decision for name, v in verdicts.items()}
-    all_conditions = [c for v in verdicts.values() for c in v.conditions]
-    all_findings = [f for v in verdicts.values() for f in v.findings]
     credit = verdicts.get("credit")
+
+    # Số liệu tính lại -> phát hiện/điều kiện của riêng Validation (cộng vào báo cáo hợp nhất)
+    own_findings: list[str] = list(verified["lines"]) if verified else []
+    own_conditions: list[str] = []
+    breach = False
+    if verified:
+        col, exp, lev = verified["collateral"], verified["exposure"], verified["leverage"]
+        if exp["audit_required"]:
+            own_conditions.append("BCTC kiểm toán (ý kiến chấp nhận toàn phần) bắt buộc vì tổng cấp tín dụng > 20 tỷ")
+        if col and col["ltv_over"] and not (credit and credit.proposed_limit
+                                            and credit.proposed_limit <= col["max_secured_limit"] + 1):
+            breach = True
+            own_conditions.append("Giảm số tiền vay về trong giới hạn LTV hoặc bổ sung TSĐB đủ điều kiện pháp lý")
+        if lev and lev["over"]:
+            breach = True
+            own_conditions.append("Bổ sung phương án giảm đòn bẩy hoặc nguồn trả nợ: Nợ vay/EBITDA sau cấp TD vượt ngưỡng")
+    report = merge_verdicts(verdicts, own_findings, own_conditions)
 
     if VerdictDecision.REJECT in decisions.values():
         rec_decision, rec = VerdictDecision.REJECT, "TỪ CHỐI: có chuyên gia kết luận không đạt điều kiện"
@@ -110,6 +172,9 @@ async def handle_task(env: Envelope) -> Verdict:
         rec = "ESCALATE: mâu thuẫn không tự giải được sau vòng challenge hoặc thiếu evidence"
     elif VerdictDecision.NEED_MORE_INFO in decisions.values():
         rec_decision, rec = VerdictDecision.NEED_MORE_INFO, "CẦN BỔ SUNG: hồ sơ chưa đủ để trình phê duyệt"
+    elif breach:
+        rec_decision = VerdictDecision.NEED_MORE_INFO
+        rec = "CẦN BỔ SUNG/ĐIỀU CHỈNH: số liệu Validation tính lại vượt ngưỡng chính sách"
     else:
         rec_decision = VerdictDecision.APPROVE
         limit_txt = f" hạn mức {credit.proposed_limit:,.0f} VND" if credit and credit.proposed_limit else ""
@@ -124,8 +189,8 @@ async def handle_task(env: Envelope) -> Verdict:
         agent=CARD.agent_id, task_id=env.task_id or "",
         decision=rec_decision,
         summary=rec,
-        findings=all_findings,
-        conditions=list(dict.fromkeys(all_conditions)),  # khử trùng lặp, giữ thứ tự
+        findings=report["findings"],        # hợp nhất mọi phát hiện của chuyên gia + số tính lại
+        conditions=report["conditions"],
         proposed_limit=credit.proposed_limit if credit else None,
         evidence=[Evidence(source="validation", quote=t) for t in trace],
         data={
@@ -133,6 +198,8 @@ async def handle_task(env: Envelope) -> Verdict:
             "challenge_rounds": challenge_rounds,
             "issues": issues,
             "narrative": narrative,
+            "report": report,
+            "verified": verified,
         },
     )
 

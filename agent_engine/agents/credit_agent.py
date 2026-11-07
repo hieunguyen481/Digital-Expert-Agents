@@ -61,7 +61,7 @@ async def _rules_task(env: Envelope) -> Verdict:
                  quote=f"Năm {latest['year']}: doanh thu {latest['revenue']:,.0f}, "
                        f"EBITDA {latest['ebitda']:,.0f}, DSCR {dscr:.2f}, đòn bẩy {leverage:.2f}"),
     ]
-    for p in rag.search("credit", "DSCR tối thiểu hạn mức vốn lưu động doanh thu"):
+    for p in rag.search_policy("credit", "DSCR tối thiểu hạn mức vốn lưu động doanh thu"):
         evidence.append(Evidence(source=f"RAG:{p['source']}", quote=p["text"][:300]))
 
     findings: list[str] = list(warnings)
@@ -130,7 +130,7 @@ async def _llm_task(env: Envelope) -> Verdict:
         return await mcp_client.call_tool("get_existing_loans", {"business_id": business_id})
 
     async def t_policy(query: str) -> list:
-        return rag.search("credit", query)
+        return rag.search_policy("credit", query)
 
     async def t_ask_document(field: str) -> dict:
         resp = await a2a_send(CARD.agent_id, "document", Envelope(

@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agents.base import build_agent_app  # noqa: E402
-from common import config, llm, mcp_client, rag  # noqa: E402
+from common import config, llm, mcp_client, rag, recompute  # noqa: E402
 from common.schemas import (  # noqa: E402
     AgentCard, AgentSkill, Envelope, Evidence, Verdict, VerdictDecision,
 )
@@ -49,7 +49,7 @@ async def _rules_task(env: Envelope) -> Verdict:
         Evidence(source="core-banking:get_cic_status",
                  quote=f"CIC nhóm {cic.get('cic_group')}, quá hạn {cic.get('overdue_amount', 0):,.0f}"),
     ]
-    for p in rag.search("compliance", "KYB danh sách đen AML nhóm nợ LTV tài sản bảo đảm"):
+    for p in rag.search_policy("compliance", "KYB danh sách đen AML nhóm nợ LTV tài sản bảo đảm"):
         evidence.append(Evidence(source=f"RAG:{p['source']}", quote=p["text"][:300]))
 
     findings: list[str] = []
@@ -87,17 +87,18 @@ async def _rules_task(env: Envelope) -> Verdict:
             decision = VerdictDecision.NEED_MORE_INFO
             findings.append("Khai có TSĐB nhưng không tìm thấy hồ sơ tài sản")
         else:
-            col = cols[0]
-            if col["legal_status"] != "clear":
-                decision = VerdictDecision.NEED_MORE_INFO
-                findings.append(f"TSĐB {col['collateral_id']} chưa hoàn thiện pháp lý: "
-                                f"{col['legal_status']}")
-            else:
-                max_secured = config.LTV_MAX * col["valuation"]
+            chk = recompute.collateral_check(cols, float(request.get("amount") or 0))
+            for col in cols:
+                if col["legal_status"] != "clear":
+                    decision = VerdictDecision.NEED_MORE_INFO
+                    findings.append(f"TSĐB {col['collateral_id']} chưa hoàn thiện pháp lý: "
+                                    f"{col['legal_status']}")
+            if chk["eligible_value"]:
+                max_secured = chk["max_secured_limit"]
                 evidence.append(Evidence(
                     source="core-banking:get_collateral",
-                    quote=f"{col['description']} — định giá {col['valuation']:,.0f}, "
-                          f"pháp lý rõ ràng. Giới hạn bảo đảm (LTV {config.LTV_MAX:.0%}): "
+                    quote=f"{chk['eligible_assets']}/{chk['assets']} TSĐB đủ điều kiện pháp lý, tổng định giá "
+                          f"{chk['eligible_value']:,.0f}. Giới hạn bảo đảm (LTV {config.LTV_MAX:.0%}): "
                           f"{max_secured:,.0f} VND"))
                 conditions.append("Hoàn thiện đăng ký giao dịch bảo đảm trước giải ngân")
 
@@ -136,7 +137,7 @@ async def _llm_task(env: Envelope) -> Verdict:
         return await mcp_client.call_tool("get_collateral", {"business_id": business_id})
 
     async def t_policy(query: str) -> list:
-        return rag.search("compliance", query)
+        return rag.search_policy("compliance", query)
 
     tools = [
         llm.ToolDef("get_business", "Hồ sơ pháp nhân", {"type": "object", "properties": {}}, t_biz),
@@ -165,7 +166,9 @@ async def _llm_task(env: Envelope) -> Verdict:
                f"pháp lý TSĐB (LTV tối đa {config.LTV_MAX:.0%} — tính max_secured_limit). "
                f"Trích dẫn quy định qua search_compliance_policy. Kết thúc bằng submit_verdict.",
         user=f"Kiểm tra tuân thủ đề nghị vay: {request}, "
-             f"kiểm tra TSĐB: {params.get('check_collateral', False)}",
+             f"kiểm tra TSĐB: {params.get('check_collateral', False)}"
+             + (f"\nYêu cầu rà soát từ Validation: {params['challenge_reason']}"
+                if params.get("challenge_reason") else ""),
         tools=tools,
     )
     return Verdict.from_llm(CARD.agent_id, env.task_id or "", result)
@@ -177,4 +180,15 @@ async def handle_task(env: Envelope) -> Verdict:
     return await _rules_task(env)
 
 
-app = build_agent_app(CARD, handle_task)
+async def handle_challenge(env: Envelope) -> Verdict:
+    """Validation yêu cầu rà soát lại (vd. chưa kiểm TSĐB dù core banking có hồ sơ) -> chạy lại đầy đủ."""
+    p = env.payload
+    redo = env.model_copy(update={"payload": {"params": {
+        "request": p.get("request", {}), "check_collateral": True,
+        "challenge_reason": p.get("reason", "")}}})
+    v = await handle_task(redo)
+    return v.model_copy(update={"revision_of": env.task_id,
+                                "revision_reason": f"Chấp nhận challenge: {p.get('reason', '')}"})
+
+
+app = build_agent_app(CARD, handle_task, handle_challenge=handle_challenge)

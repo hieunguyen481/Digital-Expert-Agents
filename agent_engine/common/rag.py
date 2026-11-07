@@ -51,3 +51,15 @@ def search(domain: str, query: str, k: int = 3) -> list[dict]:
         for s, (src, text) in ranked
         if s > 0
     ]
+
+
+def search_policy(domain: str, query: str, k: int = 3, policy_k: int = 2) -> list[dict]:
+    """Chuyên gia: top-k của domain + top `policy_k` điều khoản chính sách dùng chung (shared_*).
+
+    BM25 gộp chung dễ để tài liệu domain lấn át điều khoản (§) cần trích dẫn; tách hai nguồn
+    để chuyên gia luôn có cả hướng dẫn nghiệp vụ lẫn điều khoản gốc làm căn cứ.
+    """
+    ranked = search(domain, query, k=1000)
+    own = [h for h in ranked if h["source"].endswith(".md")][:k]
+    shared = [h for h in ranked if not h["source"].endswith(".md")][:policy_k]
+    return own + shared

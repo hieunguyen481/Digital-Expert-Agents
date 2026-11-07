@@ -124,9 +124,13 @@ def run_multi(a, token: str, case: dict) -> dict:
         parts += [v.get("summary", "")] + list(v.get("findings") or []) + list(v.get("conditions") or [])
         parts.append(str((v.get("data") or {}).get("narrative") or ""))
         sources += [x.get("source", "") for x in v.get("evidence") or []]
+    final_report = ""  # báo cáo cuối hợp nhất của engine (nếu có) — lưu thêm, KHÔNG dùng để chấm
+    for e in events:
+        pl = e["payload"]
+        final_report = (pl.get("package") or {}).get("report_text") or pl.get("report_text") or final_report
     tools = audit_tools(a, t0, t1)
     use = llm_usage(a, snap)
-    return {"error": None, "case_id": cid, "latency_s": t1 - t0, "gate": STATE_GATE[state],
+    return {"error": None, "case_id": cid, "final_report_text": final_report, "latency_s": t1 - t0, "gate": STATE_GATE[state],
             "conclusion_text": "\n".join(p for p in parts if p), "sources": sources,
             "tools_called": tools, "calls": len(tools), **use}
 
@@ -244,7 +248,8 @@ def main() -> None:
                     row.update({
                         "latency_s": r["latency_s"], "calls": r["calls"], "tokens": r["tokens"],
                         "cost_usd": r["cost_usd"], "llm_requests": r.get("llm_requests"),
-                        "gate": r["gate"], "case_id_engine": r.get("case_id"), "sources": r.get("sources", []),
+                        "gate": r["gate"], "case_id_engine": r.get("case_id"),
+                        "final_report_text": r.get("final_report_text", ""), "sources": r.get("sources", []),
                         "grade": G.grade(case, r), "conclusion_text": r["conclusion_text"],
                         "tools_called": r["tools_called"]})
                     spent += r["cost_usd"] or 0.0

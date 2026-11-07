@@ -204,3 +204,7 @@ class ApprovalPackage(BaseModel):
     verdicts: list[Verdict]
     trace_summary: list[str] = Field(default_factory=list)
     required_approver_level: str = "branch_director"
+    # báo cáo cuối hợp nhất (gộp xác định mọi phát hiện/trích dẫn của chuyên gia + số Validation tính lại)
+    findings: list[str] = Field(default_factory=list)
+    citations: list[dict] = Field(default_factory=list)
+    report_text: str = ""

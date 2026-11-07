@@ -1,6 +1,6 @@
 """Orchestrator: Plan Executor (topo-sort DAG, chạy song song) + state machine case.
 
-Luồng: In Analysis -> (DAG: doc -> credit ∥ compliance -> ops dry-run -> validation
+Luồng: In Analysis -> (DAG: doc -> credit ∥ compliance ∥ ops dry-run -> validation
 với vòng challenge) -> Pending Approval -> [HITL] -> Executing (commit) -> Completed.
 Re-plan có giới hạn; vượt giới hạn -> Escalated.
 """
@@ -88,13 +88,12 @@ async def run_analysis(case_id: str, ident: identity.Identity | None = None) -> 
             await _set_state(case_id, CaseState.REJECTED)
             await _emit(case_id, "orchestrator", "state_changed",
                         {"state": CaseState.REJECTED.value,
-                         "reason": validation.summary})
+                         "reason": validation.summary, **_final_report(validation)})
         else:  # need_more_info / không hội tụ
             await _set_state(case_id, CaseState.NEEDS_INFO)
             await _emit(case_id, "orchestrator", "state_changed",
                         {"state": CaseState.NEEDS_INFO.value,
-                         "reason": validation.summary,
-                         "findings": validation.findings})
+                         "reason": validation.summary, **_final_report(validation)})
     except Exception as e:  # noqa: BLE001
         traceback.print_exc()
         await _set_state(case_id, CaseState.ESCALATED)
@@ -135,10 +134,20 @@ async def _execute_dag(case_id: str, plan: Plan
     return verdicts, verdict_by_agent
 
 
+def _final_report(validation: Verdict) -> dict:
+    """Báo cáo cuối hợp nhất của Validation — dùng chung cho gói phê duyệt, Cần bổ sung, Từ chối."""
+    rep = validation.data.get("report") or {}
+    return {"findings": rep.get("findings", validation.findings),
+            "conditions": rep.get("conditions", validation.conditions),
+            "citations": rep.get("citations", []),
+            "report_text": rep.get("text", "")}
+
+
 async def _build_package(case_id: str, plan: Plan, validation: Verdict) -> None:
     final_verdicts = [
         Verdict(**v) for v in validation.data.get("final_verdicts", {}).values()
     ]
+    report = _final_report(validation)
     limit = validation.proposed_limit
     level = ("branch_director"
              if (limit or 0) <= config.BRANCH_APPROVAL_LIMIT else "head_office")
@@ -151,6 +160,7 @@ async def _build_package(case_id: str, plan: Plan, validation: Verdict) -> None:
         verdicts=final_verdicts,
         trace_summary=[e.quote for e in validation.evidence],
         required_approver_level=level,
+        findings=report["findings"], citations=report["citations"], report_text=report["report_text"],
     ).model_dump(mode="json")
 
     import time as _t

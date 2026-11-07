@@ -34,7 +34,8 @@ def _template_plan(case_id: str, payload: dict, context: dict, version: int) -> 
     request = payload["request"]
     documents = payload.get("documents", [])
     has_docs = bool(documents)
-    has_collateral = bool(request.get("has_collateral"))
+    # TSĐB theo DỮ LIỆU thật trong core banking, không chỉ cờ khai trong request
+    has_collateral = bool(request.get("has_collateral")) or context.get("collateral_count", 0) > 0
     industry_risk = context.get("industry_risk", "normal")
     cic_group = context.get("cic_group", 1)
 
@@ -66,7 +67,7 @@ def _template_plan(case_id: str, payload: dict, context: dict, version: int) -> 
     tasks.append(PlanTask(
         task_id="t_ops", agent="operations",
         objective="Kiểm tra điều kiện vận hành, tạo bản nháp hồ sơ vay (dry-run)",
-        depends_on=["t_credit", "t_compliance"],
+        depends_on=doc_dep,  # dry-run không dùng kết quả credit/compliance -> chạy song song
         params={"request": request, "phase": "dry_run"}))
 
     tasks.append(PlanTask(
@@ -85,6 +86,26 @@ def _template_plan(case_id: str, payload: dict, context: dict, version: int) -> 
     return Plan(case_id=case_id, version=version, rationale=rationale, tasks=tasks)
 
 
+def parallelize_ops(plan: Plan) -> None:
+    """Dry-run của operations không đọc kết quả credit/compliance: bỏ phụ thuộc thừa để giảm trễ."""
+    agent_of = {t.task_id: t.agent for t in plan.tasks}
+    for t in plan.tasks:
+        if t.agent == "operations" and t.params.get("phase", "dry_run") == "dry_run":
+            t.depends_on = [d for d in t.depends_on if agent_of.get(d) == "document"]
+
+
+def ensure_collateral_check(plan: Plan, payload: dict, context: dict) -> None:
+    """Planner LLM có thể quên bật kiểm TSĐB: nếu hồ sơ khai có TSĐB hoặc core banking có TSĐB của
+    khách thì mọi task compliance đều phải kiểm pháp lý TSĐB và LTV."""
+    if not (payload["request"].get("has_collateral") or context.get("collateral_count", 0) > 0):
+        return
+    for t in plan.tasks:
+        if t.agent == "compliance":
+            t.params["check_collateral"] = True
+            if "TSĐB" not in t.objective:
+                t.objective += "; thẩm định pháp lý mọi TSĐB và giới hạn LTV"
+
+
 async def _llm_plan(case_id: str, payload: dict, context: dict, version: int,
                     registry: dict[str, AgentCard]) -> Plan | None:
     cards = "\n".join(
@@ -101,7 +122,7 @@ async def _llm_plan(case_id: str, payload: dict, context: dict, version: int,
                        "Phân rã yêu cầu thành Task DAG, chỉ giao việc cho các agent sau:\n"
                        f"{cards}\n"
                        "Quy tắc: task validation luôn cuối cùng và phụ thuộc mọi task khác; "
-                       "operations dry-run phụ thuộc credit + compliance; "
+                       "operations dry-run chỉ phụ thuộc document (nếu có), chạy song song với credit và compliance; "
                        "chỉ tạo task document nếu có tài liệu đính kèm; "
                        "điều chỉnh objective theo đặc điểm hồ sơ (TSĐB, ngành, CIC). "
                        "Mỗi task phải có params.request = request gốc.",
@@ -136,7 +157,13 @@ async def make_plan(case_id: str, payload: dict, version: int) -> tuple[Plan, st
             "get_business", {"business_id": payload["request"]["business_id"]})
         cic = await mcp_client.call_tool(
             "get_cic_status", {"business_id": payload["request"]["business_id"]})
-        context = {"industry_risk": biz.get("industry_risk", "normal"),
+        try:
+            cols = await mcp_client.call_tool(
+                "get_collateral", {"business_id": payload["request"]["business_id"]})
+        except Exception:  # noqa: BLE001 - không tra được TSĐB thì dựa vào cờ trong request
+            cols = []
+        context = {"collateral_count": len(cols) if isinstance(cols, list) else 0,
+                   "industry_risk": biz.get("industry_risk", "normal"),
                    "industry": biz.get("industry"),
                    "cic_group": cic.get("cic_group", 1),
                    "is_existing_customer": bool(biz.get("is_existing_customer"))}
@@ -147,7 +174,11 @@ async def make_plan(case_id: str, payload: dict, version: int) -> tuple[Plan, st
     if config.LLM_MODE in ("llm", "hybrid"):
         plan = await _llm_plan(case_id, payload, context, version, registry)
         if plan is not None:
+            ensure_collateral_check(plan, payload, context)
+            parallelize_ops(plan)
             return plan, "llm"
         # fallback minh bạch — vẫn chạy được demo
-        return _template_plan(case_id, payload, context, version), "template_fallback"
+        plan = _template_plan(case_id, payload, context, version)
+        ensure_collateral_check(plan, payload, context)
+        return plan, "template_fallback"
     return _template_plan(case_id, payload, context, version), "template"
