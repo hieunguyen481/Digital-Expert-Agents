@@ -55,6 +55,8 @@ class WorkflowRepositoryLike(Protocol):
     async def holidays(self) -> frozenset[date]: ...
     async def sla_workdays(self, step_code: str) -> int: ...
     async def get_loan(self, loan_id: UUID) -> Mapping[str, Any] | None: ...
+    async def finalize_memo(self, loan_id: UUID, employee_id: UUID) -> int: ...
+    async def reopen_memo(self, loan_id: UUID, employee_id: UUID) -> int | None: ...
     async def open_steps(self, loan_id: UUID) -> Sequence[Mapping[str, Any]]: ...
     async def list_steps(self, loan_id: UUID) -> Sequence[Mapping[str, Any]]: ...
     async def last_step(
@@ -196,6 +198,9 @@ class WorkflowService:
                 rationale=clean_reason or "",
                 **plan.decision,
             )
+        if action == "submit_to_risk":
+            # Q-L: chot ban To trinh trong cung giao dich, truoc khi nguoi trinh het quyen ghi ho so.
+            await self._repo.finalize_memo(loan_id, principal.employee_id)
         # 7. Doi trang thai nguyen tu (database kiem lai, sai phien ban -> ConflictError).
         row = await self._repo.apply_transition(
             loan_id,
@@ -217,6 +222,9 @@ class WorkflowService:
             due_at=row["out_due_at"],
             carried_flags=carried,
         )
+        if result.status == "APPRAISAL" and from_status in {"RISK_REVIEW", "APPROVAL"}:
+            # Q-L: tra lai ve Tham dinh thi mo ban To trinh moi (revision + 1) tu ban da chot.
+            await self._repo.reopen_memo(loan_id, principal.employee_id)
         # 8. Nhat ky.
         if self._audit is not None:
             await self._audit.record(

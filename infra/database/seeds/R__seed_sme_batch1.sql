@@ -1295,4 +1295,28 @@ SET loan_application_id = EXCLUDED.loan_application_id,
     updated_at = CURRENT_TIMESTAMP,
     version = credit.collateral.version + 1;
 
+-- ---------------------------------------------------------------------------
+-- 8. To trinh tham dinh VinaNova (lat 10b): ban nhap dang soan, du lieu mau. Muc 4, 5, 7 chua xong;
+--    muc 7 chi nguoi tham dinh viet. Ban nhap luon duoc dat lai ve dang soan khi nap seed.
+-- ---------------------------------------------------------------------------
+INSERT INTO credit.appraisal_memo (id, loan_application_id, revision, state, sections, version, updated_by, updated_at)
+VALUES (
+    pg_temp.id('7b000000', 1), pg_temp.id('75000000', 1),
+    COALESCE((SELECT max(revision) FROM credit.appraisal_memo_version WHERE loan_application_id = pg_temp.id('75000000', 1)), 0) + 1,
+    'DRAFT',
+    jsonb_build_object(
+        '1', jsonb_build_object('body', 'CTCP Bao bì VinaNova, MST 0318888888, sản xuất bao bì giấy, bao bì nhựa, in công nghiệp. Khách hàng mới tại ngân hàng (dữ liệu mẫu).', 'ai_blocks', '[]'::jsonb),
+        '2', jsonb_build_object('body', 'Đề nghị hạn mức vốn lưu động 80 tỷ đồng, thời hạn 12 tháng, mua nguyên liệu sản xuất (dữ liệu mẫu).', 'ai_blocks', '[]'::jsonb),
+        '3', jsonb_build_object('body', 'UBO Nguyễn Hoàng Nam (55%), không thuộc diện PEP (dữ liệu mẫu).', 'ai_blocks', '[]'::jsonb),
+        '4', jsonb_build_object('body', '', 'ai_blocks', '[]'::jsonb),
+        '5', jsonb_build_object('body', '', 'ai_blocks', '[]'::jsonb),
+        '6', jsonb_build_object('body', 'TSBĐ gồm quyền sử dụng đất, nhà xưởng và máy móc thiết bị; xem danh sách ở mục Tài sản bảo đảm (dữ liệu mẫu).', 'ai_blocks', '[]'::jsonb),
+        '7', jsonb_build_object('body', '', 'ai_blocks', '[]'::jsonb)
+    ),
+    1, '10000000-0000-4000-8000-000000000008', CURRENT_TIMESTAMP
+)
+ON CONFLICT (loan_application_id) DO UPDATE
+SET revision = EXCLUDED.revision, state = 'DRAFT', sections = EXCLUDED.sections, version = 1,
+    updated_by = EXCLUDED.updated_by, updated_at = CURRENT_TIMESTAMP;
+
 COMMIT;

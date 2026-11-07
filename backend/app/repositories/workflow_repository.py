@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions import ConflictError
 from app.repositories.base import Record, execute_returning, fetch_all, fetch_one
+from app.workflow import memo as memo_rules
 from app.workflow.gates import CarriedFlag, ChecklistFact, FlagFact, GateFacts
 from app.workflow.routing import ApproverCandidate
 from app.workflow.sla import TZ
@@ -324,6 +325,38 @@ class WorkflowRepository:
             raise RuntimeError("apply_transition returned no row")
         return row
 
+    async def finalize_memo(self, loan_id: UUID, employee_id: UUID) -> int:
+        """Chốt Tờ trình khi trình Rủi ro: bản bất biến chỉ gồm nội dung người viết và khối AI đã xác nhận."""
+        row = await fetch_one(
+            self.session,
+            "SELECT id, revision, sections, state FROM credit.appraisal_memo "
+            "WHERE loan_application_id = :loan_id FOR UPDATE",
+            {"loan_id": loan_id},
+        )
+        if row is None or row["state"] != "DRAFT" or not memo_rules.memo_complete(row["sections"]):
+            raise LookupError("Appraisal memo is missing or incomplete")
+        await fetch_one(
+            self.session,
+            """INSERT INTO credit.appraisal_memo_version (id, loan_application_id, revision, content, finalized_by)
+               VALUES (:id, :loan_id, :rev, CAST(:content AS jsonb), :emp) RETURNING id""",
+            {"id": uuid4(), "loan_id": loan_id, "rev": row["revision"], "emp": employee_id,
+             "content": memo_rules.effective_content(row["sections"])},
+        )
+        await fetch_one(
+            self.session,
+            "UPDATE credit.appraisal_memo SET state = 'FINALIZED', updated_by = :emp, updated_at = CURRENT_TIMESTAMP "
+            "WHERE id = :id RETURNING id",
+            {"id": row["id"], "emp": employee_id},
+        )
+        return int(row["revision"])
+
+    async def reopen_memo(self, loan_id: UUID, employee_id: UUID) -> int | None:
+        row = await fetch_one(
+            self.session, "SELECT credit.reopen_appraisal_memo(:loan_id, :emp) AS revision",
+            {"loan_id": loan_id, "emp": employee_id},
+        )
+        return None if row is None or row["revision"] is None else int(row["revision"])
+
     # -- gates.GateRepository -----------------------------------------------------
     async def gate_facts(self, loan_id: UUID) -> GateFacts:
         today = (await self.db_now()).astimezone(TZ).date()
@@ -348,8 +381,14 @@ class WorkflowRepository:
             "SELECT credit.total_credit_exposure(:loan_id) AS total",
             {"loan_id": loan_id},
         )
+        memo = await fetch_one(
+            self.session,
+            "SELECT sections, state FROM credit.appraisal_memo WHERE loan_application_id = :loan_id",
+            {"loan_id": loan_id},
+        )
         return GateFacts(
             today=today,
+            memo_complete=bool(memo and memo["state"] == "DRAFT" and memo_rules.memo_complete(memo["sections"])),
             checklist=tuple(
                 ChecklistFact(
                     code=str(row["code"]),

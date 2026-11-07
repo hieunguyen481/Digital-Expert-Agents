@@ -16,6 +16,8 @@ from app.api.v1 import (
     notifications,
     policies,
     proposals,
+    loan_detail,
+    memo,
     reconciliation,
     reports,
     work_items,
@@ -29,6 +31,8 @@ router.include_router(documents.router)
 router.include_router(loans.router)
 router.include_router(proposals.router)
 router.include_router(reconciliation.router)
+router.include_router(memo.router)
+router.include_router(loan_detail.router)
 router.include_router(workflow.router)
 router.include_router(conversations.router)
 router.include_router(analyses.router)

@@ -1,6 +1,7 @@
 import { ThunderboltOutlined } from '@ant-design/icons';
 import { Button, Segmented, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import { Link } from 'react-router-dom';
 import { useAiPanel } from '@/features/ai-panel/AiPanelContext';
 import { formatBillion, slaText, statusLabel, stepLabel } from './format';
 import styles from './my-work.module.css';
@@ -24,7 +25,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, hasAi }: Q
       key: 'customer',
       render: (_, r) => (
         <div>
-          <b>{r.customer_name}</b>
+          <b><Link to={`/ho-so-vay/${r.loan_application_id}`}>{r.customer_name}</Link></b>
           {!r.mine && <Tag className={styles.watchTag}>Theo dõi</Tag>}
           <div className={styles.sub}>{r.application_number}</div>
         </div>

@@ -96,6 +96,8 @@ class GateFacts:
     lease_one_time_without_proof: int = 0
     total_credit_exposure: Decimal | None = None
     has_audited_fs: bool = False
+    # Tờ trình có đủ 7 mục hiệu lực (Q-L); chỉ người giữ bước Thẩm định đọc được bản nháp nên mặc định False.
+    memo_complete: bool = False
     flags: tuple[FlagFact, ...] = ()
 
 
@@ -197,9 +199,8 @@ def _appraisal_submit(facts: GateFacts, blockers: set[str], carried: list[str]) 
             carried.append(flag.code)
         elif flag.blocks_submission:
             blockers.add("FLAGS_OPEN")
-    # TODO(Ke hoach 5): kiem tra bang to trinh (Q-L); chua co bang o Ke hoach 1
-    # nen cong nay luon chan bang REPORT_MISSING.
-    blockers.add("REPORT_MISSING")
+    if not facts.memo_complete:
+        blockers.add("REPORT_MISSING")
 
 
 def _risk_submit(facts: GateFacts, blockers: set[str], carried: list[str]) -> None:

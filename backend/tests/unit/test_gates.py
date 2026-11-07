@@ -161,9 +161,10 @@ async def test_checking_pass_cic_item_cannot_be_excepted() -> None:
 async def test_appraisal_submit_ignores_cickh_flag() -> None:
     facts = ok_facts(flags=(FlagFact("cickh", "OPEN", None),))
     result = await run("appraisal_submit", facts)
-    # TODO(Ke hoach 5): REPORT_MISSING het khi co bang to trinh.
-    assert result.blockers == ("REPORT_MISSING",)
+    assert result.blockers == ("REPORT_MISSING",)  # chua co to trinh du 7 muc (Q-L)
     assert result.carried_flags == ("cickh",)
+    done = await run("appraisal_submit", ok_facts(flags=(FlagFact("cickh", "OPEN", None),), memo_complete=True))
+    assert done.ok and done.blockers == ()
 
 
 async def test_appraisal_submit_blocks_open_flags_and_unconfirmed_fields() -> None:
