@@ -18,7 +18,8 @@ for seed_file in \
     R__seed_vinanova_demo.sql \
     R__seed_benchmark_profiles.sql \
     R__seed_benchmark_v3_profiles.sql \
-    R__seed_benchmark_v4_profiles.sql
+    R__seed_benchmark_v4_profiles.sql \
+    R__seed_benchmark_v5_profiles.sql
 do
     full_path="${seed_directory}/${seed_file}"
     if [ ! -r "${full_path}" ]; then

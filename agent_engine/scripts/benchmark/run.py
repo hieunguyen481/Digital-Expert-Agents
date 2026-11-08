@@ -172,6 +172,11 @@ def import_file(a, path: Path) -> None:
     print(f"đã nạp {d['run_id']} vào agent.benchmark_run")
 
 
+def final_text_of(r: dict) -> str:
+    """Văn bản kết luận cuối người dùng đọc: multi = báo cáo cuối hợp nhất, single = câu trả lời của chatbot."""
+    return (r.get("final_report_text") or "") if r.get("mode") == "multi" else (r.get("conclusion_text") or "")
+
+
 def regrade_file(a, path: Path) -> Path:
     """Chấm lại dữ liệu đã lưu bằng bộ chấm hiện tại + cases_file (không gọi LLM, không đổi bản gốc).
     Lượt cũ không lưu `sources` nên chỉ số trích dẫn chỉ dựa trên văn bản kết luận."""
@@ -182,17 +187,18 @@ def regrade_file(a, path: Path) -> Path:
     for r in d["runs"]:
         r = dict(r)
         if not r.get("error"):
-            r["grade"] = G.grade(byid[r["case_id"]], {
-                "conclusion_text": r["conclusion_text"], "sources": r.get("sources", []),
+            r["grade"] = G.grade_any(a.grader, byid[r["case_id"]], {
+                "conclusion_text": r["conclusion_text"], "final_text": final_text_of(r), "sources": r.get("sources", []),
                 "tools_called": r["tools_called"], "gate": r["gate"]})
         runs.append(r)
     ok = [r for r in runs if not r["error"]]
     res = dict(d)
     res.update({
-        "run_id": f"{d['run_id']}-regrade-{G.GRADER_VERSION}",
+        "run_id": f"{d['run_id']}-regrade-{a.grader}",
         "created_at": datetime.now(timezone.utc).isoformat(), "regrade_of": d["run_id"],
-        "grader_version": G.GRADER_VERSION,
-        "label": f"dữ liệu {d['cases_version']}, bộ chấm {G.GRADER_VERSION} (chấm lại, không đo mới; trích dẫn chỉ tính trên văn bản kết luận vì lượt cũ không lưu nguồn)",
+        "grader_version": a.grader,
+        "label": f"dữ liệu {d['cases_version']}, bộ chấm {a.grader} (chấm lại, không đo mới)"
+        + (" — chỉ chấm văn bản kết luận cuối (multi: báo cáo cuối, không gộp nháp chuyên gia)" if a.grader == "v3" else ""),
         "summary": G.summarize(ok),
         "per_case": {cid: G.summarize([r for r in ok if r["case_id"] == cid]) for cid in sorted({r["case_id"] for r in ok})},
         "runs": runs})
@@ -215,6 +221,7 @@ def main() -> None:
     p.add_argument("--engine", default="bank-ai-workbench-engine-1")
     p.add_argument("--postgres", default="bank-ai-workbench-postgres-1")
     p.add_argument("--timeout", type=int, default=600)
+    p.add_argument("--grader", default="v3", choices=["v2", "v3"], help="bộ chấm (v3: chỉ chấm văn bản kết luận cuối)")
     p.add_argument("--no-import", action="store_true")
     p.add_argument("--import-file")
     p.add_argument("--regrade-file", help="chấm lại file kết quả cũ bằng --cases-file và bộ chấm hiện tại")
@@ -250,7 +257,7 @@ def main() -> None:
                         "cost_usd": r["cost_usd"], "llm_requests": r.get("llm_requests"),
                         "gate": r["gate"], "case_id_engine": r.get("case_id"),
                         "final_report_text": r.get("final_report_text", ""), "sources": r.get("sources", []),
-                        "grade": G.grade(case, r), "conclusion_text": r["conclusion_text"],
+                        "grade": G.grade_any(a.grader, case, {**r, "final_text": final_text_of({**r, "mode": mode})}), "conclusion_text": r["conclusion_text"],
                         "tools_called": r["tools_called"]})
                     spent += r["cost_usd"] or 0.0
                 runs.append(row)
@@ -268,7 +275,7 @@ def main() -> None:
     res = {
         "run_id": now.strftime("%Y%m%dT%H%M%SZ") + (f"-{a.label}" if a.label else ""),
         "created_at": now.isoformat(), "started_at": started.isoformat(), "label": a.label,
-        "cases_version": spec["version"], "grader_version": G.GRADER_VERSION, "llm_mode": envv.get("LLM_MODE", "?"),
+        "cases_version": spec["version"], "grader_version": a.grader, "llm_mode": envv.get("LLM_MODE", "?"),
         "planner_model": envv.get("PLANNER_MODEL", "?"), "specialist_model": envv.get("SPECIALIST_MODEL", "?"),
         "git_commit": sh(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"]).strip(),
         "runs_per_case": a.runs, "cases": [c["id"] for c in cases],

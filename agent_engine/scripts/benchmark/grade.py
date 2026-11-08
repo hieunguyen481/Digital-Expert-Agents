@@ -67,6 +67,41 @@ def grade(case: dict, out: dict) -> dict[str, Any]:
     }
 
 
+GRADER_V3 = "v3"
+# v3: cùng quy tắc v2 nhưng CHỈ chấm văn bản kết luận cuối mà người dùng đọc (out["final_text"], bỏ khối \"Trích dẫn:\"; multi = báo cáo
+# cuối hợp nhất, single = câu trả lời của chatbot; KHÔNG gộp nháp chuyên gia), trích dẫn chấm trên chính văn bản
+# đó (không cộng danh sách nguồn đính kèm), thêm độ chính xác trích dẫn và độ dài/số nguồn.
+_DIEU = re.compile(r"Điều\s*(\d+)", re.IGNORECASE)
+
+
+def _source_keys(src: str) -> set[str]:
+    return {f"§{m.group(1)}" for m in _SEC.finditer(src)} | {f"Điều {m.group(1)}" for m in _DIEU.finditer(src)}
+
+
+_CITE_BLOCK = re.compile(r"(?m)^Trích dẫn:.*\Z", re.DOTALL)
+
+
+def grade_v3(case: dict, out: dict) -> dict[str, Any]:
+    full = out.get("final_text") or ""
+    # Khối "Trích dẫn:" của báo cáo là danh sách nguồn đính kèm (kèm đoạn RAG thô): không tính là văn bản kết luận,
+    # nếu không mọi nguồn liệt kê đều "được dùng" và đoạn thô khớp mẫu ngẫu nhiên.
+    text = _CITE_BLOCK.sub("", full)
+    base = grade(case, {**out, "conclusion_text": text, "sources": []})
+    srcs = out.get("sources", [])
+    policy = [k for k in (_source_keys(s) for s in srcs) if k]
+    used_keys = {f"§{m.group(1)}" for m in _SEC.finditer(text)} | {f"Điều {m.group(1)}" for m in _DIEU.finditer(text)}
+    used = [k for k in policy if k & used_keys]
+    base.update({
+        "grader_version": GRADER_V3, "sources_listed": len(srcs), "policy_sources_listed": len(policy),
+        "policy_sources_used": len(used), "citation_precision": (len(used) / len(policy)) if policy else None,
+        "report_chars": len(full), "report_chars_body": len(text)})
+    return base
+
+
+def grade_any(version: str, case: dict, out: dict) -> dict[str, Any]:
+    return grade_v3(case, out) if version == GRADER_V3 else grade(case, out)
+
+
 def _mean_sd(xs: list[float]) -> tuple[float | None, float | None]:
     xs = [x for x in xs if x is not None]
     if not xs:
@@ -94,6 +129,10 @@ def summarize(runs: list[dict]) -> dict[str, Any]:
             "latency_s": [r["latency_s"] for r in ok],
             "total_tokens": [r["tokens"]["total"] for r in ok],
             "cost_usd": [r["cost_usd"] for r in ok],
+            "citation_precision": [r["grade"]["citation_precision"] for r in ok if r["grade"].get("citation_precision") is not None],
+            "sources_listed": [r["grade"]["sources_listed"] for r in ok if "sources_listed" in r["grade"]],
+            "report_chars": [r["grade"]["report_chars"] for r in ok if "report_chars" in r["grade"]],
+            "report_chars_body": [r["grade"]["report_chars_body"] for r in ok if "report_chars_body" in r["grade"]],
         }.items():
             mean, sd = _mean_sd(series)
             m[name] = {"mean": mean, "sd": sd}

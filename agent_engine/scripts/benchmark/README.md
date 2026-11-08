@@ -6,6 +6,8 @@ Chấm lại dữ liệu cũ bằng bộ chấm hiện tại (không gọi LLM, 
 Nạp lại file đã lưu vào Postgres: `... run.py --import-file agent_engine/benchmark_results/<file>.json`.
 
 - `cases_v2.json`: 5 ca v1 (chỉnh tool bắt buộc theo rules.md, mẫu forbidden chặt hơn) + 5 ca mới C6-C10 trên hồ sơ seed `R__seed_benchmark_profiles.sql`; C6-C10 không dùng để sửa agent.
+- `cases_v5.json`: 6 ca F1-F6 (seed `R__seed_benchmark_v5_profiles.sql`, khách ...0041-0046) — BỘ KIỂM TRA MÙ: đăng ký trước khi sửa engine ở vòng tối ưu v4, không chạy và không đọc điểm cho tới lượt đo cuối. v4 từ nay là "bộ đã dùng để tối ưu".
+- Bộ chấm v3 (`--grader v3`, mặc định): như v2 nhưng chỉ chấm văn bản kết luận cuối (multi = báo cáo cuối hợp nhất, không gộp nháp chuyên gia; single = câu trả lời), trích dẫn chấm trên văn bản đó, thêm `citation_precision` (nguồn chính sách §/Điều được liệt kê có xuất hiện trong văn bản kết luận không), `sources_listed`, `report_chars`. v2 giữ nguyên (`--grader v2`). Chấm lại v4 cũ: `... --regrade-file <file> --cases-file agent_engine/scripts/benchmark/cases_v4.json --grader v3`.
 - `cases_v4.json`: 6 ca liên phòng ban E1-E6 trên seed `R__seed_benchmark_v4_profiles.sql` (nạp thủ công như v3), đăng ký trước khi sửa engine v4; giả thuyết ở cuối `docs/agent/benchmark-v3-research.md`.
 - `cases_v3.json`: 8 ca liên phòng ban D1-D8 (nhiều TSĐB, xung đột nguồn, tính lại số) trên seed `R__seed_benchmark_v3_profiles.sql`; đăng ký trước khi sửa engine, bộ chấm v2 giữ nguyên. Giả thuyết: `docs/agent/benchmark-v3-research.md`.
 - Mỗi lượt multi lưu thêm `final_report_text` (báo cáo cuối hợp nhất của engine) để đối chiếu; điểm vẫn chấm trên `conclusion_text` (hợp các verdict) cho cả hai chế độ.
