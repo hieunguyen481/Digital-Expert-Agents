@@ -73,7 +73,7 @@ class RuntimeCORSMiddleware:
             if allowed_origin is not None and message["type"] == "http.response.start":
                 response_headers = MutableHeaders(scope=message)
                 response_headers["Access-Control-Allow-Origin"] = allowed_origin
-                response_headers["Access-Control-Expose-Headers"] = "X-Request-ID"
+                response_headers["Access-Control-Expose-Headers"] = "X-Request-ID, Content-Disposition"
                 response_headers["Vary"] = "Origin"
             await send(message)
 
