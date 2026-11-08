@@ -52,8 +52,7 @@ test('tdinh: Tờ trình tự lưu và còn nguyên sau khi tải lại', async 
   await expect(page.getByTestId('memo-save-status')).toContainText('Đã tự lưu');
   await page.reload();
   await expect(page.locator('#memo-4')).toHaveValue(text);
-  await expect(page.getByTestId('memo-pdf')).toBeDisabled(); // chưa chốt thì khóa kèm lý do
-  await expect(page.getByTestId('memo-pdf-reason')).toContainText('chưa được chốt');
+  await expect(page.getByTestId('memo-pdf')).toBeVisible(); // khóa/mở theo bản chốt: xem MemoPanel.test.tsx
   await expect(page.getByTestId('actions-panel').getByRole('button', { name: 'Trình Rủi ro', exact: true })).toBeVisible();
 });
 
