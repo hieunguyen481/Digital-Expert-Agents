@@ -34,7 +34,7 @@ class CaseActionRepository:
         return await fetch_one(
             self.session,
             "SELECT id, code, severity, status, title FROM credit.case_flag "
-            "WHERE id = :f AND loan_application_id = :l FOR UPDATE",
+            "WHERE id = :f AND loan_application_id = :l",
             {"f": flag_id, "l": loan_id},
         )
 
@@ -46,12 +46,11 @@ class CaseActionRepository:
             {"f": flag_id, "n": note},
         )
 
-    async def set_flag_concluded(self, flag_id: UUID, conclusion: str, reason: str) -> None:
+    async def set_flag_concluded(self, flag_id: UUID, loan_id: UUID, caller: UUID, conclusion: str, reason: str) -> None:
         await fetch_one(
             self.session,
-            "UPDATE credit.case_flag SET status = 'CONCLUDED', compliance_conclusion = :c, compliance_reason = :r, "
-            "updated_at = CURRENT_TIMESTAMP WHERE id = :f RETURNING id",
-            {"f": flag_id, "c": conclusion, "r": reason},
+            "SELECT credit.conclude_case_flag(:l, :f, :c, :k, :r) IS NULL AS done",
+            {"l": loan_id, "f": flag_id, "c": caller, "k": conclusion, "r": reason},
         )
 
     async def early_warn(self, loan_id: UUID, flag_id: UUID, caller: UUID, note: str | None) -> UUID:

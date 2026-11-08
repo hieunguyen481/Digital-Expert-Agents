@@ -146,6 +146,41 @@ $function$;
 REVOKE ALL ON FUNCTION credit.early_warn_compliance(UUID, UUID, UUID, TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION credit.early_warn_compliance(UUID, UUID, UUID, TEXT) TO bank_app;
 
+-- Tuan thu ket luan co cickh (F8). SECURITY DEFINER vi Tuan thu chi co quyen doc ho so o buoc Y kien Rui ro,
+-- khong co quyen ghi bang co; ham tu kiem vai tro, buoc va ma co.
+CREATE FUNCTION credit.conclude_case_flag(
+    p_loan_id UUID, p_flag_id UUID, p_caller UUID, p_conclusion TEXT, p_reason TEXT
+) RETURNS VOID
+LANGUAGE plpgsql
+VOLATILE
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+BEGIN
+    IF p_caller IS DISTINCT FROM identity.current_employee_id()
+       OR NOT credit.has_active_role(p_caller, 'compliance_officer')
+       OR NOT identity.can_read_loan(p_caller, p_loan_id) THEN
+        RAISE EXCEPTION 'Only compliance with access to the case may conclude its flag'
+            USING ERRCODE = 'insufficient_privilege';
+    END IF;
+    IF p_conclusion NOT IN ('SUSPECTED_FRAUD', 'INSUFFICIENT_BASIS', 'NO_ISSUE') OR btrim(COALESCE(p_reason, '')) = '' THEN
+        RAISE EXCEPTION 'A conclusion and a reason are required' USING ERRCODE = 'check_violation';
+    END IF;
+    UPDATE credit.case_flag AS flag
+    SET status = 'CONCLUDED', compliance_conclusion = p_conclusion, compliance_reason = btrim(p_reason),
+        updated_at = CURRENT_TIMESTAMP
+    FROM credit.loan_application AS loan
+    WHERE flag.id = p_flag_id AND flag.loan_application_id = p_loan_id AND flag.code = 'cickh'
+      AND flag.status <> 'CONCLUDED' AND loan.id = flag.loan_application_id AND loan.status = 'RISK_REVIEW';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'The flag cannot be concluded' USING ERRCODE = 'check_violation';
+    END IF;
+END
+$function$;
+
+REVOKE ALL ON FUNCTION credit.conclude_case_flag(UUID, UUID, UUID, TEXT, TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION credit.conclude_case_flag(UUID, UUID, UUID, TEXT, TEXT) TO bank_app;
+
 COMMENT ON TABLE credit.risk_opinion IS 'Y kien Rui ro va Tuan thu theo ban To trinh da chot (Q-N); chi them.';
 COMMENT ON TABLE credit.approval_tier_event IS 'Cap phe duyet luc gui va cac lan Nang cap phe duyet (Q4, F10); chi them.';
 COMMENT ON FUNCTION credit.early_warn_compliance(UUID, UUID, UUID, TEXT) IS

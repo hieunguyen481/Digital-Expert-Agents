@@ -8,7 +8,7 @@ Chuyển bước (Yêu cầu bổ sung, Trả lại, Trình Rủi ro, quyết đ
 from __future__ import annotations
 
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from app.exceptions import ConflictError, NotFoundError, ValidationError
 from app.repositories.case_action_repository import CaseActionRepository
@@ -70,7 +70,8 @@ class CaseActionService:
         if self._audit is not None:
             await self._audit.record(
                 principal=principal, action=action, resource_type="LOAN_APPLICATION", resource_id=loan_id,
-                loan_application_id=loan_id, result="SUCCESS", metadata=metadata,
+                loan_application_id=loan_id, result="SUCCESS", request_id=uuid4(), correlation_id=uuid4(),
+                metadata=metadata,
             )
 
     async def state(self, principal: PrincipalLike, loan_id: UUID) -> dict[str, Any]:
@@ -132,7 +133,7 @@ class CaseActionService:
             raise ConflictError("FLAG_NOT_CONCLUDABLE", "Chỉ kết luận cờ CIC khách tự nộp.", {})
         if flag["status"] == "CONCLUDED":
             raise ConflictError("FLAG_NOT_CONCLUDABLE", "Cờ đã có kết luận.", {})
-        await self._repo.set_flag_concluded(flag_id, conclusion, clean)
+        await self._repo.set_flag_concluded(flag_id, loan_id, principal.employee_id, conclusion, clean)
         action = CONCLUSIONS[conclusion]
         status = str(loan["status"])
         if action is not None:
