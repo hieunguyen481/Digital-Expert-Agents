@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agents.base import build_agent_app  # noqa: E402
 from common import config, llm, mcp_client, rag, recompute  # noqa: E402
+from common.expert_rules import EXPERT_RULES  # noqa: E402
 from common.report import with_policy_evidence  # noqa: E402
 from common.schemas import (  # noqa: E402
     AgentCard, AgentSkill, Envelope, Evidence, Verdict, VerdictDecision,
@@ -169,7 +170,7 @@ async def _llm_task(env: Envelope) -> Verdict:
         system=f"Bạn là chuyên gia pháp chế & tuân thủ ngân hàng. Kiểm tra KYB, "
                f"blacklist (hit = từ chối ngay), CIC (nhóm >=3 từ chối, nhóm 2 flag), "
                f"pháp lý TSĐB (LTV tối đa {config.LTV_MAX:.0%} — tính max_secured_limit). "
-               f"Trích dẫn quy định qua search_compliance_policy. Kết thúc bằng submit_verdict.",
+               f"Trích dẫn quy định qua search_compliance_policy. {EXPERT_RULES} Kết thúc bằng submit_verdict.",
         user=f"Kiểm tra tuân thủ đề nghị vay: {request}, "
              f"kiểm tra TSĐB: {params.get('check_collateral', False)}"
              + (f"\nYêu cầu rà soát từ Validation: {params['challenge_reason']}"

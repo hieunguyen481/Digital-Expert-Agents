@@ -24,16 +24,30 @@ def _dedup(items: list[str]) -> list[str]:
     return out
 
 
+_SEC = re.compile(r"§\s*(\d+(?:\.\d+)?)")
+_DIEU = re.compile(r"Điều\s*(\d+)", re.IGNORECASE)
+
+
+def _ref_keys(s: str) -> set[str]:
+    return {f"§{m.group(1)}" for m in _SEC.finditer(s)} | {f"Điều {m.group(1)}" for m in _DIEU.finditer(s)}
+
+
+def _verdict_text(v: Verdict) -> str:
+    return " ".join([v.summary, *v.findings, *v.conditions])
+
+
 def with_policy_evidence(v: Verdict, hits: list[dict]) -> Verdict:
-    """Đính các điều khoản chính sách (nguồn không phải file .md, tức đoạn § của CS-TD-SME) mà chuyên gia
-    đã tra cứu vào evidence của verdict: nguồn trích không còn phụ thuộc việc LLM có tự viết lại hay không."""
+    """Đính điều khoản chính sách (đoạn § của CS-TD-SME, không phải file .md) mà chuyên gia đã tra cứu VÀ kết luận
+    thật sự nhắc tới (§ xuất hiện trong summary/findings/conditions): nguồn trích không phụ thuộc việc LLM có tự
+    viết lại evidence hay không, nhưng không đính hàng loạt mọi điều khoản đã tra."""
     have = {_key(e.source) for e in v.evidence}
+    used = _ref_keys(_verdict_text(v))
     extra = []
     for h in hits:
-        if h["source"].endswith(".md") or _key(h["source"]) in have:
+        if h["source"].endswith(".md") or _key(h["source"]) in have or not (_ref_keys(h["source"]) & used):
             continue
         have.add(_key(h["source"]))
-        extra.append(Evidence(source=h["source"], quote=h["text"][:300]))
+        extra.append(Evidence(source=h["source"], quote=h["text"][:200]))
     return v.model_copy(update={"evidence": [*v.evidence, *extra]}) if extra else v
 
 
@@ -74,15 +88,20 @@ def merge_verdicts(verdicts: dict[str, Verdict], extra_findings: list[str] | Non
     """Trả {findings, conditions, citations, summaries, text, demoted} từ các verdict chuyên gia."""
     findings = _dedup([f for v in verdicts.values() for f in v.findings] + list(extra_findings or []))
     conditions = _dedup([c for v in verdicts.values() for c in v.conditions] + list(extra_conditions or []))
+    summaries = {name: f"[{v.decision.value}] {v.summary}" for name, v in verdicts.items()}
+    body = " ".join([*summaries.values(), *findings, *conditions, *(demoted or [])])
+    used = _ref_keys(body)
     cites: list[dict] = []
     seen: set[str] = set()
     for name, v in verdicts.items():
         for e in v.evidence:
-            k = _key(f"{e.source} {e.quote}")[:200]
-            if k not in seen:
+            refs = _ref_keys(e.source)
+            if refs and not (refs & used):  # điều khoản chính sách mà kết luận không nhắc tới: không liệt kê
+                continue
+            k = _key(e.source)
+            if k not in seen:  # một dòng cho mỗi nguồn
                 seen.add(k)
-                cites.append({"agent": name, "source": e.source, "quote": e.quote})
-    summaries = {name: f"[{v.decision.value}] {v.summary}" for name, v in verdicts.items()}
+                cites.append({"agent": name, "source": e.source, "quote": e.quote[:160]})
     lines = [f"{name}: {s}" for name, s in summaries.items()]
     if findings:
         lines.append("Phát hiện:\n" + "\n".join(f"- {f}" for f in findings))

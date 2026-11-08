@@ -71,12 +71,12 @@ def describe(col: dict | None, exp: dict, lev: dict | None, amount: float) -> li
            f"= {_bn(exp['total'])}; "
            + ("vượt 20 tỷ nên BCTC kiểm toán bắt buộc" if exp["audit_required"]
               else "không vượt 20 tỷ nên chưa bắt buộc BCTC kiểm toán")
-           + f"; cấp phê duyệt: {exp['tier']}"]
+           + f" (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: {exp['tier']} (CS-TD-SME/2025 §3.1)"]
     if col is not None and col["assets"]:
         if col["eligible_value"]:
             out.append(f"Tính lại LTV: đề xuất {_bn(amount)} / TSĐB đủ điều kiện {_bn(col['eligible_value'])} "
                        f"= {col['ltv']:.1%} (tối đa {col['ltv_max']:.0%}, tương ứng {_bn(col['max_secured_limit'])})"
-                       + ("; VƯỢT ngưỡng LTV" if col["ltv_over"] else "; trong ngưỡng LTV"))
+                       + ("; VƯỢT ngưỡng LTV" if col["ltv_over"] else "; trong ngưỡng LTV") + " (CS-TD-SME/2025 §7.1)")
         for x in col["excluded"]:
             out.append(f"TSĐB {x['collateral_id']} không tính vào LTV (pháp lý: {x['legal_status']}, "
                        f"giá trị {_bn(x['valuation'])})")
@@ -85,5 +85,5 @@ def describe(col: dict | None, exp: dict, lev: dict | None, amount: float) -> li
     if lev:
         out.append(f"Tính lại Nợ vay/EBITDA sau cấp TD ({lev['year']}): {_bn(lev['debt_after'])} / "
                    f"{_bn(lev['ebitda'])} = {lev['ratio']:.2f} lần (tối đa {lev['max']}); "
-                   + ("VƯỢT ngưỡng" if lev["over"] else "trong ngưỡng"))
+                   + ("VƯỢT ngưỡng" if lev["over"] else "trong ngưỡng") + " (CS-TD-SME/2025 §4.2)")
     return out

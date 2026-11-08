@@ -7,6 +7,7 @@ Endpoint mặc định: FPT AI Marketplace. Phân vai model theo agent:
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from typing import Any, Awaitable, Callable, Optional
@@ -199,13 +200,20 @@ async def tool_loop(
                 ],
             }
         )
-        for tc in msg.tool_calls:
+        calls = list(msg.tool_calls)
+        for k, tc in enumerate(calls):  # chỉ chạy các tool đứng trước submit (nếu có)
+            if tc.function.name == submit_tool:
+                calls = calls[:k]
+                submit = tc
+                break
+        else:
+            submit = None
+
+        async def _run_one(tc) -> str:
             try:
                 args = json.loads(tc.function.arguments or "{}")
             except json.JSONDecodeError:
                 args = {}
-            if tc.function.name == submit_tool:
-                return args
             tool = tool_map.get(tc.function.name)
             if tool is None or tool.fn is None:
                 result: Any = {"error": f"tool {tc.function.name} không tồn tại"}
@@ -214,11 +222,15 @@ async def tool_loop(
                     result = await tool.fn(**args)
                 except Exception as e:  # noqa: BLE001 - trả lỗi về cho LLM tự xử lý
                     result = {"error": str(e)}
-            messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": tc.id,
-                    "content": json.dumps(result, ensure_ascii=False, default=str),
-                }
-            )
+            return json.dumps(result, ensure_ascii=False, default=str)
+
+        # Các tool_call trong cùng một lượt độc lập nhau: chạy song song (giảm trễ), giữ nguyên thứ tự trả về.
+        outs = await asyncio.gather(*[_run_one(tc) for tc in calls])
+        if submit is not None:
+            try:
+                return json.loads(submit.function.arguments or "{}")
+            except json.JSONDecodeError:
+                return {}
+        for tc, content in zip(calls, outs):
+            messages.append({"role": "tool", "tool_call_id": tc.id, "content": content})
     raise RuntimeError(f"LLM không submit sau {max_iterations} vòng tool-calling")

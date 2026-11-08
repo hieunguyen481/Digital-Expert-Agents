@@ -29,7 +29,7 @@ def _specialists():
         "credit": _v("credit", findings=["DSCR 1,10 dưới ngưỡng 1,25 (§4.2)", "Có 2 khoản vay hiện hữu"],
                      conditions=["Bổ sung BCTC quý"], evidence=[Evidence(source="core-banking:get_financials", quote="DSCR 1,10")],
                      proposed_limit=15e9),
-        "compliance": _v("compliance", VerdictDecision.FLAG, findings=["LTV tối đa 70% tương ứng 14 tỷ", "CIC nhóm 2"],
+        "compliance": _v("compliance", VerdictDecision.FLAG, findings=["LTV tối đa 70% tương ứng 14 tỷ (§7.1)", "CIC nhóm 2"],
                          conditions=["Bổ sung BCTC quý", "Hoàn thiện đăng ký giao dịch bảo đảm"],
                          evidence=[Evidence(source="CS-TD-SME/2025 §7.1 – LTV và TSBĐ", quote="LTV ≤ 70%")],
                          max_secured_limit=14e9),
@@ -161,6 +161,11 @@ async def test_final_report_keeps_every_source_and_drops_claims_tools_contradict
     sv["credit"] = with_policy_evidence(sv["credit"], [clause, {"source": "credit_guide.md", "text": "x", "score": 1}])
     assert [e.source for e in sv["credit"].evidence] == ["core-banking:get_financials", clause["source"]]
     assert with_policy_evidence(sv["credit"], [clause]) is sv["credit"]            # không đính trùng
+    other = {"source": "CS-TD-SME/2025 §5.2 – Tập trung ngành", "text": "x", "score": 1.0}
+    assert with_policy_evidence(sv["credit"], [other]) is sv["credit"]             # đã tra nhưng kết luận không nhắc: không đính
+    unused = Evidence(source=other["source"], quote="x")
+    r = merge_verdicts({"credit": sv["credit"].model_copy(update={"evidence": [*sv["credit"].evidence, unused]})})
+    assert other["source"] not in {c["source"] for c in r["citations"]}
     unsupported = "Nếu tổng nợ 55 tỷ vượt 20 tỷ, phải có BCTC kiểm toán chấp nhận toàn phần"
     sv["compliance"] = sv["compliance"].model_copy(update={"conditions": [*sv["compliance"].conditions, unsupported]})
     out = await _run_validation(monkeypatch, sv, loans=[{"loan_id": "l1", "outstanding": 1e9}])  # tổng 16 tỷ
