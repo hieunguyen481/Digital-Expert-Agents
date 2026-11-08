@@ -232,3 +232,44 @@ async def test_former_rm_holding_approval_step_cannot_decide(
     with pytest.raises(PermissionError):
         await transition(engine, former, case.loan_id, "decide", 1, reason="Dong y", params={"decision_type": "REJECTED"})
     assert await mig.fetchval("SELECT count(*) FROM credit.loan_decision WHERE loan_application_id = $1", case.loan_id) == 0
+
+
+async def test_http_decide_refused_for_e8_excluded_employee(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    """E8 qua HTTP: duong the AI goi `POST /transitions` voi `decide`; QHKH cu bi 403, khong co quyet dinh."""
+    from httpx import ASGITransport, AsyncClient
+    from tests.contract.test_foundation_contract import _settings
+
+    from app.auth.dependencies import get_current_principal
+    from app.db.session import get_async_session
+    from app.main import create_app
+
+    await case.create(status="APPROVAL")
+    await mig.execute(
+        "INSERT INTO customer.relationship_manager_history (customer_id, employee_id, valid_from, valid_until)"
+        " VALUES ($1, $2, DATE '2020-01-01', CURRENT_DATE - 30)", case.customer_id, APPROVER_HO,
+    )
+    await case.add_step("APPROVAL", APPROVER_HO)
+    former = await principal(mig, APPROVER_HO)
+    app = create_app(_settings())
+    app.state.settings = _settings()  # lifespan khong chay trong ASGITransport
+
+    async def _principal() -> object:
+        return former
+
+    async def _session() -> AsyncIterator[AsyncSession]:
+        async with AsyncSession(engine) as session:
+            yield session
+
+    app.dependency_overrides[get_current_principal] = _principal
+    app.dependency_overrides[get_async_session] = _session
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post(
+            f"/api/v1/loan-applications/{case.loan_id}/transitions",
+            json={"action": "decide", "expected_version": 1, "reason": "Dong y",
+                  "params": {"decision_type": "REJECTED"}},
+        )
+    assert response.status_code == 403, response.text
+    assert "E8" in response.text
+    assert await mig.fetchval("SELECT count(*) FROM credit.loan_decision WHERE loan_application_id = $1", case.loan_id) == 0

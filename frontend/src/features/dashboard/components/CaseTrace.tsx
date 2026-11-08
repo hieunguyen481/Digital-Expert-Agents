@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Drawer, Empty, Skeleton, Tag, Typography } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getAgentCase, getAgentCaseEvents, streamAgentCase, type AgentCaseEvent } from '@/services/agentCaseService';
+import { getAgentCase, getAgentCaseEvents, getApproverNames, streamAgentCase, type AgentCaseEvent } from '@/services/agentCaseService';
 import {
   DECISION_LABEL, STATE_COLOR, agentName, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
@@ -52,6 +52,13 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
     [...(eventsQ.data ?? []), ...live].forEach((e) => byId.set(e.id, e));
     return [...byId.values()].sort((a, b) => a.id - b.id);
   }, [eventsQ.data, live]);
+
+  const approverIds = [...new Set(decisions(events).map((d) => d.who).filter((w): w is string => !!w))].sort();
+  const namesQ = useQuery({
+    queryKey: ['agent-approver-names', approverIds.join(',')],
+    queryFn: () => getApproverNames(approverIds),
+    enabled: approverIds.length > 0,
+  });
 
   if (caseQ.isError) {
     return <Alert type="warning" showIcon message="Không tải được case này" description="Bạn có thể không có quyền xem hồ sơ phân tích này." />;
@@ -194,7 +201,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         {decided.map((d) => (
           <div key={d.id} style={{ fontSize: 13, marginTop: 6 }}>
             <Tag color={d.tone === 'ok' ? 'green' : d.tone === 'error' ? 'red' : 'gold'}>{d.label}</Tag>
-            {d.who && <Text type="secondary">Người xác nhận: {d.who}</Text>} {d.text}
+            {d.who && <Text type="secondary">Người xác nhận: {namesQ.data?.[d.who] ?? 'Không rõ'}</Text>} {d.text}
           </div>
         ))}
         {state === 'Pending Approval' && decided.length === 0 && (

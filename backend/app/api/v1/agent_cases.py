@@ -6,12 +6,14 @@ Mọi lời gọi mang JWT của người dùng; engine tự xác thực và áp
 from __future__ import annotations
 
 from typing import Annotated, Any
+from uuid import UUID
 
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from app.api.dependencies import PrincipalDep
+from app.api.dependencies import PrincipalDep, SessionDep
+from app.repositories.base import fetch_all
 from app.exceptions import AppError, DependencyUnavailableError
 from app.services.agent_engine_client import AgentEngineClient, AgentEngineError
 
@@ -65,6 +67,23 @@ async def case_stats(request: Request, principal: PrincipalDep) -> Any:
         return await _engine(request).case_stats()
     except AgentEngineError as e:
         raise _raise(e) from e
+
+
+@router.get("/approver-names", operation_id="agent_case_approver_names")
+async def approver_names(principal: PrincipalDep, session: SessionDep, ids: str = "") -> dict[str, str]:
+    """Tên người duyệt theo mã nhân viên (giao diện không hiện UUID). Mã không hợp lệ/không có thì bỏ qua."""
+    del principal
+    wanted: list[UUID] = []
+    for raw in ids.split(",")[:50]:
+        try:
+            wanted.append(UUID(raw.strip()))
+        except ValueError:
+            continue
+    if not wanted:
+        return {}
+    rows = await fetch_all(
+        session, "SELECT id::text AS id, full_name FROM identity.employee WHERE id = ANY(:ids)", {"ids": wanted})
+    return {str(r["id"]): str(r["full_name"]) for r in rows}
 
 
 @router.get("/{case_id}", operation_id="get_agent_case")

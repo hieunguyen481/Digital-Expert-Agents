@@ -89,6 +89,11 @@ export async function getAgentCaseEvents(caseId: string): Promise<AgentCaseEvent
   return Array.isArray(data) ? data : data.events;
 }
 
+export async function getApproverNames(ids: string[]): Promise<Record<string, string>> {
+  if (ids.length === 0) return {};
+  return (await apiClient.get<Record<string, string>>('/agent-cases/approver-names', { params: { ids: ids.join(',') } })).data;
+}
+
 export async function confirmAgentCase(caseId: string, input: ConfirmInput): Promise<unknown> {
   return (await apiClient.post(`/agent-cases/${caseId}/approve`, input)).data;
 }

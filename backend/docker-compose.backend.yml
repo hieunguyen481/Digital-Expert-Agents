@@ -85,6 +85,13 @@ services:
     profiles: [backend-workers]
     command: ["python", "-m", "app.workers.outbox_publisher", "--factory", "app.workers.factories:build_outbox_publisher"]
     restart: unless-stopped
+    healthcheck:
+      # Worker khong mo cong HTTP: kiem tra tien trinh chinh (PID 1) con chay dung module.
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0 if b'app.workers.outbox_publisher' in open('/proc/1/cmdline','rb').read() else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     environment:
       <<: *backend-api-environment
       OUTBOX_PRODUCER_ID: bank-api
@@ -102,6 +109,13 @@ services:
     profiles: [backend-workers]
     command: ["python", "-m", "app.workers.document_worker", "--factory", "app.workers.factories:build_document_worker"]
     restart: unless-stopped
+    healthcheck:
+      # Worker khong mo cong HTTP: kiem tra tien trinh chinh (PID 1) con chay dung module.
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0 if b'app.workers.document_worker' in open('/proc/1/cmdline','rb').read() else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     environment: &document-worker-environment
       <<: *backend-api-environment
       DATABASE_USER: ${POSTGRES_WORKER_USER:-bank_worker}

@@ -198,7 +198,7 @@ def _workflow(request: Request, session: AsyncSession, audit: AuditService) -> W
     )
 
 
-def get_workflow_service(request: Request, session: SessionDep) -> WorkflowService:
+def get_workflow_service(request: Request, session: CommitFirstSessionDep) -> WorkflowService:
     return _workflow(request, session, AuditService(AuditRepository(session)))
 
 
@@ -261,11 +261,11 @@ def get_work_item_service(session: SessionDep) -> WorkItemService:
     return WorkItemService(WorkItemRepository(session))
 
 
-def get_proposal_service(session: SessionDep) -> ProposalService:
+def get_proposal_service(session: CommitFirstSessionDep) -> ProposalService:
     return ProposalService(ProposalRepository(session))
 
 
-def get_submission_service(request: Request, session: SessionDep) -> SubmissionService:
+def get_submission_service(request: Request, session: CommitFirstSessionDep) -> SubmissionService:
     settings = get_settings_from_state(request)
     proposals = ProposalService(ProposalRepository(session))
     return SubmissionService(
@@ -277,11 +277,11 @@ def get_submission_service(request: Request, session: SessionDep) -> SubmissionS
     )
 
 
-def get_cic_service(session: SessionDep) -> CicService:
+def get_cic_service(session: CommitFirstSessionDep) -> CicService:
     return CicService(ProposalService(ProposalRepository(session)), CicRepository(session))
 
 
-def get_reconciliation_service(request: Request, session: SessionDep) -> ReconciliationService:
+def get_reconciliation_service(request: Request, session: CommitFirstSessionDep) -> ReconciliationService:
     settings = get_settings_from_state(request)
     return ReconciliationService(
         ReconciliationRepository(session),
@@ -290,7 +290,7 @@ def get_reconciliation_service(request: Request, session: SessionDep) -> Reconci
     )
 
 
-def get_memo_service(session: SessionDep) -> MemoService:
+def get_memo_service(session: CommitFirstSessionDep) -> MemoService:
     return MemoService(MemoRepository(session))
 
 
