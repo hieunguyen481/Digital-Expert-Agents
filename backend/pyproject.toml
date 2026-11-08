@@ -23,6 +23,7 @@ dependencies = [
     "pgvector>=0.3.6",
     "pillow>=11.0.0",
     "pypdfium2>=4.30.0",
+    "fpdf2>=2.8.0",
 ]
 
 [project.scripts]
@@ -47,6 +48,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["app*"]
+
+[tool.setuptools.package-data]
+app = ["assets/fonts/*.ttf"]
 
 [tool.ruff]
 target-version = "py312"

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from app.api.dependencies import get_memo_service
 from app.auth.dependencies import require_permissions
@@ -48,3 +48,11 @@ async def decide_ai_block(
         principal, loan_application_id, block_id, confirm=body.decision == "CONFIRM", expected_version=body.version
     )
     return MemoView.model_validate(result)
+
+
+@router.get(BASE + "/pdf", response_class=Response, responses={200: {"content": {"application/pdf": {}}}})
+async def export_memo_pdf(
+    loan_application_id: UUID, principal: READ, service: Svc, revision: int | None = None
+) -> Response:
+    data, name = await service.export_pdf(loan_application_id, revision)
+    return Response(data, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{name}"'})

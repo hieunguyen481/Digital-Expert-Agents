@@ -18,6 +18,7 @@ from app.exceptions import AuthorizationError, ConflictError, NotFoundError, Val
 from app.repositories.memo_repository import MemoRepository
 from app.services.protocols import PrincipalLike
 from app.workflow import memo as rules
+from app.workflow import memo_pdf
 
 MEMO_ROLE = "credit_appraiser"
 EDIT_STATUS = "APPRAISAL"
@@ -163,3 +164,17 @@ class MemoService:
                     await self._write(principal, loan_id, state, sections)
                     return await self.view(principal, loan_id)
         raise NotFoundError("MEMO_BLOCK_NOT_FOUND", "Không tìm thấy khối AI trong Tờ trình.")
+
+    async def export_pdf(self, loan_id: UUID, revision: int | None = None) -> tuple[bytes, str]:
+        """PDF của bản đã chốt (mặc định bản mới nhất); quyền đọc như `view`. Bản nháp không xuất được."""
+        loan = await self._loan(loan_id)
+        versions = [dict(v) for v in await self._repo.versions(loan_id)]
+        picked = next((v for v in versions if revision in (None, v["revision"])), None)
+        if picked is None:
+            raise ConflictError("MEMO_NOT_FINALIZED", "Tờ trình chưa được chốt nên chưa xuất được PDF.")
+        data = memo_pdf.render(
+            application_number=loan["application_number"], customer_name=loan["customer_name"],
+            revision=picked["revision"], finalized_at=picked["finalized_at"],
+            finalized_by_name=picked["finalized_by_name"], content=picked["content"],
+        )
+        return data, f"to-trinh-{loan['application_number']}-lan-{picked['revision']}.pdf"

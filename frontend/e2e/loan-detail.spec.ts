@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import fs from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { loginAs, type RoleKey } from './helpers';
 
@@ -51,6 +52,8 @@ test('tdinh: Tờ trình tự lưu và còn nguyên sau khi tải lại', async 
   await expect(page.getByTestId('memo-save-status')).toContainText('Đã tự lưu');
   await page.reload();
   await expect(page.locator('#memo-4')).toHaveValue(text);
+  await expect(page.getByTestId('memo-pdf')).toBeDisabled(); // chưa chốt thì khóa kèm lý do
+  await expect(page.getByTestId('memo-pdf-reason')).toContainText('chưa được chốt');
   await expect(page.getByTestId('actions-panel').getByRole('button', { name: 'Trình Rủi ro', exact: true })).toBeVisible();
 });
 
@@ -123,6 +126,9 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await page.getByTestId('actions-panel').getByRole('button', { name: 'Trình Rủi ro', exact: true }).click();
   await expect(page.getByText('RISK_REVIEW', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Bản đã chốt lúc trình')).toBeVisible();
+  const [pdf] = await Promise.all([page.waitForEvent('download'), page.getByTestId('memo-pdf').click()]);
+  expect(pdf.suggestedFilename()).toMatch(/^to-trinh-.*\.pdf$/);
+  expect(fs.readFileSync((await pdf.path()) as string).subarray(0, 4).toString()).toBe('%PDF');
 
   // 2. Rủi ro ghi ý kiến; chưa đủ ý kiến Tuân thủ thì chưa trình được phê duyệt.
   page = await open('ruiro');

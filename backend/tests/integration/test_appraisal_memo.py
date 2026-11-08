@@ -21,7 +21,7 @@ from tests.integration.seed_ids import (
     LOAN_VINANOVA,
     RISK_HO,
 )
-from tests.integration.test_proposal_draft import _as
+from tests.integration.test_proposal_draft import BRANCH, BRANCH_HO, _as
 from tests.integration.test_reconciliation import ROLE
 
 from app.exceptions import AuthorizationError, ConflictError, NotFoundError, ValidationError
@@ -230,3 +230,47 @@ async def _finalize_and_read(s: AsyncSession, _employee: UUID) -> None:
     await WorkflowRepository(s, cic_outage=False).finalize_memo(LOAN_VINANOVA, CREDIT_APPRAISER)
     frozen = (await svc.view(p, LOAN_VINANOVA))["finalized"]
     assert frozen["content"]["7"]["body"] == "Nội dung mục 7"
+
+
+def _pdf_text(data: bytes) -> str:
+    import pypdfium2 as pdfium
+
+    pdf = pdfium.PdfDocument(data)
+    return "\n".join(pdf[i].get_textpage().get_text_range() for i in range(len(pdf)))
+
+
+async def test_pdf_not_available_until_finalized_then_matches_frozen_version() -> None:
+    async def body(svc: MemoService, s: AsyncSession) -> None:
+        p = _P(CREDIT_APPRAISER)
+        await _fill(svc, p)  # có khối AI chưa xác nhận
+        with pytest.raises(ConflictError) as err:
+            await svc.export_pdf(LOAN_VINANOVA)
+        assert err.value.code == "MEMO_NOT_FINALIZED"
+        await WorkflowRepository(s, cic_outage=False).finalize_memo(LOAN_VINANOVA, CREDIT_APPRAISER)
+        data, name = await svc.export_pdf(LOAN_VINANOVA)
+        text = _pdf_text(data)
+        assert data.startswith(b"%PDF") and name.endswith("-lan-1.pdf")
+        assert "Nội dung mục 7" in text and "lần 1" in text and "Bảng độ nhạy AI" not in text
+
+    await _memo(CREDIT_APPRAISER, body)
+
+
+@pytest.mark.parametrize("employee", [RISK_HO, APPROVER_HO, COMPLIANCE_HO])
+async def test_role_outside_loan_scope_cannot_export_pdf(employee: UUID) -> None:
+    """Ai chưa thấy hồ sơ dưới RLS (chưa tới bước của họ) bị từ chối, kể cả khi đã có bản chốt."""
+    seen: dict[str, bool] = {}
+
+    async def body(s: AsyncSession) -> None:
+        svc = MemoService(MemoRepository(s))
+        await _fill(svc, _P(CREDIT_APPRAISER), with_pending=False)
+        await WorkflowRepository(s, cic_outage=False).finalize_memo(LOAN_VINANOVA, CREDIT_APPRAISER)
+        await s.execute(
+            text("SELECT set_config('app.employee_id', :e, true), set_config('app.branch_id', :b, true)"),
+            {"e": str(employee), "b": str(BRANCH.get(employee, BRANCH_HO))},
+        )  # đổi sang người đọc trong cùng giao dịch
+        with pytest.raises(NotFoundError):
+            await svc.export_pdf(LOAN_VINANOVA)
+        seen["denied"] = True
+
+    await _as(CREDIT_APPRAISER, body)
+    assert seen["denied"]

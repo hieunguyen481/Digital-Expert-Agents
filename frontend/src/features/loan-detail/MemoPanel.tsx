@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Alert, Button, Input, Skeleton, Tag, Typography } from 'antd';
 import { fmtDate } from './format';
+import { downloadMemoPdf } from './loanDetailService';
 import type { AiBlock, MemoSections } from './types';
 import { useMemoAutosave } from './useMemoAutosave';
 import styles from './loan-detail.module.css';
@@ -47,6 +49,25 @@ function AiBlockView({ b, canDecide, onDecide }: { b: AiBlock; canDecide: boolea
   );
 }
 
+function PdfButton({ loanId, revision }: { loanId: string; revision: number | null }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const locked = revision == null;
+  const click = async () => {
+    setBusy(true); setError(null);
+    try { await downloadMemoPdf(loanId); } catch { setError('Không tải được PDF, thử lại sau.'); } finally { setBusy(false); }
+  };
+  return (
+    <div>
+      <Button data-testid="memo-pdf" disabled={locked} loading={busy} onClick={() => void click()}>
+        {locked ? 'Tải PDF' : `Tải PDF bản đã chốt lần ${revision}`}
+      </Button>
+      {locked && <span className={styles.note} data-testid="memo-pdf-reason"> Chưa xuất được: Tờ trình chưa được chốt khi trình.</span>}
+      {error && <span role="alert" className={styles.note}> {error}</span>}
+    </div>
+  );
+}
+
 export function MemoPanel({ loanId }: { loanId: string }) {
   const m = useMemoAutosave(loanId);
   if (m.loadError) return <Alert type="error" showIcon message={m.loadError} />;
@@ -58,6 +79,7 @@ export function MemoPanel({ loanId }: { loanId: string }) {
   return (
     <section className={styles.panel} aria-label="Tờ trình thẩm định">
       <h2>Tờ trình thẩm định</h2>
+      <PdfButton loanId={loanId} revision={view.finalized?.revision ?? null} />
       {editing && view.draft ? (
         <>
           <Typography.Text type="secondary" role="status" data-testid="memo-save-status">

@@ -9,6 +9,18 @@ export async function fetchOverview(loanId: string): Promise<LoanOverview> {
 export async function fetchMemo(loanId: string): Promise<MemoView> {
   return (await apiClient.get<MemoView>(`${base(loanId)}/memo`)).data;
 }
+export async function downloadMemoPdf(loanId: string): Promise<void> {
+  const res = await apiClient.get<Blob>(`${base(loanId)}/memo/pdf`, { responseType: 'blob' });
+  const name = /filename="([^"]+)"/.exec(String(res.headers['content-disposition'] ?? ''))?.[1] ?? 'to-trinh.pdf';
+  const url = URL.createObjectURL(res.data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 export async function saveMemo(loanId: string, version: number, bodies: Record<string, string>) {
   return (await apiClient.put<MemoView>(`${base(loanId)}/memo`, { version, bodies })).data;
 }
