@@ -96,7 +96,14 @@ test('httd: chuyển Thẩm định khóa đến khi checklist đủ, rồi đi 
   await expect(page.getByTestId('transfer-bar')).toHaveCount(0);
 });
 
-for (const role of ['qhkh', 'kiemtoan', 'quantri'] as const) {
+test('qhkh: xem được trang đối chiếu (mockup 05), không có thanh chuyển và nút tải bị khóa', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  await page.goto(CHECKING);
+  await expect(page.getByTestId('transfer-bar')).toHaveCount(0);
+  await expect(page.getByTestId('upload-lock')).toHaveText('Hồ sơ đã chuyển Thẩm định');
+});
+
+for (const role of ['kiemtoan', 'quantri'] as const) {
   test(`${role}: không vào được trang đối chiếu`, async ({ page }) => {
     await loginAs(page, role);
     await page.goto(CHECKING);
