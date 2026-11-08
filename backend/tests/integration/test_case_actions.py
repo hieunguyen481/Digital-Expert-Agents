@@ -187,3 +187,48 @@ async def test_rm_and_reviewer_cannot_read_flag_conclusion(
     assert seen[CREDIT_OFFICER] in ([None], [])
     assert seen[DOCUMENT_REVIEWER] in ([None], [])
     assert seen[COMPLIANCE_HO] == ["SUSPECTED_FRAUD"]
+
+
+async def test_appraiser_handles_flag_with_note(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="APPRAISAL")
+    await case.add_step("APPRAISAL", CREDIT_APPRAISER)
+    flag = await add_flag(mig, case, code="dso")
+    appraiser = await principal(mig, CREDIT_APPRAISER)
+    with pytest.raises(ValueError):
+        await act(engine, appraiser, lambda s: s.handle_flag(appraiser, case.loan_id, flag, " "))
+    await act(engine, appraiser, lambda s: s.handle_flag(appraiser, case.loan_id, flag, "Da ra soat"))
+    row = await mig.fetchrow("SELECT status, handling_note FROM credit.case_flag WHERE id = $1", flag)
+    assert (row["status"], row["handling_note"]) == ("HANDLED", "Da ra soat")
+
+
+async def test_former_rm_within_2_years_cannot_decide_and_case_goes_to_peer(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    """E8: QHKH cu trong 2 nam khong duoc phe duyet (duong 02b va the AI cung goi transition `decide`); Q-M: chuyen nguoi cung cap."""
+    await case.create(status="RISK_REVIEW", amount=Decimal("50000000000"))
+    await mig.execute(
+        "INSERT INTO customer.relationship_manager_history (customer_id, employee_id, valid_from, valid_until)"
+        " VALUES ($1, $2, DATE '2020-01-01', CURRENT_DATE - 30)", case.customer_id, APPROVER_HO,
+    )
+    await case.add_step("RISK_REVIEW", RISK_HO)
+    await case.add_opinions()
+    risk = await principal(mig, RISK_HO)
+    result = await transition(engine, risk, case.loan_id, "submit_to_approval", 1)
+    assert result.assignee_employee_id == APPROVER2_HO  # APPROVER_HO bi E8 loai, nguoi cung cap nhan truoc
+
+
+async def test_former_rm_holding_approval_step_cannot_decide(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="APPROVAL")
+    await mig.execute(
+        "INSERT INTO customer.relationship_manager_history (customer_id, employee_id, valid_from, valid_until)"
+        " VALUES ($1, $2, DATE '2020-01-01', CURRENT_DATE - 30)", case.customer_id, APPROVER_HO,
+    )
+    await case.add_step("APPROVAL", APPROVER_HO)
+    former = await principal(mig, APPROVER_HO)
+    with pytest.raises(PermissionError):
+        await transition(engine, former, case.loan_id, "decide", 1, reason="Dong y", params={"decision_type": "REJECTED"})
+    assert await mig.fetchval("SELECT count(*) FROM credit.loan_decision WHERE loan_application_id = $1", case.loan_id) == 0

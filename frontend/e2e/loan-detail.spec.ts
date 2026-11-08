@@ -75,6 +75,33 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
 
   // 1. Thẩm định: điền Tờ trình, xử lý cờ chặn, Báo sớm cờ CIC (không đổi bước), rồi Trình Rủi ro.
   let page = await open('tdinh');
+  // Chốt nguồn mâu thuẫn DSCR ở trang Đối chiếu (điều kiện của cổng Trình Rủi ro).
+  await page.goto(VINANOVA.replace('/ho-so-vay/', '/doi-chieu/'));
+  for (const code of ['dscr', 'debt', 'cfo']) {
+    const conflict = page.getByTestId(`conflict-${code}`);
+    await conflict.locator('input[type="radio"]').first().check({ force: true });
+    await conflict.getByLabel('Lý do chốt nguồn').fill(`Chốt nguồn ${code} (e2e 11)`);
+    await conflict.getByRole('button', { name: 'Chốt nguồn này' }).click();
+    await expect(conflict).toContainText('Đã chốt nguồn');
+  }
+  // Xác nhận các trường AI điền/cần kiểm chứng (điều kiện của cổng Trình Rủi ro) bằng chính hàm xác nhận của trang Đối chiếu.
+  const confirmed = await page.evaluate(async (loanId) => {
+    const svc = await import('/src/features/reconciliation/reconciliationService.ts');
+    const view = await svc.fetchReconciliation(loanId);
+    let n = 0;
+    for (const d of view.documents) {
+      const detail = await svc.fetchReconDocument(loanId, d.document_id);
+      for (const f of detail.fields) {
+        if (f.verification_status === 'AI_PROPOSED' || f.verification_status === 'NEEDS_VERIFICATION') {
+          await svc.confirmField(f.field_id, 'Đã đối chiếu với tài liệu gốc (e2e 11)');
+          n++;
+        }
+      }
+    }
+    return n;
+  }, '75000000-0000-4000-8000-000000000001');
+  expect(confirmed).toBeGreaterThan(0);
+  await page.goto(VINANOVA);
   for (const n of ['1', '2', '3', '4', '5', '6', '7']) {
     const box = page.locator(`#memo-${n}`);
     if (!(await box.inputValue()).trim()) await box.fill(`Nội dung e2e mục ${n}`);
@@ -104,7 +131,7 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await dialog(page).getByRole('button', { name: 'Ghi ý kiến' }).click();
   await expect(page.getByTestId('opinion-RISK')).toBeVisible();
   await page.getByRole('button', { name: 'Trình phê duyệt' }).click();
-  await expect(page.getByRole('alert').first()).toContainText('Thiếu Ý kiến');
+  await expect(page.getByTestId('actions-panel').getByRole('alert')).toContainText('Thiếu Ý kiến');
 
   // 3. Tuân thủ: kết luận cờ CIC (3 lựa chọn, bắt buộc lý do, không gợi ý trước) và ghi ý kiến.
   page = await open('tuanthu');
@@ -127,11 +154,18 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await expect(page.getByText('APPROVAL', { exact: true }).first()).toBeVisible();
 
   // 5. Cấp 2 quyết định, bắt buộc lý do.
+  // Bước Phê duyệt giao cho cấp 2 ít việc đang mở nhất (routing); mở bằng người được giao.
   page = await open('pheduyet');
+  await page.waitForLoadState('networkidle');
+  if ((await page.getByTestId('actions-panel').count()) === 0) {
+    await page.context().close();
+    page = await open('pheduyet2');
+    await expect(page.getByTestId('actions-panel')).toBeVisible();
+  }
   await expect(page.getByTestId('e8-notice')).toHaveCount(0);
   await page.getByRole('button', { name: 'Quyết định', exact: true }).click();
   await expect(dialog(page).getByRole('button', { name: 'Ghi quyết định' })).toBeDisabled();
   await dialog(page).locator('#action-text').fill('Đủ điều kiện, phê duyệt theo đề nghị');
   await dialog(page).getByRole('button', { name: 'Ghi quyết định' }).click();
-  await expect(page.getByText('APPROVED', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/· APPROVED ·/).first()).toBeVisible();
 });

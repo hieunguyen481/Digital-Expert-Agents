@@ -84,6 +84,8 @@ async def get_rls_session(
 
 
 SessionDep = Annotated[AsyncSession, Depends(get_rls_session)]
+# Hành động ghi của 02b: commit xong rồi mới trả phản hồi, để giao diện đọc lại thấy ngay kết quả.
+CommitFirstSessionDep = Annotated[AsyncSession, Depends(get_rls_session, scope="function")]
 
 
 def get_settings_from_state(request: Request) -> Settings:
@@ -296,7 +298,7 @@ def get_loan_detail_service(session: SessionDep) -> LoanDetailService:
     return LoanDetailService(LoanDetailRepository(session))
 
 
-def get_case_action_service(request: Request, session: SessionDep) -> CaseActionService:
+def get_case_action_service(request: Request, session: CommitFirstSessionDep) -> CaseActionService:
     settings = get_settings_from_state(request)
     audit = AuditService(AuditRepository(session))
     return CaseActionService(

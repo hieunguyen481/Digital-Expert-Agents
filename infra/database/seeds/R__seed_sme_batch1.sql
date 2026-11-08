@@ -575,6 +575,8 @@ DELETE FROM identity.employee_scope
 WHERE scope_type = 'LOAN_APPLICATION'
   AND scope_id IN (SELECT id FROM sme_loan);
 DELETE FROM credit.case_step WHERE loan_application_id IN (SELECT id FROM sme_loan);
+DELETE FROM credit.risk_opinion WHERE loan_application_id IN (SELECT id FROM sme_loan);
+DELETE FROM credit.approval_tier_event WHERE loan_application_id IN (SELECT id FROM sme_loan);
 
 -- Noi dung nhap cua Mekong Flex (mockup 04 buoc 2): du lieu seed, QHKH duoc sua tren trang.
 INSERT INTO credit.loan_draft (loan_application_id, purpose_text, repayment_source_text, secured, saved_by)
@@ -1221,6 +1223,9 @@ SET loan_application_id = EXCLUDED.loan_application_id,
     blocks_submission = EXCLUDED.blocks_submission,
     status = 'OPEN',
     handling_note = NULL,
+    early_warned_by = NULL,
+    early_warned_at = NULL,
+    early_warning_note = NULL,
     compliance_conclusion = NULL,
     compliance_reason = NULL,
     source = EXCLUDED.source,

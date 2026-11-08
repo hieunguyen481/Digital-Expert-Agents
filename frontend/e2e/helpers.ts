@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, type Page } from '@playwright/test';
 
-export type RoleKey = 'qhkh' | 'httd' | 'tdinh' | 'ruiro' | 'tuanthu' | 'pheduyet' | 'kiemtoan' | 'quantri';
+export type RoleKey = 'qhkh' | 'httd' | 'tdinh' | 'ruiro' | 'tuanthu' | 'pheduyet' | 'pheduyet2' | 'kiemtoan' | 'quantri';
 
 export const ACCOUNTS: Record<RoleKey, string> = {
   qhkh: 'credit.officer@example.local',
@@ -11,6 +11,7 @@ export const ACCOUNTS: Record<RoleKey, string> = {
   ruiro: 'risk@example.local',
   tuanthu: 'compliance@example.local',
   pheduyet: 'approver@example.local',
+  pheduyet2: 'approver2@example.local',
   kiemtoan: 'auditor@example.local',
   quantri: 'admin@example.local',
 };

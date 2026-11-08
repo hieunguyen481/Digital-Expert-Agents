@@ -74,7 +74,7 @@ class MemoService:
             "draft": draft,
             "editable": editable,
             "progress": {str(k): v for k, v in progress.items()} if progress else None,
-            "finalized": versions[0] if versions else None,
+            "finalized": ({**versions[0], "sections": versions[0]["content"]} if versions else None),
             "versions": [{"revision": v["revision"], "finalized_at": v["finalized_at"],
                           "finalized_by_name": v["finalized_by_name"]} for v in versions],
         }
