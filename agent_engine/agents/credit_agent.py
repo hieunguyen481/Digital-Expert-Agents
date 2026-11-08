@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from agents.base import a2a_send, build_agent_app  # noqa: E402
 from common import config, llm, mcp_client, rag  # noqa: E402
 from common.policy_checklist import POLICY_CHECKLIST  # noqa: E402
+from common.report import with_policy_evidence  # noqa: E402
 from common.schemas import (  # noqa: E402
     AgentCard, AgentSkill, Envelope, Evidence, MessageType, Verdict, VerdictDecision,
 )
@@ -129,8 +130,12 @@ async def _llm_task(env: Envelope) -> Verdict:
     async def t_loans() -> list:
         return await mcp_client.call_tool("get_existing_loans", {"business_id": business_id})
 
+    policy_hits: list[dict] = []
+
     async def t_policy(query: str) -> list:
-        return rag.search_policy("credit", query)
+        hits = rag.search_policy("credit", query)
+        policy_hits.extend(hits)
+        return hits
 
     async def t_ask_document(field: str) -> dict:
         resp = await a2a_send(CARD.agent_id, "document", Envelope(
@@ -171,7 +176,7 @@ async def _llm_task(env: Envelope) -> Verdict:
         user=f"Thẩm định đề nghị vay: {request}",
         tools=tools,
     )
-    verdict = Verdict.from_llm(CARD.agent_id, env.task_id or "", result)
+    verdict = with_policy_evidence(Verdict.from_llm(CARD.agent_id, env.task_id or "", result), policy_hits)
     _last_verdict[env.case_id] = verdict
     return verdict
 

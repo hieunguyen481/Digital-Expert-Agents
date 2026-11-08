@@ -152,3 +152,25 @@ def test_ops_dry_run_runs_in_parallel_with_specialists():
         PlanTask(task_id="o", agent="operations", objective="o", depends_on=["d", "c"], params={"phase": "dry_run"})])
     planner.parallelize_ops(p2)
     assert p2.tasks[2].depends_on == ["d"]
+
+
+async def test_final_report_keeps_every_source_and_drops_claims_tools_contradict(monkeypatch):
+    from common.report import with_policy_evidence
+    sv = _specialists()
+    clause = {"source": "CS-TD-SME/2025 §4.2 – Khả năng trả nợ", "text": "DSCR ≥ 1,25", "score": 1.0}
+    sv["credit"] = with_policy_evidence(sv["credit"], [clause, {"source": "credit_guide.md", "text": "x", "score": 1}])
+    assert [e.source for e in sv["credit"].evidence] == ["core-banking:get_financials", clause["source"]]
+    assert with_policy_evidence(sv["credit"], [clause]) is sv["credit"]            # không đính trùng
+    unsupported = "Nếu tổng nợ 55 tỷ vượt 20 tỷ, phải có BCTC kiểm toán chấp nhận toàn phần"
+    sv["compliance"] = sv["compliance"].model_copy(update={"conditions": [*sv["compliance"].conditions, unsupported]})
+    out = await _run_validation(monkeypatch, sv, loans=[{"loan_id": "l1", "outstanding": 1e9}])  # tổng 16 tỷ
+    assert not out.data["verified"]["exposure"]["audit_required"]
+    assert unsupported not in out.conditions and unsupported not in out.data["report"]["text"].split("Đã hạ cấp")[0]
+    assert any(unsupported in d for d in out.data["report"]["demoted"])
+    kept = {*out.findings, *out.conditions}
+    for v in sv.values():                                                        # phát hiện không bị công cụ phủ nhận thì giữ
+        assert (set(v.findings) | set(v.conditions)) - {unsupported} <= kept
+    sources = {e.source for e in out.evidence}
+    assert "CS-TD-SME/2025 §7.1 – LTV và TSBĐ" in sources and "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt" in sources
+    cites = {c["source"] for c in out.data["report"]["citations"]}
+    assert {e.source for v in sv.values() for e in v.evidence} <= cites         # mọi nguồn của chuyên gia có trong báo cáo cuối

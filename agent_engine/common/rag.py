@@ -63,3 +63,12 @@ def search_policy(domain: str, query: str, k: int = 3, policy_k: int = 2) -> lis
     own = [h for h in ranked if h["source"].endswith(".md")][:k]
     shared = [h for h in ranked if not h["source"].endswith(".md")][:policy_k]
     return own + shared
+
+
+def clause(section: str) -> dict | None:
+    """Điều khoản CS-TD-SME/2025 theo số § (vd. "7.1") để Validation ghi nguồn cho phép tính đã áp dụng."""
+    _, chunks = _index("credit")
+    for src, text in chunks:
+        if not src.endswith(".md") and f"§{section} " in src.replace("§ ", "§"):
+            return {"source": src, "text": text}
+    return None

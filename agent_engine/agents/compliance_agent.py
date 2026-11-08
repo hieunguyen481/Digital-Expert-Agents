@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agents.base import build_agent_app  # noqa: E402
 from common import config, llm, mcp_client, rag, recompute  # noqa: E402
+from common.report import with_policy_evidence  # noqa: E402
 from common.schemas import (  # noqa: E402
     AgentCard, AgentSkill, Envelope, Evidence, Verdict, VerdictDecision,
 )
@@ -136,8 +137,12 @@ async def _llm_task(env: Envelope) -> Verdict:
     async def t_collateral() -> list:
         return await mcp_client.call_tool("get_collateral", {"business_id": business_id})
 
+    policy_hits: list[dict] = []
+
     async def t_policy(query: str) -> list:
-        return rag.search_policy("compliance", query)
+        hits = rag.search_policy("compliance", query)
+        policy_hits.extend(hits)
+        return hits
 
     tools = [
         llm.ToolDef("get_business", "Hồ sơ pháp nhân", {"type": "object", "properties": {}}, t_biz),
@@ -171,7 +176,7 @@ async def _llm_task(env: Envelope) -> Verdict:
                 if params.get("challenge_reason") else ""),
         tools=tools,
     )
-    return Verdict.from_llm(CARD.agent_id, env.task_id or "", result)
+    return with_policy_evidence(Verdict.from_llm(CARD.agent_id, env.task_id or "", result), policy_hits)
 
 
 async def handle_task(env: Envelope) -> Verdict:

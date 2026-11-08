@@ -15,8 +15,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import asyncio  # noqa: E402
 
 from agents.base import a2a_send, build_agent_app  # noqa: E402
-from common import config, mcp_client, recompute  # noqa: E402
-from common.report import merge_verdicts  # noqa: E402
+from common import config, mcp_client, rag, recompute  # noqa: E402
+from common.report import demote_unsupported, merge_verdicts  # noqa: E402
 from common.schemas import (  # noqa: E402
     AgentCard, AgentSkill, Envelope, Evidence, MessageType, Verdict, VerdictDecision,
 )
@@ -163,7 +163,11 @@ async def handle_task(env: Envelope) -> Verdict:
         if lev and lev["over"]:
             breach = True
             own_conditions.append("Bổ sung phương án giảm đòn bẩy hoặc nguồn trả nợ: Nợ vay/EBITDA sau cấp TD vượt ngưỡng")
-    report = merge_verdicts(verdicts, own_findings, own_conditions)
+    # Phát hiện/điều kiện của chuyên gia mâu thuẫn số công cụ vừa tính lại bị hạ cấp trước khi vào báo cáo
+    verdicts, demoted = demote_unsupported(verdicts, verified)
+    if demoted:
+        trace.append(f"Hạ cấp {len(demoted)} câu của chuyên gia mâu thuẫn số tính lại bằng công cụ")
+    report = merge_verdicts(verdicts, own_findings, own_conditions, demoted)
 
     if VerdictDecision.REJECT in decisions.values():
         rec_decision, rec = VerdictDecision.REJECT, "TỪ CHỐI: có chuyên gia kết luận không đạt điều kiện"
@@ -192,7 +196,7 @@ async def handle_task(env: Envelope) -> Verdict:
         findings=report["findings"],        # hợp nhất mọi phát hiện của chuyên gia + số tính lại
         conditions=report["conditions"],
         proposed_limit=credit.proposed_limit if credit else None,
-        evidence=[Evidence(source="validation", quote=t) for t in trace],
+        evidence=[Evidence(source="validation", quote=t) for t in trace] + _clause_evidence(verified),
         data={
             "final_verdicts": {k: v.model_dump(mode="json") for k, v in verdicts.items()},
             "challenge_rounds": challenge_rounds,
@@ -202,6 +206,24 @@ async def handle_task(env: Envelope) -> Verdict:
             "verified": verified,
         },
     )
+
+
+def _clause_evidence(verified: dict | None) -> list[Evidence]:
+    """Nguồn chính sách của chính các phép tính Validation đã áp dụng (không phụ thuộc chuyên gia có trích hay không)."""
+    if not verified:
+        return []
+    exp, col, lev = verified["exposure"], verified["collateral"], verified["leverage"]
+    sections = ["3.1", *(["4.1", "6.1"] if exp["audit_required"] else [])]
+    if col and col["assets"]:
+        sections.append("7.1")
+    if lev:
+        sections.append("4.2")
+    out = []
+    for sec in sections:
+        c = rag.clause(sec)
+        if c:
+            out.append(Evidence(source=c["source"], quote=c["text"][:300]))
+    return out
 
 
 async def _synthesize_narrative(rec_decision, rec: str,
