@@ -98,6 +98,9 @@ class GateFacts:
     has_audited_fs: bool = False
     # Tờ trình có đủ 7 mục hiệu lực (Q-L); chỉ người giữ bước Thẩm định đọc được bản nháp nên mặc định False.
     memo_complete: bool = False
+    # Q-N: 2 ý kiến con của bước Ý kiến Rủi ro cho bản Tờ trình đã chốt gần nhất.
+    risk_opinion_given: bool = False
+    compliance_opinion_given: bool = False
     flags: tuple[FlagFact, ...] = ()
 
 
@@ -204,6 +207,8 @@ def _appraisal_submit(facts: GateFacts, blockers: set[str], carried: list[str]) 
 
 
 def _risk_submit(facts: GateFacts, blockers: set[str], carried: list[str]) -> None:
+    if not (facts.risk_opinion_given and facts.compliance_opinion_given):
+        blockers.add("OPINIONS_MISSING")
     for flag in facts.flags:
         awaiting = flag.status == "FORWARDED_COMPLIANCE" or (
             flag.status == "OPEN" and flag.blocks_submission

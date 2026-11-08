@@ -75,7 +75,7 @@ class LoanDetailRepository:
             self.session,
             """SELECT flag.id, flag.code, flag.severity, flag.title, flag.status, flag.source,
                       flag.blocks_submission, flag.handling_note, flag.compliance_conclusion,
-                      flag.compliance_reason, flag.created_at
+                      flag.compliance_reason, flag.created_at, flag.early_warned_at, flag.early_warning_note
                FROM credit.case_flag AS flag WHERE flag.loan_application_id = :loan_id
                ORDER BY CASE flag.severity WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END, flag.created_at""",
             {"loan_id": loan_id},

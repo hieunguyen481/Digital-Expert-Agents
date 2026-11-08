@@ -171,6 +171,20 @@ class Case:
             uuid4(), self.loan_id, code, CREDIT_OFFICER,
         )
 
+    async def add_opinions(self) -> None:
+        """To trinh da chot (ban 1) va du 2 y kien con cua buoc Y kien Rui ro (Q-N)."""
+        await self.mig.execute(
+            "INSERT INTO credit.appraisal_memo_version (id, loan_application_id, revision, content,"
+            " finalized_by) VALUES ($1, $2, 1, '{}'::jsonb, $3)",
+            uuid4(), self.loan_id, CREDIT_OFFICER,
+        )
+        for kind in ("RISK", "COMPLIANCE"):
+            await self.mig.execute(
+                "INSERT INTO credit.risk_opinion (id, loan_application_id, kind, memo_revision,"
+                " content, author_id) VALUES ($1, $2, $3, 1, 'Y kien', $4)",
+                uuid4(), self.loan_id, kind, CREDIT_OFFICER,
+            )
+
     async def cleanup(self) -> None:
         m = self.mig
         async with m.transaction():
@@ -183,6 +197,13 @@ class Case:
             await m.execute(
                 "ALTER TABLE credit.loan_decision ENABLE TRIGGER trg_loan_decision_append_only"
             )
+        async with m.transaction():
+            await m.execute("ALTER TABLE credit.appraisal_memo_version DISABLE TRIGGER trg_appraisal_memo_version_append_only")
+            await m.execute("DELETE FROM credit.appraisal_memo_version WHERE loan_application_id = $1", self.loan_id)
+            await m.execute("ALTER TABLE credit.appraisal_memo_version ENABLE TRIGGER trg_appraisal_memo_version_append_only")
+        await m.execute("DELETE FROM credit.risk_opinion WHERE loan_application_id = $1", self.loan_id)
+        await m.execute("DELETE FROM credit.approval_tier_event WHERE loan_application_id = $1", self.loan_id)
+        await m.execute("DELETE FROM integration.notification WHERE resource_id = $1", self.loan_id)
         await m.execute("DELETE FROM credit.case_flag WHERE loan_application_id = $1", self.loan_id)
         await m.execute(
             "DELETE FROM credit.case_exception WHERE loan_application_id = $1", self.loan_id
@@ -527,6 +548,7 @@ async def test_submit_to_approval_routes_to_individual_approver(
 ) -> None:
     await case.create(status="RISK_REVIEW")
     await case.add_step("RISK_REVIEW", RISK_HO)
+    await case.add_opinions()
     holidays = await holidays_of(mig)
     risk = await principal(mig, RISK_HO)
     result = await transition(engine, risk, case.loan_id, "submit_to_approval", 1)
@@ -557,6 +579,7 @@ async def test_submit_to_approval_above_100_billion_goes_to_council(
 ) -> None:
     await case.create(status="RISK_REVIEW", amount=Decimal("150000000000"))
     await case.add_step("RISK_REVIEW", RISK_HO)
+    await case.add_opinions()
     risk = await principal(mig, RISK_HO)
     result = await transition(engine, risk, case.loan_id, "submit_to_approval", 1)
     council = await open_step(mig, case.loan_id, "COUNCIL_SESSION")

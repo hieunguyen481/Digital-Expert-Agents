@@ -67,6 +67,11 @@ class WorkflowRepositoryLike(Protocol):
     async def customer_branch_id(self, loan_id: UUID) -> UUID: ...
     async def is_excluded(self, employee_id: UUID, loan_id: UUID) -> bool: ...
     async def required_tier(self, loan_id: UUID) -> int: ...
+    async def pending_exceptions(self, loan_id: UUID) -> Sequence[Mapping[str, Any]]: ...
+    async def decide_exceptions(
+        self, loan_id: UUID, decisions: Mapping[UUID, str], decided_by: UUID
+    ) -> None: ...
+    async def record_submit_tier(self, loan_id: UUID, tier: int, created_by: UUID) -> None: ...
     async def gate_facts(self, loan_id: UUID) -> GateFacts: ...
     async def persist_carried_flags(
         self, loan_id: UUID, *, gate: str, flags: Sequence[CarriedFlag], created_by: UUID
@@ -179,6 +184,9 @@ class WorkflowService:
             principal.employee_id, loan_id
         ):
             raise PermissionError("Employee is excluded from deciding this case (E8)")
+        exception_decisions: dict[UUID, str] = {}
+        if action in {"decide", "return_for_supplement"}:
+            exception_decisions = await self._exception_decisions(loan_id, plan, params or {})
         # 6. Han va nguoi nhan.
         now = await self._repo.db_now()
         holidays = await self._repo.holidays()
@@ -198,6 +206,9 @@ class WorkflowService:
                 rationale=clean_reason or "",
                 **plan.decision,
             )
+        if exception_decisions:
+            # Cap phe duyet chap thuan/tu choi ngoai le cung luc voi quyet dinh, truoc khi het quyen ghi.
+            await self._repo.decide_exceptions(loan_id, exception_decisions, principal.employee_id)
         if action == "submit_to_risk":
             # Q-L: chot ban To trinh trong cung giao dich, truoc khi nguoi trinh het quyen ghi ho so.
             await self._repo.finalize_memo(loan_id, principal.employee_id)
@@ -215,6 +226,11 @@ class WorkflowService:
             approval_tier=plan.approval_tier,
             withdraw_kind=plan.withdraw_kind,
         )
+        if action == "submit_to_checking":
+            # Q4/F10: ghi cap luc gui de "Nang cap phe duyet" so sanh khi tong tang len.
+            await self._repo.record_submit_tier(
+                loan_id, await self._repo.required_tier(loan_id), principal.employee_id
+            )
         result = TransitionResult(
             status=str(row["out_status"]),
             step_code=None if row["out_step_code"] is None else str(row["out_step_code"]),
@@ -316,6 +332,35 @@ class WorkflowService:
             else:
                 await rm_step()
         # decide, withdraw: khong mo buoc moi.
+
+    async def _exception_decisions(
+        self, loan_id: UUID, plan: _Plan, params: Mapping[str, Any]
+    ) -> dict[UUID, str]:
+        """Moi de xuat ngoai le dang cho phai duoc chap thuan hoac tu choi cung luc voi quyet dinh;
+        tu choi thi chi duoc Tra lai bo sung (rules.md muc Ngoai le)."""
+        pending = {UUID(str(row["id"])) for row in await self._repo.pending_exceptions(loan_id)}
+        given: dict[UUID, str] = {}
+        for item in params.get("exceptions") or []:
+            decision = item.get("decision")
+            if decision not in {"ACCEPTED", "REJECTED"}:
+                raise ValueError("Each exception decision must be ACCEPTED or REJECTED")
+            given[UUID(str(item.get("id")))] = decision
+        if not set(given) <= pending:
+            raise ValueError("Unknown exception in the decision")
+        missing = pending - set(given)
+        if missing:
+            raise ValidationError(
+                "EXCEPTIONS_UNDECIDED",
+                "Every proposed exception must be accepted or rejected together with the decision.",
+                {"exception_ids": sorted(str(i) for i in missing)},
+            )
+        if plan.to_status.startswith("APPROVED") and "REJECTED" in given.values():
+            raise ValidationError(
+                "EXCEPTION_REJECTED_REQUIRES_RETURN",
+                "A rejected exception means the case must be returned for supplement.",
+                {},
+            )
+        return given
 
     async def _due(self, now: datetime, sla_key: str, holidays: frozenset[date]) -> datetime:
         return sla.add_workdays(now, await self._repo.sla_workdays(sla_key), holidays)

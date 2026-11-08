@@ -44,6 +44,8 @@ def ok_facts(**changes: object) -> GateFacts:
         consent_valid=True,
         total_credit_exposure=Decimal("5000000000"),
         has_audited_fs=False,
+        risk_opinion_given=True,
+        compliance_opinion_given=True,
     )
     return replace(base, **changes)
 
@@ -184,6 +186,12 @@ async def test_appraisal_submit_blocks_unresolved_conflict() -> None:
 async def test_risk_submit_requires_compliance_conclusion_on_cickh() -> None:
     facts = ok_facts(flags=(FlagFact("cickh", "OPEN", None),))
     assert (await run("risk_submit", facts)).blockers == ("OPINIONS_MISSING",)
+
+
+async def test_risk_submit_requires_both_opinions() -> None:
+    for missing in ("risk_opinion_given", "compliance_opinion_given"):
+        result = await run("risk_submit", ok_facts(**{missing: False}))
+        assert result.blockers == ("OPINIONS_MISSING",)
 
 
 async def test_risk_submit_carries_concluded_flags_and_exceptions() -> None:

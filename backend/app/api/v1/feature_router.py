@@ -7,6 +7,7 @@ from app.api.v1 import (
     agent_simulations,
     analyses,
     audit,
+    case_actions,
     conversations,
     customers,
     documents,
@@ -33,6 +34,7 @@ router.include_router(proposals.router)
 router.include_router(reconciliation.router)
 router.include_router(memo.router)
 router.include_router(loan_detail.router)
+router.include_router(case_actions.router)
 router.include_router(workflow.router)
 router.include_router(conversations.router)
 router.include_router(analyses.router)

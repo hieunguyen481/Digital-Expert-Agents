@@ -165,6 +165,41 @@ class WorkflowRepository:
             raise LookupError("Required approval tier could not be computed")
         return int(row["tier"])
 
+    async def pending_exceptions(self, loan_id: UUID) -> list[Record]:
+        return await fetch_all(
+            self.session,
+            "SELECT id, checklist_code, kind, reason FROM credit.case_exception "
+            "WHERE loan_application_id = :loan_id AND decision IS NULL ORDER BY proposed_at, id",
+            {"loan_id": loan_id},
+        )
+
+    async def decide_exceptions(
+        self, loan_id: UUID, decisions: Mapping[UUID, str], decided_by: UUID
+    ) -> None:
+        for exception_id, decision in decisions.items():
+            await fetch_one(
+                self.session,
+                "UPDATE credit.case_exception SET decision = :decision, decided_by = :by, decided_at = CURRENT_TIMESTAMP "
+                "WHERE id = :id AND loan_application_id = :loan_id AND decision IS NULL RETURNING id",
+                {"id": exception_id, "loan_id": loan_id, "decision": decision, "by": decided_by},
+            )
+
+    async def record_submit_tier(self, loan_id: UUID, tier: int, created_by: UUID) -> None:
+        """Ghi cap luc gui; gui lai (sau Tra lai QHKH) chi ghi them khi cap doi."""
+        await self.session.execute(
+            text(
+                """
+                INSERT INTO credit.approval_tier_event (id, loan_application_id, tier, kind, created_by)
+                SELECT :id, :loan_id, CAST(:tier AS integer), 'SUBMIT', :by
+                WHERE COALESCE((
+                    SELECT event.tier FROM credit.approval_tier_event AS event
+                    WHERE event.loan_application_id = :loan_id
+                    ORDER BY event.created_at DESC, event.id LIMIT 1), 0) <> CAST(:tier AS integer)
+                """
+            ),
+            {"id": uuid4(), "loan_id": loan_id, "tier": tier, "by": created_by},
+        )
+
     # -- quyet dinh ---------------------------------------------------------------
     async def insert_decision(
         self,
@@ -386,7 +421,22 @@ class WorkflowRepository:
             "SELECT sections, state FROM credit.appraisal_memo WHERE loan_application_id = :loan_id",
             {"loan_id": loan_id},
         )
+        opinions = await fetch_all(
+            self.session,
+            """
+            SELECT DISTINCT opinion.kind
+            FROM credit.risk_opinion AS opinion
+            WHERE opinion.loan_application_id = :loan_id
+              AND opinion.memo_revision = (
+                  SELECT max(version.revision) FROM credit.appraisal_memo_version AS version
+                  WHERE version.loan_application_id = :loan_id)
+            """,
+            {"loan_id": loan_id},
+        )
+        opinion_kinds = {str(o["kind"]) for o in opinions}
         return GateFacts(
+            risk_opinion_given="RISK" in opinion_kinds,
+            compliance_opinion_given="COMPLIANCE" in opinion_kinds,
             today=today,
             memo_complete=bool(memo and memo["state"] == "DRAFT" and memo_rules.memo_complete(memo["sections"])),
             checklist=tuple(
