@@ -1,5 +1,5 @@
 import apiClient from '@/services/apiClient';
-import type { LoanOverview, MemoView } from './types';
+import type { CaseActionState, LoanOverview, MemoView } from './types';
 
 const base = (loanId: string) => `/loan-applications/${loanId}`;
 
@@ -14,4 +14,27 @@ export async function saveMemo(loanId: string, version: number, bodies: Record<s
 }
 export async function decideAiBlock(loanId: string, blockId: string, version: number, decision: 'CONFIRM' | 'REJECT') {
   return (await apiClient.post<MemoView>(`${base(loanId)}/memo/ai-blocks/${blockId}/decision`, { version, decision })).data;
+}
+
+export async function fetchActionState(loanId: string): Promise<CaseActionState> {
+  return (await apiClient.get<CaseActionState>(`${base(loanId)}/actions`)).data;
+}
+/** Chuyển bước đi qua POST /transitions (cổng, E8, lý do bắt buộc kiểm ở backend). */
+export async function runTransition(loanId: string, action: string, version: number, reason?: string, params?: Record<string, unknown>) {
+  return (await apiClient.post(`${base(loanId)}/transitions`, { action, expected_version: version, reason: reason || null, params: params ?? null })).data;
+}
+export async function handleFlag(loanId: string, flagId: string, note: string) {
+  await apiClient.post(`${base(loanId)}/flags/${flagId}/handle`, { note });
+}
+export async function earlyWarning(loanId: string, flagId: string, note: string) {
+  await apiClient.post(`${base(loanId)}/flags/${flagId}/early-warning`, { note });
+}
+export async function concludeFlag(loanId: string, flagId: string, conclusion: string, reason: string) {
+  return (await apiClient.post<{ status: string }>(`${base(loanId)}/flags/${flagId}/conclusion`, { conclusion, reason })).data;
+}
+export async function addOpinion(loanId: string, kind: 'RISK' | 'COMPLIANCE', content: string) {
+  await apiClient.post(`${base(loanId)}/risk-opinions`, { kind, content });
+}
+export async function upgradeApproval(loanId: string, reason: string) {
+  return (await apiClient.post<{ tier: number }>(`${base(loanId)}/approval-upgrade`, { reason })).data;
 }

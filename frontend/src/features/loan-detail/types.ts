@@ -28,7 +28,7 @@ export interface Metric {
 }
 export interface Flag {
   id: string; code: string; severity: string; title: string; status: string; source: string;
-  blocks_submission: boolean; handling_note: string | null;
+  blocks_submission: boolean; handling_note: string | null; early_warned_at: string | null; early_warning_note: string | null;
   compliance_conclusion: string | null; compliance_reason: string | null;
 }
 export interface Collateral {
@@ -71,4 +71,16 @@ export interface MemoView {
   progress: Record<string, boolean> | null;
   finalized: MemoFinalized | null;
   versions: { revision: number; finalized_at: string; finalized_by_name: string }[];
+}
+
+/** Khớp backend/app/schemas/case_action.py. */
+export interface CaseActionState {
+  version: number;
+  status: string;
+  memo_revision: number | null;
+  opinions: { kind: 'RISK' | 'COMPLIANCE'; content: string; author_name: string; created_at: string }[];
+  pending_exceptions: { id: string; checklist_code: string; kind: string; reason: string; proposed_by_name?: string }[];
+  tier: { submitted: number | null; required: number | null; upgrade_due: boolean };
+  excluded: boolean;
+  blockers: string[];
 }

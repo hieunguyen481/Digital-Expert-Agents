@@ -79,7 +79,6 @@ export function MemoPanel({ loanId }: { loanId: string }) {
               ))}
             </div>
           ))}
-          <Button disabled title="Chưa hỗ trợ ở đợt này">Trình Rủi ro – chưa hỗ trợ</Button>
         </>
       ) : view.finalized ? (
         <>

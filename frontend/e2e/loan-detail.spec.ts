@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
-import { loginAs } from './helpers';
+import { loginAs, type RoleKey } from './helpers';
 
 // Trang 02b (lát 10, 10b). Dữ liệu là dữ liệu seed (R__seed_sme_batch1.sql). Các test dùng chung hồ sơ seed nên nằm cùng
 // một file, chạy tuần tự, và nạp lại seed khi xong (E2E_RESEED_CMD) vì Tờ trình tự lưu đổi dữ liệu.
@@ -41,7 +41,7 @@ test('mọi ô chỉ số trên 02b đều có nguồn', async ({ page }) => {
   }
 });
 
-test('tdinh: Tờ trình tự lưu và còn nguyên sau khi tải lại; nút hành động lát 11 bị khóa', async ({ page }) => {
+test('tdinh: Tờ trình tự lưu và còn nguyên sau khi tải lại', async ({ page }) => {
   await loginAs(page, 'tdinh');
   await page.goto(VINANOVA);
   const box = page.locator('#memo-4');
@@ -51,7 +51,7 @@ test('tdinh: Tờ trình tự lưu và còn nguyên sau khi tải lại; nút h�
   await expect(page.getByTestId('memo-save-status')).toContainText('Đã tự lưu');
   await page.reload();
   await expect(page.locator('#memo-4')).toHaveValue(text);
-  await expect(page.getByRole('button', { name: /chưa hỗ trợ/ })).toBeDisabled();
+  await expect(page.getByTestId('actions-panel').getByRole('button', { name: 'Trình Rủi ro', exact: true })).toBeVisible();
 });
 
 test('ruiro: hồ sơ còn ở Thẩm định nên ngoài phạm vi, không thấy chỉ số lẫn bản nháp Tờ trình', async ({ page }) => {
@@ -60,4 +60,78 @@ test('ruiro: hồ sơ còn ở Thẩm định nên ngoài phạm vi, không th�
   await expect(page.getByText('ngoài phạm vi được xem')).toBeVisible();
   await expect(page.locator('#memo-4')).toHaveCount(0);
   await expect(page.getByTestId('metric-dscr-DECLARED')).toHaveCount(0);
+});
+
+// Lát 11: VinaNova đi từ Thẩm định tới quyết định cấp 2 bằng đăng nhập Keycloak thật. Chạy sau các test trên (cùng hồ sơ seed).
+test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân thủ → Phê duyệt → quyết định', async ({ browser }) => {
+  test.setTimeout(240_000);
+  const open = async (role: RoleKey) => {
+    const page = await (await browser.newContext()).newPage();
+    await loginAs(page, role);
+    await page.goto(VINANOVA);
+    return page;
+  };
+  const dialog = (page: import('@playwright/test').Page) => page.getByRole('dialog');
+
+  // 1. Thẩm định: điền Tờ trình, xử lý cờ chặn, Báo sớm cờ CIC (không đổi bước), rồi Trình Rủi ro.
+  let page = await open('tdinh');
+  for (const n of ['1', '2', '3', '4', '5', '6', '7']) {
+    const box = page.locator(`#memo-${n}`);
+    if (!(await box.inputValue()).trim()) await box.fill(`Nội dung e2e mục ${n}`);
+  }
+  await page.locator('#memo-7').blur();
+  await expect(page.getByTestId('memo-save-status')).toContainText('Đã tự lưu');
+  const handle = page.getByRole('button', { name: 'Xử lý cờ' });
+  for (let left = await handle.count(); left > 0; left--) {
+    await handle.first().click();
+    await dialog(page).locator('#action-text').fill('Đã rà soát nguồn');
+    await dialog(page).getByRole('button', { name: 'Đã xử lý' }).click();
+    await expect(handle).toHaveCount(left - 1);
+  }
+  await page.getByRole('button', { name: 'Báo sớm Tuân thủ' }).click();
+  await dialog(page).locator('#action-text').fill('Nghi vấn CIC khách tự nộp');
+  await dialog(page).getByRole('button', { name: 'Gửi báo sớm' }).click();
+  await expect(page.getByRole('button', { name: 'Đã báo sớm' })).toBeVisible();
+  await expect(page.getByText('APPRAISAL', { exact: true }).first()).toBeVisible(); // Báo sớm không đổi bước
+  await page.getByTestId('actions-panel').getByRole('button', { name: 'Trình Rủi ro', exact: true }).click();
+  await expect(page.getByText('RISK_REVIEW', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('Bản đã chốt lúc trình')).toBeVisible();
+
+  // 2. Rủi ro ghi ý kiến; chưa đủ ý kiến Tuân thủ thì chưa trình được phê duyệt.
+  page = await open('ruiro');
+  await page.getByRole('button', { name: 'Ghi Ý kiến Rủi ro' }).click();
+  await dialog(page).locator('#action-text').fill('Rủi ro: chấp nhận với điều kiện theo dõi DSCR');
+  await dialog(page).getByRole('button', { name: 'Ghi ý kiến' }).click();
+  await expect(page.getByTestId('opinion-RISK')).toBeVisible();
+  await page.getByRole('button', { name: 'Trình phê duyệt' }).click();
+  await expect(page.getByRole('alert').first()).toContainText('Thiếu Ý kiến');
+
+  // 3. Tuân thủ: kết luận cờ CIC (3 lựa chọn, bắt buộc lý do, không gợi ý trước) và ghi ý kiến.
+  page = await open('tuanthu');
+  await page.getByRole('button', { name: 'Kết luận cờ' }).click();
+  await expect(dialog(page).getByRole('radio')).toHaveCount(3);
+  await expect(dialog(page).getByRole('radio', { checked: true })).toHaveCount(0);
+  await expect(dialog(page).getByRole('button', { name: 'Kết luận', exact: true })).toBeDisabled();
+  await dialog(page).getByRole('radio', { name: /Không có vấn đề/ }).check();
+  await dialog(page).locator('#action-text').fill('Đã đối chiếu CIC trực tiếp, bản nộp hợp lệ');
+  await dialog(page).getByRole('button', { name: 'Kết luận', exact: true }).click();
+  await expect(page.getByTestId('flag-row').filter({ hasText: 'Kết luận Tuân thủ' })).toBeVisible();
+  await page.getByRole('button', { name: 'Ghi ý kiến Tuân thủ' }).click();
+  await dialog(page).locator('#action-text').fill('Tuân thủ: không có vi phạm');
+  await dialog(page).getByRole('button', { name: 'Ghi ý kiến' }).click();
+  await expect(page.getByTestId('opinion-COMPLIANCE')).toBeVisible();
+
+  // 4. Rủi ro trình phê duyệt; hồ sơ vào bước Phê duyệt.
+  page = await open('ruiro');
+  await page.getByRole('button', { name: 'Trình phê duyệt' }).click();
+  await expect(page.getByText('APPROVAL', { exact: true }).first()).toBeVisible();
+
+  // 5. Cấp 2 quyết định, bắt buộc lý do.
+  page = await open('pheduyet');
+  await expect(page.getByTestId('e8-notice')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Quyết định', exact: true }).click();
+  await expect(dialog(page).getByRole('button', { name: 'Ghi quyết định' })).toBeDisabled();
+  await dialog(page).locator('#action-text').fill('Đủ điều kiện, phê duyệt theo đề nghị');
+  await dialog(page).getByRole('button', { name: 'Ghi quyết định' }).click();
+  await expect(page.getByText('APPROVED', { exact: true }).first()).toBeVisible();
 });

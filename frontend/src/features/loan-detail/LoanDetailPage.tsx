@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { PageError } from '@/components/common/PageError';
 import { normalizeError } from '@/services/apiClient';
 import { PageHead } from '@/features/shell/PageHead';
+import { ActionsPanel } from './ActionsPanel';
 import { CollateralPanel, FlagsPanel, TimelinePanel } from './InfoPanels';
 import { MemoPanel } from './MemoPanel';
 import { MetricsPanel } from './MetricsPanel';
@@ -31,8 +32,8 @@ export default function LoanDetailPage() {
           <TimelinePanel steps={timeline} />
         </div>
         <CollateralPanel items={collaterals} />
-        <MemoPanel loanId={loanId} />
-        <span className={styles.note}>Các hành động (Yêu cầu bổ sung, Trả lại, Trình Rủi ro, Báo sớm…) chưa hỗ trợ ở đợt này.</span>
+        <MemoPanel key={loan.status} loanId={loanId} />
+        <ActionsPanel loanId={loanId} overview={q.data} />
       </div>
     </>
   );
