@@ -49,7 +49,12 @@ test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ
     const kind = stored.regrade_of ? 'chấm lại dữ liệu cũ' : 'đo mới';
     const re = new RegExp(`Bộ ca ${stored.cases_version} · bộ chấm ${stored.grader_version ?? 'v1'} · chế độ ${stored.llm_mode} · ${kind}`);
     // Nhiều lượt có thể cùng bộ ca/bộ chấm/chế độ: chọn đúng lượt theo nhãn riêng của nó.
-    await page.locator('.ant-select-item-option', { hasText: re }).filter({ hasText: stored.label }).first().click();
+    const option = page.locator('.ant-select-item-option', { hasText: re }).filter({ hasText: stored.label }).first();
+    // Danh sách ảo của antd chỉ dựng các mục đang hiện: cuộn dần tới khi mục cần chọn xuất hiện.
+    for (let i = 0; i < 40 && (await option.count()) === 0; i++) {
+      await page.locator('.rc-virtual-list-holder').first().evaluate((el) => el.scrollBy(0, 100));
+    }
+    await option.click();
     await expectRun(page, stored);
   }
 });
