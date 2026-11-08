@@ -6,7 +6,7 @@ import { loginAs } from './helpers';
 /**
  * Đối chiếu số hiện trên tab "So sánh hiệu năng" với MỌI file kết quả đã lưu
  * (agent_engine/benchmark_results/*.json, bản đã nạp vào agent.benchmark_run), chọn qua danh sách lượt đo.
- * Mặc định phải là lượt v2 đo mới nhất. Cần stack thật và kết quả đã nạp: `run.py --import-file <file>`.
+ * Mặc định phải là lượt đo thật của bộ ca mới nhất (v3), lượt mới nhất trong bộ đó. Cần stack thật và kết quả đã nạp: `run.py --import-file <file>`.
  */
 const DIR = resolve(process.cwd(), '../agent_engine/benchmark_results');
 const all = readdirSync(DIR)
@@ -34,14 +34,16 @@ async function expectRun(page: Page, stored: any) {
   }
 }
 
-test('ComparisonTab mặc định là lượt v2 đo mới nhất và chọn được mọi lượt đã lưu', async ({ page }) => {
-  const measuredV2 = all.filter((r) => r.cases_version === 'v2' && !r.regrade_of).pop();
-  test.skip(!measuredV2, 'Chưa có file kết quả benchmark v2');
+test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ ca mới nhất và chọn được mọi lượt đã lưu', async ({ page }) => {
+  const measured = all.filter((r) => !r.regrade_of);
+  const newestSet = measured.map((r) => r.cases_version).sort().pop();
+  const defaultRun = measured.filter((r) => r.cases_version === newestSet).sort((a, b) => a.created_at.localeCompare(b.created_at)).pop();
+  test.skip(!defaultRun, 'Chưa có file kết quả benchmark đo thật');
   await loginAs(page, 'qhkh');
   await page.goto('/dashboard');
   await page.getByRole('tab', { name: /So sánh hiệu năng/ }).click();
 
-  await expectRun(page, measuredV2); // mặc định
+  await expectRun(page, defaultRun); // mặc định
   for (const stored of all) {
     await page.getByTestId('cmp-select').click();
     const kind = stored.regrade_of ? 'chấm lại dữ liệu cũ' : 'đo mới';
