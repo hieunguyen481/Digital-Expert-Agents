@@ -19,3 +19,5 @@ Nạp lại file đã lưu vào Postgres: `... run.py --import-file agent_engine
 
 Đo: số lượt MCP = `audit.engine_mcp_call` trong cửa sổ thời gian của lượt chạy (cùng nguồn cho cả hai); token/chi phí = `LLM_USAGE` (OpenRouter `usage.cost`) phát sinh trong lượt (multi: đọc `/engine/logs/*.log`, cần chạy tuần tự, không ai dùng engine cùng lúc); độ trễ = tường đồng hồ.
 Giới hạn: chấm bằng từ khóa nên có thể bỏ sót cách diễn đạt khác hoặc khớp nhầm; phần phát hiện chỉ chấm trên kết luận (summary/findings/conditions/narrative), không chấm evidence.
+
+Kết quả bench5 (v4 = bộ đã dùng để tối ưu, v5 = kiểm tra mù, bộ chấm v3): xem `docs/agent/benchmark-v3-research.md` §7.

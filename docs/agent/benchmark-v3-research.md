@@ -49,3 +49,38 @@ Dữ liệu: `20261107T050214Z-v3 sau sửa engine (c0294f7).json` và `agent.ca
 - Đối chiếu: **H1 đúng** (nguồn: multi 100% so với single 91,7%; v3 từ 80,6% lên 100%). **H3 đúng** (phát hiện: multi 85,6% so với 76,7%). **H2 sai trên v4**: phát hiện sai multi 0,28 so với single 0,17. **H4 đúng**: trễ +24%, chi phí gấp ~2.
 - Nguyên nhân H2 sai: bộ chấm v2 đọc cả bản nháp của chuyên gia (hợp mọi `task_finished`), nên câu điều kiện "Nếu tổng vượt 20 tỷ, phải có BCTC kiểm toán" của chuyên gia vẫn bị tính dù Validation đã hạ cấp khỏi báo cáo cuối; E2 còn khớp nhầm câu "chưa bắt buộc BCTC kiểm toán" của chính Validation. Chấm riêng trên `final_report_text` (số phụ, không phải số chính thức): finding 0,844, false 0,111.
 - Không sửa thêm engine hay bộ chấm sau khi thấy số v4 (Open decision 1 thuộc captain). Cỡ mẫu nhỏ, độ lệch chuẩn lớn.
+
+## 7. Kết quả vòng tối ưu bench5 (commit engine eae6ad3; bộ chấm v3 trừ khi ghi v2)
+
+Bộ chấm v3 chấm cùng một cách cho 2 chế độ, chỉ trên văn bản kết luận cuối (multi: báo cáo cuối, không gộp nháp chuyên gia), có thêm độ chính xác trích dẫn. Mỗi bộ 6 ca × 3 lần × 2 chế độ. Tổng chi phí hai lượt cuối $0,295 (2 vòng tối ưu trên v4 tốn thêm, tổng toàn đợt < $1). Chỉ dùng 2 trong 3 vòng cho phép.
+
+**v4: bộ đã dùng để tối ưu** (multi | single)
+
+| chỉ số | multi | single |
+| --- | --- | --- |
+| recall phát hiện (v3) | 0,82±0,23 | 0,70±0,23 |
+| recall phát hiện (v2) | 0,82 | 0,70 |
+| trích nguồn (recall, v3) | 0,96±0,11 | 0,90±0,20 |
+| độ chính xác trích dẫn | 0,93±0,09 | 0,93±0,13 |
+| phát hiện sai | 0,06±0,24 | 0,17±0,38 |
+| đúng cổng | 0,78±0,43 | 0,83±0,38 |
+| trễ (s) | 52,6±8,6 | 37,5±7,5 |
+| chi phí / ca ($) | 0,0056 | 0,0025 |
+| nguồn liệt kê | 21,1 | 8,0 |
+| độ dài báo cáo (ký tự) | 7.330 | 4.500 |
+
+**v5: kiểm tra mù** (đăng ký trước khi sửa engine, đo một lần)
+
+| chỉ số | multi | single |
+| --- | --- | --- |
+| recall phát hiện | 0,90±0,11 | 0,86±0,17 |
+| trích nguồn (recall) | 1,00±0 | 0,93±0,14 |
+| độ chính xác trích dẫn | 0,96±0,06 | 0,95±0,13 |
+| phát hiện sai | 0,06±0,24 | 0,33±0,49 |
+| đúng cổng | 0,83±0,38 | 0,83±0,38 |
+| trễ (s) | 57,9±10 | 35,5±6,6 |
+| chi phí / ca ($) | 0,0059 | 0,0024 |
+| nguồn liệt kê | 20,8 | 8,1 |
+| độ dài báo cáo (ký tự) | 7.650 | 4.650 |
+
+Kết luận trung thực: multi hơn single về recall phát hiện, trích nguồn và phát hiện sai trên cả v4 lẫn v5 (chênh lệch recall nhỏ so với độ lệch, 18 lượt mỗi chế độ, chưa đủ để khẳng định thống kê). Multi KHÔNG hơn về đúng cổng (v4 kém 0,78 so với 0,83; v5 bằng nhau), trễ (chậm hơn ~1,5 lần), chi phí (~2,4 lần), độ dài báo cáo (dài hơn ~1,6 lần) và số nguồn liệt kê. Độ chính xác trích dẫn bằng nhau trong sai số. Nguyên nhân sai cổng chưa sửa được ở mức chung: chuyên gia trả need_more_info khi thiếu trường dữ liệu (DSCR, người đại diện pháp lý), trong khi single vẫn duyệt. Gọi tool song song không giảm trễ đo được. Các lượt LLM của planner và bước viết tường thuật chưa bỏ.

@@ -23,6 +23,10 @@ async function expectRun(page: Page, stored: any) {
   await expect(page.getByTestId('cmp-meta')).toContainText(`bộ chấm ${stored.grader_version ?? 'v1'}`);
   for (const mode of ['single', 'multi'] as const) {
     const s = stored.summary[mode];
+    if (!s) { // lượt chỉ đo một chế độ: chế độ còn lại hiện —
+      await expect(page.getByTestId(`cmp-finding_recall-${mode}`)).toHaveText('—');
+      continue;
+    }
     await expect(page.getByTestId(`cmp-finding_recall-${mode}`)).toHaveText(withSd(s.finding_recall, pct));
     await expect(page.getByTestId(`cmp-false_findings-${mode}`)).toHaveText(withSd(s.false_findings, (v) => v.toFixed(2)));
     await expect(page.getByTestId(`cmp-gate_ok-${mode}`)).toHaveText(withSd(s.gate_ok, pct));
@@ -35,6 +39,7 @@ async function expectRun(page: Page, stored: any) {
 }
 
 test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ ca mới nhất và chọn được mọi lượt đã lưu', async ({ page }) => {
+  test.setTimeout(240_000); // duyệt từng lượt qua danh sách ảo: càng nhiều lượt càng lâu
   const measured = all.filter((r) => !r.regrade_of);
   const newestSet = measured.map((r) => r.cases_version).sort().pop();
   const defaultRun = measured.filter((r) => r.cases_version === newestSet).sort((a, b) => a.created_at.localeCompare(b.created_at)).pop();
@@ -49,12 +54,17 @@ test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ
     const kind = stored.regrade_of ? 'chấm lại dữ liệu cũ' : 'đo mới';
     const re = new RegExp(`Bộ ca ${stored.cases_version} · bộ chấm ${stored.grader_version ?? 'v1'} · chế độ ${stored.llm_mode} · ${kind}`);
     // Nhiều lượt có thể cùng bộ ca/bộ chấm/chế độ: chọn đúng lượt theo nhãn riêng của nó.
-    const option = page.locator('.ant-select-item-option', { hasText: re }).filter({ hasText: stored.label }).first();
-    // Danh sách ảo của antd chỉ dựng các mục đang hiện: cuộn dần tới khi mục cần chọn xuất hiện.
-    for (let i = 0; i < 40 && (await option.count()) === 0; i++) {
-      await page.locator('.rc-virtual-list-holder').first().evaluate((el) => el.scrollBy(0, 100));
+    // Danh sách ảo của antd chỉ dựng mục đang hiện: duyệt bằng bàn phím từ mục đầu tới khi mục đang chọn khớp.
+    const active = page.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-active');
+    await page.keyboard.press('Home');
+    let found = false;
+    for (let i = 0; i < all.length + 5 && !found; i++) {
+      const title = (await active.first().getAttribute('title').catch(() => null)) ?? '';
+      if (re.test(title) && title.includes(stored.label)) found = true;
+      else await page.keyboard.press('ArrowDown');
     }
-    await option.click();
+    expect(found, `không thấy lượt ${stored.run_id} trong danh sách`).toBe(true);
+    await page.keyboard.press('Enter');
     await expectRun(page, stored);
   }
 });
