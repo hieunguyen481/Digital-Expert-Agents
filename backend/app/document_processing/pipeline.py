@@ -14,6 +14,7 @@ from app.document_processing.embedding import ChunkEmbedder
 from app.document_processing.extraction import DeterministicFieldExtractor
 from app.document_processing.models import (
     DocumentPipelineInput,
+    ExtractedFieldResult,
     DocumentPipelineResult,
     PageResult,
     PipelineStep,
@@ -48,6 +49,14 @@ class PipelineSink(Protocol):
         *,
         preserve_verified_fields: bool,
     ) -> None: ...
+
+
+class FieldExtractor(Protocol):
+    async def extract(self, pages: tuple[PageResult, ...]) -> tuple[ExtractedFieldResult, ...]: ...
+
+
+class PageRenderer(Protocol):
+    async def __call__(self, content: bytes) -> list[tuple[bytes, str]]: ...
 
 
 class NullPipelineProgress:
@@ -86,6 +95,8 @@ class DocumentPipeline:
         ocr_provider: OCRProvider,
         embedding_provider: EmbeddingProvider,
         sink: PipelineSink,
+        extractor: FieldExtractor | None = None,
+        page_renderer: PageRenderer | None = None,
         progress: PipelineProgress | None = None,
         max_size_bytes: int = 50 * 1024 * 1024,
     ) -> None:
@@ -96,7 +107,8 @@ class DocumentPipeline:
         self._progress = progress or NullPipelineProgress()
         self._scanner = DeterministicSecurityScanner(max_size_bytes=max_size_bytes)
         self._classifier = DeterministicClassifier()
-        self._extractor = DeterministicFieldExtractor()
+        self._extractor = extractor or DeterministicFieldExtractor()
+        self._page_renderer = page_renderer
         self._normalizer = FieldNormalizer()
         self._validator = FieldValidator()
         self._chunker = DocumentChunker()
@@ -136,6 +148,7 @@ class DocumentPipeline:
                 ocr_confidence=Decimal(str(page.confidence)),
                 width=page.width,
                 height=page.height,
+                blocks=tuple(block.model_dump() for block in page.blocks),
             )
             for page in ocr_result.pages
         )
@@ -161,10 +174,10 @@ class DocumentPipeline:
                 pages=pages, fields=fields, classification=classification
             ),
         )
-        pages = await self._step(
+        page_images = await self._step(
             request,
             PipelineStep.PAGE_GENERATION,
-            lambda: _return(pages),
+            lambda: self._generate_pages(request, content, len(pages)),
         )
         chunks = await self._step(
             request,
@@ -200,6 +213,7 @@ class DocumentPipeline:
             classification_confidence=classification.confidence,
             processing_status=status,
             pages=pages,
+            page_images=page_images,
             fields=fields,
             chunks=embedded_chunks,
             issues=issues,
@@ -227,6 +241,24 @@ class DocumentPipeline:
         if digest != request.expected_sha256:
             raise ValueError("uploaded object checksum does not match the upload session")
         return content
+
+    async def _generate_pages(
+        self, request: DocumentPipelineInput, content: bytes, page_count: int
+    ) -> tuple[dict[str, object], ...]:
+        if self._page_renderer is None or request.mime_type != "application/pdf":
+            return ()
+        rendered = await self._page_renderer(content)
+        if len(rendered) != page_count:
+            raise ValueError("rendered page count differs from OCR page count")
+        images: list[dict[str, object]] = []
+        for number, (png, digest) in enumerate(rendered, start=1):
+            key = ObjectKey.page_image(request.document_id, request.document_version_id, number)
+            await self._storage.put_object(
+                Bucket.CUSTOMER_DOC_DERIVED, key, png, content_type="image/png",
+                metadata={"document-version-id": str(request.document_version_id)},
+            )
+            images.append({"page_number": number, "key": key, "sha256": digest, "size_bytes": len(png)})
+        return tuple(images)
 
     async def _persist_original(
         self, request: DocumentPipelineInput, original_key: str, content: bytes

@@ -83,7 +83,7 @@ services:
   backend-outbox-publisher:
     image: bank-ai-backend:0.1.0
     profiles: [backend-workers]
-    command: ["python", "-m", "app.messaging.outbox_publisher"]
+    command: ["python", "-m", "app.workers.outbox_publisher", "--factory", "app.workers.factories:build_outbox_publisher"]
     restart: unless-stopped
     environment:
       <<: *backend-api-environment
@@ -100,7 +100,7 @@ services:
   backend-document-worker:
     image: bank-ai-backend:0.1.0
     profiles: [backend-workers]
-    command: ["python", "-m", "app.workers.document_worker"]
+    command: ["python", "-m", "app.workers.document_worker", "--factory", "app.workers.factories:build_document_worker"]
     restart: unless-stopped
     environment: &document-worker-environment
       <<: *backend-api-environment
@@ -114,6 +114,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_DOCUMENT_WORKER_ACCESS_KEY:-document-worker}
       MINIO_SECRET_KEY: ${MINIO_DOCUMENT_WORKER_SECRET_KEY:?Generate infra/.env.local}
     networks:
+      - bank-edge  # chỉ để gọi LLM trích trường (egress); bank-application/bank-data là mạng nội bộ
       - bank-application
       - bank-data
     depends_on:

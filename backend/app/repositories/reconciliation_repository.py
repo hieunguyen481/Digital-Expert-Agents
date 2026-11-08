@@ -12,7 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.base import Record, fetch_all, fetch_one
 
 _LOAN_SQL = """
-SELECT la.id, la.application_number, la.status, la.version, party.display_name AS customer_name
+SELECT la.id, la.application_number, la.status, la.version, party.display_name AS customer_name,
+       (SELECT c.id FROM customer.customer AS c WHERE c.party_id = borrower.party_id LIMIT 1) AS customer_id
 FROM credit.loan_application AS la
 LEFT JOIN credit.loan_party AS borrower
   ON borrower.loan_application_id = la.id AND borrower.party_role = 'PRIMARY_BORROWER'
@@ -55,7 +56,12 @@ _DOCUMENTS_SQL = """
 SELECT doc.id AS document_id, ver.id AS version_id, doc.title, doc.document_type, doc.document_subtype,
        doc.verification_status, doc.issued_date, doc.counts_for_checklist,
        GREATEST(1, COALESCE((SELECT max(f.page_number) FROM document.extracted_field AS f
-                             WHERE f.document_version_id = ver.id), 1)) AS page_count,
+                             WHERE f.document_version_id = ver.id), 1),
+                COALESCE((SELECT max(p.page_number) FROM document.document_page AS p
+                          WHERE p.document_version_id = ver.id), 1)) AS page_count,
+       ver.id IS NOT NULL AND job.id IS NOT NULL AS from_pipeline,
+       doc.processing_status, job.status AS job_status, job.progress_percent AS job_progress,
+       job.current_step AS job_step, job.error_code AS job_error_code,
        (SELECT count(*) FROM document.extracted_field AS f WHERE f.document_version_id = ver.id) AS field_count,
        (SELECT count(*) FROM document.extracted_field AS f
         WHERE f.document_version_id = ver.id AND f.verification_status = 'NEEDS_VERIFICATION') AS needs_verification_count,
@@ -66,6 +72,10 @@ LEFT JOIN LATERAL (
     SELECT v.id FROM document.document_version AS v
     WHERE v.document_id = doc.id AND v.is_current ORDER BY v.version_number DESC LIMIT 1
 ) AS ver ON TRUE
+LEFT JOIN LATERAL (
+    SELECT j.id, j.status, j.progress_percent, j.current_step, j.error_code FROM integration.background_job AS j
+    WHERE j.job_type = 'DOCUMENT_PROCESSING' AND j.resource_id = ver.id ORDER BY j.created_at DESC LIMIT 1
+) AS job ON TRUE
 WHERE doc.id IN (
     SELECT link.document_id FROM document.document_link AS link
     WHERE link.entity_type = 'LOAN_APPLICATION' AND link.entity_id = :loan_id
@@ -124,6 +134,17 @@ class ReconciliationRepository:
 
     async def items(self, loan_id: UUID) -> list[Record]:
         return await fetch_all(self.session, _ITEMS_SQL, {"loan_id": loan_id})
+
+    async def page_images_ready(self, version_id: UUID) -> bool:
+        row = await fetch_one(
+            self.session,
+            """
+            SELECT count(*) > 0 AND bool_and(page_image_object_id IS NOT NULL) AS ready
+            FROM document.document_page WHERE document_version_id = :version_id
+            """,
+            {"version_id": version_id},
+        )
+        return bool(row and row["ready"])
 
     async def documents(self, loan_id: UUID) -> list[Record]:
         return await fetch_all(self.session, _DOCUMENTS_SQL, {"loan_id": loan_id})

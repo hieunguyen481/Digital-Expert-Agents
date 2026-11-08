@@ -52,7 +52,7 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
               key={id}
               type="button"
               className={styles.docBtn}
-              aria-current={id === documentId}
+              aria-current={id === documentId} data-testid={`doc-${id}`}
               onClick={() => onOpenDocument(id)}
             >
               {titles.get(id) ?? id}
@@ -79,7 +79,7 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
         <div className={styles.item}>
           <b>Tài liệu ngoài checklist</b>
           {view.extra_document_ids.map((id) => (
-            <button key={id} type="button" className={styles.docBtn} aria-current={id === documentId}
+            <button key={id} type="button" className={styles.docBtn} aria-current={id === documentId} data-testid={`doc-${id}`}
               onClick={() => onOpenDocument(id)}>{titles.get(id) ?? id}</button>
           ))}
         </div>

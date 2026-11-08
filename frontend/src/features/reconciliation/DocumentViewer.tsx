@@ -2,7 +2,7 @@ import { Alert, Button, Space, Tag, Typography } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getErrorMessage } from '@/services/apiClient';
-import { confirmField, fetchReconDocument } from './reconciliationService';
+import { confirmField, fetchPageImageUrl, fetchReconDocument } from './reconciliationService';
 import { fieldStatusLabel, highlightStyle, needsHuman } from './fieldStatus';
 import type { ReconField } from './types';
 import styles from './reconciliation.module.css';
@@ -19,21 +19,39 @@ interface Props {
 /**
  * Xem một tài liệu: vùng tô trên khung trang và trường trích xuất liên kết hai chiều qua `selectedFieldId`.
  * Q-U: mặc định một thẻ cho trường đang chọn, kèm liên kết "n trường khác trên trang này".
- * Chưa có ảnh trang thật (lát 8), khung trang chỉ đặt vùng tô theo toạ độ lưu ở DB.
+ * Tài liệu tải lên (PIPELINE) có ảnh trang do worker dựng; tài liệu seed thì khung trang chỉ đặt vùng tô theo toạ độ ở DB.
  */
 export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, canConfirm, onChanged }: Props) {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ['recon-document', loanId, documentId],
     queryFn: () => fetchReconDocument(loanId, documentId),
+    refetchInterval: (query) => {
+      const d = query.state.data?.document;
+      return d?.data_source === 'PIPELINE' && !['READY', 'NEEDS_HUMAN_REVIEW', 'FAILED'].includes(d.processing_status ?? '') ? 3000 : false;
+    },
   });
   const [page, setPage] = useState(1);
+  const versionId = q.data?.document.version_id ?? null;
+  const hasImage = q.data?.has_page_image ?? false;
+  const img = useQuery({
+    queryKey: ['recon-page-image', versionId, page],
+    queryFn: () => fetchPageImageUrl(versionId as string, page),
+    enabled: hasImage && versionId !== null,
+    staleTime: 5 * 60_000,
+  });
   const [showOthers, setShowOthers] = useState(false);
   const regionRefs = useRef(new Map<string, HTMLButtonElement>());
 
   const fields = q.data?.fields ?? [];
   const selected = fields.find((f) => f.field_id === selectedFieldId) ?? null;
 
+  // Mở tài liệu ở trang có trường đầu tiên (không bắt người xem lật từng trang tìm vùng tô).
+  const firstFieldPage = fields.reduce<number | null>(
+    (min, f) => (f.page_number && (min === null || f.page_number < min) ? f.page_number : min), null);
+  useEffect(() => {
+    if (firstFieldPage && !selectedFieldId) setPage(firstFieldPage);
+  }, [firstFieldPage, selectedFieldId]);
   useEffect(() => {
     if (selected?.page_number) setPage(selected.page_number);
   }, [selected?.field_id, selected?.page_number]);
@@ -59,6 +77,14 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
   return (
     <section className={styles.panel} aria-label="Tài liệu đang xem">
       <h2>{doc.title ?? doc.document_type}</h2>
+      {doc.data_source === 'PIPELINE' && doc.processing_error && (
+        <Alert type="error" showIcon data-testid="processing-error" message={doc.processing_error} />
+      )}
+      {doc.data_source === 'PIPELINE' && !doc.processing_error
+        && !['READY', 'NEEDS_HUMAN_REVIEW'].includes(doc.processing_status ?? '') && (
+        <Alert type="info" showIcon data-testid="processing-progress"
+          message={`Worker đang xử lý tài liệu (${doc.processing_progress ?? 0}%)…`} />
+      )}
       {doc.page_count > 1 && (
         <Space size={4} style={{ marginBottom: 8 }}>
           {Array.from({ length: doc.page_count }, (_, i) => i + 1).map((n) => (
@@ -68,7 +94,9 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
           ))}
         </Space>
       )}
-      <div className={styles.pageFrame} data-testid="page-frame" aria-label={`Trang ${page}`}>
+      <div className={styles.pageFrame} data-testid="page-frame" aria-label={`Trang ${page}`}
+        data-source={doc.data_source} style={img.data ? { aspectRatio: 'auto' } : undefined}>
+        {img.data && <img src={img.data} alt={`Trang ${page} của ${doc.title ?? 'tài liệu'}`} className={styles.pageImage} />}
         {onPage.map((f) => {
           const style = highlightStyle(f);
           if (!style) return null;
@@ -91,7 +119,11 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
           );
         })}
       </div>
-      <p className={styles.note}>Chưa có ảnh trang thật (lát 8); vùng tô là dữ liệu seed.</p>
+      <p className={styles.note} data-testid="source-note">
+        {doc.data_source === 'PIPELINE'
+          ? 'Nguồn: tệp tải lên, trường do AI trích từ lớp chữ của PDF; vùng tô là vị trí dòng nguồn trên trang.'
+          : 'Nguồn: dữ liệu seed (chưa có ảnh trang thật); vùng tô là dữ liệu seed.'}
+      </p>
 
       {selected ? (
         <FieldCard

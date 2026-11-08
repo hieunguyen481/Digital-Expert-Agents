@@ -55,6 +55,7 @@ class PageResult(_FrozenModel):
     ocr_confidence: Decimal = Field(ge=0, le=1)
     width: int | None = None
     height: int | None = None
+    blocks: tuple[dict[str, Any], ...] = ()
 
 
 class ExtractedFieldResult(_FrozenModel):
@@ -64,6 +65,7 @@ class ExtractedFieldResult(_FrozenModel):
     normalized_value_text: str | None = None
     value_number: Decimal | None = None
     page_number: int | None = None
+    bounding_box: dict[str, float] | None = None
     confidence: Decimal = Field(ge=0, le=1)
     verification_status: str = "AI_PROPOSED"
     source_text: str | None = None
@@ -99,6 +101,7 @@ class DocumentPipelineResult(_FrozenModel):
     classification_confidence: Decimal = Field(ge=0, le=1)
     processing_status: str
     pages: tuple[PageResult, ...]
+    page_images: tuple[dict[str, Any], ...] = ()
     fields: tuple[ExtractedFieldResult, ...]
     chunks: tuple[ChunkResult, ...]
     issues: tuple[IssueResult, ...]

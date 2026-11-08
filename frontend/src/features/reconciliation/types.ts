@@ -12,6 +12,10 @@ export interface ReconDocument {
   field_count: number;
   needs_verification_count: number;
   ai_proposed_count: number;
+  data_source: 'PIPELINE' | 'SEED';
+  processing_status: string | null;
+  processing_error: string | null;
+  processing_progress: number | null;
 }
 
 export interface ReconCheck {
@@ -66,12 +70,15 @@ export interface ReconPermissions {
   can_check: boolean;
   can_resolve: boolean;
   can_confirm_fields: boolean;
+  can_upload: boolean;
+  upload_lock: string | null;
 }
 
 export interface ReconView {
   loan_application_id: string;
   application_number: string;
   customer_name: string | null;
+  customer_id: string | null;
   status: string;
   items: ReconItem[];
   documents: ReconDocument[];

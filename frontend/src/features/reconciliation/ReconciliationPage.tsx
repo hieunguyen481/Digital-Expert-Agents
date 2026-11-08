@@ -2,6 +2,7 @@ import { Alert, Skeleton } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { UploadPanel } from './UploadPanel';
 import { RequireRole } from '@/auth/RequireRole';
 import { PageError } from '@/components/common/PageError';
 import { normalizeError } from '@/services/apiClient';
@@ -16,7 +17,11 @@ import styles from './reconciliation.module.css';
 
 function Workspace({ loanId }: { loanId: string }) {
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ['reconciliation', loanId], queryFn: () => fetchReconciliation(loanId) });
+  const q = useQuery({ queryKey: ['reconciliation', loanId], queryFn: () => fetchReconciliation(loanId),
+    // Worker đang xử lý thì hỏi lại để thấy tiến độ / thất bại / trường mới.
+    refetchInterval: (query) =>
+      query.state.data?.documents.some((d) => d.data_source === 'PIPELINE' && !['READY', 'NEEDS_HUMAN_REVIEW', 'FAILED'].includes(d.processing_status ?? '')) ? 3000 : false,
+  });
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [fieldId, setFieldId] = useState<string | null>(null);
   const reload = useCallback(() => void qc.invalidateQueries({ queryKey: ['reconciliation', loanId] }), [qc, loanId]);
@@ -36,7 +41,10 @@ function Workspace({ loanId }: { loanId: string }) {
       <div className={styles.page}>
         <Alert type="info" showIcon message={view.data_label} />
         <div className={styles.cols}>
-          <ChecklistPanel loanId={loanId} view={view} documentId={current} onOpenDocument={openDocument} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <ChecklistPanel loanId={loanId} view={view} documentId={current} onOpenDocument={openDocument} />
+            <UploadPanel loanId={loanId} view={view} onUploaded={(id) => { reload(); openDocument(id); }} />
+          </div>
           {current ? (
             <DocumentViewer
               key={current}
@@ -69,7 +77,7 @@ function Workspace({ loanId }: { loanId: string }) {
 export default function ReconciliationPage() {
   const { loanId } = useParams<{ loanId: string }>();
   return (
-    <RequireRole allow={['httd', 'tdinh']} pageName="Đối chiếu tài liệu">
+    <RequireRole allow={['qhkh', 'httd', 'tdinh']} pageName="Đối chiếu tài liệu">
       {loanId ? <Workspace loanId={loanId} key={loanId} /> : null}
     </RequireRole>
   );

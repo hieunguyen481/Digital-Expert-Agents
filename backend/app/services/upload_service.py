@@ -11,6 +11,7 @@ from pathlib import PurePath
 from typing import Any, Protocol
 from uuid import UUID, uuid4
 
+from app.exceptions import AuthorizationError
 from app.services.access import require_permission
 from app.services.audit_service import AuditService
 from app.services.protocols import PrincipalLike
@@ -41,10 +42,21 @@ DOCUMENT_STEPS = (
 )
 
 
+UPLOAD_LOCK = "Chưa có yêu cầu bổ sung đang mở. QHKH chỉ tải tài liệu lên khi Thẩm định yêu cầu bổ sung."
+SENT_LOCK = "Hồ sơ đã chuyển Thẩm định"
+_SENT_STATUSES = frozenset({"CHECKING", "APPRAISAL", "RISK_REVIEW", "APPROVAL", "COUNCIL_SESSION", "APPROVED"})
+
+
+def upload_lock_reason(status: str) -> str:
+    return SENT_LOCK if status in _SENT_STATUSES else UPLOAD_LOCK
+
+
 class UploadRepositoryLike(Protocol):
     async def create_upload(self, values: Mapping[str, Any]) -> Mapping[str, Any]: ...
 
     async def get_upload(self, upload_id: UUID) -> Mapping[str, Any] | None: ...
+
+    async def loan_upload_state(self, employee_id: UUID, loan_id: UUID) -> Mapping[str, Any] | None: ...
 
     async def complete_upload(
         self,
@@ -128,6 +140,8 @@ class UploadService:
         request_id: UUID | None = None,
     ) -> Mapping[str, Any]:
         require_permission(principal, "document:upload")
+        if loan_application_id is not None:
+            await self._require_loan_upload(principal, loan_application_id)
         validate_upload_request(
             filename=original_filename,
             mime_type=expected_mime_type,
@@ -185,6 +199,14 @@ class UploadService:
             "headers": dict(presigned.headers),
             "expires_at": expires_at,
         }
+
+    async def _require_loan_upload(self, principal: PrincipalLike, loan_id: UUID) -> None:
+        """Rules Q6: QHKH chỉ tải khi đang giữ hồ sơ hoặc Thẩm định đang chờ bổ sung; còn lại 403 có lý do."""
+        state = await self._repository.loan_upload_state(principal.employee_id, loan_id)
+        if state is None:
+            raise LookupError("Loan application was not found or is outside the authorized scope")
+        if not state["can_write"]:
+            raise AuthorizationError("UPLOAD_LOCKED", upload_lock_reason(str(state["status"])))
 
     async def complete_upload(
         self,

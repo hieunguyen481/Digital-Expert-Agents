@@ -105,6 +105,14 @@ class DocumentRepository:
             raise RuntimeError("Upload session insert returned no row")
         return row
 
+    async def loan_upload_state(self, employee_id: UUID, loan_id: UUID) -> Record | None:
+        return await fetch_one(
+            self.session,
+            "SELECT loan.status, identity.can_write_loan(:employee_id, loan.id) AS can_write "
+            "FROM credit.loan_application AS loan WHERE loan.id = :loan_id",
+            {"employee_id": employee_id, "loan_id": loan_id},
+        )
+
     async def get_upload(self, upload_id: UUID, actor_id: UUID | None = None) -> Record | None:
         return await fetch_one(
             self.session,

@@ -15,13 +15,18 @@ from uuid import UUID
 from app.exceptions import AuthorizationError, ConflictError, NotFoundError, ValidationError
 from app.repositories.reconciliation_repository import ReconciliationRepository
 from app.services.protocols import PrincipalLike
+from app.services.upload_service import upload_lock_reason
 from app.workflow import gates
 from app.workflow.gates import GateFacts
 from app.workflow.service import WorkflowService
 
 CHECK_ROLE = "document_reviewer"  # Hậu kiểm tín dụng
 RESOLVE_ROLE = "credit_appraiser"  # Thẩm định
-DATA_LABEL = "Dữ liệu tài liệu hiện là dữ liệu seed; chưa có pipeline trích xuất thật (lát 8)."
+DATA_LABEL = (
+    "Tài liệu mẫu là dữ liệu seed. Tài liệu tải lên do worker đọc: trường là AI đề xuất, "
+    "chỉ có hiệu lực sau khi người xác nhận."
+)
+_STEP_TEXT = {"LOAD_INPUT": "nạp đầu vào", "PIPELINE": "xử lý"}
 BLOCKER_TEXT = {
     "CHECK_FAILED": "Còn mục checklist bắt buộc chưa đạt (chưa có tài liệu hợp lệ hoặc hậu kiểm không đạt) và chưa có ngoại lệ.",
 }
@@ -61,7 +66,7 @@ class ReconciliationService:
         loan = await self._loan(loan_id)
         roles = set(getattr(principal, "roles", ()))
         assigned = await self._repo.can_write_loan(principal.employee_id, loan_id)
-        documents = [dict(r) for r in await self._repo.documents(loan_id)]
+        documents = [_document_view(r) for r in await self._repo.documents(loan_id)]
         items = []
         for row in await self._repo.items(loan_id):
             r = dict(row)
@@ -87,9 +92,13 @@ class ReconciliationService:
                 "resolved_by_name": c["resolved_by_name"], "resolved_at": c["resolved_at"],
             })
         transfer = await self._transfer(loan_id, loan, roles)
+        # Q6: chỉ QHKH (quyền document:upload) tải, và chỉ khi đang giữ hồ sơ hoặc Thẩm định chờ bổ sung.
+        may_upload = "document:upload" in set(getattr(principal, "permissions", ())) and not getattr(
+            principal, "is_admin", False)
+        can_upload = may_upload and assigned
         return {
             "loan_application_id": loan["id"], "application_number": loan["application_number"],
-            "customer_name": loan["customer_name"], "status": loan["status"], "items": items,
+            "customer_name": loan["customer_name"], "customer_id": loan["customer_id"], "status": loan["status"], "items": items,
             "documents": documents,
             "extra_document_ids": [d["document_id"] for d in documents if d["document_id"] not in linked],
             "conflicts": conflicts, "transfer": transfer,
@@ -98,6 +107,8 @@ class ReconciliationService:
                 "can_resolve": assigned and RESOLVE_ROLE in roles and not getattr(principal, "is_admin", False),
                 "can_confirm_fields": assigned and bool(roles & {CHECK_ROLE, RESOLVE_ROLE})
                 and not getattr(principal, "is_admin", False),
+                "can_upload": can_upload,
+                "upload_lock": None if can_upload or not may_upload else upload_lock_reason(str(loan["status"])),
             },
             "data_label": DATA_LABEL,
         }
@@ -116,11 +127,13 @@ class ReconciliationService:
 
     async def document(self, principal: PrincipalLike, loan_id: UUID, document_id: UUID) -> dict[str, Any]:
         await self._loan(loan_id)
-        docs = [dict(d) for d in await self._repo.documents(loan_id) if d["document_id"] == document_id]
+        docs = [_document_view(d) for d in await self._repo.documents(loan_id) if d["document_id"] == document_id]
         if not docs:
             raise NotFoundError("DOCUMENT_NOT_FOUND", "Tài liệu không thuộc hồ sơ này.")
         fields = [dict(f) for f in await self._repo.fields(loan_id, document_id)]
-        return {"document": docs[0], "fields": fields, "has_page_image": False}
+        version_id = docs[0]["version_id"]
+        has_image = bool(version_id) and await self._repo.page_images_ready(version_id)
+        return {"document": docs[0], "fields": fields, "has_page_image": has_image}
 
     async def check_item(
         self, principal: PrincipalLike, loan_id: UUID, item_id: UUID, *, result: str, note: str | None
@@ -190,3 +203,19 @@ class ReconciliationService:
             "conflicts": [dict(r) for r in await self._repo.conflict_log(loan_id)],
             "checks": [dict(r) for r in await self._repo.check_log(loan_id)],
         }
+
+
+def _document_view(row: Any) -> dict[str, Any]:
+    doc = dict(row)
+    doc["data_source"] = "PIPELINE" if doc.pop("from_pipeline", False) else "SEED"
+    if doc["data_source"] == "PIPELINE":
+        doc["processing_progress"] = doc.get("job_progress")
+        if doc.get("job_status") == "FAILED":
+            step = doc.get("job_step") or ""
+            doc["processing_error"] = (
+                f"Xử lý tài liệu thất bại ở bước {_STEP_TEXT.get(step, step)} ({doc.get('job_error_code') or 'lỗi'}). "
+                "Tải lại tệp hoặc báo quản trị."
+            )
+    for internal in ("job_status", "job_progress", "job_step", "job_error_code"):
+        doc.pop(internal, None)
+    return doc

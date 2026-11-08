@@ -39,3 +39,8 @@ export async function confirmField(fieldId: string, reason: string) {
     verification_reason: reason,
   });
 }
+
+/** Ảnh trang đã dựng sẵn bởi worker (URL ký sẵn, hết hạn). */
+export async function fetchPageImageUrl(versionId: string, page: number): Promise<string> {
+  return (await apiClient.get<{ url: string }>(`/document-versions/${versionId}/pages/${page}/preview-url`)).data.url;
+}

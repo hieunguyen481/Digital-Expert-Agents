@@ -24,6 +24,11 @@ class ReconDocument(APIModel):
     field_count: int = 0
     needs_verification_count: int = 0
     ai_proposed_count: int = 0
+    # PIPELINE = tệp tải lên, đã qua worker (trường do AI trích, chưa xác nhận); SEED = dữ liệu mẫu của seed R__.
+    data_source: Literal["PIPELINE", "SEED"] = "SEED"
+    processing_status: str | None = None
+    processing_error: str | None = None
+    processing_progress: int | None = None
 
 
 class ReconCheck(APIModel):
@@ -80,12 +85,15 @@ class ReconPermissions(APIModel):
     can_check: bool
     can_resolve: bool
     can_confirm_fields: bool
+    can_upload: bool = False
+    upload_lock: str | None = None  # câu khóa nút tải lên khi vai trò có quyền tải nhưng hồ sơ chưa mở
 
 
 class ReconView(APIModel):
     loan_application_id: UUID
     application_number: str
     customer_name: str | None = None
+    customer_id: UUID | None = None
     status: str
     items: list[ReconItem]
     documents: list[ReconDocument]
