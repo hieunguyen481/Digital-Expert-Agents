@@ -47,6 +47,28 @@ test('dashboard hiện đúng case vừa chạy ở /chat: DAG, task, luồng ph
   }
   await expect(trace.getByTestId('trace-decisions')).toContainText('Credit');
   await expect(trace.getByTestId('trace-sources')).toContainText('Nguồn trích dẫn');
+
+  // Người duyệt hiện bằng tên, không bao giờ bằng UUID; không tra được thì ghi "Không rõ".
+  // Chỉ chèn sự kiện quyết định vào phản hồi events; tên được tra qua endpoint backend thật.
+  const APPROVER_HO = '10000000-0000-4000-8000-000000000005';
+  const UNKNOWN = '99999999-9999-4999-8999-999999999999';
+  await page.route(`**/agent-cases/${caseId}/events*`, async (route) => {
+    const res = await route.fetch();
+    const body = await res.json();
+    const list = Array.isArray(body) ? body : body.events;
+    list.push(
+      { id: 9_000_001, agent: 'hitl', type: 'approved', ts: 0, payload: { approver: APPROVER_HO } },
+      { id: 9_000_002, agent: 'hitl', type: 'rejected', ts: 0, payload: { approver: UNKNOWN, reason: 'thử' } },
+    );
+    await route.fulfill({ response: res, json: body });
+  });
+  await page.reload();
+  await openCases(page);
+  await page.getByTestId(`case-row-${caseId}`).click();
+  const decisions = page.getByTestId('case-trace').getByTestId('trace-decisions');
+  await expect(decisions).toContainText('Người xác nhận: Không rõ');
+  await expect(decisions).not.toContainText(/[0-9a-f]{8}-[0-9a-f]{4}-/);
+  await expect(decisions.getByText(/Người xác nhận: (?!Không rõ).+/)).toBeVisible();
 });
 
 test('tổng quan lấy số liệu thật từ trace', async ({ page }) => {

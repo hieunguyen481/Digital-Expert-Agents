@@ -82,7 +82,8 @@ async def approver_names(principal: PrincipalDep, session: SessionDep, ids: str 
     if not wanted:
         return {}
     rows = await fetch_all(
-        session, "SELECT id::text AS id, full_name FROM identity.employee WHERE id = ANY(:ids)", {"ids": wanted})
+        session, "SELECT id::text AS id, full_name FROM identity.employee WHERE id::text = ANY(string_to_array(:ids, ','))",
+        {"ids": ",".join(str(w) for w in wanted)})
     return {str(r["id"]): str(r["full_name"]) for r in rows}
 
 
