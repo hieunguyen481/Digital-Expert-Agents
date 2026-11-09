@@ -181,6 +181,13 @@ def _rm_submit(facts: GateFacts, blockers: set[str], carried: list[str]) -> None
 
 def _checking_pass(facts: GateFacts, blockers: set[str], carried: list[str]) -> None:
     for item in _active_items(facts):
+        if item.document_type in CIC_DOCUMENT_TYPES:
+            # Q2: CIC do QHKH tra cứu, HTTD chỉ kiểm tra hiệu lực; kiểm bằng banking.credit_report /
+            # banking.cic_consent, không bằng dòng checklist (dòng này không đổi khi QHKH tra lại).
+            valid = facts.consent_valid if item.document_type == "CIC_CONSENT" else _cic_valid(facts)
+            if not valid:
+                blockers.add("CHECK_FAILED")
+            continue
         passed = item.status == "VALID" and item.has_document and not item.expired
         if passed:
             continue

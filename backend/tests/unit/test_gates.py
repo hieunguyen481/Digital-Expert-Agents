@@ -156,8 +156,20 @@ async def test_checking_pass_carries_failed_item_with_exception() -> None:
 
 
 async def test_checking_pass_cic_item_cannot_be_excepted() -> None:
-    facts = ok_facts(checklist=(ChecklistFact("CIC", "CIC_REPORT", True, "EXPIRED", True, True, True),))
+    facts = ok_facts(
+        checklist=(ChecklistFact("CIC", "CIC_REPORT", True, "EXPIRED", True, True, True),),
+        cic_valid_until=date(2020, 1, 1),
+    )
     assert (await run("checking_pass", facts)).blockers == ("CHECK_FAILED",)
+
+
+async def test_checking_pass_cic_item_judged_by_lookup_not_checklist_row() -> None:
+    # Dòng checklist CIC còn "hết hạn, chưa có tài liệu" nhưng QHKH đã tra lại CIC và có đồng ý còn hạn.
+    facts = ok_facts(checklist=(
+        ChecklistFact("CIC", "CIC_REPORT", True, "EXPIRED", False, True, False),
+        ChecklistFact("DONGY", "CIC_CONSENT", True, "REQUIRED", False, False, False),
+    ))
+    assert (await run("checking_pass", facts)).ok
 
 
 async def test_appraisal_submit_ignores_cickh_flag() -> None:
