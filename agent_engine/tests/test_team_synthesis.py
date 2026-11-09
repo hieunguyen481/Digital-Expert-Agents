@@ -191,3 +191,25 @@ async def test_final_report_keeps_every_source_and_drops_claims_tools_contradict
     assert "CS-TD-SME/2025 §7.1 – LTV và TSBĐ" in sources and "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt" in sources
     cites = {c["source"] for c in out.data["report"]["citations"]}
     assert {e.source for v in sv.values() for e in v.evidence} <= cites         # mọi nguồn của chuyên gia có trong báo cáo cuối
+
+
+async def test_gate_approve_title_does_not_contradict_expert_opinion(monkeypatch):
+    from common import config, facts as facts_mod
+    monkeypatch.setattr(config, "OPT_FLAGS", frozenset({"gate", "report"}))
+    monkeypatch.setattr(config, "LLM_MODE", "rules")
+    fin = [{"year": 2025, "ebitda": 30e9, "total_debt": 10e9, "equity": 50e9, "revenue": 100e9,
+            "reported_ratios": {"dscr": {"value": 1.5, "status": "CONFIRMED"}}}]
+    shared = facts_mod.build({"business": {"account_number": "1", "legal_rep_name": "A"}, "financials": fin,
+                              "loans": [], "cic": {"cic_group": 1, "report_date": "2099-01-01"},
+                              "blacklist": {"hit": False, "screened": True}, "collateral": []},
+                             {"business_id": BIZ, "amount": 5e9, "has_collateral": False})
+    sv = {"credit": _v("credit", VerdictDecision.NEED_MORE_INFO, summary="dư nợ lệch 56 vs 98 tỷ",
+                       evidence=[Evidence(source="s", quote="q")]),
+          "compliance": _v("compliance", evidence=[Evidence(source="s", quote="q")])}
+    env = Envelope(case_id="c", task_id="t_validation", from_agent="orchestrator", to_agent="validation",
+                   type=MessageType.TASK_REQUEST,
+                   payload={"params": {"request": {**REQ, "amount": 5e9, "has_collateral": False}, "facts": shared,
+                                       "verdicts": {k: v.model_dump(mode="json") for k, v in sv.items()}}})
+    out = await va.handle_task(env)
+    assert out.decision == VerdictDecision.APPROVE
+    assert out.summary.startswith("ĐỀ XUẤT PHÊ DUYỆT") and "dư nợ lệch 56 vs 98 tỷ" in out.summary

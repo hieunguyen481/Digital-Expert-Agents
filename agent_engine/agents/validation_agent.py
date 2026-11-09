@@ -183,6 +183,11 @@ async def handle_task(env: Envelope) -> Verdict:
         if rec_decision == VerdictDecision.APPROVE:
             limit_txt = f" hạn mức {credit.proposed_limit:,.0f} VND" if credit and credit.proposed_limit else ""
             rec = f"ĐỀ XUẤT PHÊ DUYỆT{limit_txt}"
+            # Tiêu đề không được trái ý kiến chuyên gia: cổng vẫn quyết, nhưng nêu rõ chuyên gia nào còn đề nghị bổ sung/lưu ý
+            dissent = [f"{name}: {v.summary[:140]}" for name, v in verdicts.items()
+                       if v.decision in (VerdictDecision.NEED_MORE_INFO, VerdictDecision.FLAG)]
+            if dissent:
+                rec += " — lưu ý, chuyên gia còn ý kiến khác: " + " | ".join(dissent)
         extra = [*gate_why]
         if verified["ancillary"]:
             extra.append("Bổ sung trước giải ngân (không chặn trình, rules.md Q7): " + "; ".join(verified["ancillary"]))
