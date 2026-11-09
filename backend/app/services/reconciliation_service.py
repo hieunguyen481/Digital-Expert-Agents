@@ -26,7 +26,20 @@ DATA_LABEL = (
     "Tài liệu mẫu là dữ liệu seed. Tài liệu tải lên do worker đọc: trường là AI đề xuất, "
     "chỉ có hiệu lực sau khi người xác nhận."
 )
-_STEP_TEXT = {"LOAD_INPUT": "nạp đầu vào", "PIPELINE": "xử lý"}
+# Mã lỗi của pipeline -> lý do tiếng Việt cho người dùng nghiệp vụ (L05); khớp theo mảnh mã.
+_JOB_ERROR_TEXT = (
+    ("NOTEXTLAYER", "PDF không có lớp chữ (bản scan). Hãy tải bản PDF có chữ hoặc nhập số liệu thủ công."),
+    ("PDFIUM", "Tệp PDF bị hỏng hoặc không đọc được. Hãy tải lại tệp gốc."),
+    ("TIMEOUT", "Xử lý quá thời gian. Hãy tải lại tệp."),
+)
+
+
+def job_error_text(code: str | None) -> str:
+    upper = (code or "").upper().replace("_", "")
+    for fragment, text in _JOB_ERROR_TEXT:
+        if fragment in upper:
+            return text
+    return "Không đọc được nội dung tệp. Hãy tải lại tệp hoặc thay bằng tệp khác."
 BLOCKER_TEXT = {
     "CHECK_FAILED": "Còn mục checklist bắt buộc chưa đạt (chưa có tài liệu hợp lệ hoặc hậu kiểm không đạt) và chưa có ngoại lệ.",
 }
@@ -211,11 +224,7 @@ def _document_view(row: Any) -> dict[str, Any]:
     if doc["data_source"] == "PIPELINE":
         doc["processing_progress"] = doc.get("job_progress")
         if doc.get("job_status") == "FAILED":
-            step = doc.get("job_step") or ""
-            doc["processing_error"] = (
-                f"Xử lý tài liệu thất bại ở bước {_STEP_TEXT.get(step, step)} ({doc.get('job_error_code') or 'lỗi'}). "
-                "Tải lại tệp hoặc báo quản trị."
-            )
+            doc["processing_error"] = job_error_text(doc.get("job_error_code"))
     for internal in ("job_status", "job_progress", "job_step", "job_error_code"):
         doc.pop(internal, None)
     return doc

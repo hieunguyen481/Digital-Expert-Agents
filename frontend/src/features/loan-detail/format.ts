@@ -36,8 +36,12 @@ const OWNERSHIP: Record<string, string> = {
 };
 export const ownershipLabel = (s: string | null): string => (s ? OWNERSHIP[s] ?? s : '—');
 
-const STEP_RESULT: Record<string, string> = { SUBMITTED: 'đã trình', PASSED: 'đạt', RETURNED: 'trả lại', PASS: 'đạt', FAIL: 'không đạt' };
-export const stepResultLabel = (s: string | null): string => (s ? STEP_RESULT[s] ?? s : '');
+const STEP_RESULT: Record<string, string> = {
+  SUBMITTED: 'đã trình', PASSED: 'đạt', RETURNED: 'trả lại', PASS: 'đạt', FAIL: 'không đạt',
+  ACCEPTED: 'đã chấp thuận', APPROVED: 'đã phê duyệt', APPROVED_WITH_CONDITIONS: 'phê duyệt có điều kiện',
+  REJECTED: 'từ chối', WITHDRAWN: 'đã rút', CANCELLED: 'đã hủy', SUPPLEMENT_REQUESTED: 'yêu cầu bổ sung',
+};
+export const stepResultLabel = (s: string | null): string => (s ? STEP_RESULT[s] ?? 'đã xử lý' : '');
 
 const CONCLUSION: Record<string, string> = {
   SUSPECTED_FRAUD: 'Nghi gian lận', INSUFFICIENT_BASIS: 'Chưa đủ căn cứ', NO_ISSUE: 'Không có vấn đề',

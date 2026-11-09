@@ -17,3 +17,15 @@ describe('translateServerError (L04)', () => {
     expect(isVietnamese(out)).toBe(true);
   });
 });
+
+import { stepResultLabel } from '@/features/loan-detail/format';
+import { statusLabel } from '@/features/my-work/format';
+
+describe('nhãn trạng thái / kết quả bước (L05)', () => {
+  it('không để lọt mã thô', () => {
+    expect(stepResultLabel('ACCEPTED')).toBe('đã chấp thuận');
+    expect(stepResultLabel('APPROVED')).toBe('đã phê duyệt');
+    expect(stepResultLabel('MA_LA')).toBe('đã xử lý');
+    expect(statusLabel('APPRAISAL_PENDING_INFO')).toBe('Thẩm định – chờ bổ sung');
+  });
+});

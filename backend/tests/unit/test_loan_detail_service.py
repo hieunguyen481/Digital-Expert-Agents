@@ -91,3 +91,13 @@ def test_supplement_request_shows_reason_to_rm() -> None:
     assert got is not None and got["reason"] == "Thiếu BCTC 2025 và sao kê 12 tháng"
     assert got["due_at"] == t0 + timedelta(days=6)
     assert supplement_request("APPRAISAL", steps) is None
+
+
+def test_job_error_text_is_vietnamese_without_raw_code() -> None:
+    """L05: lỗi OCR hiện lý do tiếng Việt, không mã thô, không bảo 'báo quản trị'."""
+    from app.services.reconciliation_service import job_error_text
+
+    text = job_error_text("OCRNOTEXTLAYERERROR")
+    assert "lớp chữ" in text and "O_C_R" not in text and "quản trị" not in text
+    assert "quản trị" not in job_error_text("PDFIUM_ERROR") and "PDFIUM" not in job_error_text("PDFIUM_ERROR")
+    assert "quản trị" not in job_error_text(None)

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { RequireRole } from '@/auth/RequireRole';
 import { PageHead } from '@/features/shell/PageHead';
 import { useWorkItems } from '@/features/my-work/useWorkItems';
+import { stepLabel } from '@/features/my-work/format';
 import type { WorkItem } from '@/features/my-work/types';
 import styles from './reconciliation.module.css';
 
@@ -22,7 +23,7 @@ export default function ReconciliationIndexPage() {
             columns={[
               { title: 'Hồ sơ', render: (_, r) => <Link to={`/doi-chieu/${r.loan_application_id}`}>{r.application_number}</Link> },
               { title: 'Khách hàng', dataIndex: 'customer_name' },
-              { title: 'Bước', dataIndex: 'step_code' },
+              { title: 'Bước', render: (_, r) => stepLabel(r.step_code) },
             ]}
           />
         )}

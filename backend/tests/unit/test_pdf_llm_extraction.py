@@ -116,6 +116,6 @@ def test_document_view_matches_api_schema_for_pipeline_and_failed_rows():
             "verification_status": "UNVERIFIED", "from_pipeline": True, "job_status": "FAILED",
             "job_progress": 40, "job_step": "OCR", "job_error_code": "OCRNOTEXTLAYERERROR"}
     failed = ReconDocument.model_validate(_document_view(base))
-    assert failed.data_source == "PIPELINE" and "thất bại" in (failed.processing_error or "")
+    assert failed.data_source == "PIPELINE" and "lớp chữ" in (failed.processing_error or "")
     seed = ReconDocument.model_validate(_document_view({**base, "from_pipeline": False, "job_status": None}))
     assert seed.data_source == "SEED" and seed.processing_error is None

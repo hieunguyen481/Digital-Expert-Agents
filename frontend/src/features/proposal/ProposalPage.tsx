@@ -6,6 +6,7 @@ import { RequireRole } from '@/auth/RequireRole';
 import { PageError } from '@/components/common/PageError';
 import { useAiPanel } from '@/features/ai-panel/AiPanelContext';
 import { PageHead } from '@/features/shell/PageHead';
+import { statusLabel } from '@/features/my-work/format';
 import { DocumentsSection } from './DocumentsSection';
 import { NeedSection } from './NeedSection';
 import { RelatedSection } from './RelatedSection';
@@ -32,7 +33,7 @@ function Editor({ loanId }: { loanId: string }) {
   const head = (
     <PageHead
       title={draft ? `Đề xuất vay · ${draft.customer_name ?? draft.application_number}` : 'Đề xuất vay'}
-      facts={[draft?.application_number, draft && draft.status === 'DRAFT' ? 'Bản nháp' : draft?.status]}
+      facts={[draft?.application_number, draft ? (draft.status === 'DRAFT' ? 'Bản nháp' : statusLabel(draft.status)) : null]}
       onAskAi={() => openWith({ type: 'session', id: 'proposal', label: 'Đề xuất đang soạn' })}
       actions={
         <>
