@@ -168,23 +168,25 @@ recent AS (
                (SELECT max(d.decision_at) FROM credit.loan_decision AS d
                  WHERE d.loan_application_id = loan.id),
                (SELECT max(COALESCE(s.completed_at, s.received_at)) FROM credit.case_step AS s
-                 WHERE s.loan_application_id = loan.id)
+                 WHERE s.loan_application_id = loan.id),
+               loan.created_at
            ) AS last_at
     FROM credit.loan_application AS loan
     ORDER BY 2 DESC NULLS LAST
-    LIMIT 10
+    LIMIT 500
 )
-{_ITEM_SELECT}
+{_ITEM_SELECT},
+       loan.created_at AS created_at
 FROM recent
 JOIN credit.loan_application AS loan ON loan.id = recent.id
-JOIN LATERAL (
+LEFT JOIN LATERAL (
     SELECT {_cols('s')} FROM credit.case_step AS s
     WHERE s.loan_application_id = loan.id
     ORDER BY (s.completed_at IS NULL) DESC, s.received_at DESC LIMIT 1
 ) AS step ON TRUE
-JOIN credit.loan_party AS lp
+LEFT JOIN credit.loan_party AS lp
   ON lp.loan_application_id = loan.id AND lp.party_role = 'PRIMARY_BORROWER'
-JOIN customer.party AS party ON party.id = lp.party_id
+LEFT JOIN customer.party AS party ON party.id = lp.party_id
 CROSS JOIN ctx
 ORDER BY recent.last_at DESC NULLS LAST
 """  # noqa: S608 - chỉ nối hằng số cột, không có dữ liệu người dùng

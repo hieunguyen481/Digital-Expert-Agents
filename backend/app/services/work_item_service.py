@@ -109,6 +109,15 @@ def facts_for(items: Sequence[WorkItem]) -> WorkItemFacts:
     )
 
 
+def _audit_row(row: Mapping[str, Any]) -> dict[str, Any]:
+    """Kiểm toán đọc toàn hệ thống (Q-M): hồ sơ chưa có bước hoặc chưa có khách vẫn hiện."""
+    data = dict(row)
+    data["step_code"] = data["step_code"] or "DRAFT"
+    data["step_received_at"] = data["step_received_at"] or data.get("created_at") or data["now"]
+    data["customer_name"] = data["customer_name"] or "—"
+    return data
+
+
 class WorkItemService:
     def __init__(self, repository: WorkItemRepositoryLike) -> None:
         self._repository = repository
@@ -121,7 +130,7 @@ class WorkItemService:
             raise ValueError("Unsupported work item filter")
         if "auditor" in principal.roles:
             rows = await self._repository.audit_recent()
-            items = [to_item(r, r["now"], False) for r in rows]
+            items = [to_item(_audit_row(r), r["now"], False) for r in rows]
             if filter_ != "all":
                 items = [i for i in items if filter_ in i.tags]
             return WorkItemsResponse(

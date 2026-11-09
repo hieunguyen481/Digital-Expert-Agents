@@ -36,6 +36,7 @@ export function slaText(item: WorkItem, today: Date): string {
 }
 
 export const STEP_LABEL: Record<string, string> = {
+  DRAFT: 'Nháp (chưa trình)',
   RM_DRAFT: 'Soạn đề xuất',
   CHECKING: 'Kiểm tra hồ sơ',
   RM_REWORK: 'Sửa đề xuất',

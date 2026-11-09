@@ -93,3 +93,16 @@ async def test_auditor_is_read_only() -> None:
 async def test_requires_loan_read() -> None:
     with pytest.raises(PermissionError):
         await WorkItemService(_Repo([])).list(_Principal(set(), {"admin"}))
+
+
+async def test_auditor_sees_drafts_without_step_or_customer() -> None:
+    """L03/Q-M: kiểm toán đọc toàn hệ thống, kể cả nháp chưa có bước và chưa có khách."""
+    draft = _row("NHAP", mine=False, due_in_days=0, status="DRAFT")
+    draft.update(step_code=None, step_received_at=None, due_at=None, customer_name=None,
+                 due_is_today=False, workdays_to_due=None, created_at=NOW - timedelta(days=3))
+    rows = [_row(f"H{i}", mine=False, due_in_days=2) for i in range(25)] + [draft]
+    result = await WorkItemService(_Repo(rows)).list(_Principal({"loan:read"}, {"auditor"}))
+    assert len(result.items) == 26
+    last = result.items[-1]
+    assert last.application_number == "NHAP" and last.step_code == "DRAFT"
+    assert last.customer_name == "—" and not last.mine
