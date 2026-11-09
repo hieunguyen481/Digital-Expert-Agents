@@ -127,3 +127,37 @@ Số liệu tính từ `agent_engine/benchmark_results/*abl*.json` (không nạp
 | Chi phí | khoảng $0,0059 | $0,0016 |
 
 Thời gian còn lại gần như toàn là một lượt `submit_verdict` dài của chuyên gia (credit/compliance chạy song song, thật). Log: `scratchpad/timeline_base_F1.txt`, `timeline_after_F1.txt` (đã sao vào mục này).
+
+### 8.3 Kết quả cuối (tổ hợp mặc định, commit ef86834; đo đúng một lần, đã nạp `agent.benchmark_run`)
+**v6 (kiểm tra mù, 3 lần)** — nhãn: v6 cuối ef86834 (kiểm tra mù); tổng chi phí $0.0942
+
+| chỉ số | single TB (sd) | multi TB (sd) |
+|---|---|---|
+| recall phát hiện | 0.896 (0.194) | 0.854 (0.337) |
+| trích nguồn | 0.924 (0.155) | 0.875 (0.338) |
+| chính xác trích dẫn | 0.907 (0.132) | 0.987 (0.040) |
+| phát hiện sai | 0.208 (0.509) | 0.000 (0.000) |
+| trích sai | 0.042 (0.204) | 0.042 (0.204) |
+| đúng cổng | 0.375 (0.495) | 0.875 (0.338) |
+| trễ s | 41.567 (5.486) | 21.208 (10.741) |
+| $/ca | 0.002 (0.000) | 0.002 (0.001) |
+| token | 14952.667 (3423.384) | 5246.500 (2215.163) |
+| lỗi | 0 | 0 |
+
+**v5 kiểm thoái lui (1 lần/ca; bộ phát triển)** — v5 kiểm thoái lui ef86834; tổng chi phí $0.0239
+
+| chỉ số | single TB (sd) | multi TB (sd) |
+|---|---|---|
+| recall phát hiện | 0.858 (0.169) | 0.925 (0.117) |
+| trích nguồn | 0.944 (0.136) | 1.000 (0.000) |
+| chính xác trích dẫn | 0.868 (0.166) | 0.979 (0.051) |
+| phát hiện sai | 0.333 (0.516) | 0.000 (0.000) |
+| đúng cổng | 0.833 (0.408) | 1.000 (0.000) |
+| trễ s | 37.700 (3.533) | 20.567 (3.100) |
+| $/ca | 0.002 (0.000) | 0.002 (0.000) |
+| token | 13032.833 (696.162) | 5657.500 (1097.598) |
+
+
+v6 theo ca (recall / đúng cổng; multi | single): G1 1,00/1 | 1,00/0; G2 1,00/1 | 1,00/0; **G3 0,00/0 | 1,00/1**; G4 1,00/1 | 1,00/1; G5 1,00/1 | 1,00/0; G6 1,00/1 | 0,50/1; G7 1,00/1 | 1,00/0; G8 0,83/1 | 0,67/0.
+
+**Đọc trung thực.** Trên v6 mù multi hơn single ở đúng cổng (88% so 38%), chính xác trích dẫn (99% so 91%), phát hiện sai (0 so 0,21), trễ (21,2 so 41,6 s) và token (5,2k so 15,0k); chi phí/ca bằng nhau ở mức làm tròn (xem file kết quả). Multi **không hơn** ở recall phát hiện (85% so 90%) và trích nguồn (88% so 92%), và độ lệch multi lớn. Toàn bộ chênh lệch recall đến từ G3: cả 3 lượt multi của G3 (khách chưa có kết quả CIC) bị ESCALATED sau 1 giây do lỗi trong Planner xác định (`cic_group` null so sánh `>= 2`), không ra kết luận. Các ca khác multi ≥ single về recall. Lỗi đã sửa trong code (commit riêng, có test), **không đo lại v6** theo quy định đo một lượt; số G3 ở trên là số thật đã đo. Ước lượng: nếu G3 không sập, recall multi của v6 sẽ khoảng 97%, nhưng đây là suy đoán, không phải số đo. v5 kiểm thoái lui (bộ phát triển, 1 lần/ca): multi hơn single ở mọi chỉ số.

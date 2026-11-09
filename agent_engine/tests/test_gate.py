@@ -63,3 +63,10 @@ def test_collateral_blocks_only_when_declared():
     f = facts.build({"business": BIZ, "financials": FIN, "loans": LOANS, "cic": CIC, "blacklist": BL,
                      "collateral": ok}, {**req, "amount": 14e9}, TODAY)
     assert gate.decide(f)[0] == D.APPROVE  # LTV đúng trần 70%, không vượt
+
+
+def test_template_plan_cic_group_null():
+    """CIC chưa tra cứu (cic_group null) không được làm Planner xác định sập."""
+    from gateway import planner
+    p = planner._template_plan("c", {"request": {"business_id": "b", "amount": 1}}, {"cic_group": None}, 1)
+    assert [t.agent for t in p.tasks][-1] == "validation"

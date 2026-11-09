@@ -86,12 +86,24 @@ async def test_validation_recomputes_independently(monkeypatch):
 
 
 async def test_validation_challenges_compliance_that_skipped_collateral(monkeypatch):
+    from common import config
+    monkeypatch.setattr(config, "OPT_FLAGS", frozenset())  # đường cũ: challenge theo chữ trong verdict
     sv = _specialists()
     sv["compliance"] = _v("compliance", findings=["CIC nhóm 1"], summary="Đạt KYB/AML")
     sent: list = []
     await _run_validation(monkeypatch, sv, sent=sent)
     assert sent and sent[0][0] == "compliance" and sent[0][1]["check_collateral"] is True
     assert sent[0][1]["request"]["business_id"] == BIZ
+
+
+async def test_challenge_flag_skips_text_based_challenge(monkeypatch):
+    from common import config
+    monkeypatch.setattr(config, "OPT_FLAGS", frozenset({"challenge"}))
+    sv = _specialists()
+    sv["compliance"] = _v("compliance", findings=["CIC nhóm 1"], summary="Đạt KYB/AML")
+    sent: list = []
+    await _run_validation(monkeypatch, sv, sent=sent)
+    assert not [1 for to, _ in sent if to == "compliance"]
 
 
 async def test_validation_challenges_credit_over_recomputed_cap(monkeypatch):

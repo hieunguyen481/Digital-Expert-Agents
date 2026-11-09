@@ -37,7 +37,7 @@ def _template_plan(case_id: str, payload: dict, context: dict, version: int) -> 
     # TSĐB theo DỮ LIỆU thật trong core banking, không chỉ cờ khai trong request
     has_collateral = bool(request.get("has_collateral")) or context.get("collateral_count", 0) > 0
     industry_risk = context.get("industry_risk", "normal")
-    cic_group = context.get("cic_group", 1)
+    cic_group = context.get("cic_group") or 1  # CIC chưa tra cứu: cic_group = null
 
     tasks: list[PlanTask] = []
     doc_dep: list[str] = []
