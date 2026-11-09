@@ -24,7 +24,7 @@ from sse_starlette.sse import EventSourceResponse  # noqa: E402
 
 from common import config, identity, mcp_client, rag  # noqa: E402
 from common.schemas import CaseCreate, CaseState, new_id  # noqa: E402
-from gateway import approval, db, orchestrator, planner  # noqa: E402
+from gateway import actions, approval, db, orchestrator, planner  # noqa: E402
 from gateway.auth import (Principal, current_principal, internal_only,  # noqa: E402
                           require_roles)
 
@@ -218,6 +218,24 @@ async def reject(case_id: str, body: RejectBody,
     await broadcast(await db.add_event(case_id, "hitl", "rejected",
                                        {"approver": user.employee_id, "reason": body.reason}))
     return {"status": "rejected"}
+
+
+class LoanDecidedBody(BaseModel):
+    loan_application_id: str
+
+
+@app.post("/cases/{case_id}/loan-decided")
+async def loan_decided(case_id: str, body: LoanDecidedBody, request: Request,
+                       user: Principal = USER) -> dict:
+    """Backend báo hồ sơ đã được quyết định trên workflow; engine tự kiểm lại rồi đóng ca."""
+    await _visible_case(case_id)
+    jwt = request.headers["authorization"].partition(" ")[2].strip()
+    try:
+        return await orchestrator.close_on_loan_decision(
+            case_id, user.employee_id, jwt, body.loan_application_id)
+    except actions.ActionRefused as e:
+        raise HTTPException(e.status if e.status in (403, 404, 409) else 409,
+                            {"code": e.code, "message": e.message}) from e
 
 
 @app.post("/cases/{case_id}/supplement")

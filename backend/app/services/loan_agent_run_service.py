@@ -7,6 +7,7 @@ Mỗi lần chạy tạo case mới và giữ case cũ; đang có lượt chưa 
 
 from __future__ import annotations
 
+import logging
 import time
 from typing import Any
 from uuid import UUID
@@ -15,6 +16,7 @@ from app.exceptions import AuthorizationError, ConflictError, DependencyUnavaila
 from app.repositories.loan_agent_run_repository import LoanAgentRunRepository
 from app.services.agent_engine_client import AgentEngineClient, AgentEngineError
 from app.services.protocols import PrincipalLike
+log = logging.getLogger(__name__)
 
 FINAL_STATES = {"Pending Approval", "Needs Info", "Rejected", "Escalated", "Completed"}
 STALE_AFTER_SECONDS = 20 * 60  # lượt treo (engine sập) không khóa hồ sơ mãi
@@ -54,6 +56,22 @@ class LoanAgentRunService:
         if loan is None:
             raise NotFoundError("LOAN_NOT_FOUND", "Không tìm thấy hồ sơ hoặc ngoài phạm vi được xem.")
         return loan
+
+    async def open_case_ids(self, loan_id: UUID) -> list[str]:
+        """Mã ca đã chạy trên hồ sơ; dùng để báo engine khi hồ sơ được quyết định."""
+        if self._engine is None:
+            return []
+        return [str(r["case_id"]) for r in await self._repo.list(loan_id)]
+
+    async def notify_decided(self, jwt: str, loan_id: UUID, case_ids: list[str]) -> None:
+        """Best-effort sau khi `decide` đã commit: engine tự kiểm lại hồ sơ rồi đóng ca còn mở."""
+        if self._engine is None:
+            return
+        for case_id in case_ids:
+            try:
+                await self._engine.loan_decided(case_id, str(loan_id), jwt=jwt)
+            except AgentEngineError as e:
+                log.warning("loan_decided notify failed case=%s status=%s", case_id, e.status)
 
     async def overview(self, principal: PrincipalLike, loan_id: UUID) -> dict[str, Any]:
         loan = await self._loan(loan_id)

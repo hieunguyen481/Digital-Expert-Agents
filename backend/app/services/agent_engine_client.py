@@ -87,6 +87,11 @@ class AgentEngineClient:
         """Người có thẩm quyền xác nhận; engine phát approval token và gọi backend `decide`."""
         return await self._call("POST", f"/cases/{case_id}/approve", jwt=jwt, json=body)
 
+    async def loan_decided(self, case_id: str, loan_id: str, jwt: str | None = None) -> Any:
+        """Báo hồ sơ đã được quyết định trên workflow; engine tự kiểm lại và đóng ca còn mở."""
+        return await self._call("POST", f"/cases/{case_id}/loan-decided", jwt=jwt,
+                                json={"loan_application_id": loan_id})
+
     async def reject(self, case_id: str, body: dict[str, Any], jwt: str | None = None) -> Any:
         return await self._call("POST", f"/cases/{case_id}/reject", jwt=jwt, json=body)
 

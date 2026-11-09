@@ -158,3 +158,31 @@ async def test_stale_or_missing_run_does_not_block_forever() -> None:
     engine.missing = True
     await svc(repo, engine).start(me, LOAN)  # type: ignore[arg-type]
     assert len(repo.runs) == 3
+
+
+class NotifyEngine:
+    def __init__(self, fail: set[str] | None = None) -> None:
+        self.calls: list[tuple[str, str, str | None]] = []
+        self.fail = fail or set()
+
+    async def loan_decided(self, case_id: str, loan_id: str, jwt: str | None = None) -> dict[str, Any]:
+        self.calls.append((case_id, loan_id, jwt))
+        if case_id in self.fail:
+            raise AgentEngineError(502, "x")
+        return {"status": "closed"}
+
+
+async def test_notify_decided_tells_engine_each_case_and_survives_failure() -> None:
+    repo, engine = FakeRepo(), NotifyEngine(fail={"c1"})
+    repo.runs = [{"case_id": "c1"}, {"case_id": "c2"}]
+    service = LoanAgentRunService(repo, engine)  # type: ignore[arg-type]
+    ids = await service.open_case_ids(LOAN)
+    await service.notify_decided("jwt-x", LOAN, ids)
+    assert sorted(c[0] for c in engine.calls) == ["c1", "c2"]  # c1 lỗi không chặn c2
+    assert all(c[1:] == (str(LOAN), "jwt-x") for c in engine.calls)
+
+
+async def test_notify_decided_noop_without_engine() -> None:
+    service = LoanAgentRunService(FakeRepo(), None)
+    assert await service.open_case_ids(LOAN) == []
+    await service.notify_decided("jwt", LOAN, ["c1"])

@@ -224,3 +224,35 @@ async def _action(case_id: str) -> list:
     async with db.tx(identity.Identity(OFFICER, BRANCH_HN)) as con:
         return [dict(r) for r in await con.fetch(
             "SELECT outcome FROM agent.action_log WHERE case_id=$1 AND outcome='EXECUTED'", case_id)]
+
+
+async def test_loan_decision_closes_open_case_once(api):
+    """Quyết định trên hồ sơ (workflow) là nguồn duy nhất: ca mở chỉ đóng sau đó, ghi nhật ký một lần."""
+    if not os.getenv("TEST_ADMIN_DATABASE_URL"):
+        pytest.skip("cần TEST_ADMIN_DATABASE_URL để dựng hồ sơ thử ở bước APPROVAL")
+    from gateway import actions
+    await _purge_test_loans()
+    new_loan, customer = await _fresh_approval_loan()
+    try:
+        approver = await kc_token("approver@example.local")
+        cid = f"case_ld_{uuid.uuid4().hex[:8]}"
+        await seed_pending(customer, cid)
+        body = {"loan_application_id": new_loan}
+        # Hồ sơ chưa được quyết định: engine không đóng ca, không ghi hành động.
+        r = await api.post(f"/cases/{cid}/loan-decided", headers=H(approver), json=body)
+        assert r.status_code == 200 and r.json()["status"] == "ignored", r.text
+        assert await _action(cid) == []
+        # Người có thẩm quyền quyết định trên workflow.
+        loan_row = {"id": new_loan, "version": 1}
+        await actions.execute_decision(approver, loan_row, decision_type="APPROVED", amount=1e9,
+                                       term_months=12, conditions=[], reason="quyết định trên hồ sơ")
+        r = await api.post(f"/cases/{cid}/loan-decided", headers=H(approver), json=body)
+        assert r.json() == {"status": "closed", "state": "Completed"}, r.text
+        assert len(await _action(cid)) == 1
+        # Gọi lại: không ghi hai lần, ca không đổi.
+        r = await api.post(f"/cases/{cid}/loan-decided", headers=H(approver), json=body)
+        assert r.json()["status"] == "ignored"
+        assert len(await _action(cid)) == 1
+        assert (await db.get_case(cid))["state"] == "Completed"
+    finally:
+        await _purge_test_loans()

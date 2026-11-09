@@ -269,6 +269,43 @@ async def approve_and_commit(case_id: str, approver: str, jwt: str, confirm: dic
     return {"status": "escalated", "reason": verdict.summary}
 
 
+_DECIDED = {"APPROVED": CaseState.COMPLETED, "APPROVED_WITH_CONDITIONS": CaseState.COMPLETED,
+            "REJECTED": CaseState.REJECTED}
+_CLOSABLE = (CaseState.PENDING_APPROVAL.value, CaseState.ESCALATED.value, CaseState.NEEDS_INFO.value)
+
+
+async def close_on_loan_decision(case_id: str, user_id: str, jwt: str, loan_id: str) -> dict:
+    """Quyết định trên hồ sơ (workflow `decide`) là nguồn duy nhất; đóng ca còn mở theo đó.
+
+    Engine không tự quyết: đọc lại hồ sơ bằng JWT của người gọi, chỉ đóng khi hồ sơ đã ở trạng
+    thái quyết định. Ghi `agent.action_log` với khóa cố định theo (ca, hồ sơ) nên chạy lại không
+    ghi hai lần. Ca đang Executing/đã đóng (đường /approve) thì bỏ qua.
+    """
+    case = await db.get_case(case_id)
+    if not case:
+        return {"status": "not_found"}
+    if case["state"] not in _CLOSABLE:
+        return {"status": "ignored", "state": case["state"]}
+    loan = await actions.fetch_loan(jwt, loan_id, case["customer_id"])
+    target = _DECIDED.get(str(loan.get("status")))
+    if target is None:
+        return {"status": "ignored", "loan_status": loan.get("status")}
+    key = f"{case_id}:loan-decided:{loan_id}"
+    first = await db.record_action(case_id, "decide", loan_id, key, user_id, "EXECUTED",
+                                   {"status": loan.get("status"), "source": "loan_workflow"})
+    if not first:
+        return {"status": "already_recorded"}
+    await db.update_case(case_id, approver=user_id)
+    await _emit(case_id, "hitl", "decided_on_loan",
+                {"approver": user_id, "loan_application_id": loan_id,
+                 "workflow_status": loan.get("status")})
+    await _set_state(case_id, target)
+    await _emit(case_id, "orchestrator", "state_changed",
+                {"state": target.value, "loan_application_id": loan_id,
+                 "workflow_status": loan.get("status")})
+    return {"status": "closed", "state": target.value}
+
+
 async def supplement_and_replan(case_id: str, documents: list[dict]) -> dict:
     """Chuyên viên bổ sung hồ sơ -> Document Agent -> re-plan (giới hạn số vòng)."""
     case = await db.get_case(case_id)
