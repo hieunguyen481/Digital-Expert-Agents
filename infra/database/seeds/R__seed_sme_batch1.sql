@@ -561,6 +561,8 @@ ALTER TABLE credit.loan_decision DISABLE TRIGGER trg_loan_decision_append_only;
 DELETE FROM credit.loan_decision WHERE loan_application_id IN (SELECT id FROM sme_loan);
 ALTER TABLE credit.loan_decision ENABLE TRIGGER trg_loan_decision_append_only;
 
+-- Luot chay doi agent tu trang Ho so vay (V042): chi them, bo bang chu so huu seed.
+DELETE FROM credit.loan_agent_run WHERE loan_application_id IN (SELECT id FROM sme_loan);
 DELETE FROM credit.loan_draft WHERE loan_application_id IN (SELECT id FROM sme_loan);
 DELETE FROM credit.case_exception WHERE loan_application_id IN (SELECT id FROM sme_loan);
 DELETE FROM document.field_conflict
