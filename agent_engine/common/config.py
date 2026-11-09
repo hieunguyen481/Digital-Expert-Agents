@@ -60,7 +60,9 @@ LLM_MAX_TOOL_ITERATIONS = int(os.getenv("LLM_MAX_TOOL_ITERATIONS", "10"))
 #   challenge vòng sửa chỉ gọi khi số tính lại mâu thuẫn (không dựa vào chữ trong verdict)
 #   compact   prompt chuyên gia ngắn, đầu ra có cấu trúc giới hạn độ dài
 OPT_ALL = ("gate", "facts", "plan", "report", "challenge", "compact")
-OPT_FLAGS = frozenset(x.strip() for x in os.getenv("OPT_FLAGS", ",".join(OPT_ALL)).split(",") if x.strip())
+# Mặc định không bật `plan`: Planner dùng LLM để lập và giao việc (quyết định sau đo v7, docs/agent/benchmark-v3-research.md §9)
+OPT_DEFAULT = tuple(x for x in OPT_ALL if x != "plan")
+OPT_FLAGS = frozenset(x.strip() for x in os.getenv("OPT_FLAGS", ",".join(OPT_DEFAULT)).split(",") if x.strip())
 
 
 def opt(name: str) -> bool:
