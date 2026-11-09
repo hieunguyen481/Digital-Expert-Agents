@@ -23,6 +23,8 @@ test('dashboard hiện đúng case vừa chạy ở /chat: DAG, task, luồng ph
   const confirm = page.locator('#main-content').getByTestId('confirm-card');
   await expect(confirm.or(page.locator('#main-content').getByTestId('stop-card'))).toBeVisible({ timeout: 120_000 });
   const pending = await confirm.isVisible();
+  // Q-V: thiếu tài khoản thanh toán là điều kiện trước giải ngân, không chặn trình: hồ sơ đủ điều kiện ra Đề xuất phê duyệt.
+  if (!pending) await expect(page.locator('#main-content').getByTestId('stop-card')).not.toContainText(/tài khoản thanh toán/i);
 
   await openCases(page);
   const row = page.getByTestId(`case-row-${caseId}`);
@@ -42,6 +44,7 @@ test('dashboard hiện đúng case vừa chạy ở /chat: DAG, task, luồng ph
   await expect(trace.getByTestId('trace-tools')).toContainText('get_');
   if (pending) {
     await expect(trace.getByTestId('trace-decisions')).toContainText('Đang chờ người có thẩm quyền xác nhận');
+    await expect(trace).toContainText(/Đề xuất phê duyệt/i);
   } else {
     await expect(trace.getByTestId('trace-stop-reason')).toContainText(/bổ sung hồ sơ|đề xuất từ chối/);
   }
@@ -84,7 +87,7 @@ for (const role of NO_ACCESS) {
   test(`vai trò ${role} không thấy case của người khác`, async ({ page }) => {
     await loginAs(page, role);
     await openCases(page);
-    await expect(page.getByText(/Chưa có case nào\. Gửi/)).toBeVisible();
+    await expect(page.getByText(/Chưa có case nào trong phạm vi của bạn/)).toBeVisible();
     await expect(page.locator('[data-testid^="case-row-"]')).toHaveCount(0);
   });
 }
