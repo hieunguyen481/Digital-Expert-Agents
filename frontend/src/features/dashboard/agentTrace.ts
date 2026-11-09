@@ -24,6 +24,11 @@ export const STATE_LABEL: Record<string, string> = {
   Completed: 'Hoàn thành',
   Rejected: 'Bị từ chối',
 };
+const PURPOSE_LABEL: Record<string, string> = {
+  WORKING_CAPITAL: 'Vốn lưu động', HOME_PURCHASE: 'Mua nhà', INVESTMENT: 'Đầu tư', TRADE_FINANCE: 'Tài trợ thương mại',
+};
+/** Mục đích vay hiển thị cho người dùng; mã chưa có nhãn thì giữ nguyên (văn bản người nhập như "test"). */
+export const purposeLabel = (p: string) => PURPOSE_LABEL[p] ?? p;
 export const stateLabel = (s: string) => STATE_LABEL[s] ?? s;
 export const STATE_COLOR: Record<string, string> = {
   Draft: 'default',

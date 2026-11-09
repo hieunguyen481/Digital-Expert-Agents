@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
 import { listAgentCases, type AgentCaseSummary } from '@/services/agentCaseService';
 import { formatDateTime } from '@/utils/formatDate';
-import { STATE_COLOR, fmtSeconds, stateLabel } from '../agentTrace';
+import { STATE_COLOR, fmtSeconds, purposeLabel, stateLabel } from '../agentTrace';
 import { CaseTrace } from './CaseTrace';
 
 const { Text } = Typography;
@@ -39,7 +39,7 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
                 <span>
                   {r.request.amount != null ? `${r.request.amount.toLocaleString('vi-VN')} VND` : '—'}
                   {r.request.term_months ? ` · ${r.request.term_months} tháng` : ''}
-                  {r.request.purpose ? <Text type="secondary" style={{ display: 'block', fontSize: 11.5 }}>{r.request.purpose}</Text> : null}
+                  {r.request.purpose ? <Text type="secondary" style={{ display: 'block', fontSize: 11.5 }}>{purposeLabel(r.request.purpose)}</Text> : null}
                 </span>
               ),
             },
