@@ -30,6 +30,15 @@ class LoanAgentRunRepository:
         )
         return bool(row and row["ok"])
 
+    async def first_collateral_id(self, loan_id: UUID) -> str | None:
+        """Tài sản bảo đảm đầu tiên của hồ sơ (theo thời điểm tạo); None nếu hồ sơ không có."""
+        row = await fetch_one(
+            self.session,
+            "SELECT id FROM credit.collateral WHERE loan_application_id = :loan_id ORDER BY created_at, id LIMIT 1",
+            {"loan_id": loan_id},
+        )
+        return str(row["id"]) if row else None
+
     async def has_collateral(self, loan_id: UUID) -> bool:
         row = await fetch_one(
             self.session,

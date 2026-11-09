@@ -106,12 +106,14 @@ class LoanAgentRunService:
         if runs and await self._active(str(runs[0]["case_id"])):
             raise ConflictError("AGENT_RUN_IN_PROGRESS", "Đội agent đang chạy trên hồ sơ này, vui lòng chờ kết thúc.",
                                 {"case_id": str(runs[0]["case_id"])})
+        collateral_id = await self._repo.first_collateral_id(loan_id)
         request = {
             "business_id": str(loan["primary_customer_id"]),
             "amount": float(loan["requested_amount"]),
             "term_months": int(loan["requested_term_months"]),
             "purpose": str(loan["loan_purpose"]),
-            "has_collateral": await self._repo.has_collateral(loan_id),
+            "has_collateral": collateral_id is not None,
+            "collateral_id": collateral_id,
         }
         case_id = await self._engine.create_case(request)
         await self._engine.run(case_id)

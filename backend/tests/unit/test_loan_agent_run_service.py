@@ -16,6 +16,7 @@ from app.services.loan_agent_run_service import LoanAgentRunService, denial_reas
 
 LOAN = uuid4()
 CUSTOMER = uuid4()
+COLLATERAL = str(uuid4())
 
 
 @dataclass
@@ -39,8 +40,8 @@ class FakeRepo:
     async def holds(self, loan_id: UUID) -> bool:
         return self._holds
 
-    async def has_collateral(self, loan_id: UUID) -> bool:
-        return True
+    async def first_collateral_id(self, loan_id: UUID) -> str | None:
+        return COLLATERAL
 
     async def lock(self, loan_id: UUID) -> None:
         self.locked += 1
@@ -125,7 +126,8 @@ async def test_request_built_from_real_loan_data() -> None:
     engine = FakeEngine()
     out = await svc(FakeRepo(), engine).start(P(("credit_officer",)), LOAN)  # type: ignore[arg-type]
     assert engine.created == [{"business_id": str(CUSTOMER), "amount": 5_000_000_000.0, "term_months": 36,
-                               "purpose": "WORKING_CAPITAL", "has_collateral": True}]
+                               "purpose": "WORKING_CAPITAL", "has_collateral": True,
+                               "collateral_id": COLLATERAL}]
     assert out["latest"]["case_id"] == "case_1" and engine.ran == ["case_1"]
 
 
