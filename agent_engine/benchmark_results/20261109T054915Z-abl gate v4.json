@@ -1,0 +1,1018 @@
+{
+ "run_id": "20261109T054915Z-abl gate v4",
+ "created_at": "2026-11-09T05:49:15.390325+00:00",
+ "started_at": "2026-11-09T05:41:38.523002+00:00",
+ "label": "abl gate v4",
+ "cases_version": "v4",
+ "grader_version": "v3",
+ "llm_mode": "llm",
+ "planner_model": "anthropic/claude-haiku-5.5",
+ "specialist_model": "openai/gpt-6-luna",
+ "git_commit": "f819e48",
+ "runs_per_case": 1,
+ "cases": [
+  "E1",
+  "E2",
+  "E3",
+  "E4",
+  "E5",
+  "E6"
+ ],
+ "total_cost_usd": 0.034572755,
+ "summary": {
+  "multi": {
+   "runs": 6,
+   "errors": 0,
+   "finding_recall": {
+    "mean": 0.9,
+    "sd": 0.1673320053068151
+   },
+   "citation_recall": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "tool_recall": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "false_findings": {
+    "mean": 0.0,
+    "sd": 0.0
+   },
+   "invalid_citations": {
+    "mean": 1.1666666666666667,
+    "sd": 1.4719601443879744
+   },
+   "gate_ok": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "tool_calls": {
+    "mean": 8.0,
+    "sd": 0.0
+   },
+   "latency_s": {
+    "mean": 72.4859348932902,
+    "sd": 28.057392293173244
+   },
+   "total_tokens": {
+    "mean": 24712.5,
+    "sd": 3668.6738067045426
+   },
+   "cost_usd": {
+    "mean": 0.005762125833333334,
+    "sd": 0.0005283390996833063
+   },
+   "citation_precision": {
+    "mean": 0.9311683006535948,
+    "sd": 0.08714059717577219
+   },
+   "sources_listed": {
+    "mean": 22.666666666666668,
+    "sd": 3.204163957519444
+   },
+   "report_chars": {
+    "mean": 7768.333333333333,
+    "sd": 508.0778155624064
+   },
+   "report_chars_body": {
+    "mean": 5654.166666666667,
+    "sd": 432.4892676895771
+   }
+  }
+ },
+ "per_case": {
+  "E1": {
+   "multi": {
+    "runs": 1,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.8,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 8.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 79.00600075721741,
+     "sd": 0.0
+    },
+    "total_tokens": {
+     "mean": 24692.0,
+     "sd": 0.0
+    },
+    "cost_usd": {
+     "mean": 0.00622549,
+     "sd": 0.0
+    },
+    "citation_precision": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "sources_listed": {
+     "mean": 19.0,
+     "sd": 0.0
+    },
+    "report_chars": {
+     "mean": 7850.0,
+     "sd": 0.0
+    },
+    "report_chars_body": {
+     "mean": 5911.0,
+     "sd": 0.0
+    }
+   }
+  },
+  "E2": {
+   "multi": {
+    "runs": 1,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 8.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 50.274380683898926,
+     "sd": 0.0
+    },
+    "total_tokens": {
+     "mean": 19566.0,
+     "sd": 0.0
+    },
+    "cost_usd": {
+     "mean": 0.00487216,
+     "sd": 0.0
+    },
+    "citation_precision": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "sources_listed": {
+     "mean": 23.0,
+     "sd": 0.0
+    },
+    "report_chars": {
+     "mean": 8144.0,
+     "sd": 0.0
+    },
+    "report_chars_body": {
+     "mean": 5958.0,
+     "sd": 0.0
+    }
+   }
+  },
+  "E3": {
+   "multi": {
+    "runs": 1,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 8.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 65.7743468284607,
+     "sd": 0.0
+    },
+    "total_tokens": {
+     "mean": 24663.0,
+     "sd": 0.0
+    },
+    "cost_usd": {
+     "mean": 0.005971495,
+     "sd": 0.0
+    },
+    "citation_precision": {
+     "mean": 0.9411764705882353,
+     "sd": 0.0
+    },
+    "sources_listed": {
+     "mean": 27.0,
+     "sd": 0.0
+    },
+    "report_chars": {
+     "mean": 8010.0,
+     "sd": 0.0
+    },
+    "report_chars_body": {
+     "mean": 5422.0,
+     "sd": 0.0
+    }
+   }
+  },
+  "E4": {
+   "multi": {
+    "runs": 1,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 3.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 8.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 55.387338638305664,
+     "sd": 0.0
+    },
+    "total_tokens": {
+     "mean": 24167.0,
+     "sd": 0.0
+    },
+    "cost_usd": {
+     "mean": 0.005848685,
+     "sd": 0.0
+    },
+    "citation_precision": {
+     "mean": 0.8125,
+     "sd": 0.0
+    },
+    "sources_listed": {
+     "mean": 25.0,
+     "sd": 0.0
+    },
+    "report_chars": {
+     "mean": 8314.0,
+     "sd": 0.0
+    },
+    "report_chars_body": {
+     "mean": 6205.0,
+     "sd": 0.0
+    }
+   }
+  },
+  "E5": {
+   "multi": {
+    "runs": 1,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 8.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 126.0200765132904,
+     "sd": 0.0
+    },
+    "total_tokens": {
+     "mean": 31051.0,
+     "sd": 0.0
+    },
+    "cost_usd": {
+     "mean": 0.00623311,
+     "sd": 0.0
+    },
+    "citation_precision": {
+     "mean": 0.8333333333333334,
+     "sd": 0.0
+    },
+    "sources_listed": {
+     "mean": 19.0,
+     "sd": 0.0
+    },
+    "report_chars": {
+     "mean": 7224.0,
+     "sd": 0.0
+    },
+    "report_chars_body": {
+     "mean": 5343.0,
+     "sd": 0.0
+    }
+   }
+  },
+  "E6": {
+   "multi": {
+    "runs": 1,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.6,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 3.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 8.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 58.453465938568115,
+     "sd": 0.0
+    },
+    "total_tokens": {
+     "mean": 24136.0,
+     "sd": 0.0
+    },
+    "cost_usd": {
+     "mean": 0.005421815,
+     "sd": 0.0
+    },
+    "citation_precision": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "sources_listed": {
+     "mean": 23.0,
+     "sd": 0.0
+    },
+    "report_chars": {
+     "mean": 7068.0,
+     "sd": 0.0
+    },
+    "report_chars_body": {
+     "mean": 5086.0,
+     "sd": 0.0
+    }
+   }
+  }
+ },
+ "runs": [
+  {
+   "mode": "multi",
+   "case_id": "E1",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 79.00600075721741,
+   "calls": 8,
+   "tokens": {
+    "prompt": 14811,
+    "completion": 9881,
+    "total": 24692
+   },
+   "cost_usd": 0.00622549,
+   "llm_requests": 8,
+   "gate": "PENDING_APPROVAL",
+   "case_id_engine": "case_226056d738a6",
+   "final_report_text": "credit: [need_more_info] Chưa đủ cơ sở kết luận đạt DSCR tối thiểu 1,2: dữ liệu tài chính không có debt_service; khoản vay mới thiếu lãi suất và lịch trả nợ để tính nghĩa vụ trả nợ dự phóng. Dữ liệu hiện có cho thấy đòn bẩy ở mức thấp, nhưng không thay thế được DSCR. Tổng cấp tín dụng tính được từ dư nợ ngân hàng hiện hữu và đề nghị mới là 24 tỷ đồng; cần xác nhận tổng dư nợ của người liên quan để chốt đúng thẩm quyền theo chính sách. Yêu cầu bổ sung lịch trả nợ/lãi suất, thông tin tổng cấp tín dụng người liên quan và xác nhận tình trạng BCTC kiểm toán trước khi ra quyết định cuối cùng.\ncompliance: [approve] Chấp thuận có điều kiện khoản vay 18.000.000.000 đồng trong phạm vi tài sản bảo đảm được yêu cầu: bất động sản định giá 30.000.000.000 đồng, pháp lý ghi nhận rõ; hạn mức theo LTV tối đa 70% là 21.000.000.000 đồng, nên khoản vay đề nghị nằm trong hạn mức. Blacklist không hit; CIC nhóm 1, dư nợ quá hạn 0. Hồ sơ pháp nhân đang có trạng thái KYC VERIFIED/ACTIVE, nhưng thông tin người đại diện theo pháp luật đang để trống; yêu cầu hoàn tất hồ sơ KYB và các điều kiện bảo đảm trước giải ngân.\noperations: [pass] Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_226056d738a6 (chưa hiệu lực)\nPhát hiện:\n- Dòng tiền: Document Agent xác nhận verified_annual_inflow 288 tỷ đồng/năm. Đây là dòng tiền vào, không đồng nghĩa dòng tiền thuần có thể dùng trả nợ; chưa có dữ liệu chuyển đổi dòng tiền/EBITDA thành CFADS.\n- DSCR: không tính được DSCR chính xác. BCTC năm 2025 có EBITDA 30 tỷ đồng nhưng debt_service để trống; hai khoản vay hiện hữu có tổng trả góp 150 triệu đồng/tháng (1,8 tỷ đồng/năm). Chưa có lãi suất và lịch trả nợ khoản đề xuất 18 tỷ/24 tháng nên chưa xác định tổng nghĩa vụ trả nợ và chưa thể kết luận đạt ngưỡng DSCR tối thiểu 1,2.\n- Đòn bẩy: theo số liệu tài chính cung cấp, tổng nợ 50 tỷ / vốn chủ sở hữu 180 tỷ = 0,28 lần. Nếu cộng khoản vay mới 18 tỷ và giả định số tổng nợ chưa bao gồm khoản đề xuất, nợ/vốn chủ sở hữu pro forma là 68/180 = 0,38 lần; chưa đối chiếu phạm vi khoản mục tổng nợ với các khoản vay hiện hữu nên đây là chỉ báo, không phải số liệu nợ đã đối soát. Tài sản ngắn hạn/nợ ngắn hạn = 1,71 lần.\n- Checklist thẩm quyền: dư nợ hiện hữu tại ngân hàng = 4 + 2 = 6 tỷ đồng; cộng đề xuất 18 tỷ đồng, tổng cấp tín dụng tính được là 24 tỷ đồng. Theo CS-TD-SME/2025 §3.1, mức đã tính nằm trong dải 20–100 tỷ đồng; cấp phê duyệt thuộc dải này. Kết quả tra cứu chỉ nêu các dải ≤20 / 20–100 / >100 tỷ, không nêu tên/chức danh cấp phê duyệt cụ thể. Tổng của khách hàng và người có liên quan chưa được cung cấp, nên dải thẩm quyền cuối cùng chưa đối chiếu đầy đủ.\n- Checklist BCTC kiểm toán: với tổng đã tính 24 tỷ đồng (>20 tỷ), BCTC kiểm toán với ý kiến chấp nhận toàn phần là bắt buộc theo CS-TD-SME/2025 §4.1 và §6.1. Hồ sơ hiện có không xác nhận BCTC kiểm toán/ý kiến kiểm toán đã được nộp; tình trạng hồ sơ chưa đối chiếu.\n- Số liệu tài chính được trả về gắn nhãn DU_LIEU_MAU (benchmark v4); cần xác minh đây là BCTC chính thức của khách hàng trước khi sử dụng làm căn cứ phê duyệt. Chưa có dữ liệu định giá/khả năng xử lý tài sản bảo đảm để xác nhận giá trị bảo đảm.\n- Blacklist đã sàng lọc, không hit; AML risk level LOW, PEP status NOT_PEP.\n- CIC nhóm 1, overdue_amount 0, total_outstanding 0; không thuộc ngưỡng từ chối nhóm 3 trở lên hay điều kiện flag nhóm 2 theo Điều 7. Kết quả CIC cần được kiểm tra lại tại thời điểm giải ngân.\n- TSĐB được yêu cầu là bất động sản, định giá đã thẩm định 30.000.000.000 đồng và legal_status clear. Theo Điều 8, LTV bất động sản tối đa 70%, do đó max_secured_limit = 30.000.000.000 × 70% = 21.000.000.000 đồng; khoản vay 18.000.000.000 đồng không vượt hạn mức này.\n- Trường legal_rep_name và legal_rep_cccd đang trống trong hồ sơ trả về. Theo Điều 5, hồ sơ KYB bắt buộc có thông tin người đại diện theo pháp luật và UBO; bổ sung/đối chiếu hồ sơ này trước giải ngân. Trạng thái KYC hiện được ghi VERIFIED nhưng chưa thay thế việc hoàn tất các thông tin bắt buộc còn thiếu.\n- Tính lại tổng cấp tín dụng: dư nợ hiện hữu 6.0 tỷ + đề xuất 18.0 tỷ = 24.0 tỷ; vượt 20 tỷ nên BCTC kiểm toán bắt buộc (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: regional (CS-TD-SME/2025 §3.1)\n- Tính lại LTV: đề xuất 18.0 tỷ / TSĐB đủ điều kiện 38.0 tỷ = 47.4% (tối đa 70%, tương ứng 26.6 tỷ); trong ngưỡng LTV (CS-TD-SME/2025 §7.1)\n- TSĐB 77100000-0000-4000-8000-000031000003 không tính vào LTV (pháp lý: pending, giá trị 12.0 tỷ)\n- Tính lại Nợ vay/EBITDA sau cấp TD (2025): 68.0 tỷ / 30.0 tỷ = 2.27 lần (tối đa 3.5); trong ngưỡng (CS-TD-SME/2025 §4.2)\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nĐiều kiện:\n- Bổ sung lịch trả nợ chi tiết, lãi suất và phương thức trả nợ của khoản vay đề xuất; tính lại DSCR dự phóng trên cơ sở dòng tiền trả nợ có thể kiểm chứng và xác nhận đạt tối thiểu 1,2.\n- Xác nhận tổng cấp tín dụng của khách hàng và người có liên quan (bao gồm các khoản ngoài dư nợ hiện hữu tại ngân hàng đã cung cấp) để chốt ngưỡng thẩm quyền theo CS-TD-SME/2025 §3.1.\n- Nộp BCTC kiểm toán có ý kiến chấp nhận toàn phần do tổng cấp tín dụng tính được vượt 20 tỷ đồng; xác minh hồ sơ và số liệu tài chính là của đúng doanh nghiệp vay.\n- Hoàn tất thẩm định, định giá và xác nhận tính pháp lý/khả năng xử lý tài sản bảo đảm trước giải ngân.\n- Bổ sung và đối chiếu thông tin/giấy tờ người đại diện theo pháp luật, giấy chứng nhận đăng ký doanh nghiệp, mã số thuế và thông tin UBO theo yêu cầu KYB trước giải ngân.\n- Hoàn tất hợp đồng bảo đảm và đăng ký giao dịch bảo đảm trước giải ngân theo Điều 8.\n- Tra cứu lại CIC tại thời điểm giải ngân; dừng thực hiện nếu phát sinh nợ quá hạn mới sau phê duyệt.\n- BCTC kiểm toán (ý kiến chấp nhận toàn phần) bắt buộc vì tổng cấp tín dụng > 20 tỷ\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nTrích dẫn:\n- (credit) Document Agent — verified_annual_inflow: 288000000000.0\n- (credit) get_financials — dữ liệu năm 2025: revenue 320000000000; EBITDA 30000000000; total_debt 50000000000; equity 180000000000; debt_service null; data_label DU_LIEU_MAU\n- (credit) get_existing_loans: Hai khoản dư nợ VERIFIED: 4.000.000.000 đồng và 2.000.000.000 đồng; monthly_payment lần lượt 100.000.000 đồng và 50.000.000 đồng.\n- (credit) CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt: Theo tổng cấp tín dụng của khách và người có liên quan: ≤ 20 / 20–100 / > 100 tỷ (cấu hình được).\n- (credit) CS-TD-SME/2025 §4.1 – Chất lượng BCTC; §6.1 – Danh mục hồ sơ: BCTC phải có ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán (tổng cấp tín dụng > 20 tỷ, §6.1); BCTC kiểm toán khi tổng cấp tín dụng > 20 tỷ.\n- (credit) CS-TD-SME/2025 §4.1 – Chất lượng BCTC: ## CS-TD-SME/2025 §4.1 – Chất lượng BCTC\nBCTC phải có ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán (tổng cấp tín dụng > 20 tỷ, §6.1). (trang 4)\n- (credit) CS-TD-SME/2025 §6.1 – Danh mục hồ sơ: ## CS-TD-SME/2025 §6.1 – Danh mục hồ sơ\nGồm giấy đề nghị cấp tín dụng, văn bản đồng ý tra cứu CIC, BCTC (kiểm toán khi tổng cấp tín dụng > 20 tỷ), sao kê 12 thá\n- (compliance) compliance_policy.md – Điều 5: Hồ sơ pháp nhân bắt buộc gồm: giấy chứng nhận đăng ký doanh nghiệp, mã số thuế, thông tin người đại diện theo pháp luật và chủ sở hữu hưởng lợi cuối cùng (UBO).\n- (compliance) compliance_policy.md – Điều 7: Khách hàng có nợ nhóm 3 trở lên tại thời điểm thẩm định: không đủ điều kiện cấp tín dụng. ... Kết quả tra cứu CIC phải được kiểm tra lại tại thời điểm giải ngân\n- (compliance) compliance_policy.md – Điều 8: Tỷ lệ cho vay tối đa trên giá trị định giá (LTV) đối với bất động sản là 70%. Hạn mức cho vay có bảo đảm không được vượt quá LTV nhân giá trị định giá được chấp\n- (operations) core-banking:create_loan_draft: draft_id=draft-case_226056d738a6, TK nhận vốn ******0031",
+   "sources": [
+    "core-banking:create_loan_draft",
+    "compliance_policy.md – Điều 5",
+    "compliance_policy.md – Điều 7",
+    "compliance_policy.md – Điều 8",
+    "Document Agent — verified_annual_inflow",
+    "get_financials — dữ liệu năm 2025",
+    "get_existing_loans",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §4.1 – Chất lượng BCTC; §6.1 – Danh mục hồ sơ",
+    "CS-TD-SME/2025 §4.1 – Chất lượng BCTC",
+    "CS-TD-SME/2025 §6.1 – Danh mục hồ sơ",
+    "validation",
+    "validation",
+    "validation",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §4.1 – Chất lượng BCTC",
+    "CS-TD-SME/2025 §6.1 – Danh mục hồ sơ",
+    "CS-TD-SME/2025 §7.1 – LTV và TSBĐ",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ"
+   ],
+   "grade": {
+    "findings": {
+     "total_exposure": true,
+     "audit_required": true,
+     "ltv_clear_only": true,
+     "collateral_unverified": false,
+     "max_secured": true
+    },
+    "findings_hit": 4,
+    "findings_total": 5,
+    "citations": {
+     "cite_ltv": true,
+     "cite_authority": true,
+     "cite_audit": true
+    },
+    "citations_hit": 3,
+    "citations_total": 3,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_collateral": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v3",
+    "gate": "PENDING_APPROVAL",
+    "gate_ok": true,
+    "sources_listed": 19,
+    "policy_sources_listed": 12,
+    "policy_sources_used": 12,
+    "citation_precision": 1.0,
+    "report_chars": 7850,
+    "report_chars_body": 5911
+   },
+   "conclusion_text": "Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_226056d738a6 (chưa hiệu lực)\nChấp thuận có điều kiện khoản vay 18.000.000.000 đồng trong phạm vi tài sản bảo đảm được yêu cầu: bất động sản định giá 30.000.000.000 đồng, pháp lý ghi nhận rõ; hạn mức theo LTV tối đa 70% là 21.000.000.000 đồng, nên khoản vay đề nghị nằm trong hạn mức. Blacklist không hit; CIC nhóm 1, dư nợ quá hạn 0. Hồ sơ pháp nhân đang có trạng thái KYC VERIFIED/ACTIVE, nhưng thông tin người đại diện theo pháp luật đang để trống; yêu cầu hoàn tất hồ sơ KYB và các điều kiện bảo đảm trước giải ngân.\nBlacklist đã sàng lọc, không hit; AML risk level LOW, PEP status NOT_PEP.\nCIC nhóm 1, overdue_amount 0, total_outstanding 0; không thuộc ngưỡng từ chối nhóm 3 trở lên hay điều kiện flag nhóm 2 theo Điều 7. Kết quả CIC cần được kiểm tra lại tại thời điểm giải ngân.\nTSĐB được yêu cầu là bất động sản, định giá đã thẩm định 30.000.000.000 đồng và legal_status clear. Theo Điều 8, LTV bất động sản tối đa 70%, do đó max_secured_limit = 30.000.000.000 × 70% = 21.000.000.000 đồng; khoản vay 18.000.000.000 đồng không vượt hạn mức này.\nTrường legal_rep_name và legal_rep_cccd đang trống trong hồ sơ trả về. Theo Điều 5, hồ sơ KYB bắt buộc có thông tin người đại diện theo pháp luật và UBO; bổ sung/đối chiếu hồ sơ này trước giải ngân. Trạng thái KYC hiện được ghi VERIFIED nhưng chưa thay thế việc hoàn tất các thông tin bắt buộc còn thiếu.\nBổ sung và đối chiếu thông tin/giấy tờ người đại diện theo pháp luật, giấy chứng nhận đăng ký doanh nghiệp, mã số thuế và thông tin UBO theo yêu cầu KYB trước giải ngân.\nHoàn tất hợp đồng bảo đảm và đăng ký giao dịch bảo đảm trước giải ngân theo Điều 8.\nTra cứu lại CIC tại thời điểm giải ngân; dừng thực hiện nếu phát sinh nợ quá hạn mới sau phê duyệt.\nChưa đủ cơ sở kết luận đạt DSCR tối thiểu 1,2: dữ liệu tài chính không có debt_service; khoản vay mới thiếu lãi suất và lịch trả nợ để tính nghĩa vụ trả nợ dự phóng. Dữ liệu hiện có cho thấy đòn bẩy ở mức thấp, nhưng không thay thế được DSCR. Tổng cấp tín dụng tính được từ dư nợ ngân hàng hiện hữu và đề nghị mới là 24 tỷ đồng; cần xác nhận tổng dư nợ của người liên quan để chốt đúng thẩm quyền theo chính sách. Yêu cầu bổ sung lịch trả nợ/lãi suất, thông tin tổng cấp tín dụng người liên quan và xác nhận tình trạng BCTC kiểm toán trước khi ra quyết định cuối cùng.\nDòng tiền: Document Agent xác nhận verified_annual_inflow 288 tỷ đồng/năm. Đây là dòng tiền vào, không đồng nghĩa dòng tiền thuần có thể dùng trả nợ; chưa có dữ liệu chuyển đổi dòng tiền/EBITDA thành CFADS.\nDSCR: không tính được DSCR chính xác. BCTC năm 2025 có EBITDA 30 tỷ đồng nhưng debt_service để trống; hai khoản vay hiện hữu có tổng trả góp 150 triệu đồng/tháng (1,8 tỷ đồng/năm). Chưa có lãi suất và lịch trả nợ khoản đề xuất 18 tỷ/24 tháng nên chưa xác định tổng nghĩa vụ trả nợ và chưa thể kết luận đạt ngưỡng DSCR tối thiểu 1,2.\nĐòn bẩy: theo số liệu tài chính cung cấp, tổng nợ 50 tỷ / vốn chủ sở hữu 180 tỷ = 0,28 lần. Nếu cộng khoản vay mới 18 tỷ và giả định số tổng nợ chưa bao gồm khoản đề xuất, nợ/vốn chủ sở hữu pro forma là 68/180 = 0,38 lần; chưa đối chiếu phạm vi khoản mục tổng nợ với các khoản vay hiện hữu nên đây là chỉ báo, không phải số liệu nợ đã đối soát. Tài sản ngắn hạn/nợ ngắn hạn = 1,71 lần.\nChecklist thẩm quyền: dư nợ hiện hữu tại ngân hàng = 4 + 2 = 6 tỷ đồng; cộng đề xuất 18 tỷ đồng, tổng cấp tín dụng tính được là 24 tỷ đồng. Theo CS-TD-SME/2025 §3.1, mức đã tính nằm trong dải 20–100 tỷ đồng; cấp phê duyệt thuộc dải này. Kết quả tra cứu chỉ nêu các dải ≤20 / 20–100 / >100 tỷ, không nêu tên/chức danh cấp phê duyệt cụ thể. Tổng của khách hàng và người có liên quan chưa được cung cấp, nên dải thẩm quyền cuối cùng chưa đối chiếu đầy đủ.\nChecklist BCTC kiểm toán: với tổng đã tính 24 tỷ đồng (>20 tỷ), BCTC kiểm toán với ý kiến chấp nhận toàn phần là bắt buộc theo CS-TD-SME/2025 §4.1 và §6.1. Hồ sơ hiện có không xác nhận BCTC kiểm toán/ý kiến kiểm toán đã được nộp; tình trạng hồ sơ chưa đối chiếu.\nSố liệu tài chính được trả về gắn nhãn DU_LIEU_MAU (benchmark v4); cần xác minh đây là BCTC chính thức của khách hàng trước khi sử dụng làm căn cứ phê duyệt. Chưa có dữ liệu định giá/khả năng xử lý tài sản bảo đảm để xác nhận giá trị bảo đảm.\nBổ sung lịch trả nợ chi tiết, lãi suất và phương thức trả nợ của khoản vay đề xuất; tính lại DSCR dự phóng trên cơ sở dòng tiền trả nợ có thể kiểm chứng và xác nhận đạt tối thiểu 1,2.\nXác nhận tổng cấp tín dụng của khách hàng và người có liên quan (bao gồm các khoản ngoài dư nợ hiện hữu tại ngân hàng đã cung cấp) để chốt ngưỡng thẩm quyền theo CS-TD-SME/2025 §3.1.\nNộp BCTC kiểm toán có ý kiến chấp nhận toàn phần do tổng cấp tín dụng tính được vượt 20 tỷ đồng; xác minh hồ sơ và số liệu tài chính là của đúng doanh nghiệp vay.\nHoàn tất thẩm định, định giá và xác nhận tính pháp lý/khả năng xử lý tài sản bảo đảm trước giải ngân.\nĐỀ XUẤT PHÊ DUYỆT hạn mức 18,000,000,000 VND\nDòng tiền: Document Agent xác nhận verified_annual_inflow 288 tỷ đồng/năm. Đây là dòng tiền vào, không đồng nghĩa dòng tiền thuần có thể dùng trả nợ; chưa có dữ liệu chuyển đổi dòng tiền/EBITDA thành CFADS.\nDSCR: không tính được DSCR chính xác. BCTC năm 2025 có EBITDA 30 tỷ đồng nhưng debt_service để trống; hai khoản vay hiện hữu có tổng trả góp 150 triệu đồng/tháng (1,8 tỷ đồng/năm). Chưa có lãi suất và lịch trả nợ khoản đề xuất 18 tỷ/24 tháng nên chưa xác định tổng nghĩa vụ trả nợ và chưa thể kết luận đạt ngưỡng DSCR tối thiểu 1,2.\nĐòn bẩy: theo số liệu tài chính cung cấp, tổng nợ 50 tỷ / vốn chủ sở hữu 180 tỷ = 0,28 lần. Nếu cộng khoản vay mới 18 tỷ và giả định số tổng nợ chưa bao gồm khoản đề xuất, nợ/vốn chủ sở hữu pro forma là 68/180 = 0,38 lần; chưa đối chiếu phạm vi khoản mục tổng nợ với các khoản vay hiện hữu nên đây là chỉ báo, không phải số liệu nợ đã đối soát. Tài sản ngắn hạn/nợ ngắn hạn = 1,71 lần.\nChecklist thẩm quyền: dư nợ hiện hữu tại ngân hàng = 4 + 2 = 6 tỷ đồng; cộng đề xuất 18 tỷ đồng, tổng cấp tín dụng tính được là 24 tỷ đồng. Theo CS-TD-SME/2025 §3.1, mức đã tính nằm trong dải 20–100 tỷ đồng; cấp phê duyệt thuộc dải này. Kết quả tra cứu chỉ nêu các dải ≤20 / 20–100 / >100 tỷ, không nêu tên/chức danh cấp phê duyệt cụ thể. Tổng của khách hàng và người có liên quan chưa được cung cấp, nên dải thẩm quyền cuối cùng chưa đối chiếu đầy đủ.\nChecklist BCTC kiểm toán: với tổng đã tính 24 tỷ đồng (>20 tỷ), BCTC kiểm toán với ý kiến chấp nhận toàn phần là bắt buộc theo CS-TD-SME/2025 §4.1 và §6.1. Hồ sơ hiện có không xác nhận BCTC kiểm toán/ý kiến kiểm toán đã được nộp; tình trạng hồ sơ chưa đối chiếu.\nSố liệu tài chính được trả về gắn nhãn DU_LIEU_MAU (benchmark v4); cần xác minh đây là BCTC chính thức của khách hàng trước khi sử dụng làm căn cứ phê duyệt. Chưa có dữ liệu định giá/khả năng xử lý tài sản bảo đảm để xác nhận giá trị bảo đảm.\nBlacklist đã sàng lọc, không hit; AML risk level LOW, PEP status NOT_PEP.\nCIC nhóm 1, overdue_amount 0, total_outstanding 0; không thuộc ngưỡng từ chối nhóm 3 trở lên hay điều kiện flag nhóm 2 theo Điều 7. Kết quả CIC cần được kiểm tra lại tại thời điểm giải ngân.\nTSĐB được yêu cầu là bất động sản, định giá đã thẩm định 30.000.000.000 đồng và legal_status clear. Theo Điều 8, LTV bất động sản tối đa 70%, do đó max_secured_limit = 30.000.000.000 × 70% = 21.000.000.000 đồng; khoản vay 18.000.000.000 đồng không vượt hạn mức này.\nTrường legal_rep_name và legal_rep_cccd đang trống trong hồ sơ trả về. Theo Điều 5, hồ sơ KYB bắt buộc có thông tin người đại diện theo pháp luật và UBO; bổ sung/đối chiếu hồ sơ này trước giải ngân. Trạng thái KYC hiện được ghi VERIFIED nhưng chưa thay thế việc hoàn tất các thông tin bắt buộc còn thiếu.\nTính lại tổng cấp tín dụng: dư nợ hiện hữu 6.0 tỷ + đề xuất 18.0 tỷ = 24.0 tỷ; vượt 20 tỷ nên BCTC kiểm toán bắt buộc (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: regional (CS-TD-SME/2025 §3.1)\nTính lại LTV: đề xuất 18.0 tỷ / TSĐB đủ điều kiện 38.0 tỷ = 47.4% (tối đa 70%, tương ứng 26.6 tỷ); trong ngưỡng LTV (CS-TD-SME/2025 §7.1)\nTSĐB 77100000-0000-4000-8000-000******003 không tính vào LTV (pháp lý: pending, giá trị 12.0 tỷ)\nTính lại Nợ vay/EBITDA sau cấp TD (2025): 68.0 tỷ / 30.0 tỷ = 2.27 lần (tối đa 3.5); trong ngưỡng (CS-TD-SME/2025 §4.2)\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nBổ sung lịch trả nợ chi tiết, lãi suất và phương thức trả nợ của khoản vay đề xuất; tính lại DSCR dự phóng trên cơ sở dòng tiền trả nợ có thể kiểm chứng và xác nhận đạt tối thiểu 1,2.\nXác nhận tổng cấp tín dụng của khách hàng và người có liên quan (bao gồm các khoản ngoài dư nợ hiện hữu tại ngân hàng đã cung cấp) để chốt ngưỡng thẩm quyền theo CS-TD-SME/2025 §3.1.\nNộp BCTC kiểm toán có ý kiến chấp nhận toàn phần do tổng cấp tín dụng tính được vượt 20 tỷ đồng; xác minh hồ sơ và số liệu tài chính là của đúng doanh nghiệp vay.\nHoàn tất thẩm định, định giá và xác nhận tính pháp lý/khả năng xử lý tài sản bảo đảm trước giải ngân.\nBổ sung và đối chiếu thông tin/giấy tờ người đại diện theo pháp luật, giấy chứng nhận đăng ký doanh nghiệp, mã số thuế và thông tin UBO theo yêu cầu KYB trước giải ngân.\nHoàn tất hợp đồng bảo đảm và đăng ký giao dịch bảo đảm trước giải ngân theo Điều 8.\nTra cứu lại CIC tại thời điểm giải ngân; dừng thực hiện nếu phát sinh nợ quá hạn mới sau phê duyệt.\nBCTC kiểm toán (ý kiến chấp nhận toàn phần) bắt buộc vì tổng cấp tín dụng > 20 tỷ\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nKẾT LUẬN: Đề xuất phê duyệt có điều kiện hạn mức 18.000.000.000 VND. Cổng xác định cho kết quả approve, không có căn cứ chặn. Tuy nhiên, kết luận chỉ có hiệu lực sau khi hoàn tất các điều kiện tiên quyết bên dưới; khoản vay chưa được giải ngân.\n\nHẠN MỨC: 18.000.000.000 VND. Tổng cấp tín dụng tính được là 24.000.000.000 VND (dư nợ hiện hữu 6 tỷ + đề xuất 18 tỷ), thuộc dải thẩm quyền 20–100 tỷ đồng theo CS-TD-SME/2025 §3.1. Kiểm chứng độc lập ghi nhận cấp phê duyệt là regional. Tổng cấp tín dụng của khách hàng và người có liên quan chưa được xác nhận đầy đủ.\n\nLÝ DO CHÍNH:\n- Tài sản bảo đảm: bất động sản định giá 30 tỷ, pháp lý rõ ràng. Theo LTV tối đa 70%, hạn mức bảo đảm là 21 tỷ; khoản đề xuất 18 tỷ nằm trong hạn mức. Kiểm chứng độc lập cho LTV 47,4% trên TSĐB đủ điều kiện 38 tỷ. Một TSĐB trị giá 12 tỷ đang ở trạng thái pháp lý pending nên không được tính vào LTV.\n- Tín dụng cá nhân: blacklist không hit, AML mức LOW, không thuộc diện PEP, CIC nhóm 1, nợ quá hạn 0.\n- Đòn bẩy: nợ vay/EBITDA sau cấp tín dụng là 2,27 lần (ngưỡng tối đa 3,5). Nợ/vốn chủ sở hữu pro forma khoảng 0,38 lần; đây là chỉ báo, chưa đối soát đầy đủ.\n- Vận hành: đạt, đã tạo bản nháp hồ sơ draft-case_226056d738a6 (chưa có hiệu lực).\n\nĐIỂM CẦN LƯU Ý:\n1. Chuyên gia tín dụng khuyến nghị need_more_info, chưa đủ cơ sở kết luận. Không tính được DSCR chính xác vì BCTC để trống debt_service và chưa có lãi suất, lịch trả nợ của khoản đề xuất. Dòng tiền vào 288 tỷ/năm không đồng nghĩa với dòng tiền trả nợ khả dụng. Ngưỡng DSCR tối thiểu 1,2 chưa được xác nhận đạt.\n2. Với tổng cấp tín dụng 24 tỷ (>20 tỷ), BCTC kiểm toán có ý kiến chấp nhận toàn phần là bắt buộc (CS-TD-SME/2025 §4.1, §6.1). Hồ sơ chưa xác nhận đã nộp.\n3. Số liệu tài chính đang gắn nhãn DU_LIEU_MAU; cần xác minh là BCTC chính thức của đúng doanh nghiệp vay.\n4. Hồ sơ KYB thiếu thông tin người đại diện theo pháp luật (legal_rep_name, legal_rep_cccd) và UBO. Trạng thái KYC VERIFIED không thay thế việc hoàn tất các trường bắt buộc.\n5. Chưa có dữ liệu định giá cập nhật và khả năng xử lý tài sản bảo đảm được xác nhận đầy đủ.\n\nĐIỀU KIỆN TIÊN QUYẾT TRƯỚC GIẢI NGÂN:\n- Bổ sung lịch trả nợ, lãi suất và phương thức trả nợ; tính lại DSCR dự phóng và xác nhận đạt tối thiểu 1,2.\n- Xác nhận tổng cấp tín dụng của khách hàng và người có liên quan để chốt thẩm quyền.\n- Nộp BCTC kiểm toán chấp nhận toàn phần; xác minh số liệu là của đúng doanh nghiệp vay.\n- Hoàn tất KYB (người đại diện pháp luật, GCN đăng ký doanh nghiệp, MST, UBO).\n- Hoàn tất hợp đồng bảo đảm, đăng ký giao dịch bảo đảm, thẩm định và định giá lại nếu cần.\n- Tra cứu lại CIC tại thời điểm giải ngân; dừng giải ngân nếu phát sinh nợ quá hạn mới.\n\nKhuyến nghị: Cấp phê duyệt cân nhắc chấp thuận nguyên tắc hạn mức 18 tỷ đồng, nhưng yêu cầu hoàn tất các điều kiện trên, đặc biệt DSCR đạt ngưỡng và BCTC kiểm toán, trước khi ký hợp đồng và giải ngân.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_collateral",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_annual_inflow",
+    "get_financials",
+    "create_loan_draft"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "E2",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 50.274380683898926,
+   "calls": 8,
+   "tokens": {
+    "prompt": 12181,
+    "completion": 7385,
+    "total": 19566
+   },
+   "cost_usd": 0.00487216,
+   "llm_requests": 7,
+   "gate": "PENDING_APPROVAL",
+   "case_id_engine": "case_71cf53f1521b",
+   "final_report_text": "credit: [need_more_info] Chưa thể kết luận khả năng trả nợ theo DSCR vì chưa có lịch trả nợ/dòng tiền trả nợ dự phóng cho khoản vay mới và chi phí lãi vay/EBIT cần thiết để kiểm tra đầy đủ các chỉ tiêu chính sách. Các ngưỡng tổng cấp tín dụng và kiểm toán đã tính được: tổng cấp tín dụng dự kiến 17,0 tỷ đồng, thuộc bậc ≤20 tỷ; kiểm toán BCTC không bắt buộc theo ngưỡng >20 tỷ. Chỉ tiêu đòn bẩy nợ vay/EBITDA sau cấp ước tính 3,47 lần, sát giới hạn 3,5 lần, với giả định nợ vay 40 tỷ trên BCTC đã bao gồm dư nợ hiện hữu và cộng khoản vay mới 12 tỷ.\ncompliance: [approve] KYB đang ACTIVE/VERIFIED; blacklist không hit; CIC nhóm 1. TSĐB là bất động sản đã định giá 30.000.000.000 đồng, pháp lý được ghi nhận clear. LTV tối đa 70% cho hạn mức bảo đảm tối đa 21.000.000.000 đồng; đề nghị 12.000.000.000 đồng nằm trong giới hạn này. Chấp thuận có điều kiện hoàn tất hồ sơ trước giải ngân.\noperations: [pass] Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_71cf53f1521b (chưa hiệu lực)\nPhát hiện:\n- Checklist tổng cấp tín dụng: dư nợ hiện hữu tại ngân hàng gồm 3,0 + 2,0 = 5,0 tỷ đồng; cộng đề xuất mới 12,0 tỷ đồng, tổng cấp tín dụng 17,0 tỷ đồng. Theo CS-TD-SME/2025 §3.1, tổng này thuộc bậc thẩm quyền ≤20 tỷ đồng; kết quả tra cứu chỉ nêu các bậc ≤20 / 20–100 / >100 tỷ và chưa nêu chức danh/cấp phê duyệt cụ thể ứng với bậc, nên chưa xác định tên cấp phê duyệt cụ thể.\n- Checklist kiểm toán BCTC: tổng cấp tín dụng 17,0 tỷ đồng không vượt ngưỡng >20 tỷ đồng, do đó kiểm toán BCTC với ý kiến chấp nhận toàn phần không bắt buộc theo CS-TD-SME/2025 §4.1 và §6.1. Tình trạng hồ sơ BCTC đã kiểm toán không được cung cấp; không kết luận hồ sơ đã có hay chưa.\n- Khả năng trả nợ: công cụ chính sách trả về DSCR dự phóng ≥1,25 lần theo CS-TD-SME/2025 §4.2 (cao hơn mức 1,2 được yêu cầu trong đề bài). Chưa có lịch trả nợ/dòng tiền trả nợ dự phóng của khoản vay mới nên chưa tính và chưa đối chiếu được DSCR; cần bổ sung để quyết định đạt hay không đạt ngưỡng.\n- Đòn bẩy: EBITDA năm 2025 là 15,0 tỷ đồng; tổng nợ vay sau cấp ước tính 52,0 tỷ đồng (40,0 tỷ nợ vay trên BCTC + 12,0 tỷ đề xuất), tương ứng Nợ vay/EBITDA 3,47 lần, dưới ngưỡng 3,5 lần nhưng rất sát ngưỡng theo CS-TD-SME/2025 §4.2. Phép tính giả định chỉ cộng khoản vay mới vào số tổng nợ vay trên BCTC; cần xác nhận phạm vi chỉ tiêu nợ vay và cập nhật dự phóng trước giải ngân.\n- Chưa đối chiếu được EBIT/chi phí lãi vay với ngưỡng ≥2,0 lần theo CS-TD-SME/2025 §4.2 vì chưa có EBIT và chi phí lãi vay. Debt service trên BCTC cũng để trống, nên không dùng EBITDA thay thế DSCR.\n- Dòng tiền thực tế đã được đối chiếu qua Document Agent: verified annual inflow 234,0 tỷ đồng so với doanh thu BCTC năm 2025 là 260,0 tỷ đồng, thấp hơn 26,0 tỷ đồng (10%). Cần giải trình/chứng từ hóa phần chênh lệch và đưa dòng tiền xác minh vào dự phóng trả nợ.\n- Các khoản vay hiện hữu có tổng dư nợ 5,0 tỷ đồng và tổng trả nợ định kỳ ghi nhận 130 triệu đồng/tháng (1,56 tỷ đồng/năm). Đây chưa phải DSCR vì chưa gồm nghĩa vụ trả nợ khoản vay đề xuất và chưa có dòng tiền sẵn sàng trả nợ được xác định.\n- Hồ sơ pháp nhân có trạng thái ACTIVE, KYC VERIFIED; dữ liệu người đại diện (tên và CCCD) đang trống, cần bổ sung/đối chiếu trước giải ngân, nhưng không làm cản trở việc xác định các ngưỡng tuân thủ hiện có.\n- Tra cứu blacklist: screened=true, hit=false; không phát sinh hit AML.\n- CIC nhóm 1, dư nợ quá hạn 0 đồng; không thuộc ngưỡng CIC nhóm 2 hoặc nhóm 3 trở lên theo thông tin đã tra cứu. Theo Điều 7, CIC phải được kiểm tra lại tại thời điểm giải ngân.\n- TSĐB là bất động sản, giá trị định giá 30.000.000.000 đồng và legal_status=clear. Theo Điều 8, LTV tối đa 70%, hạn mức bảo đảm tính được là 30.000.000.000 × 70% = 21.000.000.000 đồng; khoản đề nghị 12.000.000.000 đồng thấp hơn hạn mức này.\n- Điều 8 yêu cầu bất động sản có giấy chứng nhận quyền sử dụng hợp pháp, không tranh chấp, không thuộc quy hoạch giải tỏa và hợp đồng bảo đảm phải đăng ký giao dịch bảo đảm trước giải ngân; kết quả hiện có ghi nhận legal_status=clear nhưng chưa đối chiếu riêng từng tài liệu/điều kiện này.\n- Tính lại tổng cấp tín dụng: dư nợ hiện hữu 5.0 tỷ + đề xuất 12.0 tỷ = 17.0 tỷ; không vượt 20 tỷ nên chưa bắt buộc BCTC kiểm toán (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: branch (CS-TD-SME/2025 §3.1)\n- Tính lại LTV: đề xuất 12.0 tỷ / TSĐB đủ điều kiện 30.0 tỷ = 40.0% (tối đa 70%, tương ứng 21.0 tỷ); trong ngưỡng LTV (CS-TD-SME/2025 §7.1)\n- Tính lại Nợ vay/EBITDA sau cấp TD (2025): 52.0 tỷ / 15.0 tỷ = 3.47 lần (tối đa 3.5); trong ngưỡng (CS-TD-SME/2025 §4.2)\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nĐiều kiện:\n- Bổ sung lịch trả nợ khoản vay mới và dự phóng dòng tiền trả nợ theo kỳ hạn 24 tháng; tính lại DSCR dự phóng theo chính sách và xác nhận đạt tối thiểu 1,25 lần trước khi hoàn tất phê duyệt/giải ngân.\n- Bổ sung EBIT và chi phí lãi vay để kiểm tra EBIT/chi phí lãi vay ≥2,0 lần; xác nhận số nợ vay dùng trong tính Nợ vay/EBITDA và cập nhật tỷ lệ sau cấp.\n- Đối chiếu, giải trình chênh lệch giữa verified annual inflow 234,0 tỷ đồng và doanh thu BCTC 260,0 tỷ đồng; thu thập chứng từ dòng tiền liên quan.\n- Hoàn thiện hồ sơ và kiểm tra tính đầy đủ của BCTC cùng các hồ sơ tín dụng trước giải ngân; kiểm toán không bắt buộc theo tổng cấp tín dụng hiện tính được.\n- Bổ sung và xác minh thông tin, giấy tờ người đại diện và thẩm quyền ký trước giải ngân.\n- Trước giải ngân, hoàn tất kiểm tra giấy chứng nhận quyền sử dụng hợp pháp, tình trạng tranh chấp/quy hoạch giải tỏa và đăng ký giao dịch bảo đảm theo Điều 8.\n- Tra cứu CIC lại tại thời điểm giải ngân theo Điều 7.\n- Điều kiện giải ngân khác, bao gồm lịch trả nợ và chứng từ chứng minh mục đích sử dụng vốn, cần được hoàn thiện theo quy trình tín dụng; các dữ liệu này chưa được cung cấp để đối chiếu.\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nTrích dẫn:\n- (credit) get_existing_loans: Dư nợ hiện hữu: 3.000.000.000 đồng và 2.000.000.000 đồng; trả hàng tháng lần lượt 80.000.000 đồng và 50.000.000 đồng.\n- (credit) get_financials: Năm 2025: revenue 260.000.000.000 đồng; EBITDA 15.000.000.000 đồng; total_debt 40.000.000.000 đồng; equity 110.000.000.000 đồng; debt_service null.\n- (credit) ask_document_agent: verified_annual_inflow: 234.000.000.000 đồng.\n- (credit) search_credit_policy: CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt: Theo tổng cấp tín dụng của khách và người có liên quan: ≤ 20 / 20–100 / > 100 tỷ (cấu hình được).\n- (credit) CS-TD-SME/2025 §4.1 – Chất lượng BCTC: ## CS-TD-SME/2025 §4.1 – Chất lượng BCTC\nBCTC phải có ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán (tổng cấp tín dụng > 20 tỷ, §6.1). (trang 4)\n- (credit) CS-TD-SME/2025 §6.1 – Danh mục hồ sơ: ## CS-TD-SME/2025 §6.1 – Danh mục hồ sơ\nGồm giấy đề nghị cấp tín dụng, văn bản đồng ý tra cứu CIC, BCTC (kiểm toán khi tổng cấp tín dụng > 20 tỷ), sao kê 12 thá\n- (credit) CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt: ## CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt\nTheo tổng cấp tín dụng của khách và người có liên quan: ≤ 20 / 20–100 / > 100 tỷ (cấu hình được). (trang 3)\n- (credit) CS-TD-SME/2025 §4.2 – Khả năng trả nợ: ## CS-TD-SME/2025 §4.2 – Khả năng trả nợ\nDSCR dự phóng ≥ 1,25 lần; Nợ vay/EBITDA sau cấp TD ≤ 3,5 lần; EBIT/chi phí lãi vay ≥ 2,0 lần. (trang 4)\n- (compliance) get_business: status: ACTIVE; kyc_status: VERIFIED; legal_rep_name: ''; legal_rep_cccd: ''\n- (compliance) check_blacklist: hit: false; screened: true\n- (compliance) get_cic_status: cic_group: 1; overdue_amount: 0\n- (compliance) get_collateral: type: REAL_ESTATE; valuation: 30000000000.0; valuation_status: APPRAISED; legal_status: clear\n- (compliance) compliance_policy.md, Điều 8: Tỷ lệ cho vay tối đa trên giá trị định giá (LTV) đối với bất động sản là 70%. Hạn mức cho vay có bảo đảm không được vượt quá LTV nhân giá trị định giá được chấp\n- (compliance) compliance_policy.md, Điều 7: Kết quả tra cứu CIC phải được kiểm tra lại tại thời điểm giải ngân.\n- (operations) core-banking:create_loan_draft: draft_id=draft-case_71cf53f1521b, TK nhận vốn ******0032",
+   "sources": [
+    "core-banking:create_loan_draft",
+    "get_business",
+    "check_blacklist",
+    "get_cic_status",
+    "get_collateral",
+    "compliance_policy.md, Điều 8",
+    "compliance_policy.md, Điều 7",
+    "get_existing_loans",
+    "get_financials",
+    "ask_document_agent",
+    "search_credit_policy",
+    "search_credit_policy",
+    "search_credit_policy",
+    "CS-TD-SME/2025 §4.1 – Chất lượng BCTC",
+    "CS-TD-SME/2025 §6.1 – Danh mục hồ sơ",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ",
+    "validation",
+    "validation",
+    "validation",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §7.1 – LTV và TSBĐ",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ"
+   ],
+   "grade": {
+    "findings": {
+     "total_exposure": true,
+     "leverage_pass": true,
+     "ltv_ok": true
+    },
+    "findings_hit": 3,
+    "findings_total": 3,
+    "citations": {
+     "cite_leverage": true,
+     "cite_authority": true,
+     "cite_ltv": true
+    },
+    "citations_hit": 3,
+    "citations_total": 3,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_collateral": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v3",
+    "gate": "PENDING_APPROVAL",
+    "gate_ok": true,
+    "sources_listed": 23,
+    "policy_sources_listed": 9,
+    "policy_sources_used": 9,
+    "citation_precision": 1.0,
+    "report_chars": 8144,
+    "report_chars_body": 5958
+   },
+   "conclusion_text": "Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_71cf53f1521b (chưa hiệu lực)\nKYB đang ACTIVE/VERIFIED; blacklist không hit; CIC nhóm 1. TSĐB là bất động sản đã định giá 30.000.000.000 đồng, pháp lý được ghi nhận clear. LTV tối đa 70% cho hạn mức bảo đảm tối đa 21.000.000.000 đồng; đề nghị 12.000.000.000 đồng nằm trong giới hạn này. Chấp thuận có điều kiện hoàn tất hồ sơ trước giải ngân.\nHồ sơ pháp nhân có trạng thái ACTIVE, KYC VERIFIED; dữ liệu người đại diện (tên và CCCD) đang trống, cần bổ sung/đối chiếu trước giải ngân, nhưng không làm cản trở việc xác định các ngưỡng tuân thủ hiện có.\nTra cứu blacklist: screened=true, hit=false; không phát sinh hit AML.\nCIC nhóm 1, dư nợ quá hạn 0 đồng; không thuộc ngưỡng CIC nhóm 2 hoặc nhóm 3 trở lên theo thông tin đã tra cứu. Theo Điều 7, CIC phải được kiểm tra lại tại thời điểm giải ngân.\nTSĐB là bất động sản, giá trị định giá 30.000.000.000 đồng và legal_status=clear. Theo Điều 8, LTV tối đa 70%, hạn mức bảo đảm tính được là 30.000.000.000 × 70% = 21.000.000.000 đồng; khoản đề nghị 12.000.000.000 đồng thấp hơn hạn mức này.\nĐiều 8 yêu cầu bất động sản có giấy chứng nhận quyền sử dụng hợp pháp, không tranh chấp, không thuộc quy hoạch giải tỏa và hợp đồng bảo đảm phải đăng ký giao dịch bảo đảm trước giải ngân; kết quả hiện có ghi nhận legal_status=clear nhưng chưa đối chiếu riêng từng tài liệu/điều kiện này.\nBổ sung và xác minh thông tin, giấy tờ người đại diện và thẩm quyền ký trước giải ngân.\nTrước giải ngân, hoàn tất kiểm tra giấy chứng nhận quyền sử dụng hợp pháp, tình trạng tranh chấp/quy hoạch giải tỏa và đăng ký giao dịch bảo đảm theo Điều 8.\nTra cứu CIC lại tại thời điểm giải ngân theo Điều 7.\nĐiều kiện giải ngân khác, bao gồm lịch trả nợ và chứng từ chứng minh mục đích sử dụng vốn, cần được hoàn thiện theo quy trình tín dụng; các dữ liệu này chưa được cung cấp để đối chiếu.\nChưa thể kết luận khả năng trả nợ theo DSCR vì chưa có lịch trả nợ/dòng tiền trả nợ dự phóng cho khoản vay mới và chi phí lãi vay/EBIT cần thiết để kiểm tra đầy đủ các chỉ tiêu chính sách. Các ngưỡng tổng cấp tín dụng và kiểm toán đã tính được: tổng cấp tín dụng dự kiến 17,0 tỷ đồng, thuộc bậc ≤20 tỷ; kiểm toán BCTC không bắt buộc theo ngưỡng >20 tỷ. Chỉ tiêu đòn bẩy nợ vay/EBITDA sau cấp ước tính 3,47 lần, sát giới hạn 3,5 lần, với giả định nợ vay 40 tỷ trên BCTC đã bao gồm dư nợ hiện hữu và cộng khoản vay mới 12 tỷ.\nChecklist tổng cấp tín dụng: dư nợ hiện hữu tại ngân hàng gồm 3,0 + 2,0 = 5,0 tỷ đồng; cộng đề xuất mới 12,0 tỷ đồng, tổng cấp tín dụng 17,0 tỷ đồng. Theo CS-TD-SME/2025 §3.1, tổng này thuộc bậc thẩm quyền ≤20 tỷ đồng; kết quả tra cứu chỉ nêu các bậc ≤20 / 20–100 / >100 tỷ và chưa nêu chức danh/cấp phê duyệt cụ thể ứng với bậc, nên chưa xác định tên cấp phê duyệt cụ thể.\nChecklist kiểm toán BCTC: tổng cấp tín dụng 17,0 tỷ đồng không vượt ngưỡng >20 tỷ đồng, do đó kiểm toán BCTC với ý kiến chấp nhận toàn phần không bắt buộc theo CS-TD-SME/2025 §4.1 và §6.1. Tình trạng hồ sơ BCTC đã kiểm toán không được cung cấp; không kết luận hồ sơ đã có hay chưa.\nKhả năng trả nợ: công cụ chính sách trả về DSCR dự phóng ≥1,25 lần theo CS-TD-SME/2025 §4.2 (cao hơn mức 1,2 được yêu cầu trong đề bài). Chưa có lịch trả nợ/dòng tiền trả nợ dự phóng của khoản vay mới nên chưa tính và chưa đối chiếu được DSCR; cần bổ sung để quyết định đạt hay không đạt ngưỡng.\nĐòn bẩy: EBITDA năm 2025 là 15,0 tỷ đồng; tổng nợ vay sau cấp ước tính 52,0 tỷ đồng (40,0 tỷ nợ vay trên BCTC + 12,0 tỷ đề xuất), tương ứng Nợ vay/EBITDA 3,47 lần, dưới ngưỡng 3,5 lần nhưng rất sát ngưỡng theo CS-TD-SME/2025 §4.2. Phép tính giả định chỉ cộng khoản vay mới vào số tổng nợ vay trên BCTC; cần xác nhận phạm vi chỉ tiêu nợ vay và cập nhật dự phóng trước giải ngân.\nChưa đối chiếu được EBIT/chi phí lãi vay với ngưỡng ≥2,0 lần theo CS-TD-SME/2025 §4.2 vì chưa có EBIT và chi phí lãi vay. Debt service trên BCTC cũng để trống, nên không dùng EBITDA thay thế DSCR.\nDòng tiền thực tế đã được đối chiếu qua Document Agent: verified annual inflow 234,0 tỷ đồng so với doanh thu BCTC năm 2025 là 260,0 tỷ đồng, thấp hơn 26,0 tỷ đồng (10%). Cần giải trình/chứng từ hóa phần chênh lệch và đưa dòng tiền xác minh vào dự phóng trả nợ.\nCác khoản vay hiện hữu có tổng dư nợ 5,0 tỷ đồng và tổng trả nợ định kỳ ghi nhận 130 triệu đồng/tháng (1,56 tỷ đồng/năm). Đây chưa phải DSCR vì chưa gồm nghĩa vụ trả nợ khoản vay đề xuất và chưa có dòng tiền sẵn sàng trả nợ được xác định.\nBổ sung lịch trả nợ khoản vay mới và dự phóng dòng tiền trả nợ theo kỳ hạn 24 tháng; tính lại DSCR dự phóng theo chính sách và xác nhận đạt tối thiểu 1,25 lần trước khi hoàn tất phê duyệt/giải ngân.\nBổ sung EBIT và chi phí lãi vay để kiểm tra EBIT/chi phí lãi vay ≥2,0 lần; xác nhận số nợ vay dùng trong tính Nợ vay/EBITDA và cập nhật tỷ lệ sau cấp.\nĐối chiếu, giải trình chênh lệch giữa verified annual inflow 234,0 tỷ đồng và doanh thu BCTC 260,0 tỷ đồng; thu thập chứng từ dòng tiền liên quan.\nHoàn thiện hồ sơ và kiểm tra tính đầy đủ của BCTC cùng các hồ sơ tín dụng trước giải ngân; kiểm toán không bắt buộc theo tổng cấp tín dụng hiện tính được.\nĐỀ XUẤT PHÊ DUYỆT hạn mức 12,000,000,000 VND\nChecklist tổng cấp tín dụng: dư nợ hiện hữu tại ngân hàng gồm 3,0 + 2,0 = 5,0 tỷ đồng; cộng đề xuất mới 12,0 tỷ đồng, tổng cấp tín dụng 17,0 tỷ đồng. Theo CS-TD-SME/2025 §3.1, tổng này thuộc bậc thẩm quyền ≤20 tỷ đồng; kết quả tra cứu chỉ nêu các bậc ≤20 / 20–100 / >100 tỷ và chưa nêu chức danh/cấp phê duyệt cụ thể ứng với bậc, nên chưa xác định tên cấp phê duyệt cụ thể.\nChecklist kiểm toán BCTC: tổng cấp tín dụng 17,0 tỷ đồng không vượt ngưỡng >20 tỷ đồng, do đó kiểm toán BCTC với ý kiến chấp nhận toàn phần không bắt buộc theo CS-TD-SME/2025 §4.1 và §6.1. Tình trạng hồ sơ BCTC đã kiểm toán không được cung cấp; không kết luận hồ sơ đã có hay chưa.\nKhả năng trả nợ: công cụ chính sách trả về DSCR dự phóng ≥1,25 lần theo CS-TD-SME/2025 §4.2 (cao hơn mức 1,2 được yêu cầu trong đề bài). Chưa có lịch trả nợ/dòng tiền trả nợ dự phóng của khoản vay mới nên chưa tính và chưa đối chiếu được DSCR; cần bổ sung để quyết định đạt hay không đạt ngưỡng.\nĐòn bẩy: EBITDA năm 2025 là 15,0 tỷ đồng; tổng nợ vay sau cấp ước tính 52,0 tỷ đồng (40,0 tỷ nợ vay trên BCTC + 12,0 tỷ đề xuất), tương ứng Nợ vay/EBITDA 3,47 lần, dưới ngưỡng 3,5 lần nhưng rất sát ngưỡng theo CS-TD-SME/2025 §4.2. Phép tính giả định chỉ cộng khoản vay mới vào số tổng nợ vay trên BCTC; cần xác nhận phạm vi chỉ tiêu nợ vay và cập nhật dự phóng trước giải ngân.\nChưa đối chiếu được EBIT/chi phí lãi vay với ngưỡng ≥2,0 lần theo CS-TD-SME/2025 §4.2 vì chưa có EBIT và chi phí lãi vay. Debt service trên BCTC cũng để trống, nên không dùng EBITDA thay thế DSCR.\nDòng tiền thực tế đã được đối chiếu qua Document Agent: verified annual inflow 234,0 tỷ đồng so với doanh thu BCTC năm 2025 là 260,0 tỷ đồng, thấp hơn 26,0 tỷ đồng (10%). Cần giải trình/chứng từ hóa phần chênh lệch và đưa dòng tiền xác minh vào dự phóng trả nợ.\nCác khoản vay hiện hữu có tổng dư nợ 5,0 tỷ đồng và tổng trả nợ định kỳ ghi nhận 130 triệu đồng/tháng (1,56 tỷ đồng/năm). Đây chưa phải DSCR vì chưa gồm nghĩa vụ trả nợ khoản vay đề xuất và chưa có dòng tiền sẵn sàng trả nợ được xác định.\nHồ sơ pháp nhân có trạng thái ACTIVE, KYC VERIFIED; dữ liệu người đại diện (tên và CCCD) đang trống, cần bổ sung/đối chiếu trước giải ngân, nhưng không làm cản trở việc xác định các ngưỡng tuân thủ hiện có.\nTra cứu blacklist: screened=true, hit=false; không phát sinh hit AML.\nCIC nhóm 1, dư nợ quá hạn 0 đồng; không thuộc ngưỡng CIC nhóm 2 hoặc nhóm 3 trở lên theo thông tin đã tra cứu. Theo Điều 7, CIC phải được kiểm tra lại tại thời điểm giải ngân.\nTSĐB là bất động sản, giá trị định giá 30.000.000.000 đồng và legal_status=clear. Theo Điều 8, LTV tối đa 70%, hạn mức bảo đảm tính được là 30.000.000.000 × 70% = 21.000.000.000 đồng; khoản đề nghị 12.000.000.000 đồng thấp hơn hạn mức này.\nĐiều 8 yêu cầu bất động sản có giấy chứng nhận quyền sử dụng hợp pháp, không tranh chấp, không thuộc quy hoạch giải tỏa và hợp đồng bảo đảm phải đăng ký giao dịch bảo đảm trước giải ngân; kết quả hiện có ghi nhận legal_status=clear nhưng chưa đối chiếu riêng từng tài liệu/điều kiện này.\nTính lại tổng cấp tín dụng: dư nợ hiện hữu 5.0 tỷ + đề xuất 12.0 tỷ = 17.0 tỷ; không vượt 20 tỷ nên chưa bắt buộc BCTC kiểm toán (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: branch (CS-TD-SME/2025 §3.1)\nTính lại LTV: đề xuất 12.0 tỷ / TSĐB đủ điều kiện 30.0 tỷ = 40.0% (tối đa 70%, tương ứng 21.0 tỷ); trong ngưỡng LTV (CS-TD-SME/2025 §7.1)\nTính lại Nợ vay/EBITDA sau cấp TD (2025): 52.0 tỷ / 15.0 tỷ = 3.47 lần (tối đa 3.5); trong ngưỡng (CS-TD-SME/2025 §4.2)\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nBổ sung lịch trả nợ khoản vay mới và dự phóng dòng tiền trả nợ theo kỳ hạn 24 tháng; tính lại DSCR dự phóng theo chính sách và xác nhận đạt tối thiểu 1,25 lần trước khi hoàn tất phê duyệt/giải ngân.\nBổ sung EBIT và chi phí lãi vay để kiểm tra EBIT/chi phí lãi vay ≥2,0 lần; xác nhận số nợ vay dùng trong tính Nợ vay/EBITDA và cập nhật tỷ lệ sau cấp.\nĐối chiếu, giải trình chênh lệch giữa verified annual inflow 234,0 tỷ đồng và doanh thu BCTC 260,0 tỷ đồng; thu thập chứng từ dòng tiền liên quan.\nHoàn thiện hồ sơ và kiểm tra tính đầy đủ của BCTC cùng các hồ sơ tín dụng trước giải ngân; kiểm toán không bắt buộc theo tổng cấp tín dụng hiện tính được.\nBổ sung và xác minh thông tin, giấy tờ người đại diện và thẩm quyền ký trước giải ngân.\nTrước giải ngân, hoàn tất kiểm tra giấy chứng nhận quyền sử dụng hợp pháp, tình trạng tranh chấp/quy hoạch giải tỏa và đăng ký giao dịch bảo đảm theo Điều 8.\nTra cứu CIC lại tại thời điểm giải ngân theo Điều 7.\nĐiều kiện giải ngân khác, bao gồm lịch trả nợ và chứng từ chứng minh mục đích sử dụng vốn, cần được hoàn thiện theo quy trình tín dụng; các dữ liệu này chưa được cung cấp để đối chiếu.\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nKẾT LUẬN: Đề xuất phê duyệt hạn mức tín dụng 12.000.000.000 VND, có điều kiện tiên quyết phải hoàn tất trước giải ngân.\n\nHẠN MỨC: 12.000.000.000 VND. Tổng cấp tín dụng sau cấp là 17.000.000.000 VND (dư nợ hiện hữu 5,0 tỷ + đề xuất 12,0 tỷ), thuộc bậc thẩm quyền ≤20 tỷ; kiểm chứng độc lập xác định cấp phê duyệt là cấp chi nhánh. Kiểm toán BCTC không bắt buộc ở mức này.\n\nLÝ DO CHÍNH:\n- Pháp nhân ACTIVE, KYC VERIFIED; blacklist không hit; CIC nhóm 1, dư nợ quá hạn 0 đồng.\n- TSĐB là bất động sản định giá 30,0 tỷ, pháp lý ghi nhận clear. LTV đề xuất 40% so với mức tối đa 70% (hạn mức bảo đảm tối đa 21,0 tỷ), nằm trong ngưỡng.\n- Nợ vay/EBITDA sau cấp ước tính 3,47 lần, dưới ngưỡng 3,5 lần nhưng rất sát.\n- Điều kiện vận hành đạt; bản nháp hồ sơ draft-case_71cf53f1521b đã được tạo (chưa có hiệu lực).\n\nĐIỂM CẦN LƯU Ý:\n- Khả năng trả nợ chưa được xác nhận. Chuyên gia tín dụng đánh giá cần bổ sung (need_more_info) vì chưa có lịch trả nợ và dòng tiền trả nợ dự phóng 24 tháng, nên DSCR chưa được tính. Ngưỡng DSCR tối thiểu theo chính sách là 1,25 lần.\n- Chưa có EBIT và chi phí lãi vay để kiểm tra ngưỡng EBIT/lãi vay ≥2,0 lần.\n- Dòng tiền xác minh (234,0 tỷ) thấp hơn doanh thu BCTC (260,0 tỷ) 26,0 tỷ (10%); cần giải trình và chứng từ hóa.\n- Nợ vay/EBITDA rất sát ngưỡng; cần xác nhận phạm vi nợ vay và cập nhật dự phóng trước giải ngân.\n- Thông tin người đại diện (tên, CCCD) đang trống; cần bổ sung và xác minh thẩm quyền ký.\n- Trước giải ngân: kiểm tra GCN quyền sử dụng, tranh chấp, quy hoạch giải tỏa và đăng ký giao dịch bảo đảm theo Điều 8; tra cứu CIC lại theo Điều 7.\n\nKhuyến nghị: Chỉ giải ngân khi đã hoàn tất các điều kiện trên, đặc biệt là xác nhận DSCR đạt tối thiểu 1,25 lần và đối chiếu chênh lệch dòng tiền.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_collateral",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_annual_inflow",
+    "get_financials",
+    "create_loan_draft"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "E3",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 65.7743468284607,
+   "calls": 8,
+   "tokens": {
+    "prompt": 15282,
+    "completion": 9381,
+    "total": 24663
+   },
+   "cost_usd": 0.005971495,
+   "llm_requests": 8,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_3177bb2c9021",
+   "final_report_text": "credit: [need_more_info] [ĐÃ ĐIỀU CHỈNH] Hạn mức đề xuất 17,500,000,000 VND (giảm từ 25,000,000,000) theo giới hạn bảo đảm\ncompliance: [need_more_info] Chưa thể kết luận phê duyệt khoản vay 25 tỷ đồng: TSĐB được chỉ định có giá trị định giá 25 tỷ đồng nên giới hạn theo LTV 70% là tối đa 17,5 tỷ đồng, thấp hơn đề nghị 7,5 tỷ đồng; đồng thời tình trạng pháp lý TSĐB đang là pending. Cần làm rõ/hoàn tất hồ sơ pháp lý và điều chỉnh cấu trúc khoản vay trước khi xem xét tiếp. Blacklist không hit; CIC nhóm 1.\noperations: [pass] Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_3177bb2c9021 (chưa hiệu lực)\nPhát hiện:\n- Tổng cấp tín dụng tính theo yêu cầu = dư nợ hiện hữu tại ngân hàng (danh sách khoản vay trả về rỗng, tổng 0 tỷ) + đề xuất mới 25 tỷ = 25 tỷ đồng. Mức này thuộc dải 20–100 tỷ theo CS-TD-SME/2025 §3.1; kết quả tra cứu chỉ nêu các dải thẩm quyền, chưa đối chiếu được tên cấp phê duyệt cụ thể tương ứng.\n- BCTC kiểm toán với ý kiến chấp nhận toàn phần là BẮT BUỘC vì tổng cấp tín dụng 25 tỷ >20 tỷ theo CS-TD-SME/2025 §4.1 và §6.1. Dữ liệu cung cấp chưa xác nhận BCTC kiểm toán đã có hay ý kiến kiểm toán; không thể khẳng định hồ sơ đã đáp ứng.\n- Theo BCTC 2025, nợ vay hiện hữu 60 tỷ/EBITDA 40 tỷ; cộng đề xuất 25 tỷ, Nợ vay/EBITDA sau vay = (60+25)/40 = 2,125 lần, đạt ngưỡng ≤3,5 lần theo CS-TD-SME/2025 §4.2.\n- Chưa tính được DSCR dự phóng: trường debt_service không có số liệu và chưa có lịch trả nợ dự kiến của khoản vay. Chính sách tra cứu yêu cầu DSCR ≥1,25 lần theo CS-TD-SME/2025 §4.2; hiện chưa thể xác nhận đạt cả ngưỡng 1,2 lần được nêu trong yêu cầu thẩm định.\n- Chưa tính được EBIT/chi phí lãi vay do thiếu EBIT và chi phí lãi vay; chưa thể xác nhận đạt ngưỡng ≥2,0 lần theo CS-TD-SME/2025 §4.2.\n- Dòng tiền đối chiếu: Document Agent xác nhận verified_annual_inflow 405 tỷ đồng, bằng 90% doanh thu BCTC 2025 là 450 tỷ đồng (chênh 45 tỷ). Đây là dòng tiền vào đã xác minh nhưng chưa có phân loại/cấu phần để đồng nhất với dòng tiền sẵn có trả nợ hoặc dùng tính DSCR; cần đối chiếu sao kê và giải trình chênh lệch doanh thu–dòng tiền.\n- Các chỉ số thanh khoản tham khảo: tài sản ngắn hạn 160 tỷ/ nợ ngắn hạn 90 tỷ = 1,78 lần. Không thay thế việc kiểm tra DSCR và không đủ để kết luận khả năng trả nợ khoản vay kỳ hạn 24 tháng.\n- Blacklist: kết quả screened, hit=false; PEP NOT_PEP, AML risk LOW.\n- CIC nhóm 1, dư nợ quá hạn 0; không thuộc ngưỡng từ chối nhóm 3 trở lên theo thông tin hiện có.\n- TSĐB ID 77100000-0000-4000-8000-000033000001 là bất động sản, định giá 25.000.000.000 đồng, valuation_status=APPRAISED nhưng legal_status=pending. Theo Điều 8, bất động sản phải có giấy chứng nhận quyền sử dụng hợp pháp, không tranh chấp, không thuộc quy hoạch giải tỏa; hợp đồng bảo đảm phải đăng ký trước giải ngân. Do hồ sơ hiện chỉ ghi legal_status=pending, chưa xác minh được các điều kiện này.\n- Theo Điều 8, LTV bất động sản tối đa 70%; tính từ định giá 25.000.000.000 đồng, hạn mức có bảo đảm tối đa là 17.500.000.000 đồng. Đề nghị 25.000.000.000 đồng vượt mức này 7.500.000.000 đồng. Quy định CS-TD-SME/2025 §7.1 cũng nêu tỷ lệ cho vay trên giá trị TSBĐ theo loại tài sản ≤70%.\n- KYB: trạng thái KYC VERIFIED và ACTIVE; trường tên, CCCD người đại diện theo pháp luật đang để trống. Điều 5 liệt kê thông tin người đại diện trong hồ sơ pháp nhân bắt buộc; cần bổ sung/xác minh trước khi hoàn tất thẩm định.\n- Tính lại tổng cấp tín dụng: dư nợ hiện hữu 0.0 tỷ + đề xuất 25.0 tỷ = 25.0 tỷ; vượt 20 tỷ nên BCTC kiểm toán bắt buộc (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: regional (CS-TD-SME/2025 §3.1)\n- TSĐB 77100000-0000-4000-8000-000033000002 không tính vào LTV (pháp lý: pending, giá trị 15.0 tỷ)\n- TSĐB 77100000-0000-4000-8000-000033000001 không tính vào LTV (pháp lý: pending, giá trị 25.0 tỷ)\n- Không có TSĐB nào đủ điều kiện pháp lý để tính LTV\n- Tính lại Nợ vay/EBITDA sau cấp TD (2025): 85.0 tỷ / 40.0 tỷ = 2.12 lần (tối đa 3.5); trong ngưỡng (CS-TD-SME/2025 §4.2)\n- Không có TSĐB nào rõ pháp lý để tính LTV (CS-TD-SME/2025 §7.1)\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nĐiều kiện:\n- Bổ sung BCTC kiểm toán thuộc diện bắt buộc, có ý kiến chấp nhận toàn phần, và xác nhận hồ sơ đầy đủ.\n- Bổ sung lịch trả nợ/dự phóng dòng tiền trả nợ khoản vay 24 tháng để tính DSCR theo chính sách; bổ sung EBIT và chi phí lãi vay để kiểm tra hệ số bao phủ lãi vay.\n- Đối chiếu sao kê/chứng từ của dòng tiền vào 405 tỷ đồng với doanh thu BCTC 450 tỷ đồng và xác định dòng tiền thực tế sẵn có trả nợ.\n- Trước khi trình phê duyệt, đối chiếu tên cấp phê duyệt cụ thể cho dải tổng cấp tín dụng 20–100 tỷ theo bản chính sách đầy đủ.\n- Bổ sung hồ sơ pháp lý TSĐB để xác minh quyền sử dụng hợp pháp, tình trạng tranh chấp và quy hoạch; hoàn tất đăng ký giao dịch bảo đảm trước giải ngân.\n- Giảm khoản vay xuống không quá 17,5 tỷ đồng hoặc bổ sung TSĐB đủ điều kiện và định giá được chấp thuận để đáp ứng LTV; cần tính lại hạn mức sau khi có tài sản bổ sung.\n- Bổ sung và đối chiếu thông tin người đại diện theo pháp luật trong hồ sơ KYB.\n- Kiểm tra lại CIC tại thời điểm giải ngân theo quy định.\n- BCTC kiểm toán (ý kiến chấp nhận toàn phần) bắt buộc vì tổng cấp tín dụng > 20 tỷ\n- Không có TSĐB nào rõ pháp lý để tính LTV (CS-TD-SME/2025 §7.1)\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nTrích dẫn:\n- (credit) get_existing_loans: Danh sách khoản vay hiện hữu trả về rỗng [] (tổng theo dữ liệu này: 0 tỷ đồng).\n- (credit) Đề nghị vay: Số tiền đề nghị: 25.000.000.000 đồng; kỳ hạn 24 tháng; mục đích bổ sung vốn lưu động.\n- (credit) get_financials: 2025: revenue 450.000.000.000; EBITDA 40.000.000.000; total_debt 60.000.000.000; equity 200.000.000.000; current_assets 160.000.000.000; current_liabilities 90.\n- (credit) ask_document_agent: verified_annual_inflow: 405.000.000.000 đồng/năm.\n- (credit) search_credit_policy — CS-TD-SME/2025 §3.1: Theo tổng cấp tín dụng của khách và người có liên quan: ≤ 20 / 20–100 / > 100 tỷ (cấu hình được).\n- (credit) search_credit_policy — CS-TD-SME/2025 §4.1: BCTC phải có ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán (tổng cấp tín dụng > 20 tỷ, §6.1).\n- (credit) search_credit_policy — CS-TD-SME/2025 §6.1: BCTC (kiểm toán khi tổng cấp tín dụng > 20 tỷ).\n- (credit) search_credit_policy — CS-TD-SME/2025 §4.2: DSCR dự phóng ≥ 1,25 lần; Nợ vay/EBITDA sau cấp TD ≤ 3,5 lần; EBIT/chi phí lãi vay ≥ 2,0 lần.\n- (credit) CS-TD-SME/2025 §4.1 – Chất lượng BCTC: ## CS-TD-SME/2025 §4.1 – Chất lượng BCTC\nBCTC phải có ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán (tổng cấp tín dụng > 20 tỷ, §6.1). (trang 4)\n- (credit) CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt: ## CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt\nTheo tổng cấp tín dụng của khách và người có liên quan: ≤ 20 / 20–100 / > 100 tỷ (cấu hình được). (trang 3)\n- (credit) CS-TD-SME/2025 §6.1 – Danh mục hồ sơ: ## CS-TD-SME/2025 §6.1 – Danh mục hồ sơ\nGồm giấy đề nghị cấp tín dụng, văn bản đồng ý tra cứu CIC, BCTC (kiểm toán khi tổng cấp tín dụng > 20 tỷ), sao kê 12 thá\n- (credit) CS-TD-SME/2025 §4.2 – Khả năng trả nợ: ## CS-TD-SME/2025 §4.2 – Khả năng trả nợ\nDSCR dự phóng ≥ 1,25 lần; Nợ vay/EBITDA sau cấp TD ≤ 3,5 lần; EBIT/chi phí lãi vay ≥ 2,0 lần. (trang 4)\n- (compliance) compliance_policy.md — Điều 8. Tài sản bảo đảm: Tài sản bảo đảm là bất động sản phải có giấy chứng nhận quyền sử dụng hợp pháp, không tranh chấp, không thuộc quy hoạch giải tỏa. Tỷ lệ cho vay tối đa trên giá \n- (compliance) compliance_policy.md — Điều 5. Nhận biết khách hàng doanh nghiệp (KYB): Hồ sơ pháp nhân bắt buộc gồm: giấy chứng nhận đăng ký doanh nghiệp, mã số thuế, thông tin người đại diện theo pháp luật và chủ sở hữu hưởng lợi cuối cùng (UBO).\n- (compliance) CS-TD-SME/2025 §7.1 – LTV và TSBĐ: Tỷ lệ cho vay trên giá trị TSBĐ theo loại tài sản (≤ 70%). (trang 9)\n- (operations) core-banking:create_loan_draft: draft_id=draft-case_3177bb2c9021, TK nhận vốn ******0033",
+   "sources": [
+    "core-banking:create_loan_draft",
+    "compliance_policy.md — Điều 8. Tài sản bảo đảm",
+    "compliance_policy.md — Điều 5. Nhận biết khách hàng doanh nghiệp (KYB)",
+    "compliance_policy.md — Điều 7. Lịch sử tín dụng CIC",
+    "CS-TD-SME/2025 §7.1 – LTV và TSBĐ",
+    "get_existing_loans",
+    "Đề nghị vay",
+    "get_financials",
+    "ask_document_agent",
+    "search_credit_policy — CS-TD-SME/2025 §3.1",
+    "search_credit_policy — CS-TD-SME/2025 §4.1",
+    "search_credit_policy — CS-TD-SME/2025 §6.1",
+    "search_credit_policy — CS-TD-SME/2025 §4.2",
+    "CS-TD-SME/2025 §4.1 – Chất lượng BCTC",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §6.1 – Danh mục hồ sơ",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ",
+    "validation",
+    "validation",
+    "validation",
+    "validation",
+    "validation",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §4.1 – Chất lượng BCTC",
+    "CS-TD-SME/2025 §6.1 – Danh mục hồ sơ",
+    "CS-TD-SME/2025 §7.1 – LTV và TSBĐ",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ"
+   ],
+   "grade": {
+    "findings": {
+     "total_exposure": true,
+     "audit_required": true,
+     "all_collateral_unverified": true,
+     "leverage_ok": true
+    },
+    "findings_hit": 4,
+    "findings_total": 4,
+    "citations": {
+     "cite_ltv": true,
+     "cite_authority": true,
+     "cite_audit": true
+    },
+    "citations_hit": 3,
+    "citations_total": 3,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_collateral": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v3",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true,
+    "sources_listed": 27,
+    "policy_sources_listed": 17,
+    "policy_sources_used": 16,
+    "citation_precision": 0.9411764705882353,
+    "report_chars": 8010,
+    "report_chars_body": 5422
+   },
+   "conclusion_text": "Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_3177bb2c9021 (chưa hiệu lực)\nChưa thể kết luận phê duyệt khoản vay 25 tỷ đồng: TSĐB được chỉ định có giá trị định giá 25 tỷ đồng nên giới hạn theo LTV 70% là tối đa 17,5 tỷ đồng, thấp hơn đề nghị 7,5 tỷ đồng; đồng thời tình trạng pháp lý TSĐB đang là pending. Cần làm rõ/hoàn tất hồ sơ pháp lý và điều chỉnh cấu trúc khoản vay trước khi xem xét tiếp. Blacklist không hit; CIC nhóm 1.\nBlacklist: kết quả screened, hit=false; PEP NOT_PEP, AML risk LOW.\nCIC nhóm 1, dư nợ quá hạn 0; không thuộc ngưỡng từ chối nhóm 3 trở lên theo thông tin hiện có.\nTSĐB ID 77100000-0000-4000-8000-000******001 là bất động sản, định giá 25.000.000.000 đồng, valuation_status=APPRAISED nhưng legal_status=pending. Theo Điều 8, bất động sản phải có giấy chứng nhận quyền sử dụng hợp pháp, không tranh chấp, không thuộc quy hoạch giải tỏa; hợp đồng bảo đảm phải đăng ký trước giải ngân. Do hồ sơ hiện chỉ ghi legal_status=pending, chưa xác minh được các điều kiện này.\nTheo Điều 8, LTV bất động sản tối đa 70%; tính từ định giá 25.000.000.000 đồng, hạn mức có bảo đảm tối đa là 17.500.000.000 đồng. Đề nghị 25.000.000.000 đồng vượt mức này 7.500.000.000 đồng. Quy định CS-TD-SME/2025 §7.1 cũng nêu tỷ lệ cho vay trên giá trị TSBĐ theo loại tài sản ≤70%.\nKYB: trạng thái KYC VERIFIED và ACTIVE; trường tên, CCCD người đại diện theo pháp luật đang để trống. Điều 5 liệt kê thông tin người đại diện trong hồ sơ pháp nhân bắt buộc; cần bổ sung/xác minh trước khi hoàn tất thẩm định.\nBổ sung hồ sơ pháp lý TSĐB để xác minh quyền sử dụng hợp pháp, tình trạng tranh chấp và quy hoạch; hoàn tất đăng ký giao dịch bảo đảm trước giải ngân.\nGiảm khoản vay xuống không quá 17,5 tỷ đồng hoặc bổ sung TSĐB đủ điều kiện và định giá được chấp thuận để đáp ứng LTV; cần tính lại hạn mức sau khi có tài sản bổ sung.\nBổ sung và đối chiếu thông tin người đại diện theo pháp luật trong hồ sơ KYB.\nKiểm tra lại CIC tại thời điểm giải ngân theo quy định.\nĐề nghị vay 25 tỷ đồng vốn lưu động. Dư nợ hiện hữu tại ngân hàng theo dữ liệu công cụ là 0 tỷ; tổng cấp tín dụng tính theo dư nợ hiện hữu cộng khoản đề xuất là 25 tỷ đồng, thuộc dải 20–100 tỷ. Đòn bẩy sau vay theo Nợ vay/EBITDA là 2,13 lần, thấp hơn giới hạn chính sách 3,5 lần. Tuy nhiên chưa đủ cơ sở kết luận đạt khả năng trả nợ: dữ liệu debt_service trống nên chưa tính được DSCR dự phóng (chính sách yêu cầu ≥1,25 lần; ngưỡng 1,2 nêu trong yêu cầu thẩm định cũng chưa thể kiểm tra), và chưa có EBIT/chi phí lãi vay để kiểm tra ngưỡng 2,0 lần. Tổng cấp tín dụng vượt 20 tỷ nên BCTC kiểm toán với ý kiến chấp nhận toàn phần là bắt buộc; dữ liệu hiện có chưa xác nhận hồ sơ này đã có. Cần bổ sung các thông tin/hồ sơ bắt buộc này trước khi có thể kết luận cấp tín dụng.\nTổng cấp tín dụng tính theo yêu cầu = dư nợ hiện hữu tại ngân hàng (danh sách khoản vay trả về rỗng, tổng 0 tỷ) + đề xuất mới 25 tỷ = 25 tỷ đồng. Mức này thuộc dải 20–100 tỷ theo CS-TD-SME/2025 §3.1; kết quả tra cứu chỉ nêu các dải thẩm quyền, chưa đối chiếu được tên cấp phê duyệt cụ thể tương ứng.\nBCTC kiểm toán với ý kiến chấp nhận toàn phần là BẮT BUỘC vì tổng cấp tín dụng 25 tỷ >20 tỷ theo CS-TD-SME/2025 §4.1 và §6.1. Dữ liệu cung cấp chưa xác nhận BCTC kiểm toán đã có hay ý kiến kiểm toán; không thể khẳng định hồ sơ đã đáp ứng.\nTheo BCTC 2025, nợ vay hiện hữu 60 tỷ/EBITDA 40 tỷ; cộng đề xuất 25 tỷ, Nợ vay/EBITDA sau vay = (60+25)/40 = 2,125 lần, đạt ngưỡng ≤3,5 lần theo CS-TD-SME/2025 §4.2.\nChưa tính được DSCR dự phóng: trường debt_service không có số liệu và chưa có lịch trả nợ dự kiến của khoản vay. Chính sách tra cứu yêu cầu DSCR ≥1,25 lần theo CS-TD-SME/2025 §4.2; hiện chưa thể xác nhận đạt cả ngưỡng 1,2 lần được nêu trong yêu cầu thẩm định.\nChưa tính được EBIT/chi phí lãi vay do thiếu EBIT và chi phí lãi vay; chưa thể xác nhận đạt ngưỡng ≥2,0 lần theo CS-TD-SME/2025 §4.2.\nDòng tiền đối chiếu: Document Agent xác nhận verified_annual_inflow 405 tỷ đồng, bằng 90% doanh thu BCTC 2025 là 450 tỷ đồng (chênh 45 tỷ). Đây là dòng tiền vào đã xác minh nhưng chưa có phân loại/cấu phần để đồng nhất với dòng tiền sẵn có trả nợ hoặc dùng tính DSCR; cần đối chiếu sao kê và giải trình chênh lệch doanh thu–dòng tiền.\nCác chỉ số thanh khoản tham khảo: tài sản ngắn hạn 160 tỷ/ nợ ngắn hạn 90 tỷ = 1,78 lần. Không thay thế việc kiểm tra DSCR và không đủ để kết luận khả năng trả nợ khoản vay kỳ hạn 24 tháng.\nBổ sung BCTC kiểm toán thuộc diện bắt buộc, có ý kiến chấp nhận toàn phần, và xác nhận hồ sơ đầy đủ.\nBổ sung lịch trả nợ/dự phóng dòng tiền trả nợ khoản vay 24 tháng để tính DSCR theo chính sách; bổ sung EBIT và chi phí lãi vay để kiểm tra hệ số bao phủ lãi vay.\nĐối chiếu sao kê/chứng từ của dòng tiền vào 405 tỷ đồng với doanh thu BCTC 450 tỷ đồng và xác định dòng tiền thực tế sẵn có trả nợ.\nTrước khi trình phê duyệt, đối chiếu tên cấp phê duyệt cụ thể cho dải tổng cấp tín dụng 20–100 tỷ theo bản chính sách đầy đủ.\nCẦN BỔ SUNG: thiếu dữ liệu chặn — Không có TSĐB nào rõ pháp lý để tính LTV (CS-TD-SME/2025 §7.1)\nTổng cấp tín dụng tính theo yêu cầu = dư nợ hiện hữu tại ngân hàng (danh sách khoản vay trả về rỗng, tổng 0 tỷ) + đề xuất mới 25 tỷ = 25 tỷ đồng. Mức này thuộc dải 20–100 tỷ theo CS-TD-SME/2025 §3.1; kết quả tra cứu chỉ nêu các dải thẩm quyền, chưa đối chiếu được tên cấp phê duyệt cụ thể tương ứng.\nBCTC kiểm toán với ý kiến chấp nhận toàn phần là BẮT BUỘC vì tổng cấp tín dụng 25 tỷ >20 tỷ theo CS-TD-SME/2025 §4.1 và §6.1. Dữ liệu cung cấp chưa xác nhận BCTC kiểm toán đã có hay ý kiến kiểm toán; không thể khẳng định hồ sơ đã đáp ứng.\nTheo BCTC 2025, nợ vay hiện hữu 60 tỷ/EBITDA 40 tỷ; cộng đề xuất 25 tỷ, Nợ vay/EBITDA sau vay = (60+25)/40 = 2,125 lần, đạt ngưỡng ≤3,5 lần theo CS-TD-SME/2025 §4.2.\nChưa tính được DSCR dự phóng: trường debt_service không có số liệu và chưa có lịch trả nợ dự kiến của khoản vay. Chính sách tra cứu yêu cầu DSCR ≥1,25 lần theo CS-TD-SME/2025 §4.2; hiện chưa thể xác nhận đạt cả ngưỡng 1,2 lần được nêu trong yêu cầu thẩm định.\nChưa tính được EBIT/chi phí lãi vay do thiếu EBIT và chi phí lãi vay; chưa thể xác nhận đạt ngưỡng ≥2,0 lần theo CS-TD-SME/2025 §4.2.\nDòng tiền đối chiếu: Document Agent xác nhận verified_annual_inflow 405 tỷ đồng, bằng 90% doanh thu BCTC 2025 là 450 tỷ đồng (chênh 45 tỷ). Đây là dòng tiền vào đã xác minh nhưng chưa có phân loại/cấu phần để đồng nhất với dòng tiền sẵn có trả nợ hoặc dùng tính DSCR; cần đối chiếu sao kê và giải trình chênh lệch doanh thu–dòng tiền.\nCác chỉ số thanh khoản tham khảo: tài sản ngắn hạn 160 tỷ/ nợ ngắn hạn 90 tỷ = 1,78 lần. Không thay thế việc kiểm tra DSCR và không đủ để kết luận khả năng trả nợ khoản vay kỳ hạn 24 tháng.\nBlacklist: kết quả screened, hit=false; PEP NOT_PEP, AML risk LOW.\nCIC nhóm 1, dư nợ quá hạn 0; không thuộc ngưỡng từ chối nhóm 3 trở lên theo thông tin hiện có.\nTSĐB ID 77100000-0000-4000-8000-000******001 là bất động sản, định giá 25.000.000.000 đồng, valuation_status=APPRAISED nhưng legal_status=pending. Theo Điều 8, bất động sản phải có giấy chứng nhận quyền sử dụng hợp pháp, không tranh chấp, không thuộc quy hoạch giải tỏa; hợp đồng bảo đảm phải đăng ký trước giải ngân. Do hồ sơ hiện chỉ ghi legal_status=pending, chưa xác minh được các điều kiện này.\nTheo Điều 8, LTV bất động sản tối đa 70%; tính từ định giá 25.000.000.000 đồng, hạn mức có bảo đảm tối đa là 17.500.000.000 đồng. Đề nghị 25.000.000.000 đồng vượt mức này 7.500.000.000 đồng. Quy định CS-TD-SME/2025 §7.1 cũng nêu tỷ lệ cho vay trên giá trị TSBĐ theo loại tài sản ≤70%.\nKYB: trạng thái KYC VERIFIED và ACTIVE; trường tên, CCCD người đại diện theo pháp luật đang để trống. Điều 5 liệt kê thông tin người đại diện trong hồ sơ pháp nhân bắt buộc; cần bổ sung/xác minh trước khi hoàn tất thẩm định.\nTính lại tổng cấp tín dụng: dư nợ hiện hữu 0.0 tỷ + đề xuất 25.0 tỷ = 25.0 tỷ; vượt 20 tỷ nên BCTC kiểm toán bắt buộc (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: regional (CS-TD-SME/2025 §3.1)\nTSĐB 77100000-0000-4000-8000-000******002 không tính vào LTV (pháp lý: pending, giá trị 15.0 tỷ)\nTSĐB 77100000-0000-4000-8000-000******001 không tính vào LTV (pháp lý: pending, giá trị 25.0 tỷ)\nKhông có TSĐB nào đủ điều kiện pháp lý để tính LTV\nTính lại Nợ vay/EBITDA sau cấp TD (2025): 85.0 tỷ / 40.0 tỷ = 2.12 lần (tối đa 3.5); trong ngưỡng (CS-TD-SME/2025 §4.2)\nKhông có TSĐB nào rõ pháp lý để tính LTV (CS-TD-SME/2025 §7.1)\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nBổ sung BCTC kiểm toán thuộc diện bắt buộc, có ý kiến chấp nhận toàn phần, và xác nhận hồ sơ đầy đủ.\nBổ sung lịch trả nợ/dự phóng dòng tiền trả nợ khoản vay 24 tháng để tính DSCR theo chính sách; bổ sung EBIT và chi phí lãi vay để kiểm tra hệ số bao phủ lãi vay.\nĐối chiếu sao kê/chứng từ của dòng tiền vào 405 tỷ đồng với doanh thu BCTC 450 tỷ đồng và xác định dòng tiền thực tế sẵn có trả nợ.\nTrước khi trình phê duyệt, đối chiếu tên cấp phê duyệt cụ thể cho dải tổng cấp tín dụng 20–100 tỷ theo bản chính sách đầy đủ.\nBổ sung hồ sơ pháp lý TSĐB để xác minh quyền sử dụng hợp pháp, tình trạng tranh chấp và quy hoạch; hoàn tất đăng ký giao dịch bảo đảm trước giải ngân.\nGiảm khoản vay xuống không quá 17,5 tỷ đồng hoặc bổ sung TSĐB đủ điều kiện và định giá được chấp thuận để đáp ứng LTV; cần tính lại hạn mức sau khi có tài sản bổ sung.\nBổ sung và đối chiếu thông tin người đại diện theo pháp luật trong hồ sơ KYB.\nKiểm tra lại CIC tại thời điểm giải ngân theo quy định.\nBCTC kiểm toán (ý kiến chấp nhận toàn phần) bắt buộc vì tổng cấp tín dụng > 20 tỷ\nKhông có TSĐB nào rõ pháp lý để tính LTV (CS-TD-SME/2025 §7.1)\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nKẾT LUẬN: Chưa đủ điều kiện phê duyệt. Quyết định tổng hợp là CẦN BỔ SUNG THÔNG TIN (need_more_info). Đề nghị ban đầu 25 tỷ đồng không được chấp thuận ở thời điểm này.\n\nHẠN MỨC: Chuyên gia tín dụng đã điều chỉnh đề xuất xuống 17,5 tỷ đồng theo giới hạn LTV 70% trên TSĐB định giá 25 tỷ đồng. Tuy nhiên, TSĐB này đang có tình trạng pháp lý pending, và kiểm chứng độc lập xác định chưa có TSĐB nào đủ điều kiện pháp lý để tính LTV. Vì vậy 17,5 tỷ đồng chỉ là mức trần tham chiếu có điều kiện, chưa có hiệu lực. Hạn mức chỉ được xem xét lại sau khi hồ sơ pháp lý TSĐB được hoàn tất hoặc bổ sung TSĐB đủ điều kiện.\n\nLÝ DO CHÍNH:\n1. Pháp lý TSĐB chưa xác minh: chưa rõ giấy chứng nhận quyền sử dụng, tranh chấp và quy hoạch (Điều 8). Hợp đồng bảo đảm chưa thể đăng ký trước giải ngân. Tài sản thứ hai (định giá 15 tỷ đồng) cũng đang pending và không được tính vào LTV.\n2. BCTC kiểm toán bắt buộc (tổng cấp tín dụng 25 tỷ vượt 20 tỷ; CS-TD-SME/2025 §4.1, §6.1): chưa xác nhận có BCTC kiểm toán với ý kiến chấp nhận toàn phần.\n3. Chưa đủ dữ liệu khả năng trả nợ: chưa tính được DSCR (thiếu lịch trả nợ và số liệu debt_service, ngưỡng ≥1,25 lần), và chưa tính được hệ số bao phủ lãi vay (thiếu EBIT và chi phí lãi vay, ngưỡng ≥2,0 lần).\n4. Đối chiếu dòng tiền: dòng tiền vào đã xác minh 405 tỷ đồng thấp hơn 450 tỷ đồng doanh thu BCTC 2025 (chênh 45 tỷ). Cần sao kê và giải trình.\n5. KYB: thông tin tên và CCCD của người đại diện theo pháp luật còn trống (Điều 5).\n\nĐIỂM TÍCH CỰC ĐÃ XÁC NHẬN: Blacklist không hit; PEP: không; rủi ro AML: thấp; CIC nhóm 1, nợ quá hạn 0; KYC VERIFIED, trạng thái ACTIVE; Nợ vay/EBITDA sau cấp tín dụng 2,125 lần (ngưỡng ≤3,5 lần, đạt); thanh khoản ngắn hạn 1,78 lần (chỉ tham khảo). Điều kiện vận hành đạt, bản nháp draft-case_3177bb2c9021 đã được tạo nhưng chưa có hiệu lực.\n\nĐIỂM CẦN LƯU Ý:\n- Cần xác nhận cấp phê duyệt tương ứng với dải 20–100 tỷ đồng. Kiểm chứng độc lập ghi nhận cấp regional (CS-TD-SME/2025 §3.1), nhưng phần tham chiếu của chuyên gia tín dụng chưa đối chiếu được tên cấp phê duyệt cụ thể.\n- Hồ sơ tín dụng ghi giới hạn có bảo đảm là 'không xác định', trong khi hồ sơ tuân thủ ghi 17,5 tỷ đồng. Cần thống nhất con số này trước khi trình.\n- Cần kiểm tra lại CIC tại thời điểm giải ngân.\n\nĐỀ XUẤT HÀNH ĐỘNG: (i) Bổ sung hồ sơ pháp lý TSĐB và hoàn tất đăng ký giao dịch bảo đảm; (ii) bổ sung BCTC kiểm toán chấp nhận toàn phần; (iii) bổ sung lịch trả nợ, EBIT và chi phí lãi vay để tính DSCR và hệ số bao phủ lãi vay; (iv) đối chiếu sao kê để giải trình chênh lệch 45 tỷ đồng; (v) bổ sung thông tin người đại diện theo pháp luật; (vi) tính lại hạn mức khi có tài sản bổ sung hoặc giảm khoản vay xuống không quá 17,5 tỷ đồng và trình lại.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_collateral",
+    "get_existing_loans",
+    "get_financials",
+    "get_annual_inflow",
+    "check_blacklist",
+    "create_loan_draft"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "E4",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 55.387338638305664,
+   "calls": 8,
+   "tokens": {
+    "prompt": 15159,
+    "completion": 9008,
+    "total": 24167
+   },
+   "cost_usd": 0.005848685,
+   "llm_requests": 8,
+   "gate": "PENDING_APPROVAL",
+   "case_id_engine": "case_abc2ed24a0bf",
+   "final_report_text": "credit: [need_more_info] Chưa thể kết luận phê duyệt khoản vay 40 tỷ đồng kỳ hạn 24 tháng do chưa xác nhận BCTC kiểm toán bắt buộc và chưa đủ dữ liệu để kiểm tra các chỉ tiêu trả nợ theo chính sách (DSCR, EBIT/chi phí lãi vay). Dữ liệu hiện có cho thấy đòn bẩy nợ vay/EBITDA sau cấp dự kiến khoảng 3,17 lần, trong ngưỡng chính sách 3,5 lần; cần hoàn tất các kiểm tra còn thiếu trước khi quyết định.\ncompliance: [approve] Đề nghị vay 40.000.000.000 đồng có thể được chấp thuận có điều kiện. TSĐB đúng collateral_id được đề nghị, giá trị định giá 70.000.000.000 đồng; hạn mức có bảo đảm tối đa tính theo LTV 70% là 49.000.000.000 đồng, nên khoản vay đề nghị nằm trong giới hạn. Blacklist không hit, CIC nhóm 1. Hoàn tất các điều kiện hồ sơ và đăng ký bảo đảm trước giải ngân.\noperations: [pass] Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_abc2ed24a0bf (chưa hiệu lực)\nPhát hiện:\n- Dòng tiền thực tế: Document Agent xác nhận verified annual inflow = 720 tỷ đồng. BCTC ghi nhận doanh thu 2025 = 800 tỷ đồng; số inflow thấp hơn doanh thu 80 tỷ đồng (10%). Đây là hai chỉ tiêu khác nguồn, cần đối chiếu sao kê/chứng từ và bản chất chênh lệch; không coi inflow là dòng tiền sẵn có để trả nợ.\n- Khả năng trả nợ: DSCR chưa tính/đối chiếu được do dữ liệu tài chính không có debt_service, chưa có dòng tiền dùng trả nợ và lịch trả nợ khoản vay mới; chưa xác nhận DSCR đạt mức tối thiểu 1,2 theo yêu cầu thẩm định. Chính sách được tra cứu quy định DSCR dự phóng ≥1,25 lần, Nợ vay/EBITDA sau cấp ≤3,5 lần và EBIT/chi phí lãi vay ≥2,0 lần (CS-TD-SME/2025 §4.2). Do thiếu dữ liệu nghĩa vụ trả nợ dự phóng và EBIT/chi phí lãi vay, chưa kết luận đạt các tiêu chí này.\n- Đòn bẩy: Nợ vay hiện tại theo BCTC 150 tỷ đồng, EBITDA 60 tỷ đồng; tỷ lệ hiện tại 2,50 lần. Nếu cộng khoản vay mới 40 tỷ đồng vào tổng nợ vay BCTC, nợ vay sau cấp ước 190 tỷ đồng, tương đương 3,17 lần EBITDA, thấp hơn ngưỡng 3,5 lần tại CS-TD-SME/2025 §4.2. Đây là phép tính dựa trên giả định nợ vay BCTC chưa bao gồm khoản vay mới; cần xác nhận không trùng lặp và cập nhật dư nợ tại thời điểm phê duyệt.\n- Thanh khoản: Tài sản ngắn hạn 300 tỷ đồng, nợ ngắn hạn 170 tỷ đồng; hệ số hiện hành khoảng 1,76 lần và vốn lưu động ròng 130 tỷ đồng.\n- Checklist chính sách – tổng cấp tín dụng: Hai khoản dư nợ hiện hữu tại ngân hàng là 40 tỷ + 20 tỷ = 60 tỷ đồng; cộng đề nghị mới 40 tỷ đồng, tổng tính được là 100 tỷ đồng. Theo CS-TD-SME/2025 §3.1, mức này thuộc nhóm 20–100 tỷ đồng, cấp phê duyệt theo thẩm quyền được cấu hình cho nhóm này. Trích đoạn chính sách nhận được không nêu tên/chức danh cụ thể của cấp phê duyệt. Chưa đối chiếu dư nợ tại tổ chức khác và cấp tín dụng người có liên quan.\n- Checklist chính sách – BCTC kiểm toán: Tổng cấp tín dụng tính được 100 tỷ đồng, lớn hơn 20 tỷ đồng nên BCTC kiểm toán với ý kiến chấp nhận toàn phần là bắt buộc theo CS-TD-SME/2025 §6.1 và §4.1. Dữ liệu công cụ hiện có không xác nhận hồ sơ đã có BCTC kiểm toán hay ý kiến kiểm toán; tình trạng hồ sơ chưa đối chiếu, không kết luận là đã có hoặc chưa có.\n- KYB: pháp nhân ở trạng thái ACTIVE, KYC VERIFIED. Trường người đại diện theo pháp luật đang để trống; thông tin này chưa đối chiếu được. Theo §5, hồ sơ KYB bắt buộc có thông tin người đại diện và UBO; cần hoàn thiện, đối chiếu trước giải ngân.\n- AML: kết quả sàng lọc đã thực hiện, không có blacklist hit; trạng thái PEP NOT_PEP, AML risk LOW.\n- CIC: nhóm 1, dư nợ quá hạn 0 đồng; không phát sinh ngưỡng từ chối hoặc flag theo dữ liệu tra cứu. Theo §7, CIC phải được kiểm tra lại tại thời điểm giải ngân.\n- TSĐB: collateral_id 77100000-0000-4000-8000-000034000001 khớp tài sản nhà máy và QSDD, định giá đã thẩm định 70.000.000.000 đồng, tình trạng pháp lý ghi nhận clear. Theo §8, LTV bất động sản tối đa 70%; tính ra hạn mức tối đa 49.000.000.000 đồng. Khoản đề nghị 40.000.000.000 đồng thấp hơn mức này.\n- Theo §6.1, BCTC phải kiểm toán khi tổng cấp tín dụng trên 20 tỷ đồng; khoản đề nghị 40 tỷ đồng vượt ngưỡng này. Cần bổ sung BCTC kiểm toán theo yêu cầu hồ sơ.\n- Tính lại tổng cấp tín dụng: dư nợ hiện hữu 60.0 tỷ + đề xuất 40.0 tỷ = 100.0 tỷ; vượt 20 tỷ nên BCTC kiểm toán bắt buộc (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: regional (CS-TD-SME/2025 §3.1)\n- Tính lại LTV: đề xuất 40.0 tỷ / TSĐB đủ điều kiện 130.0 tỷ = 30.8% (tối đa 70%, tương ứng 91.0 tỷ); trong ngưỡng LTV (CS-TD-SME/2025 §7.1)\n- Tính lại Nợ vay/EBITDA sau cấp TD (2025): 190.0 tỷ / 60.0 tỷ = 3.17 lần (tối đa 3.5); trong ngưỡng (CS-TD-SME/2025 §4.2)\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nĐiều kiện:\n- Bổ sung BCTC kiểm toán với ý kiến chấp nhận toàn phần và xác nhận hồ sơ đáp ứng yêu cầu CS-TD-SME/2025 §4.1, §6.1 trước khi tiếp tục quyết định.\n- Bổ sung dự phóng dòng tiền trả nợ/CFADS và lịch trả nợ khoản vay mới (gốc, lãi), sau đó tính DSCR dự phóng; đồng thời cung cấp EBIT và chi phí lãi vay để kiểm tra các ngưỡng tại CS-TD-SME/2025 §4.2.\n- Đối chiếu inflow đã xác minh 720 tỷ đồng với sao kê 12 tháng, doanh thu BCTC 800 tỷ đồng, xác nhận dư nợ toàn hệ thống và dư nợ/cấp tín dụng người có liên quan; xác nhận nợ vay BCTC không bao gồm khoản vay mới khi tính đòn bẩy sau cấp.\n- Trước giải ngân, hoàn thiện các chứng từ mục đích bổ sung vốn lưu động, kiểm tra tài sản bảo đảm và hồ sơ pháp lý/ủy quyền, đồng thời cập nhật dư nợ và thẩm quyền phê duyệt cụ thể theo cấu hình ngân hàng.\n- Hoàn thiện và đối chiếu thông tin người đại diện theo pháp luật, giấy tờ tùy thân, UBO và hồ sơ pháp nhân theo §5 trước giải ngân.\n- Bổ sung BCTC kiểm toán; xác nhận tổng cấp tín dụng và đáp ứng yêu cầu kiểm toán áp dụng khi tổng cấp tín dụng trên 20 tỷ đồng theo §6.1.\n- Hoàn tất hợp đồng bảo đảm và đăng ký giao dịch bảo đảm trước giải ngân theo §8.\n- Tra cứu lại CIC tại thời điểm giải ngân theo §7.\n- Xác nhận định giá 70.000.000.000 đồng được chấp thuận làm căn cứ chính thức khi thiết lập hạn mức; giới hạn tối đa theo LTV tính từ giá trị hiện có là 49.000.000.000 đồng.\n- BCTC kiểm toán (ý kiến chấp nhận toàn phần) bắt buộc vì tổng cấp tín dụng > 20 tỷ\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nTrích dẫn:\n- (credit) get_financials: 2025: revenue 800000000000; EBITDA 60000000000; total_debt 150000000000; equity 400000000000; current_assets 300000000000; current_liabilities 170000000000; deb\n- (credit) get_existing_loans: Dư nợ VERIFIED: 40000000000 đồng và 20000000000 đồng; khoản trả hàng tháng lần lượt 1000000000 đồng và 500000000 đồng.\n- (credit) ask_document_agent: verified_annual_inflow: verified_annual_inflow = 720000000000 đồng.\n- (credit) search_credit_policy: CS-TD-SME/2025 §3.1: Thẩm quyền theo tổng cấp tín dụng: ≤20 / 20–100 / >100 tỷ (cấu hình được).\n- (credit) search_credit_policy: CS-TD-SME/2025 §4.1 và §6.1: BCTC phải có ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán (tổng cấp tín dụng >20 tỷ); BCTC kiểm toán khi tổng cấp tín dụng >20 tỷ.\n- (credit) search_credit_policy: CS-TD-SME/2025 §4.2: DSCR dự phóng ≥1,25 lần; Nợ vay/EBITDA sau cấp TD ≤3,5 lần; EBIT/chi phí lãi vay ≥2,0 lần.\n- (credit) CS-TD-SME/2025 §4.1 – Chất lượng BCTC: ## CS-TD-SME/2025 §4.1 – Chất lượng BCTC\nBCTC phải có ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán (tổng cấp tín dụng > 20 tỷ, §6.1). (trang 4)\n- (credit) CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt: ## CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt\nTheo tổng cấp tín dụng của khách và người có liên quan: ≤ 20 / 20–100 / > 100 tỷ (cấu hình được). (trang 3)\n- (credit) CS-TD-SME/2025 §6.1 – Danh mục hồ sơ: ## CS-TD-SME/2025 §6.1 – Danh mục hồ sơ\nGồm giấy đề nghị cấp tín dụng, văn bản đồng ý tra cứu CIC, BCTC (kiểm toán khi tổng cấp tín dụng > 20 tỷ), sao kê 12 thá\n- (credit) CS-TD-SME/2025 §4.2 – Khả năng trả nợ: ## CS-TD-SME/2025 §4.2 – Khả năng trả nợ\nDSCR dự phóng ≥ 1,25 lần; Nợ vay/EBITDA sau cấp TD ≤ 3,5 lần; EBIT/chi phí lãi vay ≥ 2,0 lần. (trang 4)\n- (compliance) Hồ sơ TSĐB: Collateral_id 77100000-0000-4000-8000-000034000001; valuation 70.000.000.000 đồng; valuation_status APPRAISED; legal_status clear.\n- (compliance) Tra cứu blacklist và CIC: Blacklist hit=false; CIC group=1, overdue_amount=0.\n- (operations) core-banking:create_loan_draft: draft_id=draft-case_abc2ed24a0bf, TK nhận vốn ******0034",
+   "sources": [
+    "core-banking:create_loan_draft",
+    "compliance_policy.md — Điều 5. Nhận biết khách hàng doanh nghiệp (KYB)",
+    "compliance_policy.md — Điều 7. Lịch sử tín dụng CIC",
+    "compliance_policy.md — Điều 8. Tài sản bảo đảm",
+    "CS-TD-SME/2025 §6.1 — Danh mục hồ sơ",
+    "Hồ sơ TSĐB",
+    "Tra cứu blacklist và CIC",
+    "get_financials",
+    "get_existing_loans",
+    "ask_document_agent: verified_annual_inflow",
+    "search_credit_policy: CS-TD-SME/2025 §3.1",
+    "search_credit_policy: CS-TD-SME/2025 §4.1 và §6.1",
+    "search_credit_policy: CS-TD-SME/2025 §4.2",
+    "CS-TD-SME/2025 §4.1 – Chất lượng BCTC",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §6.1 – Danh mục hồ sơ",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ",
+    "validation",
+    "validation",
+    "validation",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §4.1 – Chất lượng BCTC",
+    "CS-TD-SME/2025 §6.1 – Danh mục hồ sơ",
+    "CS-TD-SME/2025 §7.1 – LTV và TSBĐ",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ"
+   ],
+   "grade": {
+    "findings": {
+     "total_exposure": true,
+     "audit_required": true,
+     "ltv_ok": true,
+     "leverage_ok": true
+    },
+    "findings_hit": 4,
+    "findings_total": 4,
+    "citations": {
+     "cite_authority": true,
+     "cite_audit": true,
+     "cite_leverage": true
+    },
+    "citations_hit": 3,
+    "citations_total": 3,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_collateral": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [
+     "5",
+     "7",
+     "8"
+    ],
+    "grader_version": "v3",
+    "gate": "PENDING_APPROVAL",
+    "gate_ok": true,
+    "sources_listed": 25,
+    "policy_sources_listed": 16,
+    "policy_sources_used": 13,
+    "citation_precision": 0.8125,
+    "report_chars": 8314,
+    "report_chars_body": 6205
+   },
+   "conclusion_text": "Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_abc2ed24a0bf (chưa hiệu lực)\nĐề nghị vay 40.000.000.000 đồng có thể được chấp thuận có điều kiện. TSĐB đúng collateral_id được đề nghị, giá trị định giá 70.000.000.000 đồng; hạn mức có bảo đảm tối đa tính theo LTV 70% là 49.000.000.000 đồng, nên khoản vay đề nghị nằm trong giới hạn. Blacklist không hit, CIC nhóm 1. Hoàn tất các điều kiện hồ sơ và đăng ký bảo đảm trước giải ngân.\nKYB: pháp nhân ở trạng thái ACTIVE, KYC VERIFIED. Trường người đại diện theo pháp luật đang để trống; thông tin này chưa đối chiếu được. Theo §5, hồ sơ KYB bắt buộc có thông tin người đại diện và UBO; cần hoàn thiện, đối chiếu trước giải ngân.\nAML: kết quả sàng lọc đã thực hiện, không có blacklist hit; trạng thái PEP NOT_PEP, AML risk LOW.\nCIC: nhóm 1, dư nợ quá hạn 0 đồng; không phát sinh ngưỡng từ chối hoặc flag theo dữ liệu tra cứu. Theo §7, CIC phải được kiểm tra lại tại thời điểm giải ngân.\nTSĐB: collateral_id 77100000-0000-4000-8000-000******001 khớp tài sản nhà máy và QSDD, định giá đã thẩm định 70.000.000.000 đồng, tình trạng pháp lý ghi nhận clear. Theo §8, LTV bất động sản tối đa 70%; tính ra hạn mức tối đa 49.000.000.000 đồng. Khoản đề nghị 40.000.000.000 đồng thấp hơn mức này.\nTheo §6.1, BCTC phải kiểm toán khi tổng cấp tín dụng trên 20 tỷ đồng; khoản đề nghị 40 tỷ đồng vượt ngưỡng này. Cần bổ sung BCTC kiểm toán theo yêu cầu hồ sơ.\nHoàn thiện và đối chiếu thông tin người đại diện theo pháp luật, giấy tờ tùy thân, UBO và hồ sơ pháp nhân theo §5 trước giải ngân.\nBổ sung BCTC kiểm toán; xác nhận tổng cấp tín dụng và đáp ứng yêu cầu kiểm toán áp dụng khi tổng cấp tín dụng trên 20 tỷ đồng theo §6.1.\nHoàn tất hợp đồng bảo đảm và đăng ký giao dịch bảo đảm trước giải ngân theo §8.\nTra cứu lại CIC tại thời điểm giải ngân theo §7.\nXác nhận định giá 70.000.000.000 đồng được chấp thuận làm căn cứ chính thức khi thiết lập hạn mức; giới hạn tối đa theo LTV tính từ giá trị hiện có là 49.000.000.000 đồng.\nChưa thể kết luận phê duyệt khoản vay 40 tỷ đồng kỳ hạn 24 tháng do chưa xác nhận BCTC kiểm toán bắt buộc và chưa đủ dữ liệu để kiểm tra các chỉ tiêu trả nợ theo chính sách (DSCR, EBIT/chi phí lãi vay). Dữ liệu hiện có cho thấy đòn bẩy nợ vay/EBITDA sau cấp dự kiến khoảng 3,17 lần, trong ngưỡng chính sách 3,5 lần; cần hoàn tất các kiểm tra còn thiếu trước khi quyết định.\nDòng tiền thực tế: Document Agent xác nhận verified annual inflow = 720 tỷ đồng. BCTC ghi nhận doanh thu 2025 = 800 tỷ đồng; số inflow thấp hơn doanh thu 80 tỷ đồng (10%). Đây là hai chỉ tiêu khác nguồn, cần đối chiếu sao kê/chứng từ và bản chất chênh lệch; không coi inflow là dòng tiền sẵn có để trả nợ.\nKhả năng trả nợ: DSCR chưa tính/đối chiếu được do dữ liệu tài chính không có debt_service, chưa có dòng tiền dùng trả nợ và lịch trả nợ khoản vay mới; chưa xác nhận DSCR đạt mức tối thiểu 1,2 theo yêu cầu thẩm định. Chính sách được tra cứu quy định DSCR dự phóng ≥1,25 lần, Nợ vay/EBITDA sau cấp ≤3,5 lần và EBIT/chi phí lãi vay ≥2,0 lần (CS-TD-SME/2025 §4.2). Do thiếu dữ liệu nghĩa vụ trả nợ dự phóng và EBIT/chi phí lãi vay, chưa kết luận đạt các tiêu chí này.\nĐòn bẩy: Nợ vay hiện tại theo BCTC 150 tỷ đồng, EBITDA 60 tỷ đồng; tỷ lệ hiện tại 2,50 lần. Nếu cộng khoản vay mới 40 tỷ đồng vào tổng nợ vay BCTC, nợ vay sau cấp ước 190 tỷ đồng, tương đương 3,17 lần EBITDA, thấp hơn ngưỡng 3,5 lần tại CS-TD-SME/2025 §4.2. Đây là phép tính dựa trên giả định nợ vay BCTC chưa bao gồm khoản vay mới; cần xác nhận không trùng lặp và cập nhật dư nợ tại thời điểm phê duyệt.\nThanh khoản: Tài sản ngắn hạn 300 tỷ đồng, nợ ngắn hạn 170 tỷ đồng; hệ số hiện hành khoảng 1,76 lần và vốn lưu động ròng 130 tỷ đồng.\nChecklist chính sách – tổng cấp tín dụng: Hai khoản dư nợ hiện hữu tại ngân hàng là 40 tỷ + 20 tỷ = 60 tỷ đồng; cộng đề nghị mới 40 tỷ đồng, tổng tính được là 100 tỷ đồng. Theo CS-TD-SME/2025 §3.1, mức này thuộc nhóm 20–100 tỷ đồng, cấp phê duyệt theo thẩm quyền được cấu hình cho nhóm này. Trích đoạn chính sách nhận được không nêu tên/chức danh cụ thể của cấp phê duyệt. Chưa đối chiếu dư nợ tại tổ chức khác và cấp tín dụng người có liên quan.\nChecklist chính sách – BCTC kiểm toán: Tổng cấp tín dụng tính được 100 tỷ đồng, lớn hơn 20 tỷ đồng nên BCTC kiểm toán với ý kiến chấp nhận toàn phần là bắt buộc theo CS-TD-SME/2025 §6.1 và §4.1. Dữ liệu công cụ hiện có không xác nhận hồ sơ đã có BCTC kiểm toán hay ý kiến kiểm toán; tình trạng hồ sơ chưa đối chiếu, không kết luận là đã có hoặc chưa có.\nBổ sung BCTC kiểm toán với ý kiến chấp nhận toàn phần và xác nhận hồ sơ đáp ứng yêu cầu CS-TD-SME/2025 §4.1, §6.1 trước khi tiếp tục quyết định.\nBổ sung dự phóng dòng tiền trả nợ/CFADS và lịch trả nợ khoản vay mới (gốc, lãi), sau đó tính DSCR dự phóng; đồng thời cung cấp EBIT và chi phí lãi vay để kiểm tra các ngưỡng tại CS-TD-SME/2025 §4.2.\nĐối chiếu inflow đã xác minh 720 tỷ đồng với sao kê 12 tháng, doanh thu BCTC 800 tỷ đồng, xác nhận dư nợ toàn hệ thống và dư nợ/cấp tín dụng người có liên quan; xác nhận nợ vay BCTC không bao gồm khoản vay mới khi tính đòn bẩy sau cấp.\nTrước giải ngân, hoàn thiện các chứng từ mục đích bổ sung vốn lưu động, kiểm tra tài sản bảo đảm và hồ sơ pháp lý/ủy quyền, đồng thời cập nhật dư nợ và thẩm quyền phê duyệt cụ thể theo cấu hình ngân hàng.\nĐỀ XUẤT PHÊ DUYỆT\nDòng tiền thực tế: Document Agent xác nhận verified annual inflow = 720 tỷ đồng. BCTC ghi nhận doanh thu 2025 = 800 tỷ đồng; số inflow thấp hơn doanh thu 80 tỷ đồng (10%). Đây là hai chỉ tiêu khác nguồn, cần đối chiếu sao kê/chứng từ và bản chất chênh lệch; không coi inflow là dòng tiền sẵn có để trả nợ.\nKhả năng trả nợ: DSCR chưa tính/đối chiếu được do dữ liệu tài chính không có debt_service, chưa có dòng tiền dùng trả nợ và lịch trả nợ khoản vay mới; chưa xác nhận DSCR đạt mức tối thiểu 1,2 theo yêu cầu thẩm định. Chính sách được tra cứu quy định DSCR dự phóng ≥1,25 lần, Nợ vay/EBITDA sau cấp ≤3,5 lần và EBIT/chi phí lãi vay ≥2,0 lần (CS-TD-SME/2025 §4.2). Do thiếu dữ liệu nghĩa vụ trả nợ dự phóng và EBIT/chi phí lãi vay, chưa kết luận đạt các tiêu chí này.\nĐòn bẩy: Nợ vay hiện tại theo BCTC 150 tỷ đồng, EBITDA 60 tỷ đồng; tỷ lệ hiện tại 2,50 lần. Nếu cộng khoản vay mới 40 tỷ đồng vào tổng nợ vay BCTC, nợ vay sau cấp ước 190 tỷ đồng, tương đương 3,17 lần EBITDA, thấp hơn ngưỡng 3,5 lần tại CS-TD-SME/2025 §4.2. Đây là phép tính dựa trên giả định nợ vay BCTC chưa bao gồm khoản vay mới; cần xác nhận không trùng lặp và cập nhật dư nợ tại thời điểm phê duyệt.\nThanh khoản: Tài sản ngắn hạn 300 tỷ đồng, nợ ngắn hạn 170 tỷ đồng; hệ số hiện hành khoảng 1,76 lần và vốn lưu động ròng 130 tỷ đồng.\nChecklist chính sách – tổng cấp tín dụng: Hai khoản dư nợ hiện hữu tại ngân hàng là 40 tỷ + 20 tỷ = 60 tỷ đồng; cộng đề nghị mới 40 tỷ đồng, tổng tính được là 100 tỷ đồng. Theo CS-TD-SME/2025 §3.1, mức này thuộc nhóm 20–100 tỷ đồng, cấp phê duyệt theo thẩm quyền được cấu hình cho nhóm này. Trích đoạn chính sách nhận được không nêu tên/chức danh cụ thể của cấp phê duyệt. Chưa đối chiếu dư nợ tại tổ chức khác và cấp tín dụng người có liên quan.\nChecklist chính sách – BCTC kiểm toán: Tổng cấp tín dụng tính được 100 tỷ đồng, lớn hơn 20 tỷ đồng nên BCTC kiểm toán với ý kiến chấp nhận toàn phần là bắt buộc theo CS-TD-SME/2025 §6.1 và §4.1. Dữ liệu công cụ hiện có không xác nhận hồ sơ đã có BCTC kiểm toán hay ý kiến kiểm toán; tình trạng hồ sơ chưa đối chiếu, không kết luận là đã có hoặc chưa có.\nKYB: pháp nhân ở trạng thái ACTIVE, KYC VERIFIED. Trường người đại diện theo pháp luật đang để trống; thông tin này chưa đối chiếu được. Theo §5, hồ sơ KYB bắt buộc có thông tin người đại diện và UBO; cần hoàn thiện, đối chiếu trước giải ngân.\nAML: kết quả sàng lọc đã thực hiện, không có blacklist hit; trạng thái PEP NOT_PEP, AML risk LOW.\nCIC: nhóm 1, dư nợ quá hạn 0 đồng; không phát sinh ngưỡng từ chối hoặc flag theo dữ liệu tra cứu. Theo §7, CIC phải được kiểm tra lại tại thời điểm giải ngân.\nTSĐB: collateral_id 77100000-0000-4000-8000-000******001 khớp tài sản nhà máy và QSDD, định giá đã thẩm định 70.000.000.000 đồng, tình trạng pháp lý ghi nhận clear. Theo §8, LTV bất động sản tối đa 70%; tính ra hạn mức tối đa 49.000.000.000 đồng. Khoản đề nghị 40.000.000.000 đồng thấp hơn mức này.\nTheo §6.1, BCTC phải kiểm toán khi tổng cấp tín dụng trên 20 tỷ đồng; khoản đề nghị 40 tỷ đồng vượt ngưỡng này. Cần bổ sung BCTC kiểm toán theo yêu cầu hồ sơ.\nTính lại tổng cấp tín dụng: dư nợ hiện hữu 60.0 tỷ + đề xuất 40.0 tỷ = 100.0 tỷ; vượt 20 tỷ nên BCTC kiểm toán bắt buộc (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: regional (CS-TD-SME/2025 §3.1)\nTính lại LTV: đề xuất 40.0 tỷ / TSĐB đủ điều kiện 130.0 tỷ = 30.8% (tối đa 70%, tương ứng 91.0 tỷ); trong ngưỡng LTV (CS-TD-SME/2025 §7.1)\nTính lại Nợ vay/EBITDA sau cấp TD (2025): 190.0 tỷ / 60.0 tỷ = 3.17 lần (tối đa 3.5); trong ngưỡng (CS-TD-SME/2025 §4.2)\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nBổ sung BCTC kiểm toán với ý kiến chấp nhận toàn phần và xác nhận hồ sơ đáp ứng yêu cầu CS-TD-SME/2025 §4.1, §6.1 trước khi tiếp tục quyết định.\nBổ sung dự phóng dòng tiền trả nợ/CFADS và lịch trả nợ khoản vay mới (gốc, lãi), sau đó tính DSCR dự phóng; đồng thời cung cấp EBIT và chi phí lãi vay để kiểm tra các ngưỡng tại CS-TD-SME/2025 §4.2.\nĐối chiếu inflow đã xác minh 720 tỷ đồng với sao kê 12 tháng, doanh thu BCTC 800 tỷ đồng, xác nhận dư nợ toàn hệ thống và dư nợ/cấp tín dụng người có liên quan; xác nhận nợ vay BCTC không bao gồm khoản vay mới khi tính đòn bẩy sau cấp.\nTrước giải ngân, hoàn thiện các chứng từ mục đích bổ sung vốn lưu động, kiểm tra tài sản bảo đảm và hồ sơ pháp lý/ủy quyền, đồng thời cập nhật dư nợ và thẩm quyền phê duyệt cụ thể theo cấu hình ngân hàng.\nHoàn thiện và đối chiếu thông tin người đại diện theo pháp luật, giấy tờ tùy thân, UBO và hồ sơ pháp nhân theo §5 trước giải ngân.\nBổ sung BCTC kiểm toán; xác nhận tổng cấp tín dụng và đáp ứng yêu cầu kiểm toán áp dụng khi tổng cấp tín dụng trên 20 tỷ đồng theo §6.1.\nHoàn tất hợp đồng bảo đảm và đăng ký giao dịch bảo đảm trước giải ngân theo §8.\nTra cứu lại CIC tại thời điểm giải ngân theo §7.\nXác nhận định giá 70.000.000.000 đồng được chấp thuận làm căn cứ chính thức khi thiết lập hạn mức; giới hạn tối đa theo LTV tính từ giá trị hiện có là 49.000.000.000 đồng.\nBCTC kiểm toán (ý kiến chấp nhận toàn phần) bắt buộc vì tổng cấp tín dụng > 20 tỷ\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nKẾT LUẬN: Đề xuất phê duyệt CÓ ĐIỀU KIỆN khoản vay 40 tỷ đồng, kỳ hạn 24 tháng. Khoản vay chỉ được giải ngân khi đã hoàn tất các điều kiện tiên quyết nêu dưới đây. Bộ phận tín dụng chưa kết luận được (need_more_info) do còn thiếu dữ liệu kiểm tra khả năng trả nợ.\n\nHẠN MỨC: Đề nghị 40.000.000.000 đồng. Hạn mức có bảo đảm tối đa là 49.000.000.000 đồng, tính theo LTV 70% trên giá trị định giá 70.000.000.000 đồng của TSĐB (collateral_id 77100000-0000-4000-8000-000******001). Khoản đề nghị nằm trong giới hạn này. Tổng cấp tín dụng sau khi cộng dư nợ hiện hữu 60 tỷ đồng là 100 tỷ đồng, thuộc nhóm 20–100 tỷ đồng; cấp phê duyệt theo tính toán lại là cấp khu vực (regional) theo CS-TD-SME/2025 §3.1.\n\nLÝ DO CHÍNH:\n- Tài sản bảo đảm: khớp tài sản, pháp lý ghi nhận clear; LTV tính lại 30,8% trên TSĐB đủ điều kiện 130 tỷ đồng, trong ngưỡng tối đa 70%.\n- Đòn bẩy: nợ vay/EBITDA sau cấp ước 3,17 lần (190/60 tỷ đồng), dưới ngưỡng 3,5 lần theo CS-TD-SME/2025 §4.2. Cần xác nhận nợ vay BCTC không bao gồm khoản vay mới.\n- Thanh khoản: hệ số hiện hành khoảng 1,76 lần; vốn lưu động ròng 130 tỷ đồng.\n- Sàng lọc: không có blacklist hit; AML rủi ro thấp (LOW); PEP: NOT_PEP; CIC nhóm 1, không có nợ quá hạn.\n- Vận hành: đạt; đã tạo bản nháp hồ sơ draft-case_abc2ed24a0bf, chưa có hiệu lực.\n\nĐIỂM CẦN LƯU Ý:\n1. BCTC kiểm toán: tổng cấp tín dụng vượt 20 tỷ đồng nên BCTC kiểm toán với ý kiến chấp nhận toàn phần là bắt buộc (§6.1, §4.1). Dữ liệu hiện chưa xác nhận hồ sơ đã có BCTC này.\n2. Khả năng trả nợ chưa kiểm tra được: chưa có dự phóng CFADS, lịch trả nợ khoản vay mới, nên chưa tính được DSCR (yêu cầu ≥1,25 lần) và EBIT/chi phí lãi vay (yêu cầu ≥2,0 lần).\n3. Đối chiếu dòng tiền: inflow đã xác minh 720 tỷ đồng thấp hơn doanh thu BCTC 2025 là 800 tỷ đồng (chênh 80 tỷ, khoảng 10%). Cần đối chiếu với sao kê 12 tháng; không coi inflow là nguồn trả nợ khi chưa làm rõ.\n4. Hồ sơ KYB: trường người đại diện theo pháp luật đang để trống; cần bổ sung và đối chiếu UBO, giấy tờ tùy thân trước giải ngân (§5).\n5. Dư nợ: chưa đối chiếu dư nợ tại tổ chức khác và cấp tín dụng người có liên quan.\n6. CIC: phải tra cứu lại tại thời điểm giải ngân (§7).\n\nĐIỀU KIỆN TIÊN QUYẾT TRƯỚC GIẢI NGÂN:\n(a) Bổ sung BCTC kiểm toán ý kiến chấp nhận toàn phần.\n(b) Bổ sung dự phóng dòng tiền trả nợ, lịch trả nợ, EBIT và chi phí lãi vay; tính DSCR và kiểm tra các ngưỡng chính sách.\n(c) Đối chiếu inflow 720 tỷ với sao kê và doanh thu 800 tỷ; xác nhận dư nợ toàn hệ thống và dư nợ người có liên quan.\n(d) Hoàn thiện thông tin người đại diện, UBO và hồ sơ pháp nhân.\n(e) Hoàn tất hợp đồng bảo đảm và đăng ký giao dịch bảo đảm theo §8.\n(f) Xác nhận định giá 70 tỷ đồng làm căn cứ chính thức.\n(g) Chứng từ mục đích vốn lưu động và thẩm quyền phê duyệt cụ thể theo cấu hình ngân hàng.\n\nNếu điều kiện (a) hoặc (b) không đáp ứng, cần trình lại hồ sơ; không được giải ngân.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_collateral",
+    "check_blacklist",
+    "get_annual_inflow",
+    "get_existing_loans",
+    "get_financials",
+    "create_loan_draft"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "E5",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 126.0200765132904,
+   "calls": 8,
+   "tokens": {
+    "prompt": 21523,
+    "completion": 9528,
+    "total": 31051
+   },
+   "cost_usd": 0.00623311,
+   "llm_requests": 11,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_5d7dd3e79e43",
+   "final_report_text": "credit: [need_more_info] Chưa thể kết luận cấp tín dụng do thiếu dữ liệu để kiểm tra DSCR dự phóng và khả năng trả nợ theo chính sách. Tổng cấp tín dụng tại ngân hàng tính theo dữ liệu hiện có là 6 tỷ đồng; đề nghị bổ sung dòng tiền trả nợ/dự phóng và lịch trả nợ để tính DSCR trước khi ra quyết định cuối cùng.\ncompliance: [need_more_info] Chưa thể trình phê duyệt do hồ sơ KYB hiện thiếu thông tin người đại diện theo pháp luật và UBO theo yêu cầu chính sách. Blacklist không hit; CIC nhóm 1, dư nợ quá hạn 0 theo kết quả tra cứu. Không có TSĐB được khai báo hoặc ghi nhận, nên hạn mức có bảo đảm tối đa tính trên hồ sơ hiện tại là 0 đồng; chưa đánh giá được điều kiện cấp tín dụng tín chấp từ kết quả chính sách đã tra cứu.\noperations: [pass] Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_5d7dd3e79e43 (chưa hiệu lực)\nPhát hiện:\n- Đề nghị vay 6 tỷ đồng, kỳ hạn 24 tháng, bổ sung vốn lưu động, không có tài sản bảo đảm theo thông tin đề nghị.\n- DSCR: chưa tính/đối chiếu được vì BCTC không có chỉ tiêu debt_service (để trống) và chưa có lịch trả nợ hay dòng tiền trả nợ dự phóng. Chính sách yêu cầu DSCR dự phóng ≥1,25 lần theo CS-TD-SME/2025 §4.2; do vậy chưa thể xác nhận đạt ngưỡng (mức 1,2 nêu trong yêu cầu thẩm định thấp hơn ngưỡng chính sách).\n- Đòn bẩy: nợ vay hiện có trên BCTC 20 tỷ/EBITDA 11 tỷ = 1,82 lần. Nếu cộng khoản vay đề xuất vào tổng nợ, nợ vay sau cấp là 26 tỷ và Nợ vay/EBITDA = 2,36 lần, thấp hơn giới hạn 3,5 lần theo CS-TD-SME/2025 §4.2; phép tính giả định khoản vay đề xuất làm tăng nợ vay trên BCTC và EBITDA không đổi. EBIT/chi phí lãi vay chưa tính được do thiếu EBIT và chi phí lãi vay; chính sách yêu cầu ≥2,0 lần theo §4.2.\n- Dòng tiền thực tế đã đối chiếu qua Document Agent: verified_annual_inflow là 117 tỷ đồng. So với doanh thu BCTC 2025 là 130 tỷ, bằng khoảng 90%; con số này không tự nó chứng minh khả năng trả nợ do chưa có lịch/dự phóng nghĩa vụ trả nợ.\n- Checklist chính sách – tổng cấp tín dụng: get_existing_loans trả danh sách rỗng, tổng dư nợ hiện hữu tại ngân hàng theo dữ liệu công cụ là 0; cộng đề xuất 6 tỷ = tổng cấp tín dụng 6 tỷ đồng. Theo CS-TD-SME/2025 §3.1, thuộc ngưỡng ≤20 tỷ, áp dụng nấc/cấp phê duyệt ≤20 tỷ. Tên chức danh/cấp phê duyệt cụ thể chưa đối chiếu được từ trích xuất chính sách. Không ghi nhận vi phạm ngưỡng theo dữ liệu hiện có.\n- Checklist chính sách – BCTC kiểm toán: với tổng cấp tín dụng 6 tỷ, kiểm toán không bắt buộc theo ngưỡng >20 tỷ tại CS-TD-SME/2025 §6.1; §4.1 yêu cầu ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán. Tình trạng hồ sơ BCTC kiểm toán/ý kiến kiểm toán chưa được cung cấp; không áp dụng yêu cầu bắt buộc kiểm toán theo ngưỡng hiện tính được.\n- Nguồn số liệu tài chính được gắn nhãn DU_LIEU_MAU; cần xác nhận đây là BCTC/hồ sơ chính thức của khách hàng trước khi sử dụng cho quyết định cuối cùng.\n- §5 KYB: hồ sơ pháp nhân bắt buộc có thông tin người đại diện theo pháp luật và UBO; dữ liệu hiện có để trống tên và CCCD người đại diện, chưa có thông tin UBO. Cần hoàn thiện trước khi trình phê duyệt.\n- Blacklist đã sàng lọc, kết quả hit=false; AML risk LOW, NOT_PEP.\n- CIC ghi nhận nhóm 1, quá hạn 0 đồng; chưa thấy dấu hiệu thuộc ngưỡng nhóm 2/nhóm 3 theo kết quả hiện có.\n- Đề nghị vay khai báo không có TSĐB và không có collateral_id; hồ sơ TSĐB trả về rỗng. Chưa có giá trị tài sản được chấp thuận để tính hạn mức có bảo đảm; theo Điều 8, khoản vay có bảo đảm không được vượt LTV nhân giá trị định giá được chấp thuận, LTV BĐS tối đa 70%. Hạn mức có bảo đảm trên hồ sơ hiện tại: 0 đồng.\n- Chưa có căn cứ chính sách được tra cứu để kết luận khoản vay tín chấp 6 tỷ đồng được phép hay không.\n- Tính lại tổng cấp tín dụng: dư nợ hiện hữu 0.0 tỷ + đề xuất 6.0 tỷ = 6.0 tỷ; không vượt 20 tỷ nên chưa bắt buộc BCTC kiểm toán (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: branch (CS-TD-SME/2025 §3.1)\n- Tính lại Nợ vay/EBITDA sau cấp TD (2025): 42.0 tỷ / 11.0 tỷ = 3.82 lần (tối đa 3.5); VƯỢT ngưỡng (CS-TD-SME/2025 §4.2)\n- BCTC ghi nợ vay 20.0 tỷ nhưng CIC ghi 36.0 tỷ ở các TCTD: lấy số cao hơn để tính Nợ vay/EBITDA\n- Nợ vay/EBITDA sau cấp 3.82 lần vượt trần 3.5 (CS-TD-SME/2025 §4.2)\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nĐiều kiện:\n- Bổ sung lịch trả nợ và dự phóng dòng tiền phục vụ nợ để tính DSCR; xác nhận đạt tối thiểu 1,25 lần theo CS-TD-SME/2025 §4.2 trước khi quyết định.\n- Bổ sung EBIT và chi phí lãi vay để kiểm tra EBIT/chi phí lãi vay ≥2,0 lần theo CS-TD-SME/2025 §4.2.\n- Xác minh BCTC và các số liệu tài chính là hồ sơ chính thức của khách hàng; hoàn thiện các hồ sơ vay/giải ngân theo quy định nội bộ.\n- Bổ sung hồ sơ đăng ký doanh nghiệp, thông tin người đại diện theo pháp luật và giấy tờ định danh khớp hồ sơ; cung cấp thông tin UBO để hoàn tất KYB trước khi trình phê duyệt.\n- Nếu tiếp tục theo phương án tín chấp, cần xác nhận căn cứ và điều kiện chính sách áp dụng cho khoản vay không có TSĐB trước khi quyết định cấp tín dụng.\n- Tra CIC lại tại thời điểm giải ngân theo chính sách.\n- Bổ sung phương án giảm đòn bẩy hoặc nguồn trả nợ: Nợ vay/EBITDA sau cấp TD vượt ngưỡng\n- Nợ vay/EBITDA sau cấp 3.82 lần vượt trần 3.5 (CS-TD-SME/2025 §4.2)\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nTrích dẫn:\n- (credit) get_existing_loans: []\n- (credit) get_financials: 2025: revenue 130,000,000,000; EBITDA 11,000,000,000; total_debt 20,000,000,000; equity 45,000,000,000; debt_service null; data_label DU_LIEU_MAU.\n- (credit) ask_document_agent: verified_annual_inflow: 117,000,000,000\n- (credit) CS-TD-SME/2025 §3.1: Theo tổng cấp tín dụng của khách và người có liên quan: ≤ 20 / 20–100 / > 100 tỷ (cấu hình được).\n- (credit) CS-TD-SME/2025 §4.1 và §6.1: BCTC phải có ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán (tổng cấp tín dụng > 20 tỷ, §6.1); hồ sơ gồm BCTC (kiểm toán khi tổng cấp tín dụng > 2\n- (credit) CS-TD-SME/2025 §4.2: DSCR dự phóng ≥ 1,25 lần; Nợ vay/EBITDA sau cấp TD ≤ 3,5 lần; EBIT/chi phí lãi vay ≥ 2,0 lần.\n- (credit) CS-TD-SME/2025 §4.1 – Chất lượng BCTC: ## CS-TD-SME/2025 §4.1 – Chất lượng BCTC\nBCTC phải có ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán (tổng cấp tín dụng > 20 tỷ, §6.1). (trang 4)\n- (credit) CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt: ## CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt\nTheo tổng cấp tín dụng của khách và người có liên quan: ≤ 20 / 20–100 / > 100 tỷ (cấu hình được). (trang 3)\n- (credit) CS-TD-SME/2025 §6.1 – Danh mục hồ sơ: ## CS-TD-SME/2025 §6.1 – Danh mục hồ sơ\nGồm giấy đề nghị cấp tín dụng, văn bản đồng ý tra cứu CIC, BCTC (kiểm toán khi tổng cấp tín dụng > 20 tỷ), sao kê 12 thá\n- (credit) CS-TD-SME/2025 §4.2 – Khả năng trả nợ: ## CS-TD-SME/2025 §4.2 – Khả năng trả nợ\nDSCR dự phóng ≥ 1,25 lần; Nợ vay/EBITDA sau cấp TD ≤ 3,5 lần; EBIT/chi phí lãi vay ≥ 2,0 lần. (trang 4)\n- (compliance) compliance_policy.md — Điều 8: Tỷ lệ cho vay tối đa trên giá trị định giá (LTV) đối với bất động sản là 70%. Hạn mức cho vay có bảo đảm không được vượt quá LTV nhân giá trị định giá được chấp\n- (operations) core-banking:create_loan_draft: draft_id=draft-case_5d7dd3e79e43, TK nhận vốn ******0035",
+   "sources": [
+    "core-banking:create_loan_draft",
+    "compliance_policy.md — Điều 5",
+    "compliance_policy.md — Điều 7",
+    "compliance_policy.md — Điều 8",
+    "get_existing_loans",
+    "get_financials",
+    "ask_document_agent: verified_annual_inflow",
+    "CS-TD-SME/2025 §3.1",
+    "CS-TD-SME/2025 §4.1 và §6.1",
+    "CS-TD-SME/2025 §4.2",
+    "CS-TD-SME/2025 §4.1 – Chất lượng BCTC",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §6.1 – Danh mục hồ sơ",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ",
+    "validation",
+    "validation",
+    "validation",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ"
+   ],
+   "grade": {
+    "findings": {
+     "total_exposure": true,
+     "debt_conflict": true,
+     "leverage_recalc": true
+    },
+    "findings_hit": 3,
+    "findings_total": 3,
+    "citations": {
+     "cite_leverage": true,
+     "cite_authority": true
+    },
+    "citations_hit": 2,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true
+    },
+    "tools_hit": 4,
+    "tools_total": 4,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [
+     "5"
+    ],
+    "grader_version": "v3",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true,
+    "sources_listed": 19,
+    "policy_sources_listed": 12,
+    "policy_sources_used": 10,
+    "citation_precision": 0.8333333333333334,
+    "report_chars": 7224,
+    "report_chars_body": 5343
+   },
+   "conclusion_text": "Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_5d7dd3e79e43 (chưa hiệu lực)\nChưa thể trình phê duyệt do hồ sơ KYB hiện thiếu thông tin người đại diện theo pháp luật và UBO theo yêu cầu chính sách. Blacklist không hit; CIC nhóm 1, dư nợ quá hạn 0 theo kết quả tra cứu. Không có TSĐB được khai báo hoặc ghi nhận, nên hạn mức có bảo đảm tối đa tính trên hồ sơ hiện tại là 0 đồng; chưa đánh giá được điều kiện cấp tín dụng tín chấp từ kết quả chính sách đã tra cứu.\n§5 KYB: hồ sơ pháp nhân bắt buộc có thông tin người đại diện theo pháp luật và UBO; dữ liệu hiện có để trống tên và CCCD người đại diện, chưa có thông tin UBO. Cần hoàn thiện trước khi trình phê duyệt.\nBlacklist đã sàng lọc, kết quả hit=false; AML risk LOW, NOT_PEP.\nCIC ghi nhận nhóm 1, quá hạn 0 đồng; chưa thấy dấu hiệu thuộc ngưỡng nhóm 2/nhóm 3 theo kết quả hiện có.\nĐề nghị vay khai báo không có TSĐB và không có collateral_id; hồ sơ TSĐB trả về rỗng. Chưa có giá trị tài sản được chấp thuận để tính hạn mức có bảo đảm; theo Điều 8, khoản vay có bảo đảm không được vượt LTV nhân giá trị định giá được chấp thuận, LTV BĐS tối đa 70%. Hạn mức có bảo đảm trên hồ sơ hiện tại: 0 đồng.\nChưa có căn cứ chính sách được tra cứu để kết luận khoản vay tín chấp 6 tỷ đồng được phép hay không.\nBổ sung hồ sơ đăng ký doanh nghiệp, thông tin người đại diện theo pháp luật và giấy tờ định danh khớp hồ sơ; cung cấp thông tin UBO để hoàn tất KYB trước khi trình phê duyệt.\nNếu tiếp tục theo phương án tín chấp, cần xác nhận căn cứ và điều kiện chính sách áp dụng cho khoản vay không có TSĐB trước khi quyết định cấp tín dụng.\nTra CIC lại tại thời điểm giải ngân theo chính sách.\nChưa thể kết luận cấp tín dụng do thiếu dữ liệu để kiểm tra DSCR dự phóng và khả năng trả nợ theo chính sách. Tổng cấp tín dụng tại ngân hàng tính theo dữ liệu hiện có là 6 tỷ đồng; đề nghị bổ sung dòng tiền trả nợ/dự phóng và lịch trả nợ để tính DSCR trước khi ra quyết định cuối cùng.\nĐề nghị vay 6 tỷ đồng, kỳ hạn 24 tháng, bổ sung vốn lưu động, không có tài sản bảo đảm theo thông tin đề nghị.\nDSCR: chưa tính/đối chiếu được vì BCTC không có chỉ tiêu debt_service (để trống) và chưa có lịch trả nợ hay dòng tiền trả nợ dự phóng. Chính sách yêu cầu DSCR dự phóng ≥1,25 lần theo CS-TD-SME/2025 §4.2; do vậy chưa thể xác nhận đạt ngưỡng (mức 1,2 nêu trong yêu cầu thẩm định thấp hơn ngưỡng chính sách).\nĐòn bẩy: nợ vay hiện có trên BCTC 20 tỷ/EBITDA 11 tỷ = 1,82 lần. Nếu cộng khoản vay đề xuất vào tổng nợ, nợ vay sau cấp là 26 tỷ và Nợ vay/EBITDA = 2,36 lần, thấp hơn giới hạn 3,5 lần theo CS-TD-SME/2025 §4.2; phép tính giả định khoản vay đề xuất làm tăng nợ vay trên BCTC và EBITDA không đổi. EBIT/chi phí lãi vay chưa tính được do thiếu EBIT và chi phí lãi vay; chính sách yêu cầu ≥2,0 lần theo §4.2.\nDòng tiền thực tế đã đối chiếu qua Document Agent: verified_annual_inflow là 117 tỷ đồng. So với doanh thu BCTC 2025 là 130 tỷ, bằng khoảng 90%; con số này không tự nó chứng minh khả năng trả nợ do chưa có lịch/dự phóng nghĩa vụ trả nợ.\nChecklist chính sách – tổng cấp tín dụng: get_existing_loans trả danh sách rỗng, tổng dư nợ hiện hữu tại ngân hàng theo dữ liệu công cụ là 0; cộng đề xuất 6 tỷ = tổng cấp tín dụng 6 tỷ đồng. Theo CS-TD-SME/2025 §3.1, thuộc ngưỡng ≤20 tỷ, áp dụng nấc/cấp phê duyệt ≤20 tỷ. Tên chức danh/cấp phê duyệt cụ thể chưa đối chiếu được từ trích xuất chính sách. Không ghi nhận vi phạm ngưỡng theo dữ liệu hiện có.\nChecklist chính sách – BCTC kiểm toán: với tổng cấp tín dụng 6 tỷ, kiểm toán không bắt buộc theo ngưỡng >20 tỷ tại CS-TD-SME/2025 §6.1; §4.1 yêu cầu ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán. Tình trạng hồ sơ BCTC kiểm toán/ý kiến kiểm toán chưa được cung cấp; không áp dụng yêu cầu bắt buộc kiểm toán theo ngưỡng hiện tính được.\nNguồn số liệu tài chính được gắn nhãn DU_LIEU_MAU; cần xác nhận đây là BCTC/hồ sơ chính thức của khách hàng trước khi sử dụng cho quyết định cuối cùng.\nBổ sung lịch trả nợ và dự phóng dòng tiền phục vụ nợ để tính DSCR; xác nhận đạt tối thiểu 1,25 lần theo CS-TD-SME/2025 §4.2 trước khi quyết định.\nBổ sung EBIT và chi phí lãi vay để kiểm tra EBIT/chi phí lãi vay ≥2,0 lần theo CS-TD-SME/2025 §4.2.\nXác minh BCTC và các số liệu tài chính là hồ sơ chính thức của khách hàng; hoàn thiện các hồ sơ vay/giải ngân theo quy định nội bộ.\nCẦN BỔ SUNG/ĐIỀU CHỈNH: Nợ vay/EBITDA sau cấp 3.82 lần vượt trần 3.5 (CS-TD-SME/2025 §4.2)\nĐề nghị vay 6 tỷ đồng, kỳ hạn 24 tháng, bổ sung vốn lưu động, không có tài sản bảo đảm theo thông tin đề nghị.\nDSCR: chưa tính/đối chiếu được vì BCTC không có chỉ tiêu debt_service (để trống) và chưa có lịch trả nợ hay dòng tiền trả nợ dự phóng. Chính sách yêu cầu DSCR dự phóng ≥1,25 lần theo CS-TD-SME/2025 §4.2; do vậy chưa thể xác nhận đạt ngưỡng (mức 1,2 nêu trong yêu cầu thẩm định thấp hơn ngưỡng chính sách).\nĐòn bẩy: nợ vay hiện có trên BCTC 20 tỷ/EBITDA 11 tỷ = 1,82 lần. Nếu cộng khoản vay đề xuất vào tổng nợ, nợ vay sau cấp là 26 tỷ và Nợ vay/EBITDA = 2,36 lần, thấp hơn giới hạn 3,5 lần theo CS-TD-SME/2025 §4.2; phép tính giả định khoản vay đề xuất làm tăng nợ vay trên BCTC và EBITDA không đổi. EBIT/chi phí lãi vay chưa tính được do thiếu EBIT và chi phí lãi vay; chính sách yêu cầu ≥2,0 lần theo §4.2.\nDòng tiền thực tế đã đối chiếu qua Document Agent: verified_annual_inflow là 117 tỷ đồng. So với doanh thu BCTC 2025 là 130 tỷ, bằng khoảng 90%; con số này không tự nó chứng minh khả năng trả nợ do chưa có lịch/dự phóng nghĩa vụ trả nợ.\nChecklist chính sách – tổng cấp tín dụng: get_existing_loans trả danh sách rỗng, tổng dư nợ hiện hữu tại ngân hàng theo dữ liệu công cụ là 0; cộng đề xuất 6 tỷ = tổng cấp tín dụng 6 tỷ đồng. Theo CS-TD-SME/2025 §3.1, thuộc ngưỡng ≤20 tỷ, áp dụng nấc/cấp phê duyệt ≤20 tỷ. Tên chức danh/cấp phê duyệt cụ thể chưa đối chiếu được từ trích xuất chính sách. Không ghi nhận vi phạm ngưỡng theo dữ liệu hiện có.\nChecklist chính sách – BCTC kiểm toán: với tổng cấp tín dụng 6 tỷ, kiểm toán không bắt buộc theo ngưỡng >20 tỷ tại CS-TD-SME/2025 §6.1; §4.1 yêu cầu ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán. Tình trạng hồ sơ BCTC kiểm toán/ý kiến kiểm toán chưa được cung cấp; không áp dụng yêu cầu bắt buộc kiểm toán theo ngưỡng hiện tính được.\nNguồn số liệu tài chính được gắn nhãn DU_LIEU_MAU; cần xác nhận đây là BCTC/hồ sơ chính thức của khách hàng trước khi sử dụng cho quyết định cuối cùng.\n§5 KYB: hồ sơ pháp nhân bắt buộc có thông tin người đại diện theo pháp luật và UBO; dữ liệu hiện có để trống tên và CCCD người đại diện, chưa có thông tin UBO. Cần hoàn thiện trước khi trình phê duyệt.\nBlacklist đã sàng lọc, kết quả hit=false; AML risk LOW, NOT_PEP.\nCIC ghi nhận nhóm 1, quá hạn 0 đồng; chưa thấy dấu hiệu thuộc ngưỡng nhóm 2/nhóm 3 theo kết quả hiện có.\nĐề nghị vay khai báo không có TSĐB và không có collateral_id; hồ sơ TSĐB trả về rỗng. Chưa có giá trị tài sản được chấp thuận để tính hạn mức có bảo đảm; theo Điều 8, khoản vay có bảo đảm không được vượt LTV nhân giá trị định giá được chấp thuận, LTV BĐS tối đa 70%. Hạn mức có bảo đảm trên hồ sơ hiện tại: 0 đồng.\nChưa có căn cứ chính sách được tra cứu để kết luận khoản vay tín chấp 6 tỷ đồng được phép hay không.\nTính lại tổng cấp tín dụng: dư nợ hiện hữu 0.0 tỷ + đề xuất 6.0 tỷ = 6.0 tỷ; không vượt 20 tỷ nên chưa bắt buộc BCTC kiểm toán (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: branch (CS-TD-SME/2025 §3.1)\nTính lại Nợ vay/EBITDA sau cấp TD (2025): 42.0 tỷ / 11.0 tỷ = 3.82 lần (tối đa 3.5); VƯỢT ngưỡng (CS-TD-SME/2025 §4.2)\nBCTC ghi nợ vay 20.0 tỷ nhưng CIC ghi 36.0 tỷ ở các TCTD: lấy số cao hơn để tính Nợ vay/EBITDA\nNợ vay/EBITDA sau cấp 3.82 lần vượt trần 3.5 (CS-TD-SME/2025 §4.2)\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nBổ sung lịch trả nợ và dự phóng dòng tiền phục vụ nợ để tính DSCR; xác nhận đạt tối thiểu 1,25 lần theo CS-TD-SME/2025 §4.2 trước khi quyết định.\nBổ sung EBIT và chi phí lãi vay để kiểm tra EBIT/chi phí lãi vay ≥2,0 lần theo CS-TD-SME/2025 §4.2.\nXác minh BCTC và các số liệu tài chính là hồ sơ chính thức của khách hàng; hoàn thiện các hồ sơ vay/giải ngân theo quy định nội bộ.\nBổ sung hồ sơ đăng ký doanh nghiệp, thông tin người đại diện theo pháp luật và giấy tờ định danh khớp hồ sơ; cung cấp thông tin UBO để hoàn tất KYB trước khi trình phê duyệt.\nNếu tiếp tục theo phương án tín chấp, cần xác nhận căn cứ và điều kiện chính sách áp dụng cho khoản vay không có TSĐB trước khi quyết định cấp tín dụng.\nTra CIC lại tại thời điểm giải ngân theo chính sách.\nBổ sung phương án giảm đòn bẩy hoặc nguồn trả nợ: Nợ vay/EBITDA sau cấp TD vượt ngưỡng\nNợ vay/EBITDA sau cấp 3.82 lần vượt trần 3.5 (CS-TD-SME/2025 §4.2)\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nKẾT LUẬN: Cổng xác định là CẦN BỔ SUNG/ĐIỀU CHỈNH (need_more_info). Chưa đủ cơ sở trình phê duyệt cấp tín dụng. Bản nháp hồ sơ draft-case_5d7dd3e79e43 đã được tạo nhưng chưa có hiệu lực.\n\nHẠN MỨC: Đề nghị 6 tỷ đồng, kỳ hạn 24 tháng, bổ sung vốn lưu động. Tổng cấp tín dụng tại ngân hàng là 6 tỷ đồng (dư nợ hiện hữu bằng 0), thuộc ngưỡng ≤20 tỷ theo CS-TD-SME/2025 §3.1. Hạn mức có bảo đảm tối đa hiện tại là 0 đồng do không có TSĐB. Chưa xác nhận được khả năng cấp tín chấp.\n\nLÝ DO CHÍNH:\n1. Đòn bẩy vượt trần: Nợ vay/EBITDA sau cấp được tính lại là 3.82 lần (42 tỷ / 11 tỷ), vượt trần 3.5 lần theo CS-TD-SME/2025 §4.2. Phép tính này dùng dư nợ 36 tỷ theo CIC, cao hơn số 20 tỷ trên BCTC. Nếu dùng BCTC (20 tỷ + 6 tỷ = 26 tỷ), tỷ lệ là 2.36 lần và đạt. Chênh lệch này cần được giải trình trước khi quyết định.\n2. Chưa kiểm được DSCR dự phóng: BCTC thiếu chỉ tiêu nghĩa vụ trả nợ, chưa có lịch trả nợ và dòng tiền trả nợ dự phóng. Chính sách yêu cầu tối thiểu 1.25 lần; mức 1.2 trong yêu cầu thẩm định thấp hơn ngưỡng này.\n3. Chưa kiểm được EBIT/chi phí lãi vay: chính sách yêu cầu tối thiểu 2.0 lần nhưng thiếu dữ liệu EBIT và chi phí lãi vay.\n4. Hồ sơ KYB chưa đầy đủ: thiếu tên và CCCD người đại diện theo pháp luật, chưa có thông tin UBO theo §5.\n5. Chưa có căn cứ chính sách cho khoản vay tín chấp 6 tỷ đồng không có TSĐB.\n\nĐIỂM CẦN LƯU Ý:\n- Dòng tiền thực tế đã xác minh là 117 tỷ đồng, khoảng 90% doanh thu BCTC 2025 (130 tỷ). Đây là tín hiệu tích cực nhưng không thay thế được lịch trả nợ và DSCR dự phóng.\n- Dữ liệu tài chính được gắn nhãn DU_LIEU_MAU; cần xác nhận BCTC là hồ sơ chính thức của khách hàng.\n- Không bắt buộc BCTC kiểm toán ở mức 6 tỷ (§6.1), nhưng tình trạng kiểm toán chưa được cung cấp.\n- Compliance: Blacklist không hit; AML rủi ro thấp, không phải PEP; CIC nhóm 1, nợ quá hạn 0. Cần tra CIC lại tại thời điểm giải ngân.\n- Vận hành đã đạt.\n\nKHUYẾN NGHỊ: Yêu cầu khách hàng bổ sung (a) lịch trả nợ và dự phóng dòng tiền để tính DSCR; (b) EBIT và chi phí lãi vay; (c) thông tin người đại diện, UBO và hồ sơ đăng ký doanh nghiệp; (d) xác nhận chính thức BCTC; (e) giải trình chênh lệch dư nợ 20 tỷ (BCTC) và 36 tỷ (CIC). Đồng thời, bộ phận tín dụng cần xác định phương án có TSĐB hoặc căn cứ chính sách cho tín chấp. Chỉ trình phê duyệt khi các điều kiện trên được đáp ứng và tỷ lệ Nợ vay/EBITDA sau cấp đạt trần 3.5 lần.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_collateral",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_annual_inflow",
+    "get_financials",
+    "create_loan_draft"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "E6",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 58.453465938568115,
+   "calls": 8,
+   "tokens": {
+    "prompt": 15791,
+    "completion": 8345,
+    "total": 24136
+   },
+   "cost_usd": 0.005421815,
+   "llm_requests": 9,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_3d5419bf4c65",
+   "final_report_text": "credit: [need_more_info] [ĐÃ ĐIỀU CHỈNH] Hạn mức đề xuất 16,800,000,000 VND (giảm từ 20,000,000,000) theo giới hạn bảo đảm\ncompliance: [need_more_info] Chưa thể kết luận chấp thuận đề nghị 20 tỷ đồng với TSĐB hiện có: hạn mức tối đa theo LTV tính được là 16,8 tỷ đồng, thấp hơn đề nghị 3,2 tỷ đồng. Cần giảm khoản vay hoặc bổ sung TSĐB đủ điều kiện; đồng thời hoàn thiện thông tin người đại diện theo pháp luật trong hồ sơ KYB.\noperations: [pass] Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_3d5419bf4c65 (chưa hiệu lực)\nPhát hiện:\n- Tổng cấp tín dụng tính theo dữ liệu đã cung cấp = dư nợ hiện hữu tại ngân hàng 0 tỷ (get_existing_loans trả danh sách rỗng) + đề xuất mới 20 tỷ = 20 tỷ. Theo CS-TD-SME/2025 §3.1, thuộc ngưỡng ≤20 tỷ; kết quả tra cứu chỉ nêu các ngưỡng thẩm quyền, không nêu tên cấp/đơn vị phê duyệt tương ứng nên tên cấp phê duyệt cụ thể chưa đối chiếu được.\n- Theo CS-TD-SME/2025 §6.1, kiểm toán BCTC được yêu cầu khi tổng cấp tín dụng >20 tỷ; tổng tính được là đúng 20 tỷ nên kiểm toán BCTC không bắt buộc theo ngưỡng này. Tình trạng hồ sơ BCTC/kiểm toán chưa được cung cấp, do đó chưa xác nhận hồ sơ đã có; CS-TD-SME/2025 §4.1 yêu cầu ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán.\n- Chính sách truy xuất được quy định DSCR dự phóng ≥1,25 lần, Nợ vay/EBITDA sau cấp ≤3,5 lần và EBIT/chi phí lãi vay ≥2,0 lần (CS-TD-SME/2025 §4.2). Không có lịch trả nợ, chi phí trả nợ dự phóng, EBIT hoặc chi phí lãi vay nên DSCR và chỉ tiêu EBIT/lãi vay chưa tính được; chưa thể xác nhận đạt hay vi phạm.\n- Nếu dùng số liệu tài chính 2025 được trả về (nhãn DU_LIEU_MAU), Nợ vay/EBITDA sau cấp = (30 + 20)/28 = 1,79 lần, thấp hơn giới hạn 3,5 lần theo CS-TD-SME/2025 §4.2. Nợ vay/vốn chủ sở hữu sau cấp = (30 + 20)/100 = 0,50 lần. Các phép tính này dựa trên số liệu mẫu, cần xác minh BCTC chính thức.\n- Document Agent xác nhận verified_annual_inflow 72 tỷ đồng/năm. So với doanh thu 2025 240 tỷ đồng trong dữ liệu mẫu, dòng tiền xác minh tương đương 30% doanh thu; đây là chênh lệch cần đối chiếu nguồn doanh thu và tài khoản thu, nhưng chưa đủ thông tin để kết luận có sai lệch hoặc thiếu hụt dòng tiền.\n- DSCR chưa tính được do thiếu dữ liệu nghĩa vụ trả nợ và dự phóng dòng tiền, nên đây là dữ liệu chặn việc xác nhận đạt ngưỡng khả năng trả nợ theo CS-TD-SME/2025 §4.2; chưa kết luận vi phạm DSCR.\n- Blacklist: kết quả tra cứu screened=true, hit=false; không ghi nhận hit.\n- CIC nhóm 1, dư nợ quá hạn 0; không rơi vào ngưỡng từ chối nhóm 3 trở lên hoặc yêu cầu flag do nhóm 2.\n- TSĐB là bất động sản, định giá 24 tỷ đồng, trạng thái định giá APPRAISED và pháp lý ghi nhận clear. Theo §8, LTV tối đa 70%, nên hạn mức có bảo đảm tối đa tính được là 24 tỷ × 70% = 16,8 tỷ đồng; đề nghị 20 tỷ đồng vượt giới hạn này 3,2 tỷ đồng.\n- Theo §5, hồ sơ KYB bắt buộc có thông tin người đại diện theo pháp luật và phải đối chiếu với giấy tờ tùy thân, hồ sơ đăng ký doanh nghiệp. Trường dữ liệu tên và CCCD người đại diện đang để trống nên chưa thể xác nhận hoàn tất yêu cầu này.\n- Tính lại tổng cấp tín dụng: dư nợ hiện hữu 0.0 tỷ + đề xuất 20.0 tỷ = 20.0 tỷ; không vượt 20 tỷ nên chưa bắt buộc BCTC kiểm toán (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: branch (CS-TD-SME/2025 §3.1)\n- Tính lại LTV: đề xuất 20.0 tỷ / TSĐB đủ điều kiện 24.0 tỷ = 83.3% (tối đa 70%, tương ứng 16.8 tỷ); VƯỢT ngưỡng LTV (CS-TD-SME/2025 §7.1)\n- Tính lại Nợ vay/EBITDA sau cấp TD (2025): 50.0 tỷ / 28.0 tỷ = 1.79 lần (tối đa 3.5); trong ngưỡng (CS-TD-SME/2025 §4.2)\n- Tiền về tài khoản 12 tháng 72.0 tỷ chỉ bằng 30% doanh thu BCTC 240.0 tỷ — cần đối chiếu số liệu\n- LTV 83.3% vượt trần 70% (CS-TD-SME/2025 §7.1)\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nĐiều kiện:\n- Bổ sung lịch trả nợ dự kiến của khoản vay và toàn bộ nghĩa vụ nợ, cùng dự phóng dòng tiền khả dụng để tính DSCR; yêu cầu tối thiểu theo chính sách tra cứu là 1,25 lần.\n- Đối chiếu dòng tiền vào đã xác minh 72 tỷ đồng/năm với doanh thu, sao kê và các tài khoản nhận tiền; xác minh tính đại diện của dòng tiền.\n- Xác minh BCTC chính thức, số dư nợ và các số liệu trong hồ sơ; dữ liệu tài chính hiện nhận có nhãn DU_LIEU_MAU.\n- Hoàn thiện kiểm tra mục đích vốn lưu động, CIC, hồ sơ pháp lý và thẩm định giá/tính pháp lý của tài sản bảo đảm trước khi giải ngân.\n- Điều chỉnh khoản vay không vượt quá 16,8 tỷ đồng hoặc bổ sung TSĐB đủ điều kiện và thẩm định để tính lại hạn mức.\n- Bổ sung/đối chiếu thông tin người đại diện theo pháp luật cùng hồ sơ pháp nhân, UBO theo yêu cầu KYB trước khi trình phê duyệt.\n- Trước giải ngân, xác minh giấy chứng nhận quyền sử dụng hợp pháp, tình trạng không tranh chấp/không thuộc quy hoạch giải tỏa và đăng ký giao dịch bảo đảm theo §8.\n- Tra cứu lại CIC tại thời điểm giải ngân theo §7.\n- Tiền về tài khoản 12 tháng 72.0 tỷ chỉ bằng 30% doanh thu BCTC 240.0 tỷ — cần đối chiếu số liệu\n- LTV 83.3% vượt trần 70% (CS-TD-SME/2025 §7.1)\n- Bổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nTrích dẫn:\n- (credit) get_existing_loans: []\n- (credit) Đề nghị vay của khách hàng: amount: 20000000000.0 VND; term_months: 24; purpose: Bổ sung vốn lưu động\n- (credit) CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt: Theo tổng cấp tín dụng của khách và người có liên quan: ≤ 20 / 20–100 / > 100 tỷ (cấu hình được).\n- (credit) CS-TD-SME/2025 §6.1 – Danh mục hồ sơ: BCTC (kiểm toán khi tổng cấp tín dụng > 20 tỷ).\n- (credit) CS-TD-SME/2025 §4.1 – Chất lượng BCTC: BCTC phải có ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán (tổng cấp tín dụng > 20 tỷ, §6.1).\n- (credit) CS-TD-SME/2025 §4.2 – Khả năng trả nợ: DSCR dự phóng ≥ 1,25 lần; Nợ vay/EBITDA sau cấp TD ≤ 3,5 lần; EBIT/chi phí lãi vay ≥ 2,0 lần.\n- (credit) get_financials: 2025: revenue 240000000000; EBITDA 28000000000; total_debt 30000000000; equity 100000000000; debt_service null; data_label DU_LIEU_MAU.\n- (credit) ask_document_agent: verified_annual_inflow: 72000000000\n- (compliance) compliance_policy.md — §8 Điều 8. Tài sản bảo đảm: Tỷ lệ cho vay tối đa trên giá trị định giá (LTV) đối với bất động sản là 70%. Hạn mức cho vay có bảo đảm không được vượt quá LTV nhân giá trị định giá được chấp\n- (compliance) compliance_policy.md — §5 Điều 5. Nhận biết khách hàng doanh nghiệp (KYB): Hồ sơ pháp nhân bắt buộc gồm: giấy chứng nhận đăng ký doanh nghiệp, mã số thuế, thông tin người đại diện theo pháp luật và chủ sở hữu hưởng lợi cuối cùng (UBO).\n- (compliance) compliance_policy.md — §7 Điều 7. Lịch sử tín dụng CIC: Khách hàng có nợ nhóm 3 trở lên tại thời điểm thẩm định: không đủ điều kiện cấp tín dụng. ... Kết quả tra cứu CIC phải được kiểm tra lại tại thời điểm giải ngân\n- (compliance) get_collateral: valuation: 24000000000.0; valuation_status: APPRAISED; legal_status: clear\n- (compliance) check_blacklist: hit: false; screened: true\n- (compliance) get_cic_status: cic_group: 1; overdue_amount: 0\n- (operations) core-banking:create_loan_draft: draft_id=draft-case_3d5419bf4c65, TK nhận vốn ******0036",
+   "sources": [
+    "core-banking:create_loan_draft",
+    "compliance_policy.md — §8 Điều 8. Tài sản bảo đảm",
+    "compliance_policy.md — §5 Điều 5. Nhận biết khách hàng doanh nghiệp (KYB)",
+    "compliance_policy.md — §7 Điều 7. Lịch sử tín dụng CIC",
+    "get_collateral",
+    "check_blacklist",
+    "get_cic_status",
+    "get_existing_loans",
+    "Đề nghị vay của khách hàng",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §6.1 – Danh mục hồ sơ",
+    "CS-TD-SME/2025 §4.1 – Chất lượng BCTC",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ",
+    "get_financials",
+    "ask_document_agent: verified_annual_inflow",
+    "validation",
+    "validation",
+    "validation",
+    "validation",
+    "validation",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §7.1 – LTV và TSBĐ",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ"
+   ],
+   "grade": {
+    "findings": {
+     "ltv_over": true,
+     "max_secured": true,
+     "appraisal_gap": false,
+     "inflow_gap": false,
+     "total_exposure": true
+    },
+    "findings_hit": 3,
+    "findings_total": 5,
+    "citations": {
+     "cite_ltv": true,
+     "cite_authority": true
+    },
+    "citations_hit": 2,
+    "citations_total": 2,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_collateral": true,
+     "get_annual_inflow": true
+    },
+    "tools_hit": 6,
+    "tools_total": 6,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [
+     "5",
+     "7",
+     "8"
+    ],
+    "grader_version": "v3",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true,
+    "sources_listed": 23,
+    "policy_sources_listed": 10,
+    "policy_sources_used": 10,
+    "citation_precision": 1.0,
+    "report_chars": 7068,
+    "report_chars_body": 5086
+   },
+   "conclusion_text": "Điều kiện vận hành đạt. Đã tạo bản nháp draft-case_3d5419bf4c65 (chưa hiệu lực)\nChưa thể kết luận chấp thuận đề nghị 20 tỷ đồng với TSĐB hiện có: hạn mức tối đa theo LTV tính được là 16,8 tỷ đồng, thấp hơn đề nghị 3,2 tỷ đồng. Cần giảm khoản vay hoặc bổ sung TSĐB đủ điều kiện; đồng thời hoàn thiện thông tin người đại diện theo pháp luật trong hồ sơ KYB.\nBlacklist: kết quả tra cứu screened=true, hit=false; không ghi nhận hit.\nCIC nhóm 1, dư nợ quá hạn 0; không rơi vào ngưỡng từ chối nhóm 3 trở lên hoặc yêu cầu flag do nhóm 2.\nTSĐB là bất động sản, định giá 24 tỷ đồng, trạng thái định giá APPRAISED và pháp lý ghi nhận clear. Theo §8, LTV tối đa 70%, nên hạn mức có bảo đảm tối đa tính được là 24 tỷ × 70% = 16,8 tỷ đồng; đề nghị 20 tỷ đồng vượt giới hạn này 3,2 tỷ đồng.\nTheo §5, hồ sơ KYB bắt buộc có thông tin người đại diện theo pháp luật và phải đối chiếu với giấy tờ tùy thân, hồ sơ đăng ký doanh nghiệp. Trường dữ liệu tên và CCCD người đại diện đang để trống nên chưa thể xác nhận hoàn tất yêu cầu này.\nĐiều chỉnh khoản vay không vượt quá 16,8 tỷ đồng hoặc bổ sung TSĐB đủ điều kiện và thẩm định để tính lại hạn mức.\nBổ sung/đối chiếu thông tin người đại diện theo pháp luật cùng hồ sơ pháp nhân, UBO theo yêu cầu KYB trước khi trình phê duyệt.\nTrước giải ngân, xác minh giấy chứng nhận quyền sử dụng hợp pháp, tình trạng không tranh chấp/không thuộc quy hoạch giải tỏa và đăng ký giao dịch bảo đảm theo §8.\nTra cứu lại CIC tại thời điểm giải ngân theo §7.\nChưa đủ cơ sở kết luận khả năng trả nợ theo ngưỡng DSCR của chính sách: hồ sơ chưa có lịch trả nợ và dự phóng dòng tiền/chi phí trả nợ để tính DSCR. Dữ liệu hiện có cho thấy đòn bẩy sau cấp ở mức thấp hơn giới hạn chính sách, nhưng chưa thay thế được phép thử DSCR. Đề nghị bổ sung dự phóng dòng tiền và lịch trả nợ để hoàn tất thẩm định.\nTổng cấp tín dụng tính theo dữ liệu đã cung cấp = dư nợ hiện hữu tại ngân hàng 0 tỷ (get_existing_loans trả danh sách rỗng) + đề xuất mới 20 tỷ = 20 tỷ. Theo CS-TD-SME/2025 §3.1, thuộc ngưỡng ≤20 tỷ; kết quả tra cứu chỉ nêu các ngưỡng thẩm quyền, không nêu tên cấp/đơn vị phê duyệt tương ứng nên tên cấp phê duyệt cụ thể chưa đối chiếu được.\nTheo CS-TD-SME/2025 §6.1, kiểm toán BCTC được yêu cầu khi tổng cấp tín dụng >20 tỷ; tổng tính được là đúng 20 tỷ nên kiểm toán BCTC không bắt buộc theo ngưỡng này. Tình trạng hồ sơ BCTC/kiểm toán chưa được cung cấp, do đó chưa xác nhận hồ sơ đã có; CS-TD-SME/2025 §4.1 yêu cầu ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán.\nChính sách truy xuất được quy định DSCR dự phóng ≥1,25 lần, Nợ vay/EBITDA sau cấp ≤3,5 lần và EBIT/chi phí lãi vay ≥2,0 lần (CS-TD-SME/2025 §4.2). Không có lịch trả nợ, chi phí trả nợ dự phóng, EBIT hoặc chi phí lãi vay nên DSCR và chỉ tiêu EBIT/lãi vay chưa tính được; chưa thể xác nhận đạt hay vi phạm.\nNếu dùng số liệu tài chính 2025 được trả về (nhãn DU_LIEU_MAU), Nợ vay/EBITDA sau cấp = (30 + 20)/28 = 1,79 lần, thấp hơn giới hạn 3,5 lần theo CS-TD-SME/2025 §4.2. Nợ vay/vốn chủ sở hữu sau cấp = (30 + 20)/100 = 0,50 lần. Các phép tính này dựa trên số liệu mẫu, cần xác minh BCTC chính thức.\nDocument Agent xác nhận verified_annual_inflow 72 tỷ đồng/năm. So với doanh thu 2025 240 tỷ đồng trong dữ liệu mẫu, dòng tiền xác minh tương đương 30% doanh thu; đây là chênh lệch cần đối chiếu nguồn doanh thu và tài khoản thu, nhưng chưa đủ thông tin để kết luận có sai lệch hoặc thiếu hụt dòng tiền.\nDSCR chưa tính được do thiếu dữ liệu nghĩa vụ trả nợ và dự phóng dòng tiền, nên đây là dữ liệu chặn việc xác nhận đạt ngưỡng khả năng trả nợ theo CS-TD-SME/2025 §4.2; chưa kết luận vi phạm DSCR.\nBổ sung lịch trả nợ dự kiến của khoản vay và toàn bộ nghĩa vụ nợ, cùng dự phóng dòng tiền khả dụng để tính DSCR; yêu cầu tối thiểu theo chính sách tra cứu là 1,25 lần.\nĐối chiếu dòng tiền vào đã xác minh 72 tỷ đồng/năm với doanh thu, sao kê và các tài khoản nhận tiền; xác minh tính đại diện của dòng tiền.\nXác minh BCTC chính thức, số dư nợ và các số liệu trong hồ sơ; dữ liệu tài chính hiện nhận có nhãn DU_LIEU_MAU.\nHoàn thiện kiểm tra mục đích vốn lưu động, CIC, hồ sơ pháp lý và thẩm định giá/tính pháp lý của tài sản bảo đảm trước khi giải ngân.\nCẦN BỔ SUNG/ĐIỀU CHỈNH: Tiền về tài khoản 12 tháng 72.0 tỷ chỉ bằng 30% doanh thu BCTC 240.0 tỷ — cần đối chiếu số liệu; LTV 83.3% vượt trần 70% (CS-TD-SME/2025 §7.1)\nTổng cấp tín dụng tính theo dữ liệu đã cung cấp = dư nợ hiện hữu tại ngân hàng 0 tỷ (get_existing_loans trả danh sách rỗng) + đề xuất mới 20 tỷ = 20 tỷ. Theo CS-TD-SME/2025 §3.1, thuộc ngưỡng ≤20 tỷ; kết quả tra cứu chỉ nêu các ngưỡng thẩm quyền, không nêu tên cấp/đơn vị phê duyệt tương ứng nên tên cấp phê duyệt cụ thể chưa đối chiếu được.\nTheo CS-TD-SME/2025 §6.1, kiểm toán BCTC được yêu cầu khi tổng cấp tín dụng >20 tỷ; tổng tính được là đúng 20 tỷ nên kiểm toán BCTC không bắt buộc theo ngưỡng này. Tình trạng hồ sơ BCTC/kiểm toán chưa được cung cấp, do đó chưa xác nhận hồ sơ đã có; CS-TD-SME/2025 §4.1 yêu cầu ý kiến chấp nhận toàn phần khi thuộc diện bắt buộc kiểm toán.\nChính sách truy xuất được quy định DSCR dự phóng ≥1,25 lần, Nợ vay/EBITDA sau cấp ≤3,5 lần và EBIT/chi phí lãi vay ≥2,0 lần (CS-TD-SME/2025 §4.2). Không có lịch trả nợ, chi phí trả nợ dự phóng, EBIT hoặc chi phí lãi vay nên DSCR và chỉ tiêu EBIT/lãi vay chưa tính được; chưa thể xác nhận đạt hay vi phạm.\nNếu dùng số liệu tài chính 2025 được trả về (nhãn DU_LIEU_MAU), Nợ vay/EBITDA sau cấp = (30 + 20)/28 = 1,79 lần, thấp hơn giới hạn 3,5 lần theo CS-TD-SME/2025 §4.2. Nợ vay/vốn chủ sở hữu sau cấp = (30 + 20)/100 = 0,50 lần. Các phép tính này dựa trên số liệu mẫu, cần xác minh BCTC chính thức.\nDocument Agent xác nhận verified_annual_inflow 72 tỷ đồng/năm. So với doanh thu 2025 240 tỷ đồng trong dữ liệu mẫu, dòng tiền xác minh tương đương 30% doanh thu; đây là chênh lệch cần đối chiếu nguồn doanh thu và tài khoản thu, nhưng chưa đủ thông tin để kết luận có sai lệch hoặc thiếu hụt dòng tiền.\nDSCR chưa tính được do thiếu dữ liệu nghĩa vụ trả nợ và dự phóng dòng tiền, nên đây là dữ liệu chặn việc xác nhận đạt ngưỡng khả năng trả nợ theo CS-TD-SME/2025 §4.2; chưa kết luận vi phạm DSCR.\nBlacklist: kết quả tra cứu screened=true, hit=false; không ghi nhận hit.\nCIC nhóm 1, dư nợ quá hạn 0; không rơi vào ngưỡng từ chối nhóm 3 trở lên hoặc yêu cầu flag do nhóm 2.\nTSĐB là bất động sản, định giá 24 tỷ đồng, trạng thái định giá APPRAISED và pháp lý ghi nhận clear. Theo §8, LTV tối đa 70%, nên hạn mức có bảo đảm tối đa tính được là 24 tỷ × 70% = 16,8 tỷ đồng; đề nghị 20 tỷ đồng vượt giới hạn này 3,2 tỷ đồng.\nTheo §5, hồ sơ KYB bắt buộc có thông tin người đại diện theo pháp luật và phải đối chiếu với giấy tờ tùy thân, hồ sơ đăng ký doanh nghiệp. Trường dữ liệu tên và CCCD người đại diện đang để trống nên chưa thể xác nhận hoàn tất yêu cầu này.\nTính lại tổng cấp tín dụng: dư nợ hiện hữu 0.0 tỷ + đề xuất 20.0 tỷ = 20.0 tỷ; không vượt 20 tỷ nên chưa bắt buộc BCTC kiểm toán (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: branch (CS-TD-SME/2025 §3.1)\nTính lại LTV: đề xuất 20.0 tỷ / TSĐB đủ điều kiện 24.0 tỷ = 83.3% (tối đa 70%, tương ứng 16.8 tỷ); VƯỢT ngưỡng LTV (CS-TD-SME/2025 §7.1)\nTính lại Nợ vay/EBITDA sau cấp TD (2025): 50.0 tỷ / 28.0 tỷ = 1.79 lần (tối đa 3.5); trong ngưỡng (CS-TD-SME/2025 §4.2)\nTiền về tài khoản 12 tháng 72.0 tỷ chỉ bằng 30% doanh thu BCTC 240.0 tỷ — cần đối chiếu số liệu\nLTV 83.3% vượt trần 70% (CS-TD-SME/2025 §7.1)\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nBổ sung lịch trả nợ dự kiến của khoản vay và toàn bộ nghĩa vụ nợ, cùng dự phóng dòng tiền khả dụng để tính DSCR; yêu cầu tối thiểu theo chính sách tra cứu là 1,25 lần.\nĐối chiếu dòng tiền vào đã xác minh 72 tỷ đồng/năm với doanh thu, sao kê và các tài khoản nhận tiền; xác minh tính đại diện của dòng tiền.\nXác minh BCTC chính thức, số dư nợ và các số liệu trong hồ sơ; dữ liệu tài chính hiện nhận có nhãn DU_LIEU_MAU.\nHoàn thiện kiểm tra mục đích vốn lưu động, CIC, hồ sơ pháp lý và thẩm định giá/tính pháp lý của tài sản bảo đảm trước khi giải ngân.\nĐiều chỉnh khoản vay không vượt quá 16,8 tỷ đồng hoặc bổ sung TSĐB đủ điều kiện và thẩm định để tính lại hạn mức.\nBổ sung/đối chiếu thông tin người đại diện theo pháp luật cùng hồ sơ pháp nhân, UBO theo yêu cầu KYB trước khi trình phê duyệt.\nTrước giải ngân, xác minh giấy chứng nhận quyền sử dụng hợp pháp, tình trạng không tranh chấp/không thuộc quy hoạch giải tỏa và đăng ký giao dịch bảo đảm theo §8.\nTra cứu lại CIC tại thời điểm giải ngân theo §7.\nTiền về tài khoản 12 tháng 72.0 tỷ chỉ bằng 30% doanh thu BCTC 240.0 tỷ — cần đối chiếu số liệu\nLTV 83.3% vượt trần 70% (CS-TD-SME/2025 §7.1)\nBổ sung trước giải ngân (không chặn trình, rules.md Q7): DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ; người đại diện pháp luật chưa có trong hồ sơ\nKẾT LUẬN: Chưa đủ điều kiện phê duyệt. Quyết định hiện tại là CẦN BỔ SUNG/ĐIỀU CHỈNH (need_more_info). Hồ sơ đã tạo bản nháp draft-case_3d5419bf4c65, chưa có hiệu lực.\n\nHẠN MỨC: Đề nghị ban đầu 20 tỷ đồng được điều chỉnh xuống tối đa 16,8 tỷ đồng theo giới hạn bảo đảm. Tổng cấp tín dụng tính được là 20 tỷ đồng (dư nợ hiện hữu 0 + đề xuất mới), thuộc ngưỡng thẩm quyền ≤20 tỷ theo CS-TD-SME/2025 §3.1. Tên cấp phê duyệt cụ thể cần đối chiếu lại.\n\nLÝ DO CHÍNH:\n- LTV 83,3% (20 tỷ / TSĐB định giá 24 tỷ) vượt trần 70% theo CS-TD-SME/2025 §7.1 và §8; hạn mức có bảo đảm tối đa là 16,8 tỷ đồng.\n- Dòng tiền về tài khoản 12 tháng được xác minh 72 tỷ đồng, chỉ bằng 30% doanh thu BCTC 2025 (240 tỷ). Chênh lệch này cần đối chiếu nguồn doanh thu, sao kê và các tài khoản thu trước khi kết luận.\n- DSCR chưa tính được do thiếu lịch trả nợ, chi phí trả nợ dự phóng, EBIT và chi phí lãi vay. Chính sách yêu cầu DSCR ≥1,25 lần, nên đây là điểm chặn việc xác nhận khả năng trả nợ.\n- Hồ sơ KYB thiếu thông tin người đại diện theo pháp luật (tên và CCCD để trống).\n\nĐIỂM CẦN LƯU Ý:\n- Blacklist không có kết quả trùng khớp. CIC nhóm 1, không có dư nợ quá hạn.\n- Nợ vay/EBITDA sau cấp là 1,79 lần, thấp hơn ngưỡng 3,5 lần, nhưng đây là số liệu mẫu (nhãn DU_LIEU_MAU) và cần xác minh bằng BCTC chính thức.\n- Chưa có hồ sơ BCTC/kiểm toán. Hiện tổng cấp tín dụng 20 tỷ đồng nên chưa bắt buộc kiểm toán theo §6.1, nhưng nếu hạn mức hoặc tổng nợ tăng vượt 20 tỷ thì phải có kiểm toán với ý kiến chấp nhận toàn phần theo §4.1.\n- Trước khi giải ngân cần: xác minh quyền sử dụng đất, tình trạng không tranh chấp/quy hoạch và đăng ký giao dịch bảo đảm; tra cứu lại CIC; kiểm tra mục đích vốn lưu động; thẩm định giá.\n- Bộ phận vận hành đã đạt điều kiện (pass), không có điều kiện bổ sung.\n\nĐỀ XUẤT: Yêu cầu khách hàng giảm khoản vay xuống không quá 16,8 tỷ đồng hoặc bổ sung TSĐB đủ điều kiện. Đồng thời bổ sung lịch trả nợ, dự phóng dòng tiền để tính DSCR, đối chiếu dòng tiền 72 tỷ đồng với doanh thu, và hoàn thiện hồ sơ KYB. Sau khi đáp ứng các điều kiện này mới trình phê duyệt lại.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_collateral",
+    "get_existing_loans",
+    "check_blacklist",
+    "get_financials",
+    "get_annual_inflow",
+    "create_loan_draft"
+   ]
+  }
+ ]
+}

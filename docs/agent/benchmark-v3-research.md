@@ -97,3 +97,33 @@ Kết luận trung thực: multi hơn single về recall phát hiện, trích ng
 3. Nếu không biến thể nào còn lại hơn baseline ở (a)-(c), giữ baseline (cờ mặc định tắt) và báo rõ. Hướng không có tác dụng đo được thì bỏ, ghi lý do.
 4. Single-agent giữ nguyên prompt, model Specialist đang cấu hình, checklist chung; phân model theo vai trò chỉ thử trong các model đã cấu hình hoặc rẻ hơn.
 5. Lượt đo cuối: v6 3 lần × 2 chế độ và v5 1 lần × 2 chế độ (kiểm thoái lui) với tổ hợp đã chọn; tổng chi phí mọi lượt đo của vòng chặn bằng `--max-cost 2`; mọi số v1 đến v5 vẫn hiển thị.
+
+### 8.1 Kết quả ablation (v4 + v5 = bộ phát triển, chỉ multi, 1 lần/ca, 12 lượt/biến thể)
+
+Số liệu tính từ `agent_engine/benchmark_results/*abl*.json` (không nạp dashboard). Cổng xác định (`gate.py`) được hiệu chỉnh offline trên các ca v2-v5 (khớp 29/30; C6 v2 lệch vì D6 v3 coi thiếu tài khoản thanh toán là chặn) nên "đúng cổng" của biến thể có cờ `gate` trên v4/v5 là số trên bộ phát triển, không phải bằng chứng tổng quát; bằng chứng là v6 mù.
+
+| biến thể | recall | trích nguồn | chính xác trích | phát hiện sai | đúng cổng | trễ s | $/ca | token |
+|---|---|---|---|---|---|---|---|---|
+| (không cờ) | 85% | 97% | 94% | 0.00 | 83% | 62.2 | 0.0058 | 24290 |
+| gate | 88% | 100% | 93% | 0.00 | 100% | 67.7 | 0.0059 | 25457 |
+| facts | 97% | 100% | 99% | 0.00 | 58% | 40.7 | 0.0044 | 14796 |
+| plan | 87% | 97% | 94% | 0.00 | 92% | 50.0 | 0.0045 | 20554 |
+| report | 84% | 97% | 98% | 0.08 | 92% | 53.3 | 0.0041 | 17951 |
+| challenge | 87% | 97% | 98% | 0.08 | 83% | 51.3 | 0.0056 | 24902 |
+| facts,compact | 93% | 100% | 97% | 0.00 | 67% | 31.5 | 0.0037 | 12222 |
+| gate,facts,plan,report,challenge,compact | 91% | 100% | 99% | 0.00 | 100% | 21.0 | 0.0016 | 5988 |
+
+**Áp dụng luật đã viết:** (1) loại `report` và `challenge` khi bật riêng (mỗi cái 1/12 lượt có phát hiện sai, baseline 0; `report` còn recall 84% < 85%); (2) trong số còn lại, `gate` đứng đầu về đúng cổng (100% so với 83%), tổ hợp đầy đủ vừa 100% đúng cổng vừa recall 91%, trích nguồn 100%, phát hiện sai 0, trễ 21,0 s (so 62,2 s), chi phí $0,0016 (so $0,0058). `facts` riêng làm giảm đúng cổng (58%) vì chuyên gia thiếu trường phụ vẫn trả need_more_info — chỉ có ích khi đi cùng `gate`. Chọn: **tổ hợp đầy đủ `gate,facts,plan,report,challenge,compact` làm mặc định** (`config.OPT_FLAGS`). Không có hướng nào bị bỏ khỏi tổ hợp bằng đo "bỏ một"; ablation "tổ hợp trừ một hướng" không chạy (tiết kiệm chi phí), nên không tách được đóng góp riêng của `report`, `challenge`, `compact` trong tổ hợp. Hướng chưa làm: bỏ phiếu/tự kiểm cổng (cổng đã xác định, không còn bất đồng LLM để bỏ phiếu), phân model theo vai trò (không cần: chi phí đã giảm 72%; single giữ nguyên model Specialist gpt-6-luna), prompt caching (nhà cung cấp OpenRouter không bật; prompt chuyên gia nay ngắn nên lợi ích nhỏ).
+
+### 8.2 Bản đồ thời gian theo bước, ca F1 (v5), multi, một lượt
+
+| bước | trước (không cờ) | sau (tổ hợp mặc định) |
+|---|---|---|
+| Planner (LLM haiku-5.5) | 7,8 s, 1129+1545 token | 0,6 s, 0 LLM (template + 3 công cụ đọc) |
+| Credit | 44,5 s, 5 lượt LLM + tool loop | 12,8 s, 1 lượt LLM (1379+1282 token) |
+| Compliance | 22,7 s, 5 lượt LLM | 23,0 s, 1 lượt LLM (1716+1768 token) |
+| Validation (kiểm chứng + tường thuật LLM haiku) | 11,0 s, 3759+2366 token | 0,1 s, 0 LLM |
+| Tổng thời gian tường | 63,4 s | 23,8 s |
+| Chi phí | khoảng $0,0059 | $0,0016 |
+
+Thời gian còn lại gần như toàn là một lượt `submit_verdict` dài của chuyên gia (credit/compliance chạy song song, thật). Log: `scratchpad/timeline_base_F1.txt`, `timeline_after_F1.txt` (đã sao vào mục này).
