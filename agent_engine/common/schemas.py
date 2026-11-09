@@ -4,6 +4,8 @@
 """
 from __future__ import annotations
 
+import re
+
 import time
 import uuid
 from enum import Enum
@@ -17,6 +19,22 @@ def new_id(prefix: str) -> str:
 
 
 # ---------- A2A ----------
+_TECH_TERMS = (
+    (re.compile(r"\bhas_collateral\s*(?:=|:)\s*(?:false|0)\b", re.I), "hồ sơ chưa gắn tài sản bảo đảm"),
+    (re.compile(r"\bhas_collateral\s*(?:=|:)\s*(?:true|1)\b", re.I), "hồ sơ có gắn tài sản bảo đảm"),
+    (re.compile(r"\bhas_collateral\b", re.I), "tài sản bảo đảm khai trong hồ sơ"),
+    (re.compile(r"\bcollateral_id\b", re.I), "mã tài sản bảo đảm"),
+    (re.compile(r"\bbusiness_id\b", re.I), "mã khách hàng"),
+)
+
+
+def plain_text(text: str) -> str:
+    """Bỏ tên trường kỹ thuật khỏi lý do hiển thị cho người dùng (viết lại bằng ngôn ngữ nghiệp vụ)."""
+    for pat, repl in _TECH_TERMS:
+        text = pat.sub(repl, text)
+    return text
+
+
 class MessageType(str, Enum):
     TASK_REQUEST = "task_request"
     TASK_RESULT = "task_result"
@@ -150,17 +168,20 @@ class Verdict(BaseModel):
                     out.append(Evidence(source="llm", quote=e))
             return out
 
+        def _plain(t) -> str:
+            return plain_text(str(t))
+
         try:
             decision = VerdictDecision(str(result.get("decision", "need_more_info")).lower())
         except ValueError:
             decision = VerdictDecision.NEED_MORE_INFO
         return cls(
             agent=agent, task_id=task_id, decision=decision,
-            summary=str(result.get("summary", "")),
+            summary=_plain(result.get("summary", "")),
             proposed_limit=result.get("proposed_limit"),
             max_secured_limit=result.get("max_secured_limit"),
-            findings=[str(f) for f in _as_list(result.get("findings"))],
-            conditions=[str(c) for c in _as_list(result.get("conditions"))],
+            findings=[_plain(f) for f in _as_list(result.get("findings"))],
+            conditions=[_plain(c) for c in _as_list(result.get("conditions"))],
             evidence=_to_evidence(result.get("evidence")),
         )
 

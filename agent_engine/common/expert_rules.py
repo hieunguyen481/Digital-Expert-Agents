@@ -7,5 +7,8 @@ EXPERT_RULES = (
     "ngưỡng; thiếu thông tin bổ trợ thì đưa vào conditions và vẫn kết luận. Trường dữ liệu trống hoặc chỉ tiêu cần dự phóng chưa có (vd. lịch trả nợ, người đại diện) KHÔNG phải lý do need_more_info khi mọi ngưỡng chính sách tính được từ dữ liệu hiện có đều đạt: nêu rõ là điều kiện cần bổ sung trước giải ngân. "
     "(c) Chỉ trích § khi kết luận thật sự dựa vào điều khoản đó, và ghi § ngay trong câu findings dùng nó. "
     "(d) Chỉ tiêu xấu có sẵn trong số liệu (EBITDA âm, lỗ, vốn chủ sở hữu âm) thuộc chuyên môn của bạn phải được nêu "
-    "thành một finding riêng, kể cả khi kết luận chính là thiếu dữ liệu khác."
+    "thành một finding riêng, kể cả khi kết luận chính là thiếu dữ liệu khác. "
+    "(e) Cờ khai TSĐB của đề nghị chỉ cho biết hồ sơ đã gắn TSĐB hay chưa; KHÔNG coi là mâu thuẫn khi core banking có "
+    "hồ sơ tài sản của khách, và chỉ báo mâu thuẫn TSĐB khi hai nguồn số liệu thật sự khác nhau. Viết bằng ngôn ngữ nghiệp vụ, "
+    "không dùng tên trường kỹ thuật (như has_collateral, business_id)."
 )

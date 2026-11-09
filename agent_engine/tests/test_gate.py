@@ -88,3 +88,11 @@ def test_negative_ebitda_is_surfaced_as_weak_indicator_line():
     assert not any("ÂM" in line for line in facts.build(
         {"business": BIZ, "financials": FIN, "loans": LOANS, "cic": CIC, "blacklist": BL, "collateral": []},
         REQ, TODAY)["lines"])
+
+
+def test_technical_field_names_are_filtered_from_displayed_reasons():
+    from common.schemas import Verdict, plain_text
+    assert "has_collateral" not in plain_text("Mâu thuẫn: has_collateral=false nhưng có TSĐB")
+    v = Verdict.from_llm("compliance", "t", {"decision": "flag", "summary": "has_collateral=false",
+                                             "findings": ["business_id không khớp"]})
+    assert "has_collateral" not in v.summary and "business_id" not in v.findings[0]
