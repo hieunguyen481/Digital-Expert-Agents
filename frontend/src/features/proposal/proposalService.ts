@@ -34,9 +34,10 @@ interface BackendCustomerRow {
 
 export async function searchCustomers(search: string): Promise<CustomerOption[]> {
   const res = await apiClient.get<{ items: BackendCustomerRow[] }>('/customers', {
-    params: { page: 1, page_size: 20, search: search || undefined },
+    params: { page: 1, page_size: 50, search: search || undefined },
   });
-  return res.data.items.flatMap((r) => {
+  // Khách của bộ ca đo benchmark không phải khách thật để tạo đề xuất.
+  return res.data.items.filter((r) => !/benchmark/i.test(r.display_name ?? r.full_name ?? '')).flatMap((r) => {
     const id = r.id ?? r.customer_id;
     return id ? [{ id, display_name: r.display_name ?? r.full_name ?? r.customer_number, customer_number: r.customer_number }] : [];
   });
