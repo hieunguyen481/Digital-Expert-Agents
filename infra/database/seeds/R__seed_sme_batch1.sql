@@ -1112,6 +1112,7 @@ INSERT INTO sme_cic VALUES
     (2, 7, -25, -24),   -- Mekong Flex: ky 01/10, tra cuu 02/10 -> het hieu luc tu 01/11
     (3, 1, -16, -15),   -- Truong An: tra cuu 15/10
     (8, 1, -19, -18),   -- Cang Xanh: tra cuu 12/10
+    (9, 1, -9, -8),     -- ho so 9 dang o buoc Hau kiem: da co dong y + tra cuu CIC con han
     (10, 1, -13, -12);  -- Tay Nguyen Xanh: tra cuu 20/10
 
 INSERT INTO banking.cic_consent (

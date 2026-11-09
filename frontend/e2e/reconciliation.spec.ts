@@ -92,7 +92,7 @@ test('httd: chuyển Thẩm định khóa đến khi checklist đủ, rồi đi 
   await expect(page.getByRole('table', { name: 'Nhật ký hậu kiểm checklist' })).toBeVisible();
 
   await go.click();
-  await expect(page.getByText('APPRAISAL')).toBeVisible();
+  await expect(page.getByText('Đang thẩm định')).toBeVisible();
   await expect(page.getByTestId('transfer-bar')).toHaveCount(0);
 });
 

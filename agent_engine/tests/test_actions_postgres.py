@@ -168,6 +168,10 @@ async def _purge_test_loans() -> None:
     con = await asyncpg.connect(os.environ["TEST_ADMIN_DATABASE_URL"])
     try:
         async with con.transaction():
+            # Ca thử của chính test này cũng dọn, kẻo hiện trên dashboard của người dùng thật.
+            for t in ("agent.action_log", "agent.case_event", "agent.case_plan", "agent.approval_token"):
+                await con.execute(f"DELETE FROM {t} WHERE case_id ~ '^case_(ok|ld|x)_'")
+            await con.execute("DELETE FROM agent.case_run WHERE case_id ~ '^case_(ok|ld|x)_'")
             ids = [r[0] for r in await con.fetch(
                 "SELECT id FROM credit.loan_application WHERE application_number LIKE 'HSV-TEST-%'")]
             if not ids:
