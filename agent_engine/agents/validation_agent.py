@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import asyncio  # noqa: E402
 
 from agents.base import a2a_send, build_agent_app  # noqa: E402
-from common import config, mcp_client, rag, recompute  # noqa: E402
+from common import config, facts as facts_mod, gate, mcp_client, rag, recompute  # noqa: E402
 from common.report import demote_unsupported, merge_verdicts  # noqa: E402
 from common.schemas import (  # noqa: E402
     AgentCard, AgentSkill, Envelope, Evidence, MessageType, Verdict, VerdictDecision,
@@ -111,7 +111,13 @@ async def handle_task(env: Envelope) -> Verdict:
     trace.append(f"Xác thực {len(verdicts)} verdict: {len(issues)} vấn đề evidence")
 
     request = env.payload.get("params", {}).get("request", {})
-    verified = await _independent_checks(request) if request.get("business_id") else None
+    shared = env.payload.get("params", {}).get("facts")
+    if shared:
+        verified = shared  # bảng dữ kiện chung đã gọi công cụ một lần
+    elif request.get("business_id") and (config.opt("gate") or config.opt("facts")):
+        verified = await facts_mod.gather(request)
+    else:
+        verified = await _independent_checks(request) if request.get("business_id") else None
     if verified:
         trace.append("Kiểm chứng độc lập bằng công cụ: " + " | ".join(verified["lines"]))
 
@@ -169,7 +175,19 @@ async def handle_task(env: Envelope) -> Verdict:
         trace.append(f"Hạ cấp {len(demoted)} câu của chuyên gia mâu thuẫn số tính lại bằng công cụ")
     report = merge_verdicts(verdicts, own_findings, own_conditions, demoted)
 
-    if VerdictDecision.REJECT in decisions.values():
+    if config.opt("gate") and verified and "blockers" in verified:
+        # Cổng xác định: dữ kiện công cụ + xung đột đã kiểm chứng; thiếu trường phụ chỉ thành điều kiện bổ sung
+        rec_decision, rec, gate_why = gate.decide(verified, unresolved)
+        trace.append(f"Cổng xác định: {rec_decision.value} ({'; '.join(gate_why) or 'không có căn cứ chặn'})")
+        if rec_decision == VerdictDecision.APPROVE:
+            limit_txt = f" hạn mức {credit.proposed_limit:,.0f} VND" if credit and credit.proposed_limit else ""
+            rec = f"ĐỀ XUẤT PHÊ DUYỆT{limit_txt}"
+        extra = [*gate_why]
+        if verified["ancillary"]:
+            extra.append("Bổ sung trước giải ngân (không chặn trình, rules.md Q7): " + "; ".join(verified["ancillary"]))
+        if extra:
+            report = merge_verdicts(verdicts, [*own_findings, *extra], [*own_conditions, *extra], demoted)
+    elif VerdictDecision.REJECT in decisions.values():
         rec_decision, rec = VerdictDecision.REJECT, "TỪ CHỐI: có chuyên gia kết luận không đạt điều kiện"
     elif unresolved is not None or issues:
         rec_decision = VerdictDecision.NEED_MORE_INFO

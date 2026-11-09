@@ -52,6 +52,21 @@ VISION_MODEL = os.getenv("VISION_MODEL", "Qwen2.5-VL-7B-Instruct")
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
 LLM_MAX_TOOL_ITERATIONS = int(os.getenv("LLM_MAX_TOOL_ITERATIONS", "10"))
 
+# ---- Cờ tối ưu (bench6): mỗi hướng bật/tắt độc lập, danh sách phân tách bằng dấu phẩy trong OPT_FLAGS ----
+#   gate      cổng cuối do luật xác định từ dữ kiện công cụ (tách thiếu dữ liệu chặn / thiếu trường phụ)
+#   facts     bảng dữ kiện chung gọi công cụ một lần; chuyên gia chỉ còn một lượt LLM, RAG hẹp theo chuyên môn
+#   plan      Planner xác định (template), không gọi LLM
+#   report    báo cáo cuối dựng xác định, bỏ lượt LLM tường thuật
+#   challenge vòng sửa chỉ gọi khi số tính lại mâu thuẫn (không dựa vào chữ trong verdict)
+#   compact   prompt chuyên gia ngắn, đầu ra có cấu trúc giới hạn độ dài
+OPT_ALL = ("gate", "facts", "plan", "report", "challenge", "compact")
+OPT_FLAGS = frozenset(x.strip() for x in os.getenv("OPT_FLAGS", "").split(",") if x.strip())
+
+
+def opt(name: str) -> bool:
+    return name in OPT_FLAGS
+
+
 # ---- Nghiệp vụ ----
 POLICY_VERSION = os.getenv("POLICY_VERSION", "2026.07")
 APPROVAL_TOKEN_TTL_SECONDS = int(os.getenv("APPROVAL_TOKEN_TTL_SECONDS", "900"))
