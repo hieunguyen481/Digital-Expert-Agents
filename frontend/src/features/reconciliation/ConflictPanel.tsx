@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { getErrorMessage } from '@/services/apiClient';
 import { resolveConflict } from './reconciliationService';
 import type { ReconConflict } from './types';
+import { fieldLabel } from './fieldLabels';
 import styles from './reconciliation.module.css';
 
 interface Props {
@@ -56,7 +57,7 @@ function ConflictCard({ loanId, conflict, canResolve, onOpenField }: Omit<Props,
         {conflict.sources.map((s) => (
           <div key={s.field_id} className={styles.source}>
             <Radio value={s.field_id} data-testid={`source-${s.field_id}`}>
-              <b>{s.value ?? '—'}</b> · {s.field_name}
+              <b>{s.value ?? '—'}</b> · {fieldLabel(s.field_name)}
             </Radio>
             <span className={styles.note}>
               {s.document_title ?? ''} {s.page_number ? `· trang ${s.page_number}` : ''} · {s.source_type === 'AI_OCR' ? 'AI trích xuất' : s.source_type}

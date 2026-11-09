@@ -5,6 +5,7 @@ import { getErrorMessage } from '@/services/apiClient';
 import { confirmField, fetchPageImageUrl, fetchReconDocument } from './reconciliationService';
 import { fieldStatusLabel, highlightStyle, needsHuman } from './fieldStatus';
 import type { ReconField } from './types';
+import { fieldLabel } from './fieldLabels';
 import styles from './reconciliation.module.css';
 
 interface Props {
@@ -110,11 +111,12 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
               className={styles.region}
               style={style}
               aria-pressed={f.field_id === selectedFieldId}
-              aria-label={`Vùng tô: ${f.field_name}`}
+              aria-label={`Vùng tô: ${fieldLabel(f.field_name)}`}
+              title={fieldLabel(f.field_name)}
               data-testid={`region-${f.field_id}`}
               onClick={() => onSelect(f.field_id)}
             >
-              <span className={styles.regionText}>{f.field_name}</span>
+              <span className={styles.regionText} style={(f.bounding_box?.y ?? 1) < 0.03 ? { bottom: 'auto', top: '100%', borderRadius: '0 0 3px 3px' } : undefined}>{fieldLabel(f.field_name)}</span>
             </button>
           );
         })}
@@ -153,7 +155,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
                   aria-current={f.field_id === selectedFieldId}
                   onClick={() => onSelect(f.field_id)}
                 >
-                  <span>{f.field_name}</span>
+                  <span>{fieldLabel(f.field_name)}</span>
                   <span>{f.value ?? '—'}</span>
                 </button>
               ))}
@@ -171,7 +173,7 @@ function FieldCard({
   const label = fieldStatusLabel(field);
   return (
     <div className={styles.source} data-testid="field-card">
-      <Typography.Text strong>{field.field_name}</Typography.Text>
+      <Typography.Text strong>{fieldLabel(field.field_name)}</Typography.Text>
       <span data-testid="field-card-value">{field.value ?? '—'}</span>
       <Tag color={label.color} style={{ width: 'fit-content' }}>{label.text}</Tag>
       {field.source_text && <span className={styles.note}>Nguồn trích: {field.source_text}</span>}

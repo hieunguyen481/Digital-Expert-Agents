@@ -26,7 +26,9 @@ test('tdinh: bấm trường tới đúng vùng tô và bấm vùng tô tới đ
   // Vùng tô -> trường
   const first = regions.nth(0);
   const firstName = (await first.getAttribute('aria-label'))!.replace('Vùng tô: ', '');
-  await first.click();
+  // L06: nhãn tiếng Việt, không lộ khóa tiếng Anh, và bấm vào chính nhãn thì chọn được trường.
+  expect(firstName).not.toMatch(/^[a-z_0-9]+$/);
+  await first.locator('span').click();
   await expect(first).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByTestId('field-card')).toContainText(firstName);
 
