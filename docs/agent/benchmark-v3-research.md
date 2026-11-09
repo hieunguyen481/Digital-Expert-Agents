@@ -275,3 +275,26 @@ Trace: `tool_call` giữ `agent` thật đã gọi, `arg_keys` (không giá tr�
 Gọi bù (sau): v5 1/42 lượt gọi công cụ của chuyên gia/orchestrator (2,4%), v7 0/56; không công cụ nào lặp theo (case, agent, công cụ). Mốc v7 cũ (multi Planner LLM, 24 lượt, 3 lần/ca): trễ 33,3 s, $0,00266.
 
 **Đọc trung thực.** Chất lượng không đổi (1 lần/ca, 6 và 8 ca nên chỉ bắt được thoái lui lớn). Thêm lượt LLM chọn công cụ tăng token ~18–25%, chi phí −8% (v5) và +3% (v7), trễ −3% (v5) và +26% (v7); với n=6–8 và độ lệch trễ ~10–15 s, chênh lệch trễ không tách được khỏi dao động. Công cụ thực tế do LLM tự gọi gần như đủ, nên tỉ lệ gọi bù thấp; chưa kiểm ca LLM bỏ sót nhiều.
+
+## 11. Kiểm thoái lui sau sửa lỗi QA (09/11/2026)
+
+Nhãn `kiểm thoái lui sửa QA`. **Không phải kiểm tra mù**: cùng bộ ca v5 (F1–F6) và v7 (H1–H8) đã dùng để chỉnh engine. Chế độ multi, 1 lần/ca, `--max-cost 0.5`, engine riêng cổng 8041 (image dựng từ nhánh `mate/f2`), bộ chấm v3 và ca không đổi. Mục đích chỉ là bắt thoái lui lớn.
+
+Thay đổi được kiểm: thiếu tài khoản thanh toán thành điều kiện bổ sung trước giải ngân (Q-V), Tín dụng nêu chỉ tiêu xấu có sẵn, quy tắc chuyên gia về cờ TSĐB và tên trường kỹ thuật, tiêu đề phê duyệt nêu ý kiến chuyên gia còn lệch.
+
+| chỉ số | v5 trước (§10) | v5 lần 1 | v5 lần 2 (sau chỉnh) | v7 trước (§10) | v7 lần 1 | v7 lần 2 (sau chỉnh) |
+|---|---|---|---|---|---|---|
+| recall phát hiện | 0.925 | 0.892 | 0.925 | 0.969 | 0.969 | 0.944 |
+| trích nguồn | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| chính xác trích dẫn | 0.976 | 1.000 | 1.000 | 0.984 | 1.000 | 1.000 |
+| phát hiện sai (tổng) | 0 | 0 | 0 | 0 | 0 | 0 |
+| đúng cổng | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
+| trễ s | 25.9 | 37.3 | 34.4 | 31.3 | 37.7 | 37.8 |
+| $/ca | 0.00258 | 0.00342 | 0.00332 | 0.00295 | 0.00332 | 0.00363 |
+| lỗi | 0 | 0 | 0 | 0 | 0 | 0 |
+
+- **Lần 1 phát hiện một thoái lui thật.** F1 mất finding `collateral_unverified` (dây chuyền/máy móc pháp lý pending không tính vào giá trị bảo đảm). Lặp F1: 5/8 lượt thiếu finding này khi có quy tắc (e) bản đầu; bỏ (e) còn 2/6. Nguyên nhân: câu "không coi là mâu thuẫn" khiến chuyên gia bỏ luôn nhắc tài sản. Đã thêm câu giữ nghĩa vụ nêu tài sản pending (commit riêng): F1 6/6 đủ 5/5. Lần 2 F1 5/5.
+- **Ca lệch do luật tài khoản: không có.** Cổng cuối của cả 14 ca giống hệt lượt `agent_tools` (F1,F2,F3,F6,H1,H4,H7,H8 chờ duyệt; F4,F5,H3,H5,H6 cần bổ sung; H2 từ chối). Các ca dùng khách benchmark đã có dữ liệu tài khoản hoặc bị chặn bởi lý do khác, nên Q-V không đổi kết quả cổng ở đây. Hồ sơ khách seed thiếu tài khoản được kiểm bằng test cổng và e2e, không bằng bộ này.
+- Còn lệch: F5 4/5, F6 3/4, H4 3/4 giữ nguyên như trước; H8 4/5 ở lần 2 (lần 1 5/5), dao động của 1 lần/ca. H1 lần 1 có 1 trích dẫn sai `§8` (cũng có ở lượt trước), lần 2 không.
+- Trễ và $/ca cao hơn mốc §10 (~34–38 s so với 26–31 s). Đo trên engine riêng, một lần/ca, thời điểm API khác nhau; không quy cho một thay đổi cụ thể. Cột token không đưa vào vì cách đếm của engine riêng khác mốc §10.
+- Kết luận: không thoái lui vượt dao động sau chỉnh; mẫu nhỏ (1 lần/ca), chỉ bắt được thoái lui lớn.
