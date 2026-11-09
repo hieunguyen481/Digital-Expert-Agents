@@ -171,6 +171,10 @@ async def make_plan(case_id: str, payload: dict, version: int) -> tuple[Plan, st
         pass
 
     # Planner dùng LLM ở cả hybrid và llm mode (đây là chỗ autonomy toả sáng)
+    if config.opt("plan"):  # luồng chuẩn: DAG xác định từ đặc điểm hồ sơ, không tốn lượt LLM
+        plan = _template_plan(case_id, payload, context, version)
+        ensure_collateral_check(plan, payload, context)
+        return plan, "template"
     if config.LLM_MODE in ("llm", "hybrid"):
         plan = await _llm_plan(case_id, payload, context, version, registry)
         if plan is not None:
