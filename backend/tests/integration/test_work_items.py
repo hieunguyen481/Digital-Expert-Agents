@@ -96,7 +96,7 @@ async def test_vinanova_flags() -> None:
 
 async def test_auditor_read_only() -> None:
     result = await _run(AUDITOR_HO)
-    assert result.badge == 0 and 0 < len(result.items) <= 10
+    assert result.badge == 0 and len(result.items) > 10  # kiểm toán đọc toàn hệ thống (L03)
     assert not any(i.mine for i in result.items)
 
 

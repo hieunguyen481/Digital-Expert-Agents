@@ -107,6 +107,8 @@ class Case:
             self.loan_id, f"T9-{self.loan_id}", self.customer_id, PRODUCT,
             amount, status, CREDIT_OFFICER,
         )
+        # Danh mục rỗng không phải "đủ" (L01): mỗi hồ sơ test có một mục CIC (cổng tài liệu bỏ qua loại này).
+        await self.add_checklist_item("CIC-CONSENT", "CIC_CONSENT", "REQUIRED")
         if cic:
             await m.execute(
                 "INSERT INTO document.document (id, document_type, classification,"
