@@ -30,14 +30,21 @@ interface BackendCustomerRow {
   display_name?: string | null;
   full_name?: string | null;
   customer_number: string;
+  relationship_manager_id?: string | null;
 }
 
 export async function searchCustomers(search: string): Promise<CustomerOption[]> {
-  const res = await apiClient.get<{ items: BackendCustomerRow[] }>('/customers', {
-    params: { page: 1, page_size: 50, search: search || undefined },
-  });
+  const [res, me] = await Promise.all([
+    apiClient.get<{ items: BackendCustomerRow[] }>('/customers', {
+      params: { page: 1, page_size: 50, search: search || undefined },
+    }),
+    apiClient.get<{ employee_id: string }>('/me'),
+  ]);
   // Khách của bộ ca đo benchmark không phải khách thật để tạo đề xuất.
-  return res.data.items.filter((r) => !/benchmark/i.test(r.display_name ?? r.full_name ?? '')).flatMap((r) => {
+  // Chỉ gợi ý khách chưa ai phụ trách hoặc do chính mình phụ trách: khách của người khác sẽ bị từ chối khi tạo.
+  const mine = me.data.employee_id;
+  return res.data.items.filter((r) => !/benchmark/i.test(r.display_name ?? r.full_name ?? '')
+    && (!r.relationship_manager_id || r.relationship_manager_id === mine)).flatMap((r) => {
     const id = r.id ?? r.customer_id;
     return id ? [{ id, display_name: r.display_name ?? r.full_name ?? r.customer_number, customer_number: r.customer_number }] : [];
   });

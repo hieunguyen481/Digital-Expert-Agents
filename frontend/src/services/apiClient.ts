@@ -89,6 +89,12 @@ const USER_MESSAGE: Record<string, string> = {
   [API_ERROR_CODES.unknown]: 'Đã có lỗi xảy ra. Vui lòng thử lại.',
 };
 
+/** Mã lỗi nghiệp vụ của backend (thông điệp gốc tiếng Anh) -> câu tiếng Việt cho người dùng. */
+const BACKEND_CODE_MESSAGE: Record<string, string> = {
+  CUSTOMER_ALREADY_ASSIGNED: 'Khách hàng này đang do cán bộ khác phụ trách hoặc vừa thay đổi. Hãy chọn khách hàng khác hoặc tải lại danh sách.',
+  CUSTOMER_NOT_FOUND: 'Không tìm thấy khách hàng hoặc khách hàng nằm ngoài phạm vi của bạn.',
+};
+
 /**
  * Chuẩn hoá mọi lỗi (Axios / network / lỗi lạ) về `ApiError`.
  * Nhờ vậy UI chỉ cần xử lý một hình dạng lỗi duy nhất.
@@ -130,6 +136,7 @@ export function normalizeError(error: unknown): ApiError {
       code: backendError?.code ?? body?.code ?? code,
       // Ưu tiên message từ backend nếu có, nhưng luôn có fallback an toàn.
       message:
+        (backendError?.code ? BACKEND_CODE_MESSAGE[backendError.code] : undefined) ??
         backendError?.message ??
         body?.message ??
         USER_MESSAGE[code] ??

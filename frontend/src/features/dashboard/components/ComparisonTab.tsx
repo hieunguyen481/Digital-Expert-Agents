@@ -50,6 +50,12 @@ export function statText(stat: BenchmarkStat | undefined, def: MetricDef): strin
   return `${def.format(stat.mean)}${sd}`;
 }
 
+/** Số chế độ thực có trong lượt đo (nhiều lượt chỉ chạy đa agent). */
+export function modeCount(run: { summary: { single?: unknown; multi?: unknown } }): string {
+  const n = [run.summary.single, run.summary.multi].filter(Boolean).length;
+  return n === 1 ? '1 chế độ (đa agent)' : `${n || 2} chế độ`;
+}
+
 export function winnerOf(def: MetricDef, s?: BenchmarkModeSummary, m?: BenchmarkModeSummary): 'single' | 'multi' | 'tie' {
   const a = s?.[def.key]?.mean;
   const b = m?.[def.key]?.mean;
@@ -153,7 +159,7 @@ export function ComparisonTab() {
       <div className={styles.cmpHead} data-testid="cmp-meta">
         <ThunderboltOutlined />
         <span>
-          Bộ ca <strong>{run.cases_version}</strong> · bộ chấm <strong>{run.grader_version}</strong> · {cases.length} ca × {run.runs_per_case} lượt × 2 chế độ ·{' '}
+          Bộ ca <strong>{run.cases_version}</strong> · bộ chấm <strong>{run.grader_version}</strong> · {cases.length} ca × {run.runs_per_case} lượt × {modeCount(run)} ·{' '}
           Planner <strong>{run.planner_model}</strong> · Specialist/đơn agent <strong>{run.specialist_model}</strong> ·{' '}
           chế độ {run.llm_mode} · chi phí đo thật{' '}
           <strong>{run.total_cost_usd === null ? '—' : `$${run.total_cost_usd.toFixed(4)}`}</strong> · {run.run_id}
