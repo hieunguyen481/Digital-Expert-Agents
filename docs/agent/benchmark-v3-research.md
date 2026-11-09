@@ -179,3 +179,73 @@ v6 theo ca (recall / đúng cổng; multi | single): G1 1,00/1 | 1,00/0; G2 1,00
 | H8 | tổng 105 tỷ > 100, LTV 56,3% | PENDING_APPROVAL hoặc NEEDS_INFO | 5 |
 
 Cổng thiếu dữ liệu: 2/8 (H5, H6; tối đa 3). Cổng không dồn một giá trị: PENDING_APPROVAL (H1, H4 và chấp nhận thêm ở H7, H8), REJECTED (H2, chấp nhận thêm ở H3), NEEDS_INFO (H5, H6). Ca bỏ trước khi chạy: ngành rủi ro cao (Điều 9) vì `get_business` trả `industry_risk=None`, nên rules/corpus không đủ làm đáp án kiểm chứng được; thiếu tài khoản thanh toán (trùng D6); trừng phạt (trùng D8). Đo đúng một lần mỗi cấu hình: single, multi mặc định, multi bỏ cờ `plan`; cả hai cấu hình multi đều được báo cáo, không chọn cấu hình nào làm số chính dựa trên điểm v7.
+
+### 9.2 Kết quả v7 (24 lượt/cấu hình, `--max-cost 1`, bộ chấm v3 giữ nguyên, đúng một lượt đo, đã nạp `agent.benchmark_run`)
+Nhãn: `v7 mù bench7 f0b45e5 single + multi mặc định (OPT_FLAGS đủ, plan bật)` (chi phí $0.0970) và `v7 mù bench7 f0b45e5 multi bỏ cờ plan (Planner LLM)` (chi phí $0.0638); mỗi file ghi `git_commit` 0b51af4 = f0b45e5 + commit đăng ký v7 (không đổi code engine/single/chấm). Engine đo: build từ worktree này, `OPT_FLAGS` mặc định (cổng 8021) và `OPT_FLAGS=gate,facts,report,challenge,compact` (cổng 8022). Cả hai cấu hình multi đều được báo cáo; không chọn cấu hình nào làm số chính.
+
+| chỉ số | single TB (sd) | multi mặc định TB (sd) | multi bỏ plan TB (sd) |
+|---|---|---|---|
+| recall phát hiện | 0.883 (0.151) | 0.952 (0.113) | 0.969 (0.085) |
+| trích nguồn | 0.799 (0.239) | 1.000 (0.000) | 1.000 (0.000) |
+| chính xác trích dẫn | 0.885 (0.151) | 0.995 (0.026) | 0.975 (0.059) |
+| phát hiện sai | 0.000 | 0.000 | 0.000 |
+| trích sai | 0.000 | 0.000 | 0.000 |
+| đúng cổng | 0.750 (0.442) | 1.000 (0.000) | 1.000 (0.000) |
+| trễ s | 36.2 (9.7) | 18.6 (2.8) | 33.3 (15.5) |
+| $/ca | 0.00234 (0.00041) | 0.00170 (0.00038) | 0.00266 (0.00029) |
+| token | 14 050 (2 690) | 5 921 (674) | 8 951 (643) |
+| lỗi | 0 | 0 | 0 |
+
+Sai số chuẩn (sd/√24): recall single 0.031, multi 0.023, multi bỏ plan 0.017; trích nguồn single 0.049; đúng cổng single 0.090.
+
+### 9.3 Theo ca (recall / trích nguồn / đúng cổng / trễ s / $ mỗi ca; thứ tự single · multi mặc định · multi bỏ plan)
+| ca | recall | trích nguồn | đúng cổng | trễ s | $/ca |
+|---|---|---|---|---|---|
+| H1 | 0.80 · 1.00 · 1.00 | 0.89 · 1.00 · 1.00 | 0.00 · 1.00 · 1.00 | 36 · 21 · 29 | 0.0023 · 0.0018 · 0.0027 |
+| H2 | 1.00 · 1.00 · 1.00 | 0.67 · 1.00 · 1.00 | 1.00 · 1.00 · 1.00 | 26 · 17 · 62 | 0.0017 · 0.0013 · 0.0024 |
+| H3 | 1.00 · 1.00 · 1.00 | 0.83 · 1.00 · 1.00 | 1.00 · 1.00 · 1.00 | 49 · 17 · 24 | 0.0028 · 0.0019 · 0.0024 |
+| H4 | 0.75 · 0.75 · 0.75 | 1.00 · 1.00 · 1.00 | 0.00 · 1.00 · 1.00 | 34 · 22 · 38 | 0.0023 · 0.0020 · 0.0032 |
+| H5 | 1.00 · 1.00 · 1.00 | 0.78 · 1.00 · 1.00 | 1.00 · 1.00 · 1.00 | 36 · 17 · 28 | 0.0024 · 0.0017 · 0.0027 |
+| H6 | 1.00 · 1.00 · 1.00 | 0.67 · 1.00 · 1.00 | 1.00 · 1.00 · 1.00 | 30 · 17 · 26 | 0.0020 · 0.0014 · 0.0025 |
+| H7 | 0.92 · 1.00 · 1.00 | 0.67 · 1.00 · 1.00 | 1.00 · 1.00 · 1.00 | 33 · 17 · 30 | 0.0023 · 0.0017 · 0.0025 |
+| H8 | 0.60 · 0.87 · 1.00 | 0.89 · 1.00 · 1.00 | 1.00 · 1.00 · 1.00 | 45 · 20 · 30 | 0.0028 · 0.0017 · 0.0028 |
+
+**Đọc trung thực (v7).**
+- Multi hơn single, ngoài dao động: trích nguồn (100% so 80%, chênh 20 điểm ≈ 4 SE), đúng cổng (100% so 75%, chênh 25 điểm ≈ 2,8 SE; toàn bộ mất ở H1 và H4, nơi single chọn NEEDS_INFO vì thiếu trường phụ, 6/24 lượt), chính xác trích dẫn (99,5% so 88,5%), token (5,9k so 14,1k, ít hơn 58%) và trễ (18,6 so 36,2 s, bằng một nửa) ở cấu hình mặc định.
+- Recall: multi 95,2% / 96,9% so single 88,3%; chênh 7-9 điểm nhưng chỉ khoảng 1,8 SE (mặc định) đến 2,5 SE (bỏ plan): hướng nghiêng về multi, chưa chắc ngoài dao động ở n = 24. Phát hiện sai: 0 ở cả ba (v6: single 0,21).
+- Multi **không hơn** hoặc không phân biệt được: (a) multi bỏ plan không nhanh hơn single (33,3 so 36,2 s, sd 15,5; một ca H2 có lượt 62 s) và đắt hơn single 14% ($0,00266 so $0,00234); chỉ cấu hình mặc định rẻ hơn single (-27%) và nhanh hơn; (b) hai cấu hình multi chênh nhau về recall (95,2% so 96,9%) trong dao động; chênh về trễ và chi phí (mặc định tốt hơn) ngoài dao động; (c) H4 (leverage) multi mất 6/6 lượt và single 3/3 do bộ chấm: regex tôi viết `2[.,]9\b` không khớp "2,90" mà multi ghi đúng (58/20 = 2,90, lấy số CIC cao hơn); single thật sự sai (dùng nợ BCTC, 2,0 lần). Theo quy tắc không sửa đáp án sau khi xem kết quả, giữ nguyên điểm; nếu tính 2,90 là khớp thì recall multi H4 là 1,00. (d) H8: single mất `ltv`, `max_secured` ở 3/3 lượt; multi mất 2 chi tiết ở 1 lượt.
+- Multi không sập trên v7 (0 lỗi, 0 ESCALATED); ca G3 của v6 (CIC chưa tra cứu) không có trong v7, nên bản sửa `ba7b696` chưa được đo lại bằng ca đó.
+- So với v6: single trích nguồn 80% thấp hơn các lần đo single trước (90-100% từ v2); đúng cổng single 75% (v6: 38%). Multi mặc định đúng cổng 100% (v6: 88%, G3 sập).
+
+### 9.4 Xem lại single: có đổi hay chỉ do độ khó bộ ca?
+Bảng mọi lượt đo có chế độ single (số từ `agent_engine/benchmark_results/*.json`, không phải bản `-regrade`; "chấm" = phiên bản bộ chấm lúc đo, v2 chấm cả evidence nên không so thẳng với v3; "ca nhắm cổng" = số ca đăng ký riêng để kiểm cổng: v6 theo ghi chú đăng ký 8/8, v7 2/8; các bộ trước không đăng ký ca nhắm cổng):
+
+| lượt đo (nhãn rút gọn) | bộ | chấm | commit | recall | trích nguồn | phát hiện sai | đúng cổng | TB phát hiện bắt buộc/ca | ca nhắm cổng |
+|---|---|---|---|---|---|---|---|---|---|
+| 11-06 full | v1 (5 ca) | v2 | e0ff7ba | 73% | 63% | 0.20 | 100% | 4.80 | 0 |
+| 11-06 llmmode | v1 (5 ca) | v2 | 22001ce | 60% | 57% | 0.40 | 100% | 4.80 | 0 |
+| 11-07 v2llm | v2 (10 ca) | v2 | 42442fc | 97% | 92% | 0.30 | 90% | 3.80 | 0 |
+| 11-07 v2 llm sau sửa lỗi A2A busines | v2 (10 ca) | v2 | c2ac762 | 95% | 97% | 0.13 | 90% | 3.80 | 0 |
+| 11-07 v3 trước sửa engine (ee8865d) | v3 (8 ca) | v2 | c0294f7 | 92% | 97% | 0.25 | 100% | 3.62 | 0 |
+| 11-07 v3 sau sửa engine (c0294f7) | v3 (8 ca) | v2 | c0294f7 | 94% | 96% | 0.21 | 100% | 3.62 | 0 |
+| 11-07 v2 kiểm thoái lui (c0294f7) | v2 (10 ca) | v2 | c0294f7 | 89% | 100% | 0.20 | 90% | 3.80 | 0 |
+| 11-08 v4 sau sửa (9f8d182) | v4 (6 ca) | v2 | 9f8d182 | 77% | 92% | 0.17 | 83% | 4.00 | 0 |
+| 11-08 v3 kiểm thoái lui (9f8d182) | v3 (8 ca) | v2 | 9f8d182 | 86% | 96% | 0.38 | 100% | 3.62 | 0 |
+| 11-08 v4 cuối eae6ad3 (bộ đã dùng để | v4 (6 ca) | v3 | eae6ad3 | 70% | 90% | 0.17 | 83% | 4.00 | 0 |
+| 11-08 v5 cuối eae6ad3 (kiểm tra mù) | v5 (6 ca) | v3 | eae6ad3 | 86% | 93% | 0.33 | 83% | 3.83 | 0 |
+| 11-09 v6 cuối ef86834 (kiểm tra mù) | v6 (8 ca) | v3 | ef86834 | 90% | 92% | 0.21 | 38% | 3.12 | 8 |
+| 11-09 v5 kiểm thoái lui ef86834 | v5 (6 ca) | v3 | ef86834 | 86% | 94% | 0.33 | 83% | 3.83 | 0 |
+| 11-09 v7 mù bench7 f0b45e5 single +  | v7 (8 ca) | v3 | 0b51af4 | 88% | 80% | 0.00 | 75% | 4.12 | 2 |
+
+Đối chiếu code (lịch sử git, `git log -- <file>`):
+- `scripts/benchmark/single_agent_runner.py`: 3 commit, cuối cùng `dd3da5c` (11-07 trước mọi lượt đo từ v2 trở đi); không đổi từ đó. `common/policy_checklist.py` và `common/mcp_client.py`: lần sửa cuối `dd3da5c` (11-07).
+- `common/rag.py`: `db055a3` (11-08 23:20, sau lượt v5 20:06) chỉ thêm hàm `clause()` cho Validation; `rag.search` mà single dùng không đổi. `rag_corpus/`: lần sửa cuối `f02abe6` (11-07 00:10), trước mọi lượt từ v2.
+- `common/llm.py`: `e6f352d` (11-09 02:06, giữa v5 và v6) làm `tool_loop` chạy các tool_call cùng lượt song song và bỏ qua tool đứng sau `submit_verdict`; đây là thay đổi code duy nhất chạm đường chạy của single sau v5. Về nghĩa: cùng tập tool chạy, cùng kết quả trả về, chỉ đổi thời điểm; không đổi prompt, model, nhiệt độ. Không thể loại hoàn toàn ảnh hưởng nhỏ lên trễ; recall single ở v5 chạy lại sau thay đổi (11-09 07:27, 85,8%) bằng lượt trước (86,1%) nên không thấy ảnh hưởng lên chất lượng.
+- Cấu hình: mọi file kết quả ghi `specialist_model = openai/gpt-6-luna`, không đổi giữa các lượt (mặc định trong `config.py` là mặc định mã; model thật lấy từ env).
+
+Kết luận có bằng chứng:
+1. **Single không mạnh lên.** Code đường chạy single không đổi từ 11-07 ngoài `tool_loop` song song; cùng bộ v5 hai lần đo cách nhau ~11 giờ cho 86,1% và 85,8% (độ lệch 0,3 điểm), nên nhiễu lấy mẫu trên cùng bộ ca là nhỏ.
+2. **Số recall single dao động theo bộ ca, không theo thời gian hay số phát hiện/ca.** Cùng code từ v3 trở đi: 94% (v3), 70% (v4), 86% (v5), 90% (v6), 88% (v7); TB phát hiện bắt buộc/ca là 3,62; 4,00; 3,83; 3,12; 4,12. Không có quan hệ đơn điệu (v4 4,00 → 70%; v7 4,12 → 88%). Giả thuyết "v6 dễ hơn về tìm phát hiện" chỉ đúng một nửa: v6 có TB thấp nhất (3,12), nhưng single v6 (90%) vẫn nằm trong khoảng 86-94% của v3, v5, v7 và thấp hơn v2/v3; chỉ cao hơn v4 vì v4 là bộ khó (70%).
+3. **Chỉ số single biến động mạnh nhất là đúng cổng, và đó là hệ quả của cơ cấu bộ ca**: 83-100% ở v2-v5 (nơi đáp án chủ yếu NEEDS_INFO/REJECTED), 38% ở v6 (8/8 ca nhắm cổng, 5 ca đáp án PENDING_APPROVAL do thiếu trường phụ), 75% ở v7 (2/8 ca nhắm cổng, 4 ca đáp án PENDING_APPROVAL; single chọn NEEDS_INFO ở H1 và H4). Single thiên về NEEDS_INFO khi thiếu trường phụ ở mọi bộ; bộ ca quyết định điểm cổng của nó.
+4. Trích nguồn single v7 (80%) thấp hơn các lần trước (90-100%); bộ v7 yêu cầu thêm §4.2 (đòn bẩy), §6.3 (hiệu lực CIC) vì nhiều ca đòi hỏi các § này; chưa tách được nguyên nhân (không đo thêm theo phạm vi bench7).
+Không có bằng chứng nào cho thấy code single thay đổi để tốt lên; chênh lệch giữa các lượt đo single giải thích được bằng nội dung bộ ca và dao động lấy mẫu (SE recall single 0,03 ở n = 24). Không sửa single để "làm yếu" hay tối ưu.
