@@ -55,7 +55,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             request,
             status=422,
             code="REQUEST_VALIDATION_FAILED",
-            message="The request is invalid.",
+            message="Dữ liệu gửi lên không hợp lệ.",
             details={"errors": safe_errors},
         )
 
@@ -67,7 +67,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             request,
             status=403,
             code="ACCESS_DENIED",
-            message="You do not have permission to access this resource.",
+            message="Bạn không có quyền thực hiện thao tác này.",
             details={"reason": str(exc)},
         )
 
@@ -78,7 +78,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             request,
             status=404,
             code="RESOURCE_NOT_FOUND",
-            message="The requested resource was not found.",
+            message="Không tìm thấy dữ liệu hoặc ngoài phạm vi được xem.",
             details={},
         )
 
@@ -92,7 +92,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             request,
             status=422,
             code="VALIDATION_FAILED",
-            message="The request is invalid.",
+            message="Dữ liệu gửi lên không hợp lệ.",
             details={"reason": str(exc)},
         )
 
@@ -103,7 +103,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             request,
             status=410,
             code="RESOURCE_EXPIRED",
-            message="The requested operation has expired.",
+            message="Thao tác đã hết hạn.",
             details={},
         )
 
@@ -114,7 +114,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             request,
             status=409,
             code="INVALID_STATE_TRANSITION",
-            message="The operation is not valid in the current state.",
+            message="Thao tác không hợp lệ ở trạng thái hiện tại.",
             details={},
         )
 

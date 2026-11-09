@@ -441,7 +441,7 @@ def _decision_params(params: Mapping[str, Any], requested_amount: Any) -> dict[s
     ):
         raise ValidationError(
             "APPROVED_AMOUNT_EXCEEDS_REQUESTED",
-            "The approved amount must not exceed the requested amount.",
+            "Số tiền duyệt không được vượt số tiền đề xuất.",
             {
                 "approved_amount": str(amount),
                 "requested_amount": None if requested is None else str(requested),

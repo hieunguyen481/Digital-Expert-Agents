@@ -38,7 +38,7 @@ class AuthorizationError(AppError):
     def __init__(
         self,
         code: str = "ACCESS_DENIED",
-        message: str = "You do not have permission to access this resource.",
+        message: str = "Bạn không có quyền thực hiện thao tác này.",
         details: Mapping[str, Any] | None = None,
     ) -> None:
         super().__init__(code, message, 403, details)
@@ -48,7 +48,7 @@ class NotFoundError(AppError):
     def __init__(
         self,
         code: str = "RESOURCE_NOT_FOUND",
-        message: str = "The requested resource was not found.",
+        message: str = "Không tìm thấy dữ liệu hoặc ngoài phạm vi được xem.",
         details: Mapping[str, Any] | None = None,
     ) -> None:
         super().__init__(code, message, 404, details)
@@ -68,7 +68,7 @@ class ValidationError(AppError):
     def __init__(
         self,
         code: str = "VALIDATION_FAILED",
-        message: str = "The request is invalid.",
+        message: str = "Dữ liệu gửi lên không hợp lệ.",
         details: Mapping[str, Any] | None = None,
     ) -> None:
         super().__init__(code, message, 422, details)

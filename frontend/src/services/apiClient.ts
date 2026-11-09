@@ -1,6 +1,7 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import { API_ERROR_CODES, type ApiError } from '@/types/api';
 import { getValidAccessToken } from '@/auth/keycloak';
+import { translateServerError } from './errorMessages';
 
 /**
  * Axios instance DUY NHẤT của ứng dụng.
@@ -125,22 +126,19 @@ export function normalizeError(error: unknown): ApiError {
     const code = resolveCodeFromStatus(status);
 
     const backendError = body?.error;
-    if (backendError?.code === 'ACCESS_DENIED') {
-      return {
-        code: 'ACCESS_DENIED',
-        message:
-          'Vai trò của bạn không có quyền thực hiện thao tác này (ví dụ phân tích sâu hồ sơ tín dụng). Hãy chuyển hồ sơ cho cán bộ thẩm định hoặc người có thẩm quyền.',
-      };
-    }
+    const serverCode = backendError?.code ?? body?.code;
+    const serverDetails = backendError?.details ?? body?.errors;
     return {
-      code: backendError?.code ?? body?.code ?? code,
-      // Ưu tiên message từ backend nếu có, nhưng luôn có fallback an toàn.
+      code: serverCode ?? code,
+      // Bản dịch riêng theo mã trước; còn lại đi qua bản dịch dùng chung, không để lọt tiếng Anh thô.
       message:
-        (backendError?.code ? BACKEND_CODE_MESSAGE[backendError.code] : undefined) ??
-        backendError?.message ??
-        body?.message ??
-        USER_MESSAGE[code] ??
-        USER_MESSAGE[API_ERROR_CODES.unknown],
+        (serverCode ? BACKEND_CODE_MESSAGE[serverCode] : undefined) ??
+        translateServerError({
+          status,
+          code: serverCode,
+          message: backendError?.message ?? body?.message,
+          details: serverDetails,
+        }),
       status,
       details: backendError?.details ?? body?.errors,
     };
