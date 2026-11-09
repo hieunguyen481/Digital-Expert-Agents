@@ -1,0 +1,682 @@
+{
+ "version": "v7",
+ "written_before_any_run": true,
+ "note": "H1-H8 là 8 ca MỚI liên phòng ban trên 8 khách SME mới (seed R__seed_benchmark_v7_profiles.sql, khách ...0061-...0068), không trùng v1-v6. BỘ ĐO ĐỘC LẬP bench7: viết trước mọi lượt đo, không chạy engine hay LLM trên ca trước commit này; đúng một lượt đo cho mỗi cấu hình (single, multi mặc định, multi bỏ cờ plan), cả hai cấu hình multi đều được báo cáo, không chọn cấu hình nào làm số chính dựa trên điểm v7. Đáp án từ docs/business/rules.md (Q4, Q5/E5, Q7, Q-O) + CS-TD-SME/2025 §3.1, §4.1, §4.2, §6.1, §6.3, §7.1 + compliance_policy Điều 7; cùng quy ước tính v4-v6. Cơ cấu cố định: 2/8 ca nhắm cổng thiếu dữ liệu (H5 CIC quá hiệu lực, H6 không BCTC); 6 ca còn lại liên phòng ban (tín dụng + tuân thủ + tác nghiệp); gate trải trên PENDING_APPROVAL (H1, H4; H7 và H8 chấp nhận thêm NEEDS_INFO), REJECTED (H2), NEEDS_INFO/REJECTED (H3, rules.md không quy định trạng thái khi vượt trần Nợ vay/EBITDA), NEEDS_INFO (H5, H6); tổng 33 phát hiện bắt buộc, trung bình 4.12/ca. Ca bỏ: ca dùng ngành rủi ro cao (Điều 9) vì MCP get_business trả industry_risk=None nên rules/corpus không đủ làm đáp án kiểm chứng được; ca thiếu tài khoản thanh toán vì trùng D6; ca trừng phạt vì trùng D8.",
+ "grading": {
+  "text_scope": "Chấm trên phần KẾT LUẬN (summary + findings + conditions + narrative). KHÔNG tính evidence/quote, vì multi-agent tự đính kèm đoạn RAG thô vào evidence và sẽ khớp mẫu ngẫu nhiên.",
+  "findings": "required_findings: khớp khi MỌI regex trong 'all' đều có mặt trong văn bản kết luận (không phân biệt hoa thường).",
+  "false_findings": "forbidden: mỗi regex khớp = 1 phát hiện sai.",
+  "citations": "required_citations: regex trên nguồn trích dẫn (evidence.source + chuỗi § trong kết luận). Trích § không có trong corpus CS-TD-SME/2025 = trích sai.",
+  "tools": "required_tools: công cụ MCP phải được gọi (đếm từ audit.engine_mcp_call, cùng nguồn cho cả hai chế độ).",
+  "gate": "expected_gate: trạng thái cuối chấp nhận được. PENDING_APPROVAL = chờ người xác nhận (single-agent: decision=approve VÀ requires_human_approval=true); NEEDS_INFO = need_more_info; REJECTED = reject; single-agent approve mà không chờ người = AUTO_APPROVED (sai cổng).",
+  "llm_judge": "không dùng"
+ },
+ "cases": [
+  {
+   "id": "H1",
+   "title": "Hai TSĐB rõ pháp lý 40 tỷ: tổng cấp tín dụng 28 tỷ cần kiểm toán, LTV 45%, trần có bảo đảm 28 tỷ",
+   "request": {
+    "business_id": "56000000-0000-4000-8000-000061000000",
+    "amount": 18000000000.0,
+    "term_months": 24,
+    "purpose": "Bổ sung vốn lưu động",
+    "has_collateral": true,
+    "collateral_id": "77100000-0000-4000-8000-000061000001"
+   },
+   "expert_fields": [
+    "tín dụng (tổng cấp tín dụng, đòn bẩy)",
+    "tuân thủ (TSĐB)",
+    "tác nghiệp (cấp phê duyệt)"
+   ],
+   "required_findings": [
+    {
+     "id": "total_exposure",
+     "desc": "Dư nợ 6+4=10 tỷ + 18 tỷ = 28 tỷ, dải 20-100 tỷ",
+     "all": [
+      "\\b28\\b",
+      "(20\\s*[–-]\\s*100|cấp 2|Hội sở|vượt 20|trên 20|>\\s*20)"
+     ]
+    },
+    {
+     "id": "audit_required",
+     "desc": "Tổng > 20 tỷ nên BCTC kiểm toán bắt buộc",
+     "all": [
+      "(?<!không )(?<!chưa )bắt buộc[^.\\n]{0,60}kiểm toán|kiểm toán[^.\\n]{0,40}(?<!không )(?<!chưa )bắt buộc"
+     ]
+    },
+    {
+     "id": "ltv",
+     "desc": "LTV 18/40 = 45%, dưới trần 70%",
+     "all": [
+      "45([.,]0)?\\s*%",
+      "70"
+     ]
+    },
+    {
+     "id": "max_secured",
+     "desc": "Trần cho vay có bảo đảm 70% x 40 = 28 tỷ",
+     "all": [
+      "\\b28\\b[^.\\n]{0,20}tỷ",
+      "(trần|tối đa|không vượt|70\\s*%)"
+     ]
+    },
+    {
+     "id": "leverage",
+     "desc": "(50+18)/35 = 1,94 lần, đạt trần 3,5",
+     "all": [
+      "1[.,]9[34]",
+      "(đạt|không vượt|dưới|≤|3[.,]5)"
+     ]
+    }
+   ],
+   "required_citations": [
+    {
+     "id": "cite_ltv",
+     "pattern": "§\\s*7\\.1"
+    },
+    {
+     "id": "cite_authority",
+     "pattern": "§\\s*3\\.1"
+    },
+    {
+     "id": "cite_audit",
+     "pattern": "§\\s*(4\\.1|6\\.1)"
+    }
+   ],
+   "required_tools": [
+    "get_financials",
+    "get_existing_loans",
+    "get_cic_status",
+    "check_blacklist",
+    "get_collateral"
+   ],
+   "forbidden": [
+    {
+     "id": "false_cic_bad",
+     "pattern": "CIC\\s*nhóm\\s*[3-5]"
+    },
+    {
+     "id": "false_blacklist",
+     "pattern": "(danh sách đen|blacklist|trừng phạt)[^.\\n]{0,40}(trùng|có tên|hit)"
+    }
+   ],
+   "expected_gate": [
+    "PENDING_APPROVAL"
+   ]
+  },
+  {
+   "id": "H2",
+   "title": "CIC nhóm 4 (quá hạn 200 ngày) dù tài chính, TSĐB tốt và tổng 17 tỷ: không đủ điều kiện cấp tín dụng",
+   "request": {
+    "business_id": "56000000-0000-4000-8000-000062000000",
+    "amount": 9000000000.0,
+    "term_months": 24,
+    "purpose": "Bổ sung vốn lưu động",
+    "has_collateral": true,
+    "collateral_id": "77100000-0000-4000-8000-000062000001"
+   },
+   "expert_fields": [
+    "tuân thủ (CIC)",
+    "tín dụng (tổng cấp tín dụng)"
+   ],
+   "required_findings": [
+    {
+     "id": "cic_group4",
+     "desc": "CIC nhóm 4, có khoản quá hạn 200 ngày",
+     "all": [
+      "nhóm\\s*4"
+     ]
+    },
+    {
+     "id": "cic_ineligible",
+     "desc": "Nợ nhóm 3 trở lên: không đủ điều kiện (Điều 7)",
+     "all": [
+      "(không đủ điều kiện|từ chối|không được cấp|dừng|không đáp ứng|nhóm 3 trở lên)"
+     ]
+    },
+    {
+     "id": "total_exposure",
+     "desc": "Dư nợ 8 tỷ + 9 tỷ = 17 tỷ, không vượt 20",
+     "all": [
+      "\\b17\\b",
+      "(≤\\s*20|không vượt|dưới\\s*20|không quá 20|không bắt buộc|cấp thấp nhất|chi nhánh|chưa vượt)"
+     ]
+    },
+    {
+     "id": "ltv",
+     "desc": "LTV 9/30 = 30%, dưới trần 70% (tài chính tốt không bù được CIC)",
+     "all": [
+      "30([.,]0)?\\s*%",
+      "70"
+     ]
+    }
+   ],
+   "required_citations": [
+    {
+     "id": "cite_ltv",
+     "pattern": "§\\s*7\\.1"
+    },
+    {
+     "id": "cite_authority",
+     "pattern": "§\\s*3\\.1"
+    }
+   ],
+   "required_tools": [
+    "get_financials",
+    "get_existing_loans",
+    "get_cic_status",
+    "check_blacklist",
+    "get_collateral"
+   ],
+   "forbidden": [
+    {
+     "id": "false_cic_group1",
+     "pattern": "CIC[^.\\n]{0,20}nhóm\\s*1\\b"
+    },
+    {
+     "id": "false_blacklist",
+     "pattern": "(danh sách đen|blacklist|trừng phạt)[^.\\n]{0,40}(trùng|có tên|hit)"
+    }
+   ],
+   "expected_gate": [
+    "REJECTED"
+   ]
+  },
+  {
+   "id": "H3",
+   "title": "Không đủ đòn bẩy: Nợ vay/EBITDA sau cấp 3,83 vượt trần 3,5 dù có TSĐB 40 tỷ (LTV 55%), tổng 36 tỷ",
+   "request": {
+    "business_id": "56000000-0000-4000-8000-000063000000",
+    "amount": 22000000000.0,
+    "term_months": 24,
+    "purpose": "Bổ sung vốn lưu động",
+    "has_collateral": true,
+    "collateral_id": "77100000-0000-4000-8000-000063000001"
+   },
+   "expert_fields": [
+    "tín dụng (đòn bẩy, tổng cấp tín dụng)",
+    "tuân thủ (TSĐB)",
+    "tác nghiệp (cấp phê duyệt)"
+   ],
+   "required_findings": [
+    {
+     "id": "total_exposure",
+     "desc": "Dư nợ 9+5=14 tỷ + 22 tỷ = 36 tỷ, dải 20-100 tỷ",
+     "all": [
+      "\\b36\\b",
+      "(20\\s*[–-]\\s*100|cấp 2|Hội sở|vượt 20|trên 20|>\\s*20)"
+     ]
+    },
+    {
+     "id": "audit_required",
+     "desc": "Tổng > 20 tỷ nên BCTC kiểm toán bắt buộc",
+     "all": [
+      "(?<!không )(?<!chưa )bắt buộc[^.\\n]{0,60}kiểm toán|kiểm toán[^.\\n]{0,40}(?<!không )(?<!chưa )bắt buộc"
+     ]
+    },
+    {
+     "id": "leverage_breach",
+     "desc": "(70+22)/24 = 3,83 lần, vượt trần 3,5",
+     "all": [
+      "3[.,]8[23]?",
+      "(vượt|trên|không đạt|cao hơn|>\\s*3[.,]5)"
+     ]
+    },
+    {
+     "id": "ltv",
+     "desc": "LTV 22/40 = 55%, dưới trần 70%",
+     "all": [
+      "55([.,]0)?\\s*%",
+      "70"
+     ]
+    }
+   ],
+   "required_citations": [
+    {
+     "id": "cite_ltv",
+     "pattern": "§\\s*7\\.1"
+    },
+    {
+     "id": "cite_authority",
+     "pattern": "§\\s*3\\.1"
+    },
+    {
+     "id": "cite_audit",
+     "pattern": "§\\s*(4\\.1|6\\.1)"
+    },
+    {
+     "id": "cite_leverage",
+     "pattern": "§\\s*4\\.2"
+    }
+   ],
+   "required_tools": [
+    "get_financials",
+    "get_existing_loans",
+    "get_cic_status",
+    "check_blacklist",
+    "get_collateral"
+   ],
+   "forbidden": [
+    {
+     "id": "false_cic_bad",
+     "pattern": "CIC\\s*nhóm\\s*[3-5]"
+    },
+    {
+     "id": "false_blacklist",
+     "pattern": "(danh sách đen|blacklist|trừng phạt)[^.\\n]{0,40}(trùng|có tên|hit)"
+    }
+   ],
+   "expected_gate": [
+    "NEEDS_INFO",
+    "REJECTED"
+   ]
+  },
+  {
+   "id": "H4",
+   "title": "Dư nợ hệ thống (CIC 48 tỷ) cao hơn nợ vay BCTC (30 tỷ): Nợ vay/EBITDA sau cấp 2,9 theo số cao hơn, tổng 16 tỷ",
+   "request": {
+    "business_id": "56000000-0000-4000-8000-000064000000",
+    "amount": 10000000000.0,
+    "term_months": 24,
+    "purpose": "Bổ sung vốn lưu động",
+    "has_collateral": true,
+    "collateral_id": "77100000-0000-4000-8000-000064000001"
+   },
+   "expert_fields": [
+    "tín dụng (đòn bẩy)",
+    "tuân thủ (CIC)",
+    "tác nghiệp"
+   ],
+   "required_findings": [
+    {
+     "id": "system_debt",
+     "desc": "CIC 20+28=48 tỷ cao hơn BCTC 30 tỷ, lấy số cao hơn",
+     "all": [
+      "\\b48\\b",
+      "(cao hơn|lớn hơn|vượt|chênh|lệch|CIC)"
+     ]
+    },
+    {
+     "id": "leverage",
+     "desc": "(48+10)/20 = 2,9 lần, không vượt 3,5",
+     "all": [
+      "2[.,]9\\b",
+      "(không vượt|đạt|dưới|≤|3[.,]5)"
+     ]
+    },
+    {
+     "id": "total_exposure",
+     "desc": "Dư nợ tại ngân hàng 6 tỷ + 10 tỷ = 16 tỷ, không vượt 20",
+     "all": [
+      "\\b16\\b",
+      "(≤\\s*20|không vượt|dưới\\s*20|không quá 20|không bắt buộc|cấp thấp nhất|chi nhánh|chưa vượt)"
+     ]
+    },
+    {
+     "id": "ltv",
+     "desc": "LTV 10/25 = 40%, dưới trần 70%",
+     "all": [
+      "40([.,]0)?\\s*%",
+      "70"
+     ]
+    }
+   ],
+   "required_citations": [
+    {
+     "id": "cite_ltv",
+     "pattern": "§\\s*7\\.1"
+    },
+    {
+     "id": "cite_authority",
+     "pattern": "§\\s*3\\.1"
+    },
+    {
+     "id": "cite_leverage",
+     "pattern": "§\\s*4\\.2"
+    }
+   ],
+   "required_tools": [
+    "get_financials",
+    "get_existing_loans",
+    "get_cic_status",
+    "check_blacklist",
+    "get_collateral"
+   ],
+   "forbidden": [
+    {
+     "id": "false_cic_bad",
+     "pattern": "CIC\\s*nhóm\\s*[3-5]"
+    },
+    {
+     "id": "false_blacklist",
+     "pattern": "(danh sách đen|blacklist|trừng phạt)[^.\\n]{0,40}(trùng|có tên|hit)"
+    }
+   ],
+   "expected_gate": [
+    "PENDING_APPROVAL"
+   ]
+  },
+  {
+   "id": "H5",
+   "title": "Bản CIC tra cứu cách 50 ngày (quá hiệu lực 30 ngày): phải tra lại; tổng 26 tỷ cần kiểm toán, LTV 53,3%",
+   "request": {
+    "business_id": "56000000-0000-4000-8000-000065000000",
+    "amount": 16000000000.0,
+    "term_months": 24,
+    "purpose": "Bổ sung vốn lưu động",
+    "has_collateral": true,
+    "collateral_id": "77100000-0000-4000-8000-000065000001"
+   },
+   "expert_fields": [
+    "tuân thủ (CIC)",
+    "tín dụng (tổng cấp tín dụng)",
+    "tác nghiệp"
+   ],
+   "required_findings": [
+    {
+     "id": "cic_expired",
+     "desc": "CIC cách 50 ngày, quá hiệu lực 30 ngày, phải tra lại",
+     "all": [
+      "(hết hiệu lực|quá hạn hiệu lực|quá 30 ngày|vượt 30 ngày|quá hiệu lực|cũ|hết hạn)",
+      "(tra lại|tra cứu lại|cập nhật|làm mới|bổ sung)"
+     ]
+    },
+    {
+     "id": "total_exposure",
+     "desc": "Dư nợ 10 tỷ + 16 tỷ = 26 tỷ, dải 20-100 tỷ",
+     "all": [
+      "\\b26\\b",
+      "(20\\s*[–-]\\s*100|cấp 2|Hội sở|vượt 20|trên 20|>\\s*20)"
+     ]
+    },
+    {
+     "id": "audit_required",
+     "desc": "Tổng > 20 tỷ nên BCTC kiểm toán bắt buộc",
+     "all": [
+      "(?<!không )(?<!chưa )bắt buộc[^.\\n]{0,60}kiểm toán|kiểm toán[^.\\n]{0,40}(?<!không )(?<!chưa )bắt buộc"
+     ]
+    },
+    {
+     "id": "ltv",
+     "desc": "LTV 16/30 = 53,3%, dưới trần 70%",
+     "all": [
+      "53[.,][23]\\s*%",
+      "70"
+     ]
+    }
+   ],
+   "required_citations": [
+    {
+     "id": "cite_cic_validity",
+     "pattern": "§\\s*6\\.3"
+    },
+    {
+     "id": "cite_ltv",
+     "pattern": "§\\s*7\\.1"
+    },
+    {
+     "id": "cite_audit",
+     "pattern": "§\\s*(4\\.1|6\\.1)"
+    }
+   ],
+   "required_tools": [
+    "get_financials",
+    "get_existing_loans",
+    "get_cic_status",
+    "check_blacklist",
+    "get_collateral"
+   ],
+   "forbidden": [
+    {
+     "id": "false_blacklist",
+     "pattern": "(danh sách đen|blacklist|trừng phạt)[^.\\n]{0,40}(trùng|có tên|hit)"
+    }
+   ],
+   "expected_gate": [
+    "NEEDS_INFO"
+   ]
+  },
+  {
+   "id": "H6",
+   "title": "Chưa có BCTC nào (thiếu dữ liệu chặn thật): không tính được đòn bẩy, tổng 21 tỷ lại > 20 tỷ cần kiểm toán",
+   "request": {
+    "business_id": "56000000-0000-4000-8000-000066000000",
+    "amount": 14000000000.0,
+    "term_months": 24,
+    "purpose": "Bổ sung vốn lưu động",
+    "has_collateral": true,
+    "collateral_id": "77100000-0000-4000-8000-000066000001"
+   },
+   "expert_fields": [
+    "tín dụng",
+    "tuân thủ"
+   ],
+   "required_findings": [
+    {
+     "id": "no_financials",
+     "desc": "Không có BCTC, không tính được đòn bẩy/khả năng trả nợ",
+     "all": [
+      "(chưa có|không có|thiếu)[^.\\n]{0,30}(BCTC|báo cáo tài chính)",
+      "(không tính được|chưa tính được|không thể|bổ sung|không đủ|thiếu)"
+     ]
+    },
+    {
+     "id": "total_exposure",
+     "desc": "Dư nợ 7 tỷ + 14 tỷ = 21 tỷ, dải 20-100 tỷ",
+     "all": [
+      "\\b21\\b",
+      "(20\\s*[–-]\\s*100|cấp 2|Hội sở|vượt 20|trên 20|>\\s*20)"
+     ]
+    },
+    {
+     "id": "ltv",
+     "desc": "LTV 14/28 = 50%, dưới trần 70%",
+     "all": [
+      "50([.,]0)?\\s*%",
+      "70"
+     ]
+    }
+   ],
+   "required_citations": [
+    {
+     "id": "cite_ltv",
+     "pattern": "§\\s*7\\.1"
+    },
+    {
+     "id": "cite_audit",
+     "pattern": "§\\s*(4\\.1|6\\.1)"
+    }
+   ],
+   "required_tools": [
+    "get_financials",
+    "get_existing_loans",
+    "get_cic_status",
+    "check_blacklist",
+    "get_collateral"
+   ],
+   "forbidden": [
+    {
+     "id": "false_cic_bad",
+     "pattern": "CIC\\s*nhóm\\s*[3-5]"
+    },
+    {
+     "id": "false_blacklist",
+     "pattern": "(danh sách đen|blacklist|trừng phạt)[^.\\n]{0,40}(trùng|có tên|hit)"
+    }
+   ],
+   "expected_gate": [
+    "NEEDS_INFO"
+   ]
+  },
+  {
+   "id": "H7",
+   "title": "CIC có khoản nợ nhóm 2 (quá hạn 45 ngày): cần giải trình và trình cấp cao hơn một cấp, các ngưỡng khác đạt",
+   "request": {
+    "business_id": "56000000-0000-4000-8000-000067000000",
+    "amount": 10000000000.0,
+    "term_months": 24,
+    "purpose": "Bổ sung vốn lưu động",
+    "has_collateral": true,
+    "collateral_id": "77100000-0000-4000-8000-000067000001"
+   },
+   "expert_fields": [
+    "tuân thủ (CIC)",
+    "tín dụng (đòn bẩy)",
+    "tác nghiệp (cấp phê duyệt)"
+   ],
+   "required_findings": [
+    {
+     "id": "cic_group2",
+     "desc": "CIC nhóm 2, cần giải trình nguyên nhân",
+     "all": [
+      "nhóm\\s*2",
+      "(giải trình|nguồn trả nợ|cấp cao hơn|một cấp|thẩm quyền cao)"
+     ]
+    },
+    {
+     "id": "total_exposure",
+     "desc": "Dư nợ 5 tỷ + 10 tỷ = 15 tỷ, không vượt 20",
+     "all": [
+      "\\b15\\b",
+      "(≤\\s*20|không vượt|dưới\\s*20|không quá 20|không bắt buộc|cấp thấp nhất|chi nhánh|chưa vượt)"
+     ]
+    },
+    {
+     "id": "leverage",
+     "desc": "(35+10)/18 = 2,5 lần, không vượt 3,5",
+     "all": [
+      "2[.,]5(0)?\\b",
+      "(không vượt|đạt|dưới|≤|3[.,]5)"
+     ]
+    },
+    {
+     "id": "ltv",
+     "desc": "LTV 10/25 = 40%, dưới trần 70%",
+     "all": [
+      "40([.,]0)?\\s*%",
+      "70"
+     ]
+    }
+   ],
+   "required_citations": [
+    {
+     "id": "cite_ltv",
+     "pattern": "§\\s*7\\.1"
+    },
+    {
+     "id": "cite_authority",
+     "pattern": "§\\s*3\\.1"
+    }
+   ],
+   "required_tools": [
+    "get_financials",
+    "get_existing_loans",
+    "get_cic_status",
+    "check_blacklist",
+    "get_collateral"
+   ],
+   "forbidden": [
+    {
+     "id": "false_blacklist",
+     "pattern": "(danh sách đen|blacklist|trừng phạt)[^.\\n]{0,40}(trùng|có tên|hit)"
+    }
+   ],
+   "expected_gate": [
+    "PENDING_APPROVAL",
+    "NEEDS_INFO"
+   ]
+  },
+  {
+   "id": "H8",
+   "title": "Tổng cấp tín dụng 105 tỷ vượt 100 tỷ: cấp phê duyệt cao nhất, hai TSĐB 80 tỷ: LTV 56,3%, trần có bảo đảm 56 tỷ",
+   "request": {
+    "business_id": "56000000-0000-4000-8000-000068000000",
+    "amount": 45000000000.0,
+    "term_months": 24,
+    "purpose": "Bổ sung vốn lưu động",
+    "has_collateral": true,
+    "collateral_id": "77100000-0000-4000-8000-000068000001"
+   },
+   "expert_fields": [
+    "tín dụng (tổng cấp tín dụng, đòn bẩy)",
+    "tuân thủ (TSĐB)",
+    "tác nghiệp (cấp phê duyệt)"
+   ],
+   "required_findings": [
+    {
+     "id": "total_exposure",
+     "desc": "Dư nợ 35+25=60 tỷ + 45 tỷ = 105 tỷ, vượt 100 tỷ",
+     "all": [
+      "\\b105\\b",
+      "(vượt 100|trên 100|>\\s*100|cấp 3|cao nhất|Hội đồng|hội sở)"
+     ]
+    },
+    {
+     "id": "audit_required",
+     "desc": "Tổng > 20 tỷ nên BCTC kiểm toán bắt buộc",
+     "all": [
+      "(?<!không )(?<!chưa )bắt buộc[^.\\n]{0,60}kiểm toán|kiểm toán[^.\\n]{0,40}(?<!không )(?<!chưa )bắt buộc"
+     ]
+    },
+    {
+     "id": "ltv",
+     "desc": "LTV 45/80 = 56,3%, dưới trần 70%",
+     "all": [
+      "56[.,][23]\\s*%",
+      "70"
+     ]
+    },
+    {
+     "id": "max_secured",
+     "desc": "Trần có bảo đảm 70% x 80 = 56 tỷ",
+     "all": [
+      "\\b56\\b[^.\\n]{0,20}tỷ"
+     ]
+    },
+    {
+     "id": "leverage",
+     "desc": "(200+45)/140 = 1,75 lần, đạt trần 3,5",
+     "all": [
+      "1[.,]7[05]",
+      "(đạt|không vượt|dưới|≤|3[.,]5)"
+     ]
+    }
+   ],
+   "required_citations": [
+    {
+     "id": "cite_ltv",
+     "pattern": "§\\s*7\\.1"
+    },
+    {
+     "id": "cite_authority",
+     "pattern": "§\\s*3\\.1"
+    },
+    {
+     "id": "cite_audit",
+     "pattern": "§\\s*(4\\.1|6\\.1)"
+    }
+   ],
+   "required_tools": [
+    "get_financials",
+    "get_existing_loans",
+    "get_cic_status",
+    "check_blacklist",
+    "get_collateral"
+   ],
+   "forbidden": [
+    {
+     "id": "false_cic_bad",
+     "pattern": "CIC\\s*nhóm\\s*[3-5]"
+    },
+    {
+     "id": "false_blacklist",
+     "pattern": "(danh sách đen|blacklist|trừng phạt)[^.\\n]{0,40}(trùng|có tên|hit)"
+    }
+   ],
+   "expected_gate": [
+    "PENDING_APPROVAL",
+    "NEEDS_INFO"
+   ]
+  }
+ ]
+}

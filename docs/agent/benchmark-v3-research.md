@@ -161,3 +161,21 @@ Thời gian còn lại gần như toàn là một lượt `submit_verdict` dài 
 v6 theo ca (recall / đúng cổng; multi | single): G1 1,00/1 | 1,00/0; G2 1,00/1 | 1,00/0; **G3 0,00/0 | 1,00/1**; G4 1,00/1 | 1,00/1; G5 1,00/1 | 1,00/0; G6 1,00/1 | 0,50/1; G7 1,00/1 | 1,00/0; G8 0,83/1 | 0,67/0.
 
 **Đọc trung thực.** Trên v6 mù multi hơn single ở đúng cổng (88% so 38%), chính xác trích dẫn (99% so 91%), phát hiện sai (0 so 0,21), trễ (21,2 so 41,6 s) và token (5,2k so 15,0k); chi phí/ca bằng nhau ở mức làm tròn (xem file kết quả). Multi **không hơn** ở recall phát hiện (85% so 90%) và trích nguồn (88% so 92%), và độ lệch multi lớn. Toàn bộ chênh lệch recall đến từ G3: cả 3 lượt multi của G3 (khách chưa có kết quả CIC) bị ESCALATED sau 1 giây do lỗi trong Planner xác định (`cic_group` null so sánh `>= 2`), không ra kết luận. Các ca khác multi ≥ single về recall. Lỗi đã sửa trong code (commit riêng, có test), **không đo lại v6** theo quy định đo một lượt; số G3 ở trên là số thật đã đo. Ước lượng: nếu G3 không sập, recall multi của v6 sẽ khoảng 97%, nhưng đây là suy đoán, không phải số đo. v5 kiểm thoái lui (bộ phát triển, 1 lần/ca): multi hơn single ở mọi chỉ số.
+
+## 9. Bench7: đo mù độc lập (v7) và xem lại single
+
+### 9.1 Cơ cấu bộ ca v7 (đăng ký trước mọi lượt đo; không chạy engine hay LLM trên ca trước commit này)
+`cases_v7.json` (H1-H8, seed `R__seed_benchmark_v7_profiles.sql`, khách ...0061-0068), 33 phát hiện bắt buộc, trung bình 4,13/ca (v2-v5: 3,6-4,0; v6: 3,12). Đáp án từ `rules.md` (Q4, Q5/E5, Q7, Q-O), CS-TD-SME/2025 §3.1, §4.1, §4.2, §6.1, §6.3, §7.1 và `compliance_policy` Điều 7; quy ước tính như v4-v6.
+
+| ca | nội dung | gate chấp nhận | số phát hiện |
+|---|---|---|---|
+| H1 | hai TSĐB 40 tỷ, tổng 28 tỷ, LTV 45%, trần có bảo đảm 28 tỷ | PENDING_APPROVAL | 5 |
+| H2 | CIC nhóm 4 dù tài chính tốt, tổng 17 tỷ | REJECTED | 4 |
+| H3 | Nợ vay/EBITDA 3,83 vượt 3,5, tổng 36 tỷ | NEEDS_INFO hoặc REJECTED | 4 |
+| H4 | CIC 48 tỷ cao hơn BCTC 30 tỷ, đòn bẩy 2,9 | PENDING_APPROVAL | 4 |
+| H5 | CIC cách 50 ngày (§6.3), tổng 26 tỷ | NEEDS_INFO | 4 |
+| H6 | không có BCTC, tổng 21 tỷ | NEEDS_INFO | 3 |
+| H7 | CIC có nợ nhóm 2 (giải trình, cấp cao hơn) | PENDING_APPROVAL hoặc NEEDS_INFO | 4 |
+| H8 | tổng 105 tỷ > 100, LTV 56,3% | PENDING_APPROVAL hoặc NEEDS_INFO | 5 |
+
+Cổng thiếu dữ liệu: 2/8 (H5, H6; tối đa 3). Cổng không dồn một giá trị: PENDING_APPROVAL (H1, H4 và chấp nhận thêm ở H7, H8), REJECTED (H2, chấp nhận thêm ở H3), NEEDS_INFO (H5, H6). Ca bỏ trước khi chạy: ngành rủi ro cao (Điều 9) vì `get_business` trả `industry_risk=None`, nên rules/corpus không đủ làm đáp án kiểm chứng được; thiếu tài khoản thanh toán (trùng D6); trừng phạt (trùng D8). Đo đúng một lần mỗi cấu hình: single, multi mặc định, multi bỏ cờ `plan`; cả hai cấu hình multi đều được báo cáo, không chọn cấu hình nào làm số chính dựa trên điểm v7.
