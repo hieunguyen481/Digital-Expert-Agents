@@ -101,3 +101,13 @@ def test_job_error_text_is_vietnamese_without_raw_code() -> None:
     assert "lớp chữ" in text and "O_C_R" not in text and "quản trị" not in text
     assert "quản trị" not in job_error_text("PDFIUM_ERROR") and "PDFIUM" not in job_error_text("PDFIUM_ERROR")
     assert "quản trị" not in job_error_text(None)
+
+
+def test_loan_overview_schema_accepts_supplement_request():
+    # Lỗi gộp L07: service trả supplement_request nhưng schema (extra=forbid) từ chối → /overview 422.
+    from app.schemas.loan_detail import LoanOverview
+
+    base = {"loan": {}, "metrics": [], "flags": [], "collaterals": [], "timeline": []}
+    assert LoanOverview.model_validate({**base, "supplement_request": None}).supplement_request is None
+    got = LoanOverview.model_validate({**base, "supplement_request": {"reason": "x", "requested_at": "t", "due_at": None}})
+    assert got.supplement_request["reason"] == "x"

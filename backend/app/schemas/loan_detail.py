@@ -13,3 +13,4 @@ class LoanOverview(APIModel):
     flags: list[dict[str, Any]]
     collaterals: list[dict[str, Any]]
     timeline: list[dict[str, Any]]
+    supplement_request: dict[str, Any] | None = None
