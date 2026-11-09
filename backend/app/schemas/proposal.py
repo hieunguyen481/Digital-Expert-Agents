@@ -13,7 +13,7 @@ from app.schemas.common import APIModel, DecimalString
 class DraftSaveRequest(APIModel):
     product_id: UUID
     requested_amount: DecimalString = Field(gt=0)
-    requested_term_months: int = Field(gt=0)
+    requested_term_months: int = Field(gt=0, le=600)
     purpose_text: str | None = Field(default=None, max_length=2000)
     repayment_source_text: str | None = Field(default=None, max_length=2000)
     secured: bool = True

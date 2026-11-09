@@ -15,7 +15,7 @@ class LoanCreateRequest(APIModel):
     product_id: UUID
     requested_amount: DecimalString
     currency: str = Field(min_length=3, max_length=3, pattern=r"^[A-Z]{3}$")
-    requested_term_months: int = Field(gt=0)
+    requested_term_months: int = Field(gt=0, le=600)
     loan_purpose: str = Field(min_length=1, max_length=40)
     interest_rate_assumption: DecimalString | None = None
     repayment_method: str | None = Field(default=None, max_length=40)
@@ -23,7 +23,7 @@ class LoanCreateRequest(APIModel):
 
 class LoanUpdateRequest(APIModel):
     requested_amount: DecimalString | None = None
-    requested_term_months: int | None = Field(default=None, gt=0)
+    requested_term_months: int | None = Field(default=None, gt=0, le=600)
     loan_purpose: str | None = Field(default=None, max_length=40)
     interest_rate_assumption: DecimalString | None = None
     repayment_method: str | None = Field(default=None, max_length=40)
