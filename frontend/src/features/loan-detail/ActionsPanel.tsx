@@ -15,6 +15,7 @@ const BLOCKERS: Record<string, string> = {
   REPORT_MISSING: 'Tờ trình chưa đủ 7 mục',
   OPINIONS_MISSING: 'Thiếu Ý kiến Rủi ro, ý kiến Tuân thủ hoặc kết luận cờ CIC khách tự nộp',
   VALIDITY_AT_APPROVAL: 'CIC hoặc sao kê hết hiệu lực tại ngày trình phê duyệt',
+  CHECK_FAILED: 'Hồ sơ chưa qua kiểm tra: còn tài liệu thiếu, hết hạn hoặc trường dữ liệu chưa được xác nhận',
 };
 const CONCLUSIONS = [
   { value: 'SUSPECTED_FRAUD', label: 'Nghi gian lận – tạm dừng hồ sơ' },
@@ -68,6 +69,9 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   const btn = (key: string, label: string, onClick: () => void, opts: { primary?: boolean; disabled?: string } = {}) =>
     buttons.push(<Button key={key} type={opts.primary ? 'primary' : 'default'} disabled={!!opts.disabled} title={opts.disabled} onClick={onClick}>{label}</Button>);
 
+  if (status === 'APPRAISAL_PENDING_INFO' && has('document_reviewer')) {
+    btn('accept-info', 'Ghi nhận đã bổ sung', () => void submit(() => runTransition(loanId, 'accept_info', state.version)), { primary: true });
+  }
   if (status === 'APPRAISAL' && has('credit_appraiser')) {
     btn('info', 'Yêu cầu bổ sung', () => reasonAction('Yêu cầu bổ sung', 'Nội dung cần QHKH bổ sung', 'Gửi yêu cầu', transit('request_info')));
     btn('return', 'Trả lại QHKH', () => reasonAction('Trả lại QHKH', 'Lý do trả lại', 'Trả lại', transit('return_to_rm')));

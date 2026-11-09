@@ -11,6 +11,7 @@ import { MemoPanel } from './MemoPanel';
 import { MetricsPanel } from './MetricsPanel';
 import { fetchOverview } from './loanDetailService';
 import { fmtNum } from './format';
+import { statusLabel } from '@/features/my-work/format';
 import styles from './loan-detail.module.css';
 
 export default function LoanDetailPage() {
@@ -23,7 +24,7 @@ export default function LoanDetailPage() {
     <>
       <PageHead
         title={`Chi tiết hồ sơ vay · ${loan.customer_name ?? loan.application_number}`}
-        facts={[loan.application_number, loan.status, `${fmtNum(Number(loan.requested_amount) / 1e9)} tỷ ${loan.currency}`,
+        facts={[loan.application_number, statusLabel(loan.status), `${fmtNum(Number(loan.requested_amount) / 1e9)} tỷ ${loan.currency}`,
           loan.requested_term_months ? `${loan.requested_term_months} tháng` : null, loan.assignee_name ? `Đang giữ: ${loan.assignee_name}` : null]}
       />
       <div className={styles.page}>

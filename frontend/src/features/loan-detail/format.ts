@@ -13,3 +13,33 @@ const SOURCE_TYPE: Record<string, string> = {
 export const sourceTypeLabel = (t: string | null): string => (t ? SOURCE_TYPE[t] ?? t : 'Không rõ loại nguồn');
 
 export const KIND_LABEL = { DECLARED: 'Khai báo', RECOMPUTED: 'Tính lại' } as const;
+
+const SEVERITY: Record<string, string> = { HIGH: 'Cao', MEDIUM: 'Trung bình', LOW: 'Thấp' };
+export const severityLabel = (s: string): string => SEVERITY[s] ?? s;
+
+const FLAG_STATUS: Record<string, string> = { OPEN: 'đang mở', HANDLED: 'đã xử lý', CONCLUDED: 'đã kết luận' };
+export const flagStatusLabel = (s: string): string => FLAG_STATUS[s] ?? s;
+
+const FLAG_SOURCE: Record<string, string> = {
+  SYSTEM: 'Hệ thống', GATE: 'Cổng kiểm tra điều kiện', AI_DOCUMENT_CHECK: 'AI kiểm tra tài liệu', CHECKING: 'Kiểm tra hồ sơ', APPRAISAL: 'Thẩm định',
+};
+/** Nguồn cờ dạng `GATE:rm_submit` -> `Cổng kiểm tra điều kiện`; không để mã kỹ thuật lộ ra. */
+export const flagSourceLabel = (s: string): string => FLAG_SOURCE[s.split(':')[0]] ?? 'Hệ thống';
+
+const VALUATION: Record<string, string> = {
+  DECLARED: 'Khách khai báo', APPRAISED: 'Đã thẩm định giá', PENDING: 'Chờ định giá', NEEDS_VERIFICATION: 'Cần kiểm chứng',
+};
+export const valuationLabel = (s: string | null): string => (s ? VALUATION[s] ?? s : '—');
+
+const OWNERSHIP: Record<string, string> = {
+  VERIFIED: 'đã xác minh', AI_PROPOSED: 'AI đề xuất, chưa xác nhận', NEEDS_VERIFICATION: 'cần kiểm chứng', PENDING: 'chờ xác minh',
+};
+export const ownershipLabel = (s: string | null): string => (s ? OWNERSHIP[s] ?? s : '—');
+
+const STEP_RESULT: Record<string, string> = { SUBMITTED: 'đã trình', PASSED: 'đạt', RETURNED: 'trả lại', PASS: 'đạt', FAIL: 'không đạt' };
+export const stepResultLabel = (s: string | null): string => (s ? STEP_RESULT[s] ?? s : '');
+
+const CONCLUSION: Record<string, string> = {
+  SUSPECTED_FRAUD: 'Nghi gian lận', INSUFFICIENT_BASIS: 'Chưa đủ căn cứ', NO_ISSUE: 'Không có vấn đề',
+};
+export const conclusionLabel = (s: string): string => CONCLUSION[s] ?? s;

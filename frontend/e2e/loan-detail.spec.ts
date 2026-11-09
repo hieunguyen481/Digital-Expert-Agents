@@ -121,9 +121,9 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await dialog(page).locator('#action-text').fill('Nghi vấn CIC khách tự nộp');
   await dialog(page).getByRole('button', { name: 'Gửi báo sớm' }).click();
   await expect(page.getByRole('button', { name: 'Đã báo sớm' })).toBeVisible();
-  await expect(page.getByText('APPRAISAL', { exact: true }).first()).toBeVisible(); // Báo sớm không đổi bước
+  await expect(page.getByText('Đang thẩm định').first()).toBeVisible(); // Báo sớm không đổi bước
   await page.getByTestId('actions-panel').getByRole('button', { name: 'Trình Rủi ro', exact: true }).click();
-  await expect(page.getByText('RISK_REVIEW', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('Đang cho ý kiến rủi ro').first()).toBeVisible();
   await expect(page.getByText('Bản đã chốt lúc trình')).toBeVisible();
   const [pdf] = await Promise.all([page.waitForEvent('download'), page.getByTestId('memo-pdf').click()]);
   expect(pdf.suggestedFilename()).toMatch(/^to-trinh-.*\.pdf$/);
@@ -156,7 +156,7 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   // 4. Rủi ro trình phê duyệt; hồ sơ vào bước Phê duyệt.
   page = await open('ruiro');
   await page.getByRole('button', { name: 'Trình phê duyệt' }).click();
-  await expect(page.getByText('APPROVAL', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('Chờ phê duyệt').first()).toBeVisible();
 
   // 5. Cấp 2 quyết định, bắt buộc lý do.
   // Bước Phê duyệt giao cho cấp 2 ít việc đang mở nhất (routing); mở bằng người được giao.
@@ -172,5 +172,5 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await expect(dialog(page).getByRole('button', { name: 'Ghi quyết định' })).toBeDisabled();
   await dialog(page).locator('#action-text').fill('Đủ điều kiện, phê duyệt theo đề nghị');
   await dialog(page).getByRole('button', { name: 'Ghi quyết định' }).click();
-  await expect(page.getByText(/· APPROVED ·/).first()).toBeVisible();
+  await expect(page.getByText('Đã phê duyệt').first()).toBeVisible();
 });

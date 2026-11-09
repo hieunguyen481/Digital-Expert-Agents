@@ -13,6 +13,7 @@ import { DocumentViewer } from './DocumentViewer';
 import { LogPanel } from './LogPanel';
 import { TransferBar } from './TransferBar';
 import { fetchReconciliation } from './reconciliationService';
+import { statusLabel } from '@/features/my-work/format';
 import styles from './reconciliation.module.css';
 
 function Workspace({ loanId }: { loanId: string }) {
@@ -36,7 +37,7 @@ function Workspace({ loanId }: { loanId: string }) {
     <>
       <PageHead
         title={`Đối chiếu tài liệu · ${view.customer_name ?? view.application_number}`}
-        facts={[view.application_number, view.status === 'CHECKING' ? 'Đang hậu kiểm' : view.status]}
+        facts={[view.application_number, view.status === 'CHECKING' ? 'Đang hậu kiểm' : statusLabel(view.status)]}
       />
       <div className={styles.page}>
         <Alert type="info" showIcon message={view.data_label} />
