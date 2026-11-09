@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Button, Card, Empty, Skeleton, Tag, Typography } from 'antd';
+import { Alert, Button, Card, Empty, Input, Select, Skeleton, Tag, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
 import { listAgentCases, type AgentCaseSummary } from '@/services/agentCaseService';
@@ -11,7 +11,9 @@ const { Text } = Typography;
 
 export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | null }) {
   const [open, setOpen] = useState<string | null>(initialCaseId);
-  const q = useQuery({ queryKey: ['agent-cases'], queryFn: () => listAgentCases(100), refetchInterval: 10_000 });
+  const [stateFilter, setStateFilter] = useState<string>();
+  const [text, setText] = useState('');
+  const q = useQuery({ queryKey: ['agent-cases'], queryFn: () => listAgentCases(200), refetchInterval: 10_000 });
 
   if (q.isLoading) return <Skeleton active />;
   if (q.isError) {
@@ -20,16 +22,29 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
         action={<Button size="small" onClick={() => void q.refetch()}>Thử lại</Button>} />
     );
   }
-  const cases = q.data ?? [];
+  const all = q.data ?? [];
+  const needle = text.trim().toLowerCase();
+  const cases = all.filter((c) => (!stateFilter || c.state === stateFilter)
+    && (!needle || c.case_id.toLowerCase().includes(needle)
+      || purposeLabel(c.request.purpose ?? '').toLowerCase().includes(needle)));
+  const states = [...new Set(all.map((c) => c.state))].sort();
 
   return (
     <Card title="Case phân tích gần đây" size="small"
-      extra={<Text type="secondary" style={{ fontSize: 12 }}>{cases.length} case bạn được phép xem</Text>}>
+      extra={<Text type="secondary" style={{ fontSize: 12 }}>{cases.length === all.length ? `${all.length} case gần nhất bạn được phép xem` : `${cases.length}/${all.length} case gần nhất bạn được phép xem`}</Text>}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <Input.Search allowClear placeholder="Tìm theo mã case hoặc mục đích vay" style={{ width: 300 }}
+          data-testid="trace-search" onChange={(e) => setText(e.target.value)} />
+        <Select allowClear placeholder="Mọi trạng thái" style={{ width: 200 }} data-testid="trace-state-filter"
+          value={stateFilter} onChange={setStateFilter}
+          options={states.map((s) => ({ value: s, label: stateLabel(s) }))} />
+      </div>
       {cases.length === 0 ? (
-        <Empty description="Chưa có case nào. Gửi một yêu cầu phân tích sâu ở trang trò chuyện, case sẽ hiện ở đây." />
+        <Empty description={all.length > 0 ? 'Không có case khớp bộ lọc.'
+          : 'Chưa có case nào trong phạm vi của bạn. Case xuất hiện khi cán bộ có quyền chạy đội agent ở trang Hồ sơ vay hoặc gửi yêu cầu phân tích sâu ở trang trò chuyện.'} />
       ) : (
         <DataTable<AgentCaseSummary>
-          rowKey="case_id" dataSource={cases} size="small"
+          rowKey="case_id" dataSource={cases} size="small" pagination={{ pageSize: 20, showSizeChanger: false }}
           onRow={(r) => ({ onClick: () => setOpen(r.case_id), style: { cursor: 'pointer' }, 'data-testid': `case-row-${r.case_id}` }) as React.HTMLAttributes<HTMLElement>}
           columns={[
             { title: 'Mã case', dataIndex: 'case_id', key: 'case_id', render: (id: string) => <Typography.Text code>{id}</Typography.Text> },
