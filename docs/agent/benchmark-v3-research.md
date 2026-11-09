@@ -84,3 +84,16 @@ Bộ chấm v3 chấm cùng một cách cho 2 chế độ, chỉ trên văn bả
 | độ dài báo cáo (ký tự) | 7.650 | 4.650 |
 
 Kết luận trung thực: multi hơn single về recall phát hiện, trích nguồn và phát hiện sai trên cả v4 lẫn v5 (chênh lệch recall nhỏ so với độ lệch, 18 lượt mỗi chế độ, chưa đủ để khẳng định thống kê). Multi KHÔNG hơn về đúng cổng (v4 kém 0,78 so với 0,83; v5 bằng nhau), trễ (chậm hơn ~1,5 lần), chi phí (~2,4 lần), độ dài báo cáo (dài hơn ~1,6 lần) và số nguồn liệt kê. Độ chính xác trích dẫn bằng nhau trong sai số. Nguyên nhân sai cổng chưa sửa được ở mức chung: chuyên gia trả need_more_info khi thiếu trường dữ liệu (DSCR, người đại diện pháp lý), trong khi single vẫn duyệt. Gọi tool song song không giảm trễ đo được. Các lượt LLM của planner và bước viết tường thuật chưa bỏ.
+
+## 8. Vòng tối ưu bench6: đăng ký trước (viết TRƯỚC khi sửa engine và trước mọi số đo của vòng này)
+
+**Bộ kiểm tra mù v6** (`cases_v6.json`, seed `R__seed_benchmark_v6_profiles.sql`, khách ...0051-0058): 8 ca G1-G8, không chạy và không đọc điểm cho tới lượt đo cuối; đúng một lượt đo (3 lần × 2 chế độ). v4 và v5 đã bị xem điểm nên từ nay là bộ phát triển; bộ chấm v3 giữ nguyên. Đáp án đối chiếu `rules.md` (Q4, Q5/E5, Q7, Q-O) và CS-TD-SME/2025. Cấu trúc cổng: 5 ca thiếu trường phụ (DSCR, người đại diện) nhưng mọi ngưỡng tính được đều đạt, đáp án PENDING_APPROVAL (Q7: "Cần xác minh" không chặn); 3 ca thiếu dữ liệu chặn thật, đáp án NEEDS_INFO (G3 không có kết quả CIC, G4 không có BCTC, G6 CIC quá 30 ngày theo §6.3). Hai ca đã bỏ trước khi chạy vì `rules.md` không đủ làm đáp án (chưa có đánh giá KYC/AML: Q3 không quy định trạng thái cuối) hoặc trùng tiêu chí D8 (trừng phạt).
+
+**Giả thuyết:** (H1) cổng xác định từ dữ kiện công cụ và phát hiện đã kiểm chứng làm đúng cổng multi ≥ single mà không giảm recall; (H2) bảng dữ kiện chung + bỏ lượt LLM thừa (planner, tường thuật) giảm trễ và chi phí multi; (H3) multi vẫn không rẻ hơn single về chi phí. Nếu H1 sai trên v6, báo số thật, không sửa tiếp trên v6.
+
+**Cách chọn tổ hợp thắng (viết trước khi có số).** Mỗi hướng là một cờ cấu hình bật/tắt. Ablation chỉ multi, mỗi biến thể 1 lần mỗi ca trên v4 + v5 (12 lượt/biến thể), gồm baseline (mọi cờ tắt), từng cờ riêng lẻ, và các tổ hợp. Độ dao động = sai số chuẩn của baseline trong cùng đợt, SE = sd/√12, cho từng chỉ số.
+1. **Loại** biến thể có recall phát hiện thấp hơn baseline quá 1 SE, hoặc trích nguồn thấp hơn baseline quá 1 SE, hoặc phát hiện sai cao hơn baseline quá 1 SE.
+2. Trong số còn lại, xếp theo thứ tự: (a) tỷ lệ đúng cổng cao hơn (khác biệt từ 1 lượt trở lên); (b) trễ trung bình thấp hơn (chênh dưới 5% coi là hòa); (c) chi phí thấp hơn.
+3. Nếu không biến thể nào còn lại hơn baseline ở (a)-(c), giữ baseline (cờ mặc định tắt) và báo rõ. Hướng không có tác dụng đo được thì bỏ, ghi lý do.
+4. Single-agent giữ nguyên prompt, model Specialist đang cấu hình, checklist chung; phân model theo vai trò chỉ thử trong các model đã cấu hình hoặc rẻ hơn.
+5. Lượt đo cuối: v6 3 lần × 2 chế độ và v5 1 lần × 2 chế độ (kiểm thoái lui) với tổ hợp đã chọn; tổng chi phí mọi lượt đo của vòng chặn bằng `--max-cost 2`; mọi số v1 đến v5 vẫn hiển thị.
