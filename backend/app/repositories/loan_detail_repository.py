@@ -51,8 +51,14 @@ class LoanDetailRepository:
             self.session,
             """SELECT la.id, la.application_number, la.status, la.requested_amount, la.currency,
                       la.requested_term_months, la.approval_tier, la.version,
-                      party.display_name AS customer_name, assignee.full_name AS assignee_name
+                      party.display_name AS customer_name, assignee.full_name AS assignee_name,
+                      dec.approved_amount, dec.approved_term_months, dec.decision_type
                FROM credit.loan_application AS la
+               LEFT JOIN LATERAL (
+                 SELECT d.approved_amount, d.approved_term_months, d.decision_type
+                 FROM credit.loan_decision AS d WHERE d.loan_application_id = la.id
+                 ORDER BY d.decision_at DESC LIMIT 1
+               ) AS dec ON TRUE
                LEFT JOIN credit.loan_party AS borrower
                  ON borrower.loan_application_id = la.id AND borrower.party_role = 'PRIMARY_BORROWER'
                LEFT JOIN customer.party AS party ON party.id = borrower.party_id

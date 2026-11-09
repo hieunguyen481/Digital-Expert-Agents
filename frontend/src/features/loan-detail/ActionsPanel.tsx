@@ -108,6 +108,9 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     return out;
   };
 
+  const approving = decision.type !== 'REJECTED';
+  const amountInvalid = approving && !(decision.amount > 0);
+  const termInvalid = approving && !(decision.term > 0);
   const exceptionsDecided = state.pending_exceptions.every((e) => exceptionChoice[e.id]);
   const decideBody = () => {
     const params = {
@@ -163,15 +166,17 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
       </Modal>
 
       <Modal open={dialog?.kind === 'decide'} title="Quyết định của cấp phê duyệt" onCancel={() => setDialog(null)} destroyOnClose
-        okText="Ghi quyết định" cancelText="Hủy" confirmLoading={busy} okButtonProps={{ disabled: !text.trim() || !exceptionsDecided }}
+        okText="Ghi quyết định" cancelText="Hủy" confirmLoading={busy} okButtonProps={{ disabled: !text.trim() || !exceptionsDecided || amountInvalid || termInvalid }}
         onOk={() => void submit(() => runTransition(loanId, 'decide', state.version, text.trim(), decideBody()))}>
         <Space direction="vertical" style={{ width: '100%' }}>
           <Select value={decision.type} onChange={(v) => setDecision({ ...decision, type: v })} style={{ width: '100%' }} aria-label="Loại quyết định"
             options={[{ value: 'APPROVED', label: 'Phê duyệt' }, { value: 'APPROVED_WITH_CONDITIONS', label: 'Phê duyệt có điều kiện' }, { value: 'REJECTED', label: 'Từ chối' }]} />
           {decision.type !== 'REJECTED' && (
             <>
-              <label>Số tiền duyệt (VND) <InputNumber style={{ width: '100%' }} min={1} value={decision.amount} onChange={(v) => setDecision({ ...decision, amount: Number(v ?? 0) })} /></label>
-              <label>Kỳ hạn (tháng) <InputNumber style={{ width: '100%' }} min={1} value={decision.term} onChange={(v) => setDecision({ ...decision, term: Number(v ?? 0) })} /></label>
+              <label>Số tiền duyệt (VND) <InputNumber style={{ width: '100%' }} status={amountInvalid ? 'error' : undefined} value={decision.amount} onChange={(v) => setDecision({ ...decision, amount: Number(v ?? 0) })} /></label>
+              <label>Kỳ hạn (tháng) <InputNumber style={{ width: '100%' }} status={termInvalid ? 'error' : undefined} value={decision.term} onChange={(v) => setDecision({ ...decision, term: Number(v ?? 0) })} /></label>
+              {amountInvalid && <Typography.Text type="danger" role="alert">Số tiền duyệt phải lớn hơn 0.</Typography.Text>}
+              {termInvalid && <Typography.Text type="danger" role="alert">Kỳ hạn duyệt phải lớn hơn 0.</Typography.Text>}
               {decision.type === 'APPROVED_WITH_CONDITIONS' && <Input.TextArea rows={2} placeholder="Mỗi điều kiện một dòng" value={decision.conditions} onChange={(e) => setDecision({ ...decision, conditions: e.target.value })} />}
             </>
           )}

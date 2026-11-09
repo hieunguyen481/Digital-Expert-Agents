@@ -25,7 +25,9 @@ export default function LoanDetailPage() {
       <PageHead
         title={`Chi tiết hồ sơ vay · ${loan.customer_name ?? loan.application_number}`}
         facts={[loan.application_number, statusLabel(loan.status), `${fmtNum(Number(loan.requested_amount) / 1e9)} tỷ ${loan.currency}`,
-          loan.requested_term_months ? `${loan.requested_term_months} tháng` : null, loan.assignee_name ? `Đang giữ: ${loan.assignee_name}` : null]}
+          loan.requested_term_months ? `${loan.requested_term_months} tháng` : null,
+          loan.approved_amount != null && Number(loan.approved_amount) > 0 ? `Số tiền được duyệt: ${fmtNum(Number(loan.approved_amount) / 1e9)} tỷ ${loan.currency}${loan.approved_term_months ? ` · ${loan.approved_term_months} tháng` : ''}` : null,
+          loan.assignee_name ? `Đang giữ: ${loan.assignee_name}` : null]}
       />
       <div className={styles.page}>
         <MetricsPanel loanId={loanId} metrics={metrics} />

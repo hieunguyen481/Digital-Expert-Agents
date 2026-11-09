@@ -423,8 +423,16 @@ def _decision_params(params: Mapping[str, Any], requested_amount: Any) -> dict[s
     term = params.get("approved_term_months")
     term = int(term) if term is not None else None
     conditions = list(params.get("conditions") or [])
-    if str(decision_type).startswith("APPROVED") and (amount is None or amount <= 0 or not term):
-        raise ValueError("Approved decisions require a positive amount and term")
+    if str(decision_type).startswith("APPROVED") and (amount is None or amount <= 0):
+        raise ValidationError(
+            "APPROVED_AMOUNT_INVALID",
+            "Số tiền duyệt phải lớn hơn 0.",
+            {"approved_amount": None if amount is None else str(amount)},
+        )
+    if str(decision_type).startswith("APPROVED") and (not term or term <= 0):
+        raise ValidationError(
+            "APPROVED_TERM_INVALID", "Kỳ hạn duyệt phải lớn hơn 0.", {"approved_term_months": term}
+        )
     # Cap phe duyet tinh tu so tien de nghi (submit_to_approval): duyet vuot so tien
     # de nghi se vuot tham quyen cua cap da dinh tuyen (database kiem lai, V027).
     requested = _decimal(requested_amount)

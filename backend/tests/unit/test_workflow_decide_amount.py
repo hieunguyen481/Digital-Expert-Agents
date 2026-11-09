@@ -58,3 +58,19 @@ async def test_decide_rejects_amount_above_requested(decision_type: str) -> None
         "approved_amount": "500000000000",
         "requested_amount": "20000000000",
     }
+
+
+@pytest.mark.parametrize("amount", ["0", "-5", None])
+async def test_decide_rejects_non_positive_amount(amount: str | None) -> None:
+    service = WorkflowService(_Repo(Decimal("20000000000")))
+    with pytest.raises(ValidationError) as error:
+        await service.transition(
+            _approver(), LOAN_ID, "decide", expected_version=1, reason="Dong y",
+            params={
+                "decision_type": "APPROVED",
+                "approved_amount": amount,
+                "approved_term_months": 12,
+            },
+        )
+    assert error.value.code == "APPROVED_AMOUNT_INVALID"
+    assert error.value.status == 422
