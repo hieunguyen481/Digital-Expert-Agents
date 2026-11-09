@@ -117,6 +117,10 @@ class LoanRepository:
                 "created_at": now,
             },
         )
+        # Danh mục tài liệu bắt buộc (L01): không có dòng nào thì cổng "đủ tài liệu" không có gì để kiểm.
+        await self.session.execute(
+            text("SELECT credit.generate_loan_checklist(:loan_id)"), {"loan_id": loan_id}
+        )
         row = await self.get(loan_id)
         if row is None:
             raise RuntimeError("Loan application insert returned no row")

@@ -23,7 +23,7 @@ class _Src:
 
 
 def _table(**over):
-    base = {"today": DAY, "cic_valid_until": date(2026, 12, 1), "consent_valid": True}
+    base = {"today": DAY, "cic_valid_until": date(2026, 12, 1), "consent_valid": True, "checklist": (_doc(),)}
     facts = GateFacts(**{**base, **over})
     result = asyncio.run(gates.evaluate("rm_submit", uuid4(), _Src(facts)))
     return result, {r["code"]: r for r in build_conditions(facts, result)}

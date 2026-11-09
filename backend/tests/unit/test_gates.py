@@ -255,3 +255,16 @@ def test_carried_flag_rows_skip_existing_flags() -> None:
         ("NEEDS_VERIFICATION", "LOW"),
         ("CIC_OUTAGE", "MEDIUM"),
     ]
+
+
+async def test_empty_checklist_is_not_complete_at_rm_submit() -> None:
+    # L01: danh muc rong khong duoc coi la "du tai lieu".
+    result = await run("rm_submit", ok_facts(checklist=()))
+    assert not result.ok
+    assert "DOC_MISSING" in result.blockers
+
+
+async def test_empty_checklist_is_not_a_pass_at_checking() -> None:
+    result = await run("checking_pass", ok_facts(checklist=()))
+    assert not result.ok
+    assert "CHECK_FAILED" in result.blockers

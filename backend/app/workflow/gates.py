@@ -142,6 +142,8 @@ def _cic_valid(facts: GateFacts) -> bool:
 
 
 def _rm_submit(facts: GateFacts, blockers: set[str], carried: list[str]) -> None:
+    if not facts.checklist:  # danh mục rỗng không phải "đủ" (L01)
+        blockers.add("DOC_MISSING")
     for item in _active_items(facts):
         if item.document_type in CIC_DOCUMENT_TYPES:
             continue
@@ -180,6 +182,8 @@ def _rm_submit(facts: GateFacts, blockers: set[str], carried: list[str]) -> None
 
 
 def _checking_pass(facts: GateFacts, blockers: set[str], carried: list[str]) -> None:
+    if not facts.checklist:  # danh mục rỗng không phải "đạt" (L01)
+        blockers.add("CHECK_FAILED")
     for item in _active_items(facts):
         if item.document_type in CIC_DOCUMENT_TYPES:
             # Q2: CIC do QHKH tra cứu, HTTD chỉ kiểm tra hiệu lực; kiểm bằng banking.credit_report /
