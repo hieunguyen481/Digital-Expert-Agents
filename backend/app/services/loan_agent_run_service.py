@@ -31,6 +31,14 @@ def _iso(row: Any) -> dict[str, Any]:
             "started_by": row["started_by"], "started_by_name": row["started_by_name"]}
 
 
+_STATUS_VI = {
+    "DRAFT": "Nháp", "CHECKING": "Đang kiểm tra", "RETURNED_TO_RM": "Trả về QHKH", "APPRAISAL": "Đang thẩm định",
+    "APPRAISAL_PENDING_INFO": "Thẩm định – chờ bổ sung", "RISK_REVIEW": "Đang cho ý kiến rủi ro",
+    "COMPLIANCE_REVIEW": "Đang cho ý kiến tuân thủ", "APPROVAL": "Chờ phê duyệt", "APPROVED": "Đã phê duyệt",
+    "APPROVED_WITH_CONDITIONS": "Phê duyệt có điều kiện", "REJECTED": "Từ chối", "COMMITTEE": "Chờ Hội đồng",
+}
+
+
 def denial_reason(principal: PrincipalLike, status: str, holds: bool) -> str | None:
     """None nếu được chạy; ngược lại là lý do tiếng Việt hiển thị cho người dùng."""
     roles = set(getattr(principal, "roles", ()))
@@ -40,7 +48,7 @@ def denial_reason(principal: PrincipalLike, status: str, holds: bool) -> str | N
     if not allowed:
         return "Chỉ Quan hệ khách hàng hoặc Thẩm định đang giữ hồ sơ mới được chạy đội agent."
     if not any(status in ROLE_STATUSES[r] for r in allowed):
-        return f"Hồ sơ đang ở trạng thái {status}, vai trò của bạn không được chạy đội agent ở bước này."
+        return f"Hồ sơ đang ở trạng thái “{_STATUS_VI.get(status, status)}”, vai trò của bạn không được chạy đội agent ở bước này."
     if not holds:
         return "Bạn không phải người đang giữ hồ sơ này."
     return None
