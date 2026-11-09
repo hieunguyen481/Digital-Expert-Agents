@@ -100,7 +100,7 @@ Kết luận trung thực: multi hơn single về recall phát hiện, trích ng
 
 ### 8.1 Kết quả ablation (v4 + v5 = bộ phát triển, chỉ multi, 1 lần/ca, 12 lượt/biến thể)
 
-Số liệu tính từ `agent_engine/benchmark_results/*abl*.json` (không nạp dashboard). Cổng xác định (`gate.py`) được hiệu chỉnh offline trên các ca v2-v5 (khớp 29/30; C6 v2 lệch vì D6 v3 coi thiếu tài khoản thanh toán là chặn) nên "đúng cổng" của biến thể có cờ `gate` trên v4/v5 là số trên bộ phát triển, không phải bằng chứng tổng quát; bằng chứng là v6 mù.
+Số liệu tính từ `agent_engine/benchmark_results/*abl*.json` (đã nạp `agent.benchmark_run` để dashboard chọn được). Cổng xác định (`gate.py`) được hiệu chỉnh offline trên các ca v2-v5 (khớp 29/30; C6 v2 lệch vì D6 v3 coi thiếu tài khoản thanh toán là chặn) nên "đúng cổng" của biến thể có cờ `gate` trên v4/v5 là số trên bộ phát triển, không phải bằng chứng tổng quát; bằng chứng là v6 mù.
 
 | biến thể | recall | trích nguồn | chính xác trích | phát hiện sai | đúng cổng | trễ s | $/ca | token |
 |---|---|---|---|---|---|---|---|---|
