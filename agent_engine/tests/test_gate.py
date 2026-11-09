@@ -35,7 +35,15 @@ def test_blocking_gaps():
     assert _g(cic={"cic_group": None}) == D.NEED_MORE_INFO
     assert _g(cic={"cic_group": 1, "report_date": "2026-09-25"}) == D.NEED_MORE_INFO  # quá 30 ngày
     assert _g(financials=[]) == D.NEED_MORE_INFO
-    assert _g(business={"legal_rep_name": "A"}) == D.NEED_MORE_INFO  # chưa có tài khoản thanh toán
+
+
+def test_missing_account_is_pre_disbursement_condition_not_blocker():
+    # Quyết định captain 09/11/2026: thiếu TK thanh toán không chặn trình
+    raw = {"business": {"legal_rep_name": "A"}, "financials": FIN, "loans": LOANS, "cic": CIC, "blacklist": BL,
+           "collateral": []}
+    f = facts.build(raw, REQ, TODAY)
+    assert not f["blockers"] and any("tài khoản thanh toán" in a for a in f["ancillary"])
+    assert gate.decide(f)[0] == D.APPROVE
 
 
 def test_cic_debt_and_inflow_conflicts():

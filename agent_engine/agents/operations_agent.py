@@ -39,21 +39,18 @@ async def _dry_run(env: Envelope) -> Verdict:
     request = env.payload.get("params", {}).get("request", {})
     business_id = request["business_id"]
     biz = await mcp_client.call_tool("get_business", {"business_id": business_id})
-    if not biz.get("account_number"):
-        return Verdict(agent=CARD.agent_id, task_id=env.task_id or "",
-                       decision=VerdictDecision.NEED_MORE_INFO,
-                       summary="Doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — "
-                               "cần mở tài khoản trước khi giải ngân")
     draft = await mcp_client.call_tool("create_loan_draft", {
         "case_id": env.case_id, "business_id": business_id,
         "amount": float(request["amount"]), "term_months": int(request["term_months"])})
+    account = biz.get("account_number")
+    note = ("" if account else ". Điều kiện bổ sung trước giải ngân: doanh nghiệp chưa có tài khoản "
+            "thanh toán — cần mở tài khoản (không chặn trình)")
     return Verdict(
         agent=CARD.agent_id, task_id=env.task_id or "",
         decision=VerdictDecision.PASS_,
-        summary=f"Điều kiện vận hành đạt. Đã tạo bản nháp {draft['draft_id']} (chưa hiệu lực)",
+        summary=f"Điều kiện vận hành đạt. Đã tạo bản nháp {draft['draft_id']} (chưa hiệu lực){note}",
         evidence=[Evidence(source="core-banking:create_loan_draft",
-                           quote=f"draft_id={draft['draft_id']}, TK nhận vốn "
-                                 f"{biz['account_number']}")],
+                           quote=f"draft_id={draft['draft_id']}, TK nhận vốn {account or 'chưa có'}")],
         data={"draft_id": draft["draft_id"]},
     )
 

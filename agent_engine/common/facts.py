@@ -69,7 +69,7 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
     if not fin:
         blockers.append("Chưa có BCTC/số liệu tài chính — chưa tính được Nợ vay/EBITDA (CS-TD-SME/2025 §4.2, §6.1)")
     if biz and not biz.get("account_number"):
-        blockers.append("Doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân")
+        ancillary.append("doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân")
     if breaches_inflow:
         breaches.append(breaches_inflow)
     if request.get("has_collateral"):
