@@ -41,6 +41,13 @@ async def get_reconciliation_document(
     return ReconDocumentDetail.model_validate(await service.document(principal, loan_application_id, document_id))
 
 
+@router.delete(BASE + "/documents/{document_id}", status_code=204)
+async def remove_reconciliation_document(
+    loan_application_id: UUID, document_id: UUID, principal: READ, service: Svc
+) -> None:
+    await service.remove_document(principal, loan_application_id, document_id)
+
+
 @router.get(BASE + "/log", response_model=ReconLog)
 async def get_reconciliation_log(loan_application_id: UUID, principal: READ, service: Svc) -> ReconLog:
     return ReconLog.model_validate(await service.log(principal, loan_application_id))

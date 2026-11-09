@@ -11,7 +11,7 @@ from pathlib import PurePath
 from typing import Any, Protocol
 from uuid import UUID, uuid4
 
-from app.exceptions import AuthorizationError, ConflictError
+from app.exceptions import AuthorizationError, ConflictError, ValidationError
 from app.services.access import require_permission
 from app.services.audit_service import AuditService
 from app.services.protocols import PrincipalLike
@@ -26,6 +26,15 @@ _ALLOWED_MIME_TYPES = frozenset(
         "image/tiff",
     }
 )
+# Byte đầu tệp theo từng MIME (L08): tệp khai PDF nhưng thật là PNG/văn bản bị chặn ngay lúc hoàn tất,
+# không đợi worker OCR mới báo lỗi.
+_MAGIC_BYTES: dict[str, tuple[bytes, ...]] = {
+    "application/pdf": (b"%PDF-",),
+    "image/jpeg": (b"\xff\xd8\xff",),
+    "image/png": (b"\x89PNG\r\n\x1a\n",),
+    "image/tiff": (b"II*\x00", b"MM\x00*"),
+}
+_MAGIC_PREFIX_LEN = 8
 DOCUMENT_STEPS = (
     "VALIDATE_UPLOAD",
     "SECURITY_SCAN",
@@ -258,6 +267,19 @@ class UploadService:
         ).decode("ascii")
         if actual_checksum_base64 != expected_checksum_base64:
             raise ValueError("Uploaded object checksum does not match the upload session")
+        expected_mime = str(upload.get("expected_mime_type") or "")
+        signatures = _MAGIC_BYTES.get(expected_mime)
+        if signatures is not None:
+            head = await self._storage.get_object(
+                "upload-quarantine",
+                str(upload["quarantine_object_key"]),
+                byte_range=(0, _MAGIC_PREFIX_LEN - 1),
+            )
+            if not any(head.startswith(sig) for sig in signatures):
+                raise ValidationError(
+                    "DOCUMENT_CONTENT_MISMATCH",
+                    "Nội dung tệp không đúng định dạng đã chọn (tệp hỏng hoặc đổi đuôi). Hãy tải lại tệp gốc.",
+                )
 
         object_id = uuid4()
         document_id = uuid4()

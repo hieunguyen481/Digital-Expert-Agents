@@ -82,7 +82,7 @@ LEFT JOIN LATERAL (
 WHERE doc.id IN (
     SELECT link.document_id FROM document.document_link AS link
     WHERE link.entity_type = 'LOAN_APPLICATION' AND link.entity_id = :loan_id
-)
+) AND doc.verification_status <> 'REJECTED'  -- tài liệu lỗi đã được gỡ khỏi hồ sơ (L08)
 ORDER BY doc.created_at, doc.title
 """
 
@@ -151,6 +151,20 @@ class ReconciliationRepository:
 
     async def documents(self, loan_id: UUID) -> list[Record]:
         return await fetch_all(self.session, _DOCUMENTS_SQL, {"loan_id": loan_id})
+
+    async def remove_failed_document(self, loan_id: UUID, document_id: UUID) -> bool:
+        """Gỡ tài liệu xử lý lỗi khỏi hồ sơ: không tính vào checklist và ẩn khỏi danh sách (bản gốc vẫn còn)."""
+        row = await fetch_one(
+            self.session,
+            """UPDATE document.document SET counts_for_checklist = FALSE, verification_status = 'REJECTED',
+                      updated_at = CURRENT_TIMESTAMP
+               WHERE id = :doc AND processing_status = 'FAILED' AND verification_status <> 'REJECTED'
+                 AND id IN (SELECT link.document_id FROM document.document_link AS link
+                            WHERE link.entity_type = 'LOAN_APPLICATION' AND link.entity_id = :loan_id)
+               RETURNING id""",
+            {"doc": document_id, "loan_id": loan_id},
+        )
+        return row is not None
 
     async def conflicts(self, loan_id: UUID) -> list[Record]:
         return await fetch_all(self.session, _CONFLICTS_SQL, {"loan_id": loan_id})

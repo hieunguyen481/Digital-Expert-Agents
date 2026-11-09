@@ -45,8 +45,15 @@ class FakeStorage:
         return self.original_exists
 
     async def get_object(
-        self, bucket: str, key: str, *, version_id: str | None = None
+        self,
+        bucket: str,
+        key: str,
+        *,
+        version_id: str | None = None,
+        byte_range: tuple[int, int] | None = None,
     ) -> bytes:
+        if byte_range is not None:
+            return self.content[byte_range[0] : byte_range[1] + 1]
         return self.content
 
     async def put_object(

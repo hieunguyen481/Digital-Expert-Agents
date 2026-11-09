@@ -121,7 +121,14 @@ class Storage(Protocol):
 
     async def object_exists(self, bucket: str, key: str, *, version_id: str | None = None) -> bool: ...
 
-    async def get_object(self, bucket: str, key: str, *, version_id: str | None = None) -> bytes: ...
+    async def get_object(
+        self,
+        bucket: str,
+        key: str,
+        *,
+        version_id: str | None = None,
+        byte_range: tuple[int, int] | None = None,
+    ) -> bytes: ...
 
     async def put_object(
         self,

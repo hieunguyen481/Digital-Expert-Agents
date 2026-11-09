@@ -149,8 +149,17 @@ class Boto3MinioStorage:
             raise
         return True
 
-    async def get_object(self, bucket: str, key: str, *, version_id: str | None = None) -> bytes:
+    async def get_object(
+        self,
+        bucket: str,
+        key: str,
+        *,
+        version_id: str | None = None,
+        byte_range: tuple[int, int] | None = None,
+    ) -> bytes:
         params: dict[str, Any] = {"Bucket": bucket, "Key": key}
+        if byte_range is not None:  # (đầu, cuối) tính cả hai đầu, theo HTTP Range
+            params["Range"] = f"bytes={byte_range[0]}-{byte_range[1]}"
         if version_id:
             params["VersionId"] = version_id
         response = await asyncio.to_thread(self._internal.get_object, **params)

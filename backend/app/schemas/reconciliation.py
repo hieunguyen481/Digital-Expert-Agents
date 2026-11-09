@@ -127,6 +127,7 @@ class ReconDocumentDetail(APIModel):
     document: ReconDocument
     fields: list[ReconField]
     has_page_image: bool
+    warnings: list[str] = []
 
 
 class CheckRequest(APIModel):

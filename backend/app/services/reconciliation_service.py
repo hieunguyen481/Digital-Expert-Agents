@@ -9,6 +9,8 @@ Chuyển Thẩm định đi qua `WorkflowService.transition("pass_to_appraisal")
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 from typing import Any
 from uuid import UUID
 
@@ -44,6 +46,7 @@ BLOCKER_TEXT = {
     "CHECK_FAILED": "Còn mục checklist bắt buộc chưa đạt (chưa có tài liệu hợp lệ hoặc hậu kiểm không đạt) và chưa có ngoại lệ.",
 }
 _ALLOWED_STATUS = {"CHECKING"}
+_REMOVE_DOC_STATUS = {"DRAFT", "RETURNED_TO_RM", "CHECKING", "APPRAISAL", "APPRAISAL_PENDING_INFO"}
 
 
 class _Facts:
@@ -93,6 +96,9 @@ class ReconciliationService:
                 "mandatory": r["mandatory"], "status": r["status"], "has_exception": r["has_exception"],
                 "document_ids": list(r["document_ids"] or []), "check": check,
             })
+        visible = {d["document_id"] for d in documents}
+        for i in items:  # tài liệu đã gỡ không còn hiện trong mục
+            i["document_ids"] = [d for d in i["document_ids"] if d in visible]
         linked = {d for i in items for d in i["document_ids"]}
         conflicts = []
         for row in await self._repo.conflicts(loan_id):
@@ -138,15 +144,34 @@ class ReconciliationService:
             "carried_flags": list(result.carried_flags), "expected_version": int(loan["version"]),
         }
 
+    async def remove_document(self, principal: PrincipalLike, loan_id: UUID, document_id: UUID) -> None:
+        """Gỡ tài liệu xử lý lỗi (scan, tệp hỏng, đổi đuôi) khỏi hồ sơ; người đang giữ hồ sơ mới được gỡ (L08)."""
+        loan = await self._loan(loan_id)
+        roles = set(getattr(principal, "roles", ()))
+        perms = set(getattr(principal, "permissions", ()))
+        if getattr(principal, "is_admin", False) or not (
+            roles & {CHECK_ROLE, RESOLVE_ROLE} or "document:upload" in perms
+        ):
+            raise AuthorizationError("ROLE_NOT_ALLOWED", "Vai trò hiện tại không được gỡ tài liệu.")
+        if not await self._repo.can_write_loan(principal.employee_id, loan_id):
+            raise AuthorizationError("NOT_ASSIGNED", "Hồ sơ này chưa giao cho bạn nên không thể gỡ tài liệu.")
+        if loan["status"] not in _REMOVE_DOC_STATUS:
+            raise ConflictError("INVALID_STATE", "Hồ sơ đã sang bước sau, không gỡ tài liệu được nữa.")
+        if not await self._repo.remove_failed_document(loan_id, document_id):
+            raise ConflictError("DOCUMENT_NOT_REMOVABLE", "Chỉ gỡ được tài liệu xử lý lỗi thuộc hồ sơ này.")
+
     async def document(self, principal: PrincipalLike, loan_id: UUID, document_id: UUID) -> dict[str, Any]:
-        await self._loan(loan_id)
+        loan = await self._loan(loan_id)
         docs = [_document_view(d) for d in await self._repo.documents(loan_id) if d["document_id"] == document_id]
         if not docs:
             raise NotFoundError("DOCUMENT_NOT_FOUND", "Tài liệu không thuộc hồ sơ này.")
         fields = [dict(f) for f in await self._repo.fields(loan_id, document_id)]
         version_id = docs[0]["version_id"]
         has_image = bool(version_id) and await self._repo.page_images_ready(version_id)
-        return {"document": docs[0], "fields": fields, "has_page_image": has_image}
+        return {
+            "document": docs[0], "fields": fields, "has_page_image": has_image,
+            "warnings": customer_mismatch_warnings(fields, str(loan["customer_name"] or "")),
+        }
 
     async def check_item(
         self, principal: PrincipalLike, loan_id: UUID, item_id: UUID, *, result: str, note: str | None
@@ -216,6 +241,31 @@ class ReconciliationService:
             "conflicts": [dict(r) for r in await self._repo.conflict_log(loan_id)],
             "checks": [dict(r) for r in await self._repo.check_log(loan_id)],
         }
+
+
+_LEGAL_FORM = re.compile(r"\b(cong ty|ctcp|tnhh|co phan|cp|mtv|one member|jsc|ltd|company|limited|tap doan)\b")
+
+
+def _name_key(value: str) -> str:
+    folded = unicodedata.normalize("NFD", value.replace("đ", "d").replace("Đ", "D"))
+    ascii_only = "".join(c for c in folded if unicodedata.category(c) != "Mn").lower()
+    return re.sub(r"[^a-z0-9]+", "", _LEGAL_FORM.sub(" ", re.sub(r"[^a-z0-9]+", " ", ascii_only)))
+
+
+def customer_mismatch_warnings(fields: list[dict[str, Any]], customer_name: str) -> list[str]:
+    """Cảnh báo khi tên doanh nghiệp trên tài liệu lệch khách hàng của hồ sơ (L09); chỉ cảnh báo, người xác nhận quyết."""
+    expected = _name_key(customer_name)
+    out: list[str] = []
+    for f in fields:
+        if f.get("field_name") != "company_name" or not f.get("value") or not expected:
+            continue
+        found = _name_key(str(f["value"]))
+        if found and expected not in found and found not in expected:
+            out.append(
+                f"Tên doanh nghiệp trên tài liệu ({f['value']}) khác khách hàng của hồ sơ ({customer_name}). "
+                "Kiểm tra lại tài liệu có thuộc đúng khách hàng không trước khi xác nhận."
+            )
+    return out
 
 
 def _document_view(row: Any) -> dict[str, Any]:
