@@ -563,6 +563,11 @@ ALTER TABLE credit.loan_decision ENABLE TRIGGER trg_loan_decision_append_only;
 
 -- Luot chay doi agent tu trang Ho so vay (V042): chi them, bo bang chu so huu seed.
 DELETE FROM credit.loan_agent_run WHERE loan_application_id IN (SELECT id FROM sme_loan);
+-- Ho so tao moi trong phien demo/e2e (ma LA-): go nguoi vay chinh de danh sach viec tro ve dung seed.
+DELETE FROM credit.loan_party AS lp USING credit.loan_application AS la
+WHERE lp.loan_application_id = la.id AND lp.party_role = 'PRIMARY_BORROWER' AND la.application_number LIKE 'LA-%';
+UPDATE credit.case_step AS step SET completed_at = now() FROM credit.loan_application AS la
+WHERE step.loan_application_id = la.id AND step.completed_at IS NULL AND la.application_number LIKE 'LA-%';
 DELETE FROM credit.loan_draft WHERE loan_application_id IN (SELECT id FROM sme_loan);
 DELETE FROM credit.case_exception WHERE loan_application_id IN (SELECT id FROM sme_loan);
 DELETE FROM document.field_conflict

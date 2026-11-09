@@ -20,7 +20,11 @@ export function UploadPanel({ loanId, view, onUploaded }: Props) {
   if (!canUpload && !lock) return null;
 
   const pick = async (file: File | undefined) => {
-    if (!file || !view.customer_id) return;
+    if (!file) return;
+    if (!view.customer_id) {
+      setError('Hồ sơ chưa gắn khách hàng vay nên chưa tải được tài liệu.');
+      return;
+    }
     setError(null);
     setPercent(0);
     try {

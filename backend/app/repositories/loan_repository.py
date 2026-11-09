@@ -100,6 +100,23 @@ class LoanRepository:
         await self.session.execute(
             insert_sql("credit.loan_application", payload, _LOAN_COLUMNS, returning=False), payload
         )
+        # Người vay chính: tên khách, đối chiếu và tải tài liệu của hồ sơ đều đọc qua liên kết này.
+        await self.session.execute(
+            text(
+                """
+                INSERT INTO credit.loan_party (id, loan_application_id, party_id, party_role, created_at)
+                SELECT :id, :loan_id, c.party_id, 'PRIMARY_BORROWER', :created_at
+                FROM customer.customer AS c
+                WHERE c.id = :customer_id
+                """
+            ),
+            {
+                "id": uuid4(),
+                "loan_id": loan_id,
+                "customer_id": payload["primary_customer_id"],
+                "created_at": now,
+            },
+        )
         row = await self.get(loan_id)
         if row is None:
             raise RuntimeError("Loan application insert returned no row")

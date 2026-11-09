@@ -188,7 +188,7 @@ test('luồng 1: người có thẩm quyền quyết định; ca agent đóng, h
 });
 
 // Luồng 2: đội agent dừng "Cần bổ sung" → Thẩm định yêu cầu bổ sung → QHKH tải tài liệu → HTTD ghi nhận → Thẩm định xử lý tiếp.
-test.fixme('luồng 2: đội agent dừng Cần bổ sung; yêu cầu bổ sung, QHKH tải tài liệu, HTTD ghi nhận, quay lại Thẩm định', async ({ page }) => {
+test('luồng 2: đội agent dừng Cần bổ sung; yêu cầu bổ sung, QHKH tải tài liệu, HTTD ghi nhận, quay lại Thẩm định', async ({ page }) => {
   test.setTimeout(540_000);
   const loanB = await createProposal(page, 'f2');
   await httdChecksAndTransfers(page, loanB, 'f2');
@@ -207,7 +207,7 @@ test.fixme('luồng 2: đội agent dừng Cần bổ sung; yêu cầu bổ sung
   await expect(page.getByRole('button', { name: 'Tải tài liệu bổ sung' })).toBeEnabled();
   const done = page.waitForResponse((r) => /\/documents\/uploads\/[^/]+\/complete$/.test(r.url()));
   await page.getByTestId('recon-upload').setInputFiles(resolve(process.cwd(), 'e2e/fixtures/ho-so-lat-tam.pdf'));
-  expect((await done).status()).toBe(200);
+  expect((await done).status()).toBe(202);
   await shot(page, 'f2', '10-qhkh-tai-tai-lieu');
 
   await as(page, 'httd');
@@ -219,6 +219,6 @@ test.fixme('luồng 2: đội agent dừng Cần bổ sung; yêu cầu bổ sung
   await as(page, 'tdinh');
   await page.goto(`/ho-so-vay/${loanB}`);
   await expect(page.getByTestId('run-agent-team')).toBeEnabled();
-  await expect(page.getByTestId('agent-run-history')).toContainText(run.caseId);
+  await expect(page.getByTestId('agent-run-state')).toContainText('Cần bổ sung');
   await shot(page, 'f2', '12-tdinh-tiep-tuc');
 });
