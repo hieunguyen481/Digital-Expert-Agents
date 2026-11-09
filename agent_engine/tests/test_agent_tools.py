@@ -90,3 +90,13 @@ def test_flag_off_returns_to_old_path(monkeypatch):
     assert agent_tools.enabled()
     monkeypatch.setattr(config, "LLM_MODE", "rules")
     assert not agent_tools.enabled()
+
+
+def test_clear_case_drops_only_that_case_board():
+    agent_tools._boards.clear()
+    agent_tools._boards[("c1", "credit")] = {"cic": 1}
+    agent_tools._boards[("c1", "compliance")] = {"blacklist": 1}
+    agent_tools._boards[("c2", "credit")] = {"cic": 2}
+    agent_tools.clear_case("c1")
+    assert list(agent_tools._boards) == [("c2", "credit")]
+    agent_tools._boards.clear()

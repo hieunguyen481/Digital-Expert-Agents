@@ -20,6 +20,12 @@ _DESC = {"business": "Hồ sơ pháp nhân (KYB)", "blacklist": "Tra danh sách 
 _boards: dict[tuple[str, str], dict[str, Any]] = {}  # (case, scope) -> kết quả công cụ đã gọi
 
 
+def clear_case(case_id: str) -> None:
+    """Bỏ bảng chung của ca khi ca dừng/kết thúc: tiến trình dài không giữ kết quả công cụ mãi."""
+    for key in [k for k in _boards if k[0] == case_id]:
+        _boards.pop(key, None)
+
+
 def enabled() -> bool:
     return config.opt("agent_tools") and config.LLM_MODE == "llm"
 

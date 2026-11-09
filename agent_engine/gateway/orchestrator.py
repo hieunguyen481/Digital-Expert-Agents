@@ -26,8 +26,14 @@ async def _emit(case_id: str, agent: str, etype: str, payload: dict | None = Non
     await broadcast(await db.add_event(case_id, agent, etype, payload or {}))
 
 
+_RUN_ENDED = {CaseState.NEEDS_INFO, CaseState.PENDING_APPROVAL, CaseState.ESCALATED,
+              CaseState.COMPLETED, CaseState.REJECTED}
+
+
 async def _set_state(case_id: str, state: CaseState) -> None:
     await db.update_case(case_id, state=state.value)
+    if state in _RUN_ENDED:
+        agent_tools.clear_case(case_id)
 
 
 def _bind_identity(payload: dict) -> None:
