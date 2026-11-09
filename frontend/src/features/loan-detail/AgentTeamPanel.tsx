@@ -27,14 +27,21 @@ export function AgentTeamPanel({ loanId, currency }: { loanId: string; currency:
   });
   const data = runsQ.data;
   const latest = data?.latest ?? null;
+  // Cùng khóa với RunBody nên dùng chung dữ liệu: khóa nút khi lượt gần nhất chưa kết thúc.
+  const latestCaseQ = useQuery({
+    queryKey: ['agent-case', latest?.case_id], queryFn: () => getAgentCase(latest!.case_id), enabled: !!latest,
+    refetchInterval: (q) => (q.state.data && TERMINAL_STATES.includes(q.state.data.state) ? false : 4000),
+  });
+  const inProgress = !!latestCaseQ.data && !TERMINAL_STATES.includes(latestCaseQ.data.state);
 
   return (
     <section className={styles.panel} aria-label="Đội agent" data-testid="agent-team">
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
         <h2 style={{ margin: 0 }}><RobotOutlined /> Đội agent thẩm định <Tag color="purple">AI đề xuất – chưa xác nhận</Tag></h2>
         {data?.can_run && (
-          <Button data-testid="run-agent-team" loading={run.isPending} onClick={() => run.mutate()}>
-            {latest ? 'Chạy lại đội agent' : 'Chạy đội agent'}
+          <Button data-testid="run-agent-team" loading={run.isPending} disabled={inProgress} onClick={() => run.mutate()}
+            title={inProgress ? 'Đội agent đang chạy, chờ kết thúc rồi mới chạy lại' : undefined}>
+            {inProgress ? 'Đội agent đang chạy…' : latest ? 'Chạy lại đội agent' : 'Chạy đội agent'}
           </Button>
         )}
       </div>

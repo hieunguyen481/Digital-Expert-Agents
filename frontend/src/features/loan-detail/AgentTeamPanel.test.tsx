@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as agentCases from '@/services/agentCaseService';
 import { AgentTeamPanel } from './AgentTeamPanel';
 
 const runs = vi.hoisted(() => ({ fetchAgentRuns: vi.fn(), startAgentRun: vi.fn() }));
@@ -56,5 +57,13 @@ describe('AgentTeamPanel', () => {
     mount();
     (await screen.findByTestId('run-agent-team')).click();
     expect(await screen.findByTestId('agent-run-error')).toBeTruthy();
+  });
+
+  it('khóa nút chạy khi lượt gần nhất chưa kết thúc', async () => {
+    vi.mocked(agentCases.getAgentCase).mockResolvedValueOnce({ case_id: 'case_1', state: 'In Analysis' } as never);
+    runs.fetchAgentRuns.mockResolvedValue({ can_run: true, deny_reason: null, latest: item, runs: [item] });
+    mount();
+    await waitFor(() => expect((screen.getByTestId('run-agent-team') as HTMLButtonElement).disabled).toBe(true));
+    expect(screen.getByTestId('run-agent-team').textContent).toContain('đang chạy');
   });
 });
