@@ -149,7 +149,30 @@ export interface ToolCall {
   tool: string;
   outcome: string;
   durationMs: number;
+  /** `agent`: chuyên gia tự chọn gọi; `system_compensation`: hệ thống gọi bù mục bắt buộc agent bỏ sót. */
+  initiatedBy: string;
 }
+
+export const TOOL_LABEL: Record<string, string> = {
+  get_business: 'Hồ sơ doanh nghiệp (KYB)',
+  get_financials: 'Báo cáo tài chính các năm',
+  get_existing_loans: 'Khoản vay hiện hữu',
+  get_cic_status: 'Tra cứu CIC',
+  check_blacklist: 'Tra danh sách đen/trừng phạt',
+  get_collateral: 'Tài sản bảo đảm',
+  get_annual_inflow: 'Tiền về tài khoản 12 tháng',
+};
+export const toolLabel = (t: string) => TOOL_LABEL[t] ?? t;
+/** Khóa trên bảng chung -> nhãn hiển thị (cùng nguồn với công cụ tương ứng). */
+export const BOARD_LABEL: Record<string, string> = {
+  business: 'Doanh nghiệp', financials: 'Báo cáo tài chính', loans: 'Khoản vay hiện hữu', cic: 'CIC',
+  blacklist: 'Danh sách đen', collateral: 'Tài sản bảo đảm', inflow: 'Tiền về tài khoản',
+};
+export const APPROVER_LEVEL_LABEL: Record<string, string> = {
+  branch_director: 'Giám đốc chi nhánh', branch: 'Giám đốc chi nhánh',
+  regional: 'Giám đốc vùng', head_office: 'Hội sở chính',
+};
+export const approverLevelLabel = (l: string) => APPROVER_LEVEL_LABEL[l] ?? l;
 export function toolCalls(events: AgentCaseEvent[]): ToolCall[] {
   return events
     .filter((e) => e.type === 'tool_call')
@@ -159,6 +182,7 @@ export function toolCalls(events: AgentCaseEvent[]): ToolCall[] {
       tool: str(e.payload?.tool),
       outcome: str(e.payload?.outcome),
       durationMs: Number(e.payload?.duration_ms ?? 0),
+      initiatedBy: str(e.payload?.initiated_by) || 'agent',
     }));
 }
 
@@ -189,6 +213,7 @@ export function decisions(events: AgentCaseEvent[]): DecisionItem[] {
   for (const e of events) {
     const p = e.payload ?? {};
     if (e.type === 'approved') out.push({ id: e.id, label: 'Đã xác nhận phê duyệt', tone: 'ok', who: str(p.approver) });
+    else if (e.type === 'decided_on_loan') out.push({ id: e.id, label: 'Người có thẩm quyền đã quyết định trên hồ sơ', tone: 'ok', who: str(p.approver) });
     else if (e.type === 'rejected') out.push({ id: e.id, label: 'Bị từ chối', tone: 'error', who: str(p.approver), text: str(p.reason) });
     else if (e.type === 'commit_refused') out.push({ id: e.id, label: 'Hệ thống từ chối thực thi', tone: 'warn', who: str(p.approver), text: str(p.message) });
     else if (e.type === 'sla_escalated' || e.type === 'sla_reminder') out.push({ id: e.id, label: 'Nhắc/chuyển cấp do quá hạn', tone: 'warn', text: str(p.message) });
@@ -204,3 +229,54 @@ export function packageOf(events: AgentCaseEvent[]) {
 }
 
 export const fmtSeconds = (s: number) => (s < 60 ? `${s.toFixed(1)} giây` : `${(s / 60).toFixed(1)} phút`);
+
+export interface BoardItem {
+  id: number;
+  scope: string;
+  called: string[];
+  compensated: string[];
+  keys: string[];
+}
+/** Bảng chung: mỗi lần chuyên gia gom xong dữ liệu, khóa nào do agent gọi, khóa nào hệ thống gọi bù. */
+export function sharedBoards(events: AgentCaseEvent[]): BoardItem[] {
+  const arr = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+  return events.filter((e) => e.type === 'shared_board_updated').map((e) => ({
+    id: e.id, scope: str(e.payload?.scope) || e.agent,
+    called: arr(e.payload?.called_by_agent), compensated: arr(e.payload?.compensated), keys: arr(e.payload?.board_keys),
+  }));
+}
+
+export interface ValidationView {
+  /** Các phép tính lại do hệ thống (không phải AI) thực hiện từ dữ liệu công cụ. */
+  lines: string[];
+  issues: string[];
+  narrative: string;
+  challenges: number;
+  handled: number;
+}
+/** Validation kiểm chứng: số tính lại bởi hệ thống, vấn đề phát hiện, lời diễn giải do AI viết, số lần phản biện. */
+export function validationView(events: AgentCaseEvent[]): ValidationView | null {
+  const done = [...events].reverse().find((e) => e.type === 'task_finished' && e.agent === 'validation');
+  if (!done) return null;
+  const v = (done.payload?.verdict ?? {}) as { data?: Record<string, unknown> };
+  const data = v.data ?? {};
+  const strs = (x: unknown) => (Array.isArray(x) ? x.filter((i): i is string => typeof i === 'string') : []);
+  const verified = (data.verified ?? {}) as { lines?: unknown };
+  return {
+    lines: strs(verified.lines), issues: strs(data.issues), narrative: str(data.narrative),
+    challenges: events.filter((e) => e.type === 'a2a_challenge').length,
+    handled: events.filter((e) => e.type === 'challenge_handled').length,
+  };
+}
+
+export interface RealAction {
+  id: number;
+  workflowStatus: string;
+  state: string;
+}
+/** Hành động thật: bước `decide` của workflow đã chạy (engine ghi lại trạng thái hồ sơ sau quyết định). */
+export function realActions(events: AgentCaseEvent[]): RealAction[] {
+  return events
+    .filter((e) => e.type === 'state_changed' && typeof e.payload?.workflow_status === 'string')
+    .map((e) => ({ id: e.id, workflowStatus: str(e.payload?.workflow_status), state: str(e.payload?.state) }));
+}

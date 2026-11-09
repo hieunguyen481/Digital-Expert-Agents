@@ -5,7 +5,9 @@ import { getAgentCase, getAgentCaseEvents, getApproverNames, streamAgentCase, ty
 import {
   DECISION_LABEL, STATE_COLOR, agentName, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
+  BOARD_LABEL, approverLevelLabel, realActions, sharedBoards, toolLabel, validationView,
 } from '../agentTrace';
+import { statusLabel } from '@/features/my-work/format';
 
 const { Text } = Typography;
 const TASK_TAG: Record<TaskState, { color: string; label: string }> = {
@@ -14,6 +16,8 @@ const TASK_TAG: Record<TaskState, { color: string; label: string }> = {
   done: { color: 'green', label: 'Xong' },
   error: { color: 'red', label: 'Lỗi' },
 };
+const AI_TAG = <Tag color="purple" style={{ marginInlineStart: 6 }}>AI đề xuất</Tag>;
+const SYSTEM_TAG = <Tag color="blue" style={{ marginInlineStart: 6 }}>Hệ thống tính</Tag>;
 const section: React.CSSProperties = { marginTop: 20 };
 const h: React.CSSProperties = { margin: '0 0 8px', fontSize: 14, fontWeight: 650, color: 'var(--shb-navy-800)' };
 
@@ -72,6 +76,9 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
   const calls = toolCalls(events);
   const usage = llmUsage(events);
   const decided = decisions(events);
+  const boards = sharedBoards(events);
+  const validation = validationView(events);
+  const actions = realActions(events);
   const pkg = caseQ.data.package ?? packageOf(events);
   // Chỉ hồ sơ đạt mới có gói phê duyệt; Cần bổ sung/Từ chối vẫn có ý kiến từng agent trong sự kiện.
   const verdicts: TraceVerdict[] =
@@ -101,7 +108,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
       </div>
 
       <section style={section} data-testid="trace-dag">
-        <h3 style={h}>Kế hoạch của Planner (DAG)</h3>
+        <h3 style={h}>Planner giao việc cho đội agent{AI_TAG}</h3>
         {plan ? (
           <>
             {plan.rationale && <Text type="secondary" style={{ fontSize: 12.5 }}>{plan.rationale}</Text>}
@@ -120,7 +127,9 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                         </div>
                         <div style={{ fontSize: 12.5, margin: '4px 0' }}>{t.objective}</div>
                         {t.depends_on.length > 0 && (
-                          <Text type="secondary" style={{ fontSize: 11.5 }}>Chờ: {t.depends_on.join(', ')}</Text>
+                          <Text type="secondary" style={{ fontSize: 11.5 }}>
+                            Chờ kết quả của: {t.depends_on.map((d) => { const dep = plan.tasks.find((x) => x.task_id === d); return dep ? agentName(dep.agent) : d; }).join(', ')}
+                          </Text>
                         )}
                         {st?.verdict && (
                           <div style={{ fontSize: 12, marginTop: 4 }}>
@@ -160,14 +169,19 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
       </section>
 
       <section style={section} data-testid="trace-tools">
-        <h3 style={h}>Lời gọi công cụ MCP ({calls.length})</h3>
+        <h3 style={h}>Công cụ: agent nào đã gọi ({calls.length})</h3>
         {calls.length ? (
           <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
             <tbody>
               {calls.map((c) => (
                 <tr key={c.id} style={{ borderBottom: '1px solid var(--shb-border)' }}>
                   <td style={{ padding: '4px 0' }}>{agentName(c.agent)}</td>
-                  <td><Typography.Text code>{c.tool}</Typography.Text></td>
+                  <td>{toolLabel(c.tool)} <Typography.Text code>{c.tool}</Typography.Text></td>
+                  <td>
+                    {c.initiatedBy === 'system_compensation'
+                      ? <Tag color="blue" bordered={false} data-testid="tool-compensated">Hệ thống gọi bù</Tag>
+                      : <Tag bordered={false} data-testid="tool-by-agent">Agent tự gọi</Tag>}
+                  </td>
                   <td><Tag bordered={false} color={c.outcome === 'ok' ? 'green' : 'red'}>{c.outcome === 'ok' ? 'Thành công' : c.outcome === 'denied' ? 'Bị từ chối' : 'Lỗi'}</Tag></td>
                   <td style={{ textAlign: 'right' }}>{c.durationMs} ms</td>
                 </tr>
@@ -179,18 +193,66 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         )}
       </section>
 
+      <section style={section} data-testid="trace-board">
+        <h3 style={h}>Bảng chung của đội agent</h3>
+        {boards.length ? (
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
+            {boards.map((b) => (
+              <li key={b.id}>
+                <b>{agentName(b.scope)}</b> gom {b.keys.length} mục: {b.keys.map((k) => BOARD_LABEL[k] ?? k).join(', ')}
+                {b.compensated.length > 0 && (
+                  <> — <Tag color="blue" bordered={false}>Hệ thống gọi bù</Tag>{b.compensated.map((k) => BOARD_LABEL[k] ?? k).join(', ')} (agent bỏ sót mục bắt buộc)</>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Text type="secondary" style={{ fontSize: 13 }}>Chưa có dữ liệu gom lên bảng chung (ca chạy không dùng công cụ động).</Text>
+        )}
+      </section>
+
+      <section style={section} data-testid="trace-validation">
+        <h3 style={h}>Validation kiểm chứng</h3>
+        {validation ? (
+          <>
+            <div style={{ fontSize: 13, marginBottom: 4 }}>
+              Phản biện: {validation.challenges} lần, đã xử lý {validation.handled}.
+              {validation.challenges === 0 && ' Các kết luận chuyên gia không mâu thuẫn.'}
+            </div>
+            {validation.lines.length > 0 && (
+              <>
+                <div style={{ fontSize: 13 }}><b>Số liệu tính lại từ dữ liệu công cụ</b>{SYSTEM_TAG}</div>
+                <ul style={{ margin: '4px 0', paddingLeft: 18, fontSize: 13 }} data-testid="validation-lines">
+                  {validation.lines.map((l, i) => <li key={i}>{l}</li>)}
+                </ul>
+              </>
+            )}
+            {validation.issues.length > 0 && (
+              <ul style={{ margin: '4px 0', paddingLeft: 18, fontSize: 13 }}>
+                {validation.issues.map((l, i) => <li key={i}>{l}</li>)}
+              </ul>
+            )}
+            {validation.narrative && (
+              <div style={{ fontSize: 13 }}><b>Diễn giải cho người duyệt</b>{AI_TAG}<div>{validation.narrative}</div></div>
+            )}
+          </>
+        ) : (
+          <Text type="secondary" style={{ fontSize: 13 }}>Validation chưa kiểm chứng case này.</Text>
+        )}
+      </section>
+
       <section style={section} data-testid="trace-decisions">
-        <h3 style={h}>Quyết định</h3>
+        <h3 style={h}>Quyết định của người duyệt và hành động thật</h3>
         {pkg?.recommendation && (
           <div style={{ fontSize: 13, marginBottom: 6 }}>
-            Đề xuất của hội đồng agent: <b>{pkg.recommendation}</b>
+            Đề xuất của đội agent{AI_TAG}: <b>{pkg.recommendation}</b>
             {pkg.proposed_limit != null && ` · Hạn mức ${pkg.proposed_limit.toLocaleString('vi-VN')} VND`}
-            {pkg.required_approver_level && ` · Cấp xác nhận: ${pkg.required_approver_level}`}
+            {pkg.required_approver_level && ` · Cấp xác nhận: ${approverLevelLabel(pkg.required_approver_level)}`}
           </div>
         )}
         {stopReason && (
           <div style={{ fontSize: 13, marginBottom: 6 }} data-testid="trace-stop-reason">
-            {state === 'Rejected' ? 'Hội đồng agent đề xuất từ chối' : 'Hội đồng agent đề nghị bổ sung hồ sơ'}: <b>{stopReason}</b>
+            {state === 'Rejected' ? 'Đội agent đề xuất từ chối' : 'Đội agent đề nghị bổ sung hồ sơ'}: <b>{stopReason}</b>
           </div>
         )}
         {verdicts.map((v) => (
@@ -202,6 +264,12 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
           <div key={d.id} style={{ fontSize: 13, marginTop: 6 }}>
             <Tag color={d.tone === 'ok' ? 'green' : d.tone === 'error' ? 'red' : 'gold'}>{d.label}</Tag>
             {d.who && <Text type="secondary">Người xác nhận: {namesQ.data?.[d.who] ?? 'Không rõ'}</Text>} {d.text}
+          </div>
+        ))}
+        {actions.map((a) => (
+          <div key={a.id} style={{ fontSize: 13, marginTop: 6 }} data-testid="trace-real-action">
+            <Tag color="green">Hành động thật</Tag>
+            Hồ sơ vay đã chuyển sang <b>{statusLabel(a.workflowStatus)}</b> qua bước quyết định của quy trình (có ghi nhật ký kiểm toán).
           </div>
         ))}
         {state === 'Pending Approval' && decided.length === 0 && (

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Card, Input, Space, Tag, Typography } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
+import { approverLevelLabel } from '@/features/dashboard/agentTrace';
 import {
   TERMINAL_STATES,
   type AgentVerdict,
@@ -154,7 +155,7 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
           description={
             <div>
               <div>
-                Hạn mức đề xuất: {pkg.proposed_limit?.toLocaleString('vi-VN')} VND · Cấp phê duyệt: {pkg.required_approver_level}
+                Hạn mức đề xuất: {pkg.proposed_limit?.toLocaleString('vi-VN')} VND · Cấp phê duyệt: {approverLevelLabel(pkg.required_approver_level ?? '')}
               </div>
               {(pkg.conditions ?? []).map((cond) => (
                 <div key={cond}>• {cond}</div>

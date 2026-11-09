@@ -8,7 +8,7 @@ import {
   TERMINAL_STATES, getAgentCase, getAgentCaseEvents, streamAgentCase, type AgentCaseEvent,
 } from '@/services/agentCaseService';
 import {
-  DECISION_LABEL, STATE_COLOR, agentName, latestPlan, packageOf, stateLabel, taskStates, type TraceVerdict,
+  DECISION_LABEL, STATE_COLOR, agentName, approverLevelLabel, latestPlan, packageOf, stateLabel, taskStates, type TraceVerdict,
 } from '@/features/dashboard/agentTrace';
 import { fetchAgentRuns, startAgentRun } from './loanDetailService';
 import { fmtDate, fmtMoney } from './format';
@@ -164,7 +164,7 @@ function RunBody({ caseId, currency }: { caseId: string; currency: string }) {
           <b>Đề xuất cổng (chưa có hiệu lực)</b>
           {pkg?.recommendation && <span>{pkg.recommendation}</span>}
           {pkg?.proposed_limit != null && <span>Hạn mức đề xuất: <span className={styles.num}>{fmtMoney(String(pkg.proposed_limit), currency)}</span></span>}
-          {pkg?.required_approver_level && <span className={styles.note}>Cấp phê duyệt đề xuất: {pkg.required_approver_level}</span>}
+          {pkg?.required_approver_level && <span className={styles.note}>Cấp phê duyệt đề xuất: {approverLevelLabel(pkg.required_approver_level)}</span>}
           {pkg?.conditions?.map((x) => <span key={x} className={styles.note}>Điều kiện: {x}</span>)}
         </div>
       )}
