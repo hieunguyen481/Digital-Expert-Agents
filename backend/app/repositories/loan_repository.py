@@ -95,11 +95,12 @@ class LoanRepository:
         payload.setdefault("updated_at", now)
         payload.setdefault("version", 1)
         require_fields(payload, _LOAN_REQUIRED)
-        row = await execute_returning(
-            self.session,
-            insert_sql("credit.loan_application", payload, _LOAN_COLUMNS),
-            payload,
+        # Không RETURNING: chính sách đọc (can_read_loan, STABLE) không thấy dòng vừa chèn trong cùng câu lệnh
+        # nên INSERT ... RETURNING bị RLS từ chối. Chèn xong mới đọc lại bằng câu lệnh riêng.
+        await self.session.execute(
+            insert_sql("credit.loan_application", payload, _LOAN_COLUMNS, returning=False), payload
         )
+        row = await self.get(loan_id)
         if row is None:
             raise RuntimeError("Loan application insert returned no row")
         return row

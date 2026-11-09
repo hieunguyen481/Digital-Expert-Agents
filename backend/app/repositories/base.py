@@ -87,7 +87,9 @@ def require_fields(values: Mapping[str, Any], fields: Sequence[str]) -> None:
         raise ValueError(f"Missing required fields: {', '.join(missing)}")
 
 
-def insert_sql(table: str, values: Mapping[str, Any], allowed: frozenset[str]) -> TextClause:
+def insert_sql(
+    table: str, values: Mapping[str, Any], allowed: frozenset[str], *, returning: bool = True
+) -> TextClause:
     """Build a safe INSERT from a strict compile-time column whitelist."""
     columns = [name for name in values if name in allowed]
     unknown = set(values) - allowed
@@ -97,7 +99,8 @@ def insert_sql(table: str, values: Mapping[str, Any], allowed: frozenset[str]) -
         raise ValueError(f"No values supplied for {table}")
     names = ", ".join(columns)
     binds = ", ".join(f":{name}" for name in columns)
-    return text(f"INSERT INTO {table} ({names}) VALUES ({binds}) RETURNING *")  # noqa: S608
+    tail = " RETURNING *" if returning else ""
+    return text(f"INSERT INTO {table} ({names}) VALUES ({binds}){tail}")  # noqa: S608
 
 
 def update_sql(
