@@ -71,6 +71,37 @@ _CREDIT_TERMS = (
     "transaction",
     "financial",
 )
+# Câu tra cứu thông tin hồ sơ/khách trong quyền ("hạn mức đề nghị", "trạng thái hồ sơ"...): trả lời trực tiếp
+# từ dữ liệu đã xác thực, không cần đội phân tích sâu và không đòi quyền `loan:analyze`.
+_LOOKUP_TERMS = (
+    "dư nợ",
+    "hạn mức",
+    "số tiền",
+    "trạng thái",
+    "kỳ hạn",
+    "mục đích vay",
+    "lãi suất",
+    "đề nghị",
+    "cic",
+    "tài sản bảo đảm",
+    "tsđb",
+    "bao nhiêu",
+    "outstanding",
+    "status",
+)
+_ANALYSIS_VERBS = (
+    "phân tích",
+    "đánh giá",
+    "thẩm định",
+    "rà soát",
+    "kiểm tra",
+    "so sánh",
+    "mâu thuẫn",
+    "xung đột",
+    "analy",
+    "assess",
+    "review",
+)
 _EXPLICIT_OUT_OF_SCOPE_TERMS = (
     "dự báo thời tiết",
     "weather forecast",
@@ -82,6 +113,14 @@ _EXPLICIT_OUT_OF_SCOPE_TERMS = (
     "write a poem",
     "kể chuyện cười",
     "tell me a joke",
+    # dẫn dụ vượt quy tắc: từ chối dù câu có từ khoá tra cứu
+    "bỏ qua mọi quy tắc",
+    "bỏ qua quy tắc",
+    "bỏ qua hướng dẫn",
+    "bỏ qua các hướng dẫn",
+    "ignore all rules",
+    "ignore previous",
+    "ignore all previous",
 )
 
 
@@ -141,10 +180,17 @@ class ContextRouter:
             )
         )
 
+        is_lookup = (
+            not requires_loan
+            and not is_definition
+            and _contains_any(lowered, _LOOKUP_TERMS)
+            and not _contains_any(lowered, _ANALYSIS_VERBS)
+        )
+
         # An unknown prompt is not implicitly trusted as a general-purpose chat
         # request.  Refuse it before asking for customer context so prompts such
         # as "Write Python code" cannot fall through to the DIRECT route.
-        if normalized and not (domain_agents or requires_loan or is_definition):
+        if normalized and not (domain_agents or requires_loan or is_definition or is_lookup):
             return _refusal(request, normalized)
 
         missing: list[str] = []
@@ -168,7 +214,7 @@ class ContextRouter:
                 attachment_ids=request.attachment_ids,
             )
 
-        if is_definition:
+        if is_definition or is_lookup:
             return RoutingDecision(
                 customer_id=request.active_customer_id,
                 loan_application_id=request.active_loan_application_id,
@@ -182,7 +228,7 @@ class ContextRouter:
                 attachment_ids=request.attachment_ids,
             )
 
-        if requires_loan or len(domain_agents) >= 2:
+        if requires_loan or (len(domain_agents) >= 2 and not is_lookup):
             return RoutingDecision(
                 customer_id=request.active_customer_id,
                 loan_application_id=request.active_loan_application_id,
