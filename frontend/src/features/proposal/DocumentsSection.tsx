@@ -140,7 +140,7 @@ export function DocumentsSection({ loanId }: { loanId: string }) {
         type={left ? 'warning' : 'success'}
         showIcon
         message={left ? `Còn ${left} mục bắt buộc chưa đủ, hết hiệu lực hoặc chưa xác nhận` : 'Đủ các mục bắt buộc'}
-        description="Tải lên và AI tự phân loại tài liệu làm ở giai đoạn sau; ở đây xem tình trạng và xử lý văn bản đồng ý, CIC."
+        description="Ở đây xem tình trạng tài liệu, xử lý văn bản đồng ý và tra cứu CIC. Tài liệu bổ sung được tải ở trang Đối chiếu tài liệu."
       />
       <CicBlock loanId={loanId} cic={cic.data} consentDocId={consentDoc} onChanged={refresh} />
       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }} aria-label="Danh mục tài liệu">
