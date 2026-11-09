@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agents.base import a2a_send, build_agent_app  # noqa: E402
-from common import config, llm, mcp_client, rag  # noqa: E402
+from common import config, facts as facts_mod, llm, mcp_client, rag  # noqa: E402
 from common.policy_checklist import POLICY_CHECKLIST  # noqa: E402
 from common.expert_rules import EXPERT_RULES  # noqa: E402
 from common.report import with_policy_evidence  # noqa: E402
@@ -121,9 +121,45 @@ async def _rules_task(env: Envelope) -> Verdict:
     return verdict
 
 
+def _submit_tool() -> llm.ToolDef:
+    return llm.ToolDef("submit_verdict", "Nộp kết luận thẩm định cuối cùng",
+                       {"type": "object", "properties": {
+                           "decision": {"type": "string", "enum": ["approve", "reject", "need_more_info"]},
+                           "summary": {"type": "string"},
+                           "proposed_limit": {"type": "number"},
+                           "findings": {"type": "array", "items": {"type": "string"}},
+                           "conditions": {"type": "array", "items": {"type": "string"}},
+                           "evidence": {"type": "array", "items": {"type": "object", "properties": {
+                               "source": {"type": "string"}, "quote": {"type": "string"}}}},
+                       }, "required": ["decision", "summary"]}, None)  # type: ignore[arg-type]
+
+
+async def _facts_task(env: Envelope, shared: dict) -> Verdict:
+    """Cờ facts: dữ kiện đã có sẵn trong bảng chung, RAG hẹp nạp trước -> đúng một lượt LLM."""
+    request = env.payload.get("params", {}).get("request", {})
+    hits = rag.search_policy("credit", "DSCR tối thiểu hạn mức vốn lưu động doanh thu")
+    policy = "\n".join(f"[{h['source']}] {h['text'][:300]}" for h in hits)
+    result = await llm.tool_loop(
+        system=f"Bạn là chuyên gia thẩm định tín dụng SME của ngân hàng. "
+               f"Phân tích DSCR (tối thiểu {config.DSCR_MIN}), đòn bẩy, dòng tiền; đối chiếu dòng tiền thực tế "
+               f"(inflow) với doanh thu BCTC. Dữ kiện công cụ và chính sách đã cho sẵn, KHÔNG cần gọi thêm. "
+               f"{POLICY_CHECKLIST} {EXPERT_RULES}"
+               + (facts_mod.COMPACT_HINT if config.opt("compact") else "") + " Kết thúc bằng submit_verdict.",
+        user=f"Thẩm định đề nghị vay: {request}\nDữ kiện: {facts_mod.scoped_text(shared, 'credit')}\n"
+             f"Chính sách:\n{policy}",
+        tools=[_submit_tool()],
+    )
+    verdict = with_policy_evidence(Verdict.from_llm(CARD.agent_id, env.task_id or "", result), hits)
+    _last_verdict[env.case_id] = verdict
+    return verdict
+
+
 async def _llm_task(env: Envelope) -> Verdict:
     request = env.payload.get("params", {}).get("request", {})
     business_id = request["business_id"]
+    shared = env.payload.get("params", {}).get("facts")
+    if shared and config.opt("facts"):
+        return await _facts_task(env, shared)
 
     async def t_financials() -> list:
         return await mcp_client.call_tool("get_financials", {"business_id": business_id})

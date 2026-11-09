@@ -121,3 +121,19 @@ async def gather(request: dict) -> dict:
     for k in ("financials", "loans", "collateral"):
         raw[k] = raw[k] if isinstance(raw[k], list) else []
     return build(raw, request)
+
+
+_SCOPES = {"credit": ("financials", "loans", "inflow"),
+           "compliance": ("business", "blacklist", "cic", "collateral")}
+
+
+def scoped_text(facts: dict, scope: str) -> str:
+    """Phần bảng dữ kiện thuộc chuyên môn của agent (ngữ cảnh hẹp) + số đã tính lại, dạng JSON gọn cho prompt."""
+    import json
+    raw = facts.get("raw") or {}
+    data = {k: raw.get(k) for k in _SCOPES[scope]}
+    data["so_tinh_lai"] = facts.get("lines")
+    return json.dumps(data, ensure_ascii=False, default=str, separators=(",", ":"))
+
+
+COMPACT_HINT = " Trả lời ngắn: tối đa 5 findings, mỗi câu dưới 30 từ; evidence tối đa 4 mục, quote dưới 200 ký tự."

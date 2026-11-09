@@ -13,6 +13,7 @@ import traceback
 import httpx
 
 from common import config, identity, trace_ctx
+from common import facts as facts_mod
 from common.schemas import (
     ApprovalPackage, CaseState, Envelope, MessageType, Plan, Verdict, VerdictDecision,
 )
@@ -108,6 +109,11 @@ async def _execute_dag(case_id: str, plan: Plan
     verdicts: dict[str, Verdict] = {}          # theo task_id
     verdict_by_agent: dict[str, Verdict] = {}  # theo agent (cho validation)
     remaining = {t.task_id: t for t in plan.tasks}
+    shared_facts = None
+    if config.opt("facts") or config.opt("gate"):  # công cụ gọi một lần, mọi chuyên gia đọc chung
+        req = next((t.params.get("request") for t in plan.tasks if t.params.get("request")), None)
+        if req and req.get("business_id"):
+            shared_facts = await facts_mod.gather(req)
 
     while remaining:
         ready = [t for t in remaining.values()
@@ -119,6 +125,8 @@ async def _execute_dag(case_id: str, plan: Plan
 
         async def _run(t):
             params = dict(t.params)
+            if shared_facts and t.agent in ("credit", "compliance", "validation"):
+                params["facts"] = shared_facts
             if t.agent == "validation":
                 params["verdicts"] = {
                     a: v.model_dump(mode="json") for a, v in verdict_by_agent.items()

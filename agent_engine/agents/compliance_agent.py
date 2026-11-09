@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agents.base import build_agent_app  # noqa: E402
-from common import config, llm, mcp_client, rag, recompute  # noqa: E402
+from common import config, facts as facts_mod, llm, mcp_client, rag, recompute  # noqa: E402
 from common.expert_rules import EXPERT_RULES  # noqa: E402
 from common.report import with_policy_evidence  # noqa: E402
 from common.schemas import (  # noqa: E402
@@ -121,10 +121,46 @@ async def _rules_task(env: Envelope) -> Verdict:
     )
 
 
+async def _facts_task(env: Envelope, shared: dict) -> Verdict:
+    """Cờ facts: dữ kiện từ bảng chung, RAG hẹp nạp trước -> đúng một lượt LLM."""
+    params = env.payload.get("params", {})
+    request = params.get("request", {})
+    hits = rag.search_policy("compliance", "KYB AML CIC nhóm nợ pháp lý tài sản bảo đảm LTV")
+    policy = "\n".join(f"[{h['source']}] {h['text'][:300]}" for h in hits)
+    submit = llm.ToolDef("submit_verdict", "Nộp kết luận tuân thủ",
+                         {"type": "object", "properties": {
+                             "decision": {"type": "string",
+                                          "enum": ["approve", "reject", "need_more_info", "flag"]},
+                             "summary": {"type": "string"},
+                             "max_secured_limit": {"type": "number"},
+                             "findings": {"type": "array", "items": {"type": "string"}},
+                             "conditions": {"type": "array", "items": {"type": "string"}},
+                             "evidence": {"type": "array", "items": {"type": "object", "properties": {
+                                 "source": {"type": "string"}, "quote": {"type": "string"}}}},
+                         }, "required": ["decision", "summary"]}, None)  # type: ignore[arg-type]
+    result = await llm.tool_loop(
+        system=f"Bạn là chuyên gia pháp chế & tuân thủ ngân hàng. Kiểm tra KYB, "
+               f"blacklist (hit = từ chối ngay), CIC (nhóm >=3 từ chối, nhóm 2 flag), "
+               f"pháp lý TSĐB (LTV tối đa {config.LTV_MAX:.0%} — tính max_secured_limit). "
+               f"Dữ kiện công cụ và quy định đã cho sẵn, KHÔNG cần gọi thêm. {EXPERT_RULES}"
+               + (facts_mod.COMPACT_HINT if config.opt("compact") else "") + " Kết thúc bằng submit_verdict.",
+        user=f"Kiểm tra tuân thủ đề nghị vay: {request}, "
+             f"kiểm tra TSĐB: {params.get('check_collateral', False)}\n"
+             f"Dữ kiện: {facts_mod.scoped_text(shared, 'compliance')}\nQuy định:\n{policy}"
+             + (f"\nYêu cầu rà soát từ Validation: {params['challenge_reason']}"
+                if params.get("challenge_reason") else ""),
+        tools=[submit],
+    )
+    return with_policy_evidence(Verdict.from_llm(CARD.agent_id, env.task_id or "", result), hits)
+
+
 async def _llm_task(env: Envelope) -> Verdict:
     params = env.payload.get("params", {})
     request = params.get("request", {})
     business_id = request["business_id"]
+    shared = params.get("facts")
+    if shared and config.opt("facts"):
+        return await _facts_task(env, shared)
 
     async def t_biz() -> dict:
         return await mcp_client.call_tool("get_business", {"business_id": business_id})
