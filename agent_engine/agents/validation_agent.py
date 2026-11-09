@@ -74,8 +74,9 @@ def _find_conflict(verdicts: dict[str, Verdict], verified: dict | None = None,
     # số Validation tự tính lại từ hồ sơ TSĐB thắng số do chuyên gia báo
     cap = (col["max_secured_limit"] if col and col["eligible_value"]
            else (compliance.max_secured_limit if compliance else None))
+    # cờ challenge: bỏ nhánh dựa vào chữ trong verdict; chỉ challenge khi số tính lại mâu thuẫn
     if (compliance and verified and verified.get("has_collateral_data") and "compliance" not in challenged
-            and not _checked_collateral(compliance)):
+            and not config.opt("challenge") and not _checked_collateral(compliance)):
         return {
             "target": "compliance",
             "reason": "Core banking có hồ sơ TSĐB của khách nhưng kết luận tuân thủ chưa kiểm tra "
@@ -205,7 +206,11 @@ async def handle_task(env: Envelope) -> Verdict:
 
     # LLM narrative (hybrid/llm): diễn giải facts đã chốt thành khuyến nghị điều hành
     # — KHÔNG thay đổi quyết định/con số, chỉ viết lời văn cho người duyệt.
-    narrative = await _synthesize_narrative(rec_decision, rec, verdicts, trace)
+    if config.opt("report"):  # báo cáo dựng xác định: bỏ lượt LLM tường thuật
+        conds = report["conditions"][:3]
+        narrative = rec + (" Điều kiện chính: " + "; ".join(conds) + "." if conds else "")
+    else:
+        narrative = await _synthesize_narrative(rec_decision, rec, verdicts, trace)
 
     return Verdict(
         agent=CARD.agent_id, task_id=env.task_id or "",
