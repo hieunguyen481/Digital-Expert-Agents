@@ -79,7 +79,13 @@ function RunBody({ caseId, currency }: { caseId: string; currency: string }) {
     queryKey: ['agent-case', caseId], queryFn: () => getAgentCase(caseId),
     refetchInterval: (q) => (q.state.data && TERMINAL_STATES.includes(q.state.data.state) ? false : 4000),
   });
-  const eventsQ = useQuery({ queryKey: ['agent-case-events', caseId], queryFn: () => getAgentCaseEvents(caseId) });
+  const finishedNow = !!caseQ.data && TERMINAL_STATES.includes(caseQ.data.state);
+  // SSE cho tiến trình trực tiếp; thăm dò định kỳ chỉ là dự phòng khi luồng đứt, và một lần cuối khi case kết thúc.
+  const eventsQ = useQuery({
+    queryKey: ['agent-case-events', caseId], queryFn: () => getAgentCaseEvents(caseId),
+    refetchInterval: finishedNow ? false : 3000,
+  });
+  useEffect(() => { if (finishedNow) void eventsQ.refetch(); }, [finishedNow]); // eslint-disable-line react-hooks/exhaustive-deps
   const [live, setLive] = useState<AgentCaseEvent[]>([]);
   const [streaming, setStreaming] = useState(false);
   const [streamError, setStreamError] = useState(false);
