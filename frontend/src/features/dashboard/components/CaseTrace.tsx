@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Drawer, Empty, Skeleton, Tag, Typography } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getAgentCase, getAgentCaseEvents, getApproverNames, streamAgentCase, type AgentCaseEvent } from '@/services/agentCaseService';
+import { TERMINAL_STATES, getAgentCase, getAgentCaseEvents, getApproverNames, streamAgentCase, type AgentCaseEvent } from '@/services/agentCaseService';
 import {
   DECISION_LABEL, STATE_COLOR, agentName, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
@@ -32,8 +32,18 @@ export function CaseTrace({ caseId, onClose }: { caseId: string | null; onClose:
 
 function CaseTraceBody({ caseId }: { caseId: string }) {
   const qc = useQueryClient();
-  const caseQ = useQuery({ queryKey: ['agent-case', caseId], queryFn: () => getAgentCase(caseId) });
-  const eventsQ = useQuery({ queryKey: ['agent-case-events', caseId], queryFn: () => getAgentCaseEvents(caseId) });
+  // Polling dự phòng (như AgentTeamPanel): SSE có thể bị proxy đệm hoặc đứt; case chưa kết thúc thì vẫn tự cập nhật.
+  const caseQ = useQuery({
+    queryKey: ['agent-case', caseId],
+    queryFn: () => getAgentCase(caseId),
+    refetchInterval: (q) => (q.state.data && TERMINAL_STATES.includes(q.state.data.state) ? false : 3000),
+  });
+  const running = !caseQ.data || !TERMINAL_STATES.includes(caseQ.data.state);
+  const eventsQ = useQuery({
+    queryKey: ['agent-case-events', caseId],
+    queryFn: () => getAgentCaseEvents(caseId),
+    refetchInterval: running ? 3000 : false,
+  });
   const [live, setLive] = useState<AgentCaseEvent[]>([]);
   const [streaming, setStreaming] = useState(false);
 
