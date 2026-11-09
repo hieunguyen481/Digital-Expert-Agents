@@ -97,8 +97,34 @@ class LoanDetailService:
             if not see_compliance:
                 row["compliance_conclusion"] = row["compliance_reason"] = None
             flags.append(row)
+        timeline = [dict(s) for s in await self._repo.steps(loan_id)]
         return {
             "loan": dict(loan), "metrics": metrics, "flags": flags,
             "collaterals": [dict(c) for c in await self._repo.collaterals(loan_id)],
-            "timeline": [dict(s) for s in await self._repo.steps(loan_id)],
+            "timeline": timeline,
+            "supplement_request": supplement_request(dict(loan).get("status"), timeline),
         }
+
+
+_SUPPLEMENT_STEPS = {"PENDING_INFO", "RISK_PENDING_INFO"}
+
+
+def supplement_request(status: Any, timeline: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """E2: hồ sơ đang chờ bổ sung thì cho QHKH thấy nội dung cần bổ sung (lý do ở bước vừa đóng)."""
+    if not str(status or "").endswith("_PENDING_INFO"):
+        return None
+    opened = next(
+        (s for s in reversed(timeline) if s["step_code"] in _SUPPLEMENT_STEPS and not s["completed_at"]), None
+    )
+    if opened is None:
+        return None
+    before = [
+        s for s in timeline
+        if s["completed_at"] and s["step_code"] not in _SUPPLEMENT_STEPS and s["received_at"] <= opened["received_at"]
+    ]
+    source = before[-1] if before else None
+    return {
+        "reason": None if source is None else source.get("reason"),
+        "requested_at": opened["received_at"],
+        "due_at": opened["due_at"],
+    }

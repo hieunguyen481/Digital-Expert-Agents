@@ -72,3 +72,22 @@ async def test_failing_value_and_missing_threshold() -> None:
 async def test_compliance_conclusion_masking(role: str, sees: bool) -> None:
     data = await LoanDetailService(FakeRepo([])).overview(P(role), LOAN)  # type: ignore[arg-type]
     assert (data["flags"][0]["compliance_conclusion"] == "NO_ISSUE") is sees
+
+
+def test_supplement_request_shows_reason_to_rm() -> None:
+    """L07: hồ sơ chờ bổ sung -> nội dung yêu cầu lấy từ bước Thẩm định vừa đóng."""
+    from datetime import UTC, datetime, timedelta
+
+    from app.services.loan_detail_service import supplement_request
+
+    t0 = datetime(2026, 11, 5, tzinfo=UTC)
+    steps = [
+        {"step_code": "APPRAISAL", "received_at": t0, "completed_at": t0 + timedelta(days=1),
+         "due_at": None, "reason": "Thiếu BCTC 2025 và sao kê 12 tháng"},
+        {"step_code": "PENDING_INFO", "received_at": t0 + timedelta(days=1), "completed_at": None,
+         "due_at": t0 + timedelta(days=6), "reason": None},
+    ]
+    got = supplement_request("APPRAISAL_PENDING_INFO", steps)
+    assert got is not None and got["reason"] == "Thiếu BCTC 2025 và sao kê 12 tháng"
+    assert got["due_at"] == t0 + timedelta(days=6)
+    assert supplement_request("APPRAISAL", steps) is None

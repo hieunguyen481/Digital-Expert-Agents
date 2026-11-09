@@ -49,6 +49,7 @@ export interface LoanOverview {
   flags: Flag[];
   collaterals: Collateral[];
   timeline: TimelineStep[];
+  supplement_request?: { reason: string | null; requested_at: string; due_at: string | null } | null;
 }
 
 export interface AiBlock {

@@ -1,6 +1,6 @@
-import { Skeleton } from 'antd';
+import { Alert, Skeleton } from 'antd';
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { PageError } from '@/components/common/PageError';
 import { normalizeError } from '@/services/apiClient';
 import { PageHead } from '@/features/shell/PageHead';
@@ -19,7 +19,7 @@ export default function LoanDetailPage() {
   const q = useQuery({ queryKey: ['loan-overview', loanId], queryFn: () => fetchOverview(loanId) });
   if (q.isError) return <PageError title="Không tải được hồ sơ" error={normalizeError(q.error)} onRetry={() => void q.refetch()} />;
   if (!q.data) return <div className={styles.page} aria-busy><Skeleton active /></div>;
-  const { loan, metrics, flags, collaterals, timeline } = q.data;
+  const { loan, metrics, flags, collaterals, timeline, supplement_request } = q.data;
   return (
     <>
       <PageHead
@@ -30,6 +30,14 @@ export default function LoanDetailPage() {
           loan.assignee_name ? `Đang giữ: ${loan.assignee_name}` : null]}
       />
       <div className={styles.page}>
+        {supplement_request && (
+          <Alert type="warning" showIcon data-testid="supplement-request" message="Hồ sơ đang chờ bổ sung"
+            description={<>
+              <div>{supplement_request.reason ?? 'Người xử lý chưa ghi nội dung cụ thể.'}</div>
+              <div>Hạn bổ sung: {supplement_request.due_at ? new Date(supplement_request.due_at).toLocaleDateString('vi-VN') : '—'}</div>
+              <Link to={`/doi-chieu/${loanId}`}>Tải tài liệu bổ sung</Link>
+            </>} />
+        )}
         <MetricsPanel loanId={loanId} metrics={metrics} />
         <div className={styles.grid}>
           <FlagsPanel flags={flags} />
