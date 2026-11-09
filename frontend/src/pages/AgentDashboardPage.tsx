@@ -6,7 +6,7 @@ import {
   RiseOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { SHBLogo } from '@/components/common/SHBLogo';
 import { OverviewTab, TracesTab, ComparisonTab } from '@/features/dashboard/components';
 import styles from './AgentDashboardPage.module.css';
@@ -19,7 +19,8 @@ import styles from './AgentDashboardPage.module.css';
  * 2. "A performance comparison between a single-agent chatbot and the multi-agent system"
  */
 export default function AgentDashboardPage() {
-  const [tab, setTab] = useState('overview');
+  const caseParam = useSearchParams()[0].get('case');
+  const [tab, setTab] = useState(caseParam ? 'traces' : 'overview');
 
   return (
     <div className={styles.page}>
@@ -58,7 +59,7 @@ export default function AgentDashboardPage() {
                   <DeploymentUnitOutlined /> Agent traces
                 </span>
               ),
-              children: <TracesTab />,
+              children: <TracesTab initialCaseId={caseParam} />,
             },
             {
               key: 'comparison',

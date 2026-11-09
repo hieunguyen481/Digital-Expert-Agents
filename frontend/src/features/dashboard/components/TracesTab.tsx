@@ -9,8 +9,8 @@ import { CaseTrace } from './CaseTrace';
 
 const { Text } = Typography;
 
-export function TracesTab() {
-  const [open, setOpen] = useState<string | null>(null);
+export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | null }) {
+  const [open, setOpen] = useState<string | null>(initialCaseId);
   const q = useQuery({ queryKey: ['agent-cases'], queryFn: () => listAgentCases(100), refetchInterval: 10_000 });
 
   if (q.isLoading) return <Skeleton active />;

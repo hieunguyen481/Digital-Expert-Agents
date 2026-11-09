@@ -51,10 +51,12 @@ from app.services.policy_service import PolicyService
 from app.services.proposal_service import ProposalService
 from app.services.report_service import ReportService
 from app.repositories.case_action_repository import CaseActionRepository
+from app.repositories.loan_agent_run_repository import LoanAgentRunRepository
 from app.repositories.loan_detail_repository import LoanDetailRepository
 from app.repositories.memo_repository import MemoRepository
 from app.repositories.reconciliation_repository import ReconciliationRepository
 from app.services.case_action_service import CaseActionService
+from app.services.loan_agent_run_service import LoanAgentRunService
 from app.services.loan_detail_service import LoanDetailService
 from app.services.memo_service import MemoService
 from app.services.reconciliation_service import ReconciliationService
@@ -307,3 +309,7 @@ def get_case_action_service(request: Request, session: CommitFirstSessionDep) ->
         WorkflowRepository(session, cic_outage=settings.cic_system_outage),
         audit,
     )
+
+
+def get_loan_agent_run_service(request: Request, session: CommitFirstSessionDep) -> LoanAgentRunService:
+    return LoanAgentRunService(LoanAgentRunRepository(session), getattr(request.app.state, "agent_engine", None))

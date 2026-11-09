@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { PageError } from '@/components/common/PageError';
 import { normalizeError } from '@/services/apiClient';
 import { PageHead } from '@/features/shell/PageHead';
+import { AgentTeamPanel } from './AgentTeamPanel';
 import { ActionsPanel } from './ActionsPanel';
 import { CollateralPanel, FlagsPanel, TimelinePanel } from './InfoPanels';
 import { MemoPanel } from './MemoPanel';
@@ -32,6 +33,7 @@ export default function LoanDetailPage() {
           <TimelinePanel steps={timeline} />
         </div>
         <CollateralPanel items={collaterals} />
+        <AgentTeamPanel loanId={loanId} currency={loan.currency} />
         <MemoPanel key={loan.status} loanId={loanId} />
         <ActionsPanel loanId={loanId} overview={q.data} />
       </div>

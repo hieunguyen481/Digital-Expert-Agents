@@ -17,6 +17,7 @@ from app.api.v1 import (
     notifications,
     policies,
     proposals,
+    loan_agent_run,
     loan_detail,
     memo,
     reconciliation,
@@ -34,6 +35,7 @@ router.include_router(proposals.router)
 router.include_router(reconciliation.router)
 router.include_router(memo.router)
 router.include_router(loan_detail.router)
+router.include_router(loan_agent_run.router)
 router.include_router(case_actions.router)
 router.include_router(workflow.router)
 router.include_router(conversations.router)

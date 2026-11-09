@@ -50,3 +50,13 @@ export async function addOpinion(loanId: string, kind: 'RISK' | 'COMPLIANCE', co
 export async function upgradeApproval(loanId: string, reason: string) {
   return (await apiClient.post<{ tier: number }>(`${base(loanId)}/approval-upgrade`, { reason })).data;
 }
+
+export interface AgentRunItem { id: string; case_id: string; created_at: string; started_by: string; started_by_name: string | null }
+export interface AgentRunOverview { can_run: boolean; deny_reason: string | null; latest: AgentRunItem | null; runs: AgentRunItem[] }
+export async function fetchAgentRuns(loanId: string): Promise<AgentRunOverview> {
+  return (await apiClient.get<AgentRunOverview>(`${base(loanId)}/agent-runs`)).data;
+}
+/** Tạo lượt chạy mới (giữ lượt cũ). 403 kèm lý do nếu không phải người đang giữ hồ sơ; 409 nếu đang có lượt chạy. */
+export async function startAgentRun(loanId: string): Promise<AgentRunOverview> {
+  return (await apiClient.post<AgentRunOverview>(`${base(loanId)}/agent-runs`)).data;
+}
