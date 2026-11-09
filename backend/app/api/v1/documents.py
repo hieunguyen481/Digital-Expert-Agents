@@ -14,6 +14,7 @@ from app.api.v1._utils import request_uuid
 from app.auth.dependencies import require_permissions
 from app.auth.principal import CurrentPrincipal
 from app.schemas.document import (
+    ChecklistLinkRequest,
     DocumentFieldResponse,
     DocumentResponse,
     DocumentVersionResponse,
@@ -110,6 +111,19 @@ async def complete_upload(
     payload = dict(row)
     payload.setdefault("upload_id", payload.get("id"))
     return UploadCompleteResponse.model_validate(payload)
+
+
+@router.post("/loan-applications/{loan_application_id}/checklist/{checklist_code}/documents", status_code=204)
+async def link_checklist_document(
+    loan_application_id: UUID,
+    checklist_code: str,
+    body: ChecklistLinkRequest,
+    principal: Annotated[CurrentPrincipal, Depends(require_permissions("document:upload"))],
+    service: Annotated[UploadService, Depends(get_upload_service)],
+) -> None:
+    await service.link_to_checklist(
+        principal, loan_application_id, checklist_code=checklist_code, document_id=body.document_id
+    )
 
 
 @documents_router.get("/{document_id}", response_model=DocumentResponse)

@@ -76,7 +76,7 @@ class ReconciliationService:
                 if r["check_result"] else None
             )
             items.append({
-                "item_id": r["item_id"], "code": r["code"], "document_type": r["document_type"],
+                "item_id": r["item_id"], "code": r["code"], "label": r["label"], "document_type": r["document_type"],
                 "mandatory": r["mandatory"], "status": r["status"], "has_exception": r["has_exception"],
                 "document_ids": list(r["document_ids"] or []), "check": check,
             })

@@ -11,7 +11,7 @@ from pathlib import PurePath
 from typing import Any, Protocol
 from uuid import UUID, uuid4
 
-from app.exceptions import AuthorizationError
+from app.exceptions import AuthorizationError, ConflictError
 from app.services.access import require_permission
 from app.services.audit_service import AuditService
 from app.services.protocols import PrincipalLike
@@ -57,6 +57,12 @@ class UploadRepositoryLike(Protocol):
     async def get_upload(self, upload_id: UUID) -> Mapping[str, Any] | None: ...
 
     async def loan_upload_state(self, employee_id: UUID, loan_id: UUID) -> Mapping[str, Any] | None: ...
+
+    async def checklist_item(self, loan_id: UUID, code: str) -> Mapping[str, Any] | None: ...
+
+    async def loan_has_document(self, loan_id: UUID, document_id: UUID) -> bool: ...
+
+    async def link_checklist_document(self, item: Mapping[str, Any], document_id: UUID) -> None: ...
 
     async def complete_upload(
         self,
@@ -207,6 +213,21 @@ class UploadService:
             raise LookupError("Loan application was not found or is outside the authorized scope")
         if not state["can_write"]:
             raise AuthorizationError("UPLOAD_LOCKED", upload_lock_reason(str(state["status"])))
+
+    async def link_to_checklist(
+        self, principal: PrincipalLike, loan_id: UUID, *, checklist_code: str, document_id: UUID
+    ) -> None:
+        """QHKH chọn mục danh mục cho tài liệu vừa tải; người chọn là người xác nhận phân loại (Q7)."""
+        require_permission(principal, "document:upload")
+        await self._require_loan_upload(principal, loan_id)
+        item = await self._repository.checklist_item(loan_id, checklist_code)
+        if item is None:
+            raise LookupError("Checklist item was not found for this loan application")
+        if item["document_type"] == "CIC_REPORT":
+            raise ConflictError("CIC_REPORT_BY_SYSTEM", "Kết quả CIC do hệ thống tra cứu, không tải lên.")
+        if not await self._repository.loan_has_document(loan_id, document_id):
+            raise LookupError("Document was not found on this loan application")
+        await self._repository.link_checklist_document(item, document_id)
 
     async def complete_upload(
         self,

@@ -22,6 +22,10 @@ class UploadCreateRequest(APIModel):
     expected_sha256: str = Field(pattern=r"^[0-9a-fA-F]{64}$")
 
 
+class ChecklistLinkRequest(APIModel):
+    document_id: UUID
+
+
 class UploadResponse(APIModel):
     model_config = ConfigDict(from_attributes=True, extra="allow")
     upload_id: UUID

@@ -41,6 +41,7 @@ class ReconCheck(APIModel):
 class ReconItem(APIModel):
     item_id: UUID
     code: str
+    label: str | None = None
     document_type: str | None = None
     mandatory: bool
     status: str

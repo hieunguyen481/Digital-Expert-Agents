@@ -97,6 +97,7 @@ class ConsentCreateRequest(APIModel):
 class ProposalDocument(APIModel):
     item_id: UUID
     code: str
+    label: str | None = None
     document_type: str | None = None
     mandatory: bool
     state: str  # OK | AI | MISSING | EXPIRED

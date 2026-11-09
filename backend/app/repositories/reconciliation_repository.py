@@ -23,6 +23,9 @@ WHERE la.id = :loan_id
 
 _ITEMS_SQL = """
 SELECT item.id AS item_id, item.requirement_code AS code, item.document_type,
+       (SELECT req.requirement_description FROM policy.checklist_rule_requirement AS req
+        JOIN policy.checklist_rule AS rule ON rule.id = req.checklist_rule_id AND rule.rule_code = 'SME-6.1'
+        WHERE req.requirement_code = item.requirement_code LIMIT 1) AS label,
        item.mandatory_level = 'MANDATORY' AS mandatory, item.requirement_status AS status,
        EXISTS (
            SELECT 1 FROM credit.case_exception AS exc

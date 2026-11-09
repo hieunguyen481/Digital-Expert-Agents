@@ -39,7 +39,7 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
       {view.items.map((it) => (
         <div key={it.item_id} className={styles.item} data-testid={`item-${it.code}`}>
           <Space wrap>
-            <b>{it.code}</b>
+            <b>{it.label ?? it.code}</b>
             {!it.mandatory && <Tag>Có điều kiện</Tag>}
             <Tag color={it.status === 'VALID' ? 'success' : it.status === 'REQUIRED' ? 'error' : 'warning'}>
               {STATUS_TEXT[it.status] ?? it.status}

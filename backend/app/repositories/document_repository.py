@@ -8,6 +8,7 @@ from app.compat import UTC
 from typing import Any
 from uuid import UUID, uuid4
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.base import (
@@ -112,6 +113,48 @@ class DocumentRepository:
             "FROM credit.loan_application AS loan WHERE loan.id = :loan_id",
             {"employee_id": employee_id, "loan_id": loan_id},
         )
+
+    async def checklist_item(self, loan_id: UUID, code: str) -> Record | None:
+        return await fetch_one(
+            self.session,
+            "SELECT id, document_type, requirement_status FROM credit.loan_checklist_item "
+            "WHERE loan_application_id = :loan_id AND requirement_code::text = :code",
+            {"loan_id": loan_id, "code": code},
+        )
+
+    async def loan_has_document(self, loan_id: UUID, document_id: UUID) -> bool:
+        row = await fetch_one(
+            self.session,
+            "SELECT 1 AS found FROM document.document_link "
+            "WHERE entity_type = 'LOAN_APPLICATION' AND entity_id = :loan_id AND document_id = :document_id",
+            {"loan_id": loan_id, "document_id": document_id},
+        )
+        return row is not None
+
+    async def link_checklist_document(self, item: Record, document_id: UUID) -> None:
+        """Người tải chọn mục (Q7): gắn tài liệu vào mục, đánh dấu đã nhận và ghi loại theo mục."""
+        await self.session.execute(
+            text("INSERT INTO credit.checklist_item_document (checklist_item_id, document_id) "
+                 "VALUES (:item_id, :document_id) ON CONFLICT DO NOTHING"),
+            {"item_id": item["id"], "document_id": document_id},
+        )
+        await self.session.execute(
+            text("UPDATE credit.loan_checklist_item SET requirement_status = 'RECEIVED', "
+                 "updated_at = CURRENT_TIMESTAMP WHERE id = :item_id "
+                 "AND requirement_status IN ('REQUIRED', 'INCOMPLETE', 'EXPIRED')"),
+            {"item_id": item["id"]},
+        )
+        # Màn hồ sơ tài liệu và nút xác nhận CIC đọc tài liệu chính của mục qua linked_document_id.
+        await self.session.execute(
+            text("UPDATE credit.loan_checklist_item SET linked_document_id = :document_id "
+                 "WHERE id = :item_id AND linked_document_id IS NULL"),
+            {"item_id": item["id"], "document_id": document_id},
+        )
+        if item["document_type"]:
+            await self.session.execute(
+                text("UPDATE document.document SET document_type = :doc_type WHERE id = :document_id"),
+                {"doc_type": item["document_type"], "document_id": document_id},
+            )
 
     async def get_upload(self, upload_id: UUID, actor_id: UUID | None = None) -> Record | None:
         return await fetch_one(

@@ -68,6 +68,19 @@ export async function uploadAttachment(
   };
 }
 
+/** Tải tài liệu rồi gắn vào mục danh mục người dùng đã chọn (người chọn xác nhận phân loại, rules Q7). */
+export async function uploadToChecklist(
+  file: File,
+  options: UploadOptions & { checklistCode: string },
+): Promise<ChatAttachment> {
+  const done = await uploadAttachment(file, options);
+  await apiClient.post(
+    `/loan-applications/${options.loanApplicationId}/checklist/${encodeURIComponent(options.checklistCode)}/documents`,
+    { document_id: done.id },
+  );
+  return done;
+}
+
 async function sha256Hex(file: File): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');

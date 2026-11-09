@@ -72,7 +72,7 @@ function Editor({ loanId }: { loanId: string }) {
                 onChange={change}
               />
             )}
-            {section === 'docs' && <DocumentsSection loanId={loanId} />}
+            {section === 'docs' && <DocumentsSection loanId={loanId} customerId={draft?.primary_customer_id ?? ''} />}
             {section === 'related' && <RelatedSection loanId={loanId} />}
             {section === 'summary' && (
               <SummarySection

@@ -28,6 +28,7 @@ export interface ReconCheck {
 export interface ReconItem {
   item_id: string;
   code: string;
+  label: string | null;
   document_type: string | null;
   mandatory: boolean;
   status: string;

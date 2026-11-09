@@ -1,7 +1,7 @@
-import { Alert, Button, Progress, Typography } from 'antd';
+import { Alert, Button, Progress, Select, Typography } from 'antd';
 import { useRef, useState } from 'react';
 import { getErrorMessage } from '@/services/apiClient';
-import { uploadAttachment } from '@/services/attachmentService';
+import { uploadAttachment, uploadToChecklist } from '@/services/attachmentService';
 import type { ReconView } from './types';
 import styles from './reconciliation.module.css';
 
@@ -16,6 +16,7 @@ export function UploadPanel({ loanId, view, onUploaded }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const [percent, setPercent] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [code, setCode] = useState<string | undefined>(undefined);
   const { can_upload: canUpload, upload_lock: lock } = view.permissions;
   if (!canUpload && !lock) return null;
 
@@ -28,11 +29,8 @@ export function UploadPanel({ loanId, view, onUploaded }: Props) {
     setError(null);
     setPercent(0);
     try {
-      const done = await uploadAttachment(file, {
-        customerId: view.customer_id,
-        loanApplicationId: loanId,
-        onProgress: setPercent,
-      });
+      const options = { customerId: view.customer_id, loanApplicationId: loanId, onProgress: setPercent };
+      const done = code ? await uploadToChecklist(file, { ...options, checklistCode: code }) : await uploadAttachment(file, options);
       onUploaded(done.id);
     } catch (e) {
       setError(getErrorMessage(e));
@@ -48,6 +46,19 @@ export function UploadPanel({ loanId, view, onUploaded }: Props) {
       <Typography.Paragraph className={styles.note}>
         Chỉ đọc được PDF có lớp chữ. Trường do AI trích ra là đề xuất, chưa có hiệu lực cho tới khi người xác nhận.
       </Typography.Paragraph>
+      <Select
+        aria-label="Mục danh mục của tài liệu"
+        data-testid="recon-upload-item"
+        style={{ minWidth: 320, marginRight: 8 }}
+        allowClear
+        placeholder="Chọn mục danh mục (bỏ trống nếu là tài liệu bổ sung)"
+        value={code}
+        onChange={setCode}
+        disabled={!canUpload}
+        options={view.items
+          .filter((i) => i.document_type !== 'CIC_REPORT')
+          .map((i) => ({ value: i.code, label: i.label ?? i.code }))}
+      />
       <input
         ref={input}
         type="file"

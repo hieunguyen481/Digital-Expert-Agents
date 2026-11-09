@@ -40,7 +40,10 @@ ORDER BY report.requested_at DESC LIMIT 1
 _DOCUMENTS_SQL = """
 SELECT item.id AS item_id, item.requirement_code::text AS code, item.document_type,
        item.mandatory_level, item.requirement_status AS status,
-       doc.id AS document_id, doc.title, doc.verification_status, doc.issued_date,
+       doc.id AS document_id, doc.title,
+       (SELECT req.requirement_description FROM policy.checklist_rule_requirement AS req
+        JOIN policy.checklist_rule AS rule ON rule.id = req.checklist_rule_id AND rule.rule_code = 'SME-6.1'
+        WHERE req.requirement_code = item.requirement_code LIMIT 1) AS label, doc.verification_status, doc.issued_date,
        doc.valid_until AS document_valid_until,
        EXISTS (
            SELECT 1 FROM credit.case_exception AS exc

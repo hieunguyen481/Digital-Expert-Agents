@@ -62,6 +62,7 @@ export interface CustomerOption {
 export interface ProposalDocument {
   item_id: string;
   code: string;
+  label: string | null;
   document_type: string | null;
   mandatory: boolean;
   state: 'OK' | 'AI' | 'MISSING' | 'EXPIRED';

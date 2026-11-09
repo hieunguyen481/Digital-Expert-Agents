@@ -128,7 +128,7 @@ class CicService:
             out.append({
                 "item_id": row["item_id"], "code": row["code"], "document_type": row["document_type"],
                 "mandatory": row["mandatory_level"] == "MANDATORY", "state": state,
-                "document_id": row["document_id"], "title": row["title"],
+                "document_id": row["document_id"], "title": row["title"], "label": row["label"],
                 "verification_status": row["verification_status"], "issued_date": _d(row["issued_date"]),
                 "valid_until": until, "has_exception": bool(row["has_exception"]), "note": note,
             })

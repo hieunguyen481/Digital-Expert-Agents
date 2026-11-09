@@ -51,6 +51,22 @@ async function createProposal(page: Page, flow: string): Promise<string> {
   await expect(page.getByTestId('save-status')).toContainText('Đã tự lưu nháp');
   // CIC mẫu của khách đã hết hạn: bấm tra cứu mới như người dùng thật.
   await page.getByRole('menuitem', { name: 'Hồ sơ tài liệu' }).click();
+  // Danh mục tài liệu bắt buộc sinh sẵn cho hồ sơ mới: không có mục nào thì chưa đủ (L01).
+  const list = page.getByRole('list', { name: 'Danh mục tài liệu' });
+  await expect(list.locator('li')).not.toHaveCount(0);
+    // Dùng PDF không có lớp chữ để không sinh trường AI (QHKH chưa có chỗ xác nhận trường, báo cáo QA mục 6).
+  // Tải một tài liệu vào đúng mục; các mục còn lại đi bằng đề xuất ngoại lệ có lý do (E1).
+  const up = page.waitForResponse((r) => /\/checklist\/[^/]+\/documents$/.test(r.url()) && r.status() === 204);
+  await page.getByTestId('upload-SME-02-BUSINESS-REGISTRATION')
+    .setInputFiles(resolve(process.cwd(), 'e2e/fixtures/scan-khong-chu.pdf'));
+  await up;
+  await expect(page.getByTestId('doc-SME-02-BUSINESS-REGISTRATION')).toContainText('Đã đủ');
+  for (let left = await page.getByRole('button', { name: 'Đề xuất ngoại lệ', exact: true }).count(); left > 0; left--) {
+    await page.getByRole('button', { name: 'Đề xuất ngoại lệ', exact: true }).first().click();
+    await page.getByPlaceholder('Lý do (tối thiểu 10 ký tự)').fill('Khách hứa bổ sung trong tuần tới theo cam kết.');
+    await page.getByRole('button', { name: 'Gửi đề xuất ngoại lệ' }).click();
+    await expect(page.getByRole('button', { name: 'Đề xuất ngoại lệ', exact: true })).toHaveCount(left - 1);
+  }
   const cic = page.getByRole('region', { name: 'Tra cứu CIC' });
   await cic.getByRole('button', { name: 'Tra cứu CIC mới' }).click();
   await expect(cic).toContainText('hiệu lực đến hết');
@@ -71,6 +87,7 @@ async function httdChecksAndTransfers(page: Page, id: string, flow: string) {
   const bar = page.getByTestId('transfer-bar');
   const go = bar.getByRole('button', { name: 'Chuyển Thẩm định' });
   const pass = page.getByRole('button', { name: 'Đạt', exact: true });
+  await expect(pass.first()).toBeVisible(); // mục có tài liệu: hậu kiểm từng mục
   for (let left = await pass.count(); left > 0; left--) {
     await pass.first().click();
     await expect(pass).toHaveCount(left - 1);
@@ -164,6 +181,10 @@ test('luồng 1: người có thẩm quyền quyết định; ca agent đóng, h
   await page.goto(`/ho-so-vay/${loanA}`);
   await expect(page.getByTestId('actions-panel')).toBeVisible();
   await page.getByRole('button', { name: 'Quyết định', exact: true }).click();
+  // Cấp phê duyệt phải chấp thuận hoặc từ chối từng ngoại lệ tài liệu (E1) mới ghi được quyết định.
+  const rows = page.getByTestId('exception-row');
+  await expect(rows.first()).toBeVisible();
+  for (let i = 0; i < (await rows.count()); i++) await rows.nth(i).getByText('Chấp thuận').click();
   await page.locator('#action-text').fill('Phê duyệt theo đề xuất của Thẩm định, kèm theo dõi dòng tiền hằng quý.');
   await shot(page, 'f1', '12-quyet-dinh');
   await page.getByRole('button', { name: 'Ghi quyết định' }).click();

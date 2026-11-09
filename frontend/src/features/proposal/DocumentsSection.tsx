@@ -1,6 +1,7 @@
 import { Alert, Button, Input, Space, Tag, Typography } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { uploadToChecklist } from '@/services/attachmentService';
 import { getErrorMessage } from '@/services/apiClient';
 import {
   confirmConsent,
@@ -78,6 +79,37 @@ function ExceptionControl({
   );
 }
 
+/** QHKH chọn mục rồi tải tệp; backend gắn tài liệu vào đúng mục (người chọn xác nhận phân loại). */
+function ItemUpload({ loanId, customerId, doc, onDone }: { loanId: string; customerId: string; doc: ProposalDocument; onDone: () => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const pick = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await uploadToChecklist(file, { customerId, loanApplicationId: loanId, checklistCode: doc.code });
+      onDone();
+    } catch (e) {
+      setError(getErrorMessage(e));
+    } finally {
+      setBusy(false);
+      if (input.current) input.current.value = '';
+    }
+  };
+  return (
+    <>
+      <input ref={input} type="file" accept="application/pdf" style={{ display: 'none' }} data-testid={`upload-${doc.code}`}
+        onChange={(e) => void pick(e.target.files?.[0])} />
+      <Button size="small" loading={busy} onClick={() => input.current?.click()}>
+        {doc.document_id ? 'Tải bản khác' : 'Tải lên'}
+      </Button>
+      {error && <Alert type="error" showIcon message={error} />}
+    </>
+  );
+}
+
 function CicBlock({ loanId, cic, consentDocId, onChanged }: { loanId: string; cic: CicStatus; consentDocId: string | null; onChanged: () => void }) {
   const lookup = useMutation({ mutationFn: () => lookupCic(loanId), onSuccess: onChanged });
   const locked = cic.lookup_locked;
@@ -120,7 +152,7 @@ function CicBlock({ loanId, cic, consentDocId, onChanged }: { loanId: string; ci
   );
 }
 
-export function DocumentsSection({ loanId }: { loanId: string }) {
+export function DocumentsSection({ loanId, customerId }: { loanId: string; customerId: string }) {
   const qc = useQueryClient();
   const docs = useQuery({ queryKey: ['proposal-documents', loanId], queryFn: () => fetchProposalDocuments(loanId) });
   const cic = useQuery({ queryKey: ['proposal-cic', loanId], queryFn: () => fetchCic(loanId) });
@@ -140,7 +172,7 @@ export function DocumentsSection({ loanId }: { loanId: string }) {
         type={left ? 'warning' : 'success'}
         showIcon
         message={left ? `Còn ${left} mục bắt buộc chưa đủ, hết hiệu lực hoặc chưa xác nhận` : 'Đủ các mục bắt buộc'}
-        description="Ở đây xem tình trạng tài liệu, xử lý văn bản đồng ý và tra cứu CIC. Tài liệu bổ sung được tải ở trang Đối chiếu tài liệu."
+        description="Ở đây xem tình trạng tài liệu, xử lý văn bản đồng ý và tra cứu CIC. Bấm “Tải lên” ở từng mục để đưa tài liệu vào đúng mục; mục chưa có tài liệu có thể đề xuất ngoại lệ kèm lý do."
       />
       <CicBlock loanId={loanId} cic={cic.data} consentDocId={consentDoc} onChanged={refresh} />
       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }} aria-label="Danh mục tài liệu">
@@ -152,11 +184,14 @@ export function DocumentsSection({ loanId }: { loanId: string }) {
               <li key={d.item_id} data-testid={`doc-${d.code}`} style={{ padding: '10px 0', borderBottom: '1px solid var(--ant-color-border-secondary)' }}>
                 <Space wrap>
                   <Tag color={s.color}>{s.text}</Tag>
-                  <b>{d.title ?? d.code}</b>
+                  <b>{d.label ?? d.title ?? d.code}</b>
                   {!d.mandatory && <Tag>Có điều kiện</Tag>}
                   {d.note && <span>{d.note}</span>}
                   {d.valid_until && <span>hiệu lực đến {fmt(d.valid_until)}</span>}
                   {d.has_exception && <Tag color="warning">Đã đề xuất ngoại lệ</Tag>}
+                  {cic.data.editable && !CIC_CODES.has(d.document_type ?? '') && (
+                    <ItemUpload loanId={loanId} customerId={customerId} doc={d} onDone={refresh} />
+                  )}
                   <ExceptionControl
                     loanId={loanId}
                     doc={d}
