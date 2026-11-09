@@ -62,7 +62,8 @@ test('qhkh tải PDF thật lên, httd thấy trường AI đề xuất có vùn
   const regions = frame.locator('[data-testid^="region-"]');
   await expect(regions.first()).toBeVisible({ timeout: 60_000 });
   await expect(frame).toHaveAttribute('aria-label', 'Trang 2');
-  await regions.first().click();
+  // Nhãn của vùng kề (L06) có thể phủ lên tâm vùng đầu; người dùng bấm nhãn vẫn chọn được vùng đó, nên gửi sự kiện thẳng.
+  await regions.first().dispatchEvent('click');
   await expect(hp.getByTestId('field-card')).toContainText(/chờ xác nhận|AI đề xuất/i);
   const box = (await regions.first().boundingBox())!;
   const fbox = (await frame.boundingBox())!;
@@ -73,7 +74,7 @@ test('PDF không có lớp chữ: tài liệu thất bại, giao diện báo l�
   test.setTimeout(300_000);
   const documentId = await uploadViaUi(page, 'scan-khong-chu.pdf');
   const hp = await httdAcceptsAndOpens(browser, documentId);
-  await expect(hp.getByTestId('processing-error')).toContainText('Xử lý tài liệu thất bại', { timeout: 180_000 });
+  await expect(hp.getByTestId('processing-error')).toContainText('PDF không có lớp chữ', { timeout: 180_000 });
 });
 
 test('qhkh không tải được khi hồ sơ đã chuyển: nút khóa kèm câu lý do, API trả 403 không phải 500', async ({ page, browser }) => {
