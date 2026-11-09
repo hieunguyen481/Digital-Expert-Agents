@@ -21,6 +21,17 @@ def _as_date(x) -> date | None:
         return None
 
 
+def _weak_indicators(fin: list[dict]) -> list[str]:
+    """Chỉ tiêu xấu có sẵn trong số liệu (EBITDA âm, vốn chủ sở hữu âm) -> dòng số tính lại, để chuyên gia nêu."""
+    out: list[str] = []
+    for f in sorted(fin, key=lambda x: x.get("year") or 0):
+        for key, label in (("ebitda", "EBITDA"), ("equity", "Vốn chủ sở hữu")):
+            v = f.get(key)
+            if isinstance(v, (int, float)) and v < 0:
+                out.append(f"CHỈ TIÊU XẤU: {label} năm {f.get('year')} ÂM ({v / 1e9:,.1f} tỷ) — phải nêu trong kết luận")
+    return out
+
+
 def build(raw: dict, request: dict, today: date | None = None) -> dict:
     today = today or date.today()
     amount = float(request.get("amount") or 0)
@@ -49,6 +60,7 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
     else:
         breaches_inflow = ""
     lev = recompute.leverage_check(fin_for_lev, loans, amount)
+    conflicts.extend(_weak_indicators(fin))
     blockers: list[str] = []
     breaches: list[str] = []
     hard_stops: list[str] = []
