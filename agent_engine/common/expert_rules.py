@@ -10,5 +10,6 @@ EXPERT_RULES = (
     "thành một finding riêng, kể cả khi kết luận chính là thiếu dữ liệu khác. "
     "(e) Cờ khai TSĐB của đề nghị chỉ cho biết hồ sơ đã gắn TSĐB hay chưa; KHÔNG coi là mâu thuẫn khi core banking có "
     "hồ sơ tài sản của khách, và chỉ báo mâu thuẫn TSĐB khi hai nguồn số liệu thật sự khác nhau. Viết bằng ngôn ngữ nghiệp vụ, "
-    "không dùng tên trường kỹ thuật (như has_collateral, business_id)."
+    "không dùng tên trường kỹ thuật (như has_collateral, business_id). "
+    "Điều này không thay đổi nghĩa vụ nêu từng tài sản có pháp lý/định giá chưa hoàn thiện (pending) và loại nó khỏi giá trị bảo đảm đủ điều kiện."
 )
