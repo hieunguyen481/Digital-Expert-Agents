@@ -14,7 +14,7 @@ from mcp.client.streamable_http import streamablehttp_client
 from . import config, events, identity, trace_ctx
 
 
-async def call_tool(name: str, arguments: dict[str, Any] | None = None) -> Any:
+async def call_tool(name: str, arguments: dict[str, Any] | None = None, initiated_by: str = "agent") -> Any:
     t0 = time.monotonic()
     outcome = "ok"
     ctx0 = trace_ctx.current()
@@ -38,7 +38,7 @@ async def call_tool(name: str, arguments: dict[str, Any] | None = None) -> Any:
         if ctx is not None:  # chỉ ghi khi đang chạy trong một case; không ghi giá trị tham số
             await events.emit(ctx[0], ctx[1], "tool_call", {
                 "tool": name, "outcome": outcome, "arg_keys": sorted(arguments or {}),
-                "duration_ms": int((time.monotonic() - t0) * 1000)})
+                "initiated_by": initiated_by, "duration_ms": int((time.monotonic() - t0) * 1000)})
 
 
 class McpDenied(PermissionError):

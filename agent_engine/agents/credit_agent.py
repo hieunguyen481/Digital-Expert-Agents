@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agents.base import a2a_send, build_agent_app  # noqa: E402
-from common import config, facts as facts_mod, llm, mcp_client, rag  # noqa: E402
+from common import agent_tools, config, facts as facts_mod, llm, mcp_client, rag  # noqa: E402
 from common.policy_checklist import POLICY_CHECKLIST  # noqa: E402
 from common.expert_rules import EXPERT_RULES  # noqa: E402
 from common.report import with_policy_evidence  # noqa: E402
@@ -160,6 +160,12 @@ async def _llm_task(env: Envelope) -> Verdict:
     shared = env.payload.get("params", {}).get("facts")
     if shared and config.opt("facts"):
         return await _facts_task(env, shared)
+    if not shared and agent_tools.enabled():  # cờ agent_tools: tự chọn công cụ thuộc chuyên môn
+        board = await agent_tools.select_and_gather("credit", request, env.case_id, check_collateral=False)
+        meta = board.pop("_meta")
+        verdict = await _facts_task(env, agent_tools.scoped_facts("credit", board, request))
+        verdict.data.update({"_board": board, "_tools": meta})
+        return verdict
 
     async def t_financials() -> list:
         return await mcp_client.call_tool("get_financials", {"business_id": business_id})

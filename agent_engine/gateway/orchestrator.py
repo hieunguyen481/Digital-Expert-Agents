@@ -12,7 +12,7 @@ import traceback
 
 import httpx
 
-from common import config, identity, trace_ctx
+from common import agent_tools, config, identity, trace_ctx
 from common import facts as facts_mod
 from common.schemas import (
     ApprovalPackage, CaseState, Envelope, MessageType, Plan, Verdict, VerdictDecision,
@@ -110,7 +110,11 @@ async def _execute_dag(case_id: str, plan: Plan
     verdict_by_agent: dict[str, Verdict] = {}  # theo agent (cho validation)
     remaining = {t.task_id: t for t in plan.tasks}
     shared_facts = None
-    if config.opt("facts") or config.opt("gate"):  # công cụ gọi một lần, mọi chuyên gia đọc chung
+    boards: list[dict] = []  # cờ agent_tools: bảng chung do chuyên gia gom, hợp lại cho Validation
+    use_tools = agent_tools.enabled()
+    if use_tools:
+        pass
+    elif config.opt("facts") or config.opt("gate"):  # công cụ gọi một lần, mọi chuyên gia đọc chung
         req = next((t.params.get("request") for t in plan.tasks if t.params.get("request")), None)
         if req and req.get("business_id"):
             shared_facts = await facts_mod.gather(req)
@@ -128,6 +132,9 @@ async def _execute_dag(case_id: str, plan: Plan
             if shared_facts and t.agent in ("credit", "compliance", "validation"):
                 params["facts"] = shared_facts
             if t.agent == "validation":
+                req = params.get("request") or {}
+                if use_tools and boards and req.get("business_id"):
+                    params["facts"] = await agent_tools.merge_for_validation(case_id, req, boards)
                 params["verdicts"] = {
                     a: v.model_dump(mode="json") for a, v in verdict_by_agent.items()
                 }
@@ -136,6 +143,9 @@ async def _execute_dag(case_id: str, plan: Plan
 
         results = await asyncio.gather(*[_run(t) for t in ready])
         for t, v in results:
+            board = v.data.pop("_board", None)
+            if board is not None:
+                boards.append(board)
             verdicts[t.task_id] = v
             verdict_by_agent[t.agent] = v
             remaining.pop(t.task_id)
@@ -155,6 +165,8 @@ async def _build_package(case_id: str, plan: Plan, validation: Verdict) -> None:
     final_verdicts = [
         Verdict(**v) for v in validation.data.get("final_verdicts", {}).values()
     ]
+    for v in final_verdicts:  # bảng công cụ thô không đưa vào gói phê duyệt
+        v.data.pop("_board", None)
     report = _final_report(validation)
     limit = validation.proposed_limit
     level = ("branch_director"

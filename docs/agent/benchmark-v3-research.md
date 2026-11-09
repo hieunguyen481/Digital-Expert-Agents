@@ -249,3 +249,29 @@ Kết luận có bằng chứng:
 3. **Chỉ số single biến động mạnh nhất là đúng cổng, và đó là hệ quả của cơ cấu bộ ca**: 83-100% ở v2-v5 (nơi đáp án chủ yếu NEEDS_INFO/REJECTED), 38% ở v6 (8/8 ca nhắm cổng, 5 ca đáp án PENDING_APPROVAL do thiếu trường phụ), 75% ở v7 (2/8 ca nhắm cổng, 4 ca đáp án PENDING_APPROVAL; single chọn NEEDS_INFO ở H1 và H4). Single thiên về NEEDS_INFO khi thiếu trường phụ ở mọi bộ; bộ ca quyết định điểm cổng của nó.
 4. Trích nguồn single v7 (80%) thấp hơn các lần trước (90-100%); bộ v7 yêu cầu thêm §4.2 (đòn bẩy), §6.3 (hiệu lực CIC) vì nhiều ca đòi hỏi các § này; chưa tách được nguyên nhân (không đo thêm theo phạm vi bench7).
 Không có bằng chứng nào cho thấy code single thay đổi để tốt lên; chênh lệch giữa các lượt đo single giải thích được bằng nội dung bộ ca và dao động lấy mẫu (SE recall single 0,03 ở n = 24). Không sửa single để "làm yếu" hay tối ưu.
+
+## 10. Cờ `agent_tools`: chuyên gia tự chọn và gọi công cụ (kiểm thoái lui, KHÔNG phải kiểm tra mù)
+
+**Cách làm.** Cờ mới `agent_tools` (mặc định bật, cần `LLM_MODE=llm`; tắt thì về đường cũ `facts.gather` gọi hết công cụ trước). Khi bật, orchestrator không gọi `gather` nữa; hai pha:
+1. Tín dụng và Tuân thủ chạy một lượt `llm.tool_loop` chọn công cụ, chỉ thấy công cụ trong `_SCOPES` của mình (Tín dụng: financials, loans, inflow; Tuân thủ: business, blacklist, cic, collateral) cộng `da_du_du_lieu`; cùng đường MCP/danh tính/audit như cũ. Mỗi công cụ tối đa một lần mỗi case (bảng theo (case, chuyên môn) nằm trong tiến trình agent, chạy lại khi bị challenge thì dùng lại, không gọi MCP lần nữa). Công cụ bắt buộc (cả phạm vi; TSĐB chỉ bắt buộc khi hồ sơ khai có TSĐB hoặc được yêu cầu kiểm) mà LLM bỏ sót thì hệ thống **gọi bù**. Sau đó `facts.build` (hàm thuần, không đổi) tính lại số trên phần đã gom, và chuyên gia kết luận bằng đúng `_facts_task` cũ.
+2. Orchestrator hợp bảng của hai chuyên gia (tách khỏi verdict trước khi lưu), gọi bù phần còn thiếu cho Validation, dựng bảng chung đầy đủ bằng `build`; cổng xác định giữ nguyên.
+
+Trace: `tool_call` giữ `agent` thật đã gọi, `arg_keys` (không giá trị tham số), `duration_ms`, thêm `initiated_by` (`agent` | `system_compensation`; lời gọi bù ghi dưới agent `orchestrator`, không gán cho chuyên gia). Sự kiện mới: `shared_board_updated` (công cụ do agent gọi, đã bù, khóa bảng) theo chuyên gia và `facts_recomputed` (số tính lại, bù ở pha 2) của orchestrator; khóa mới là bổ sung, `CaseTrace.tsx` không đổi. Giới hạn đã biết: số tính lại của chuyên gia chỉ trên phạm vi của mình (Tín dụng không thấy CIC nên không có dòng đối chiếu nợ BCTC/CIC); đối chiếu đầy đủ vẫn nằm ở bảng chung của Validation/cổng.
+
+**Đo** (multi, 1 lần/ca, `--max-cost 0.5`, bộ chấm v3, Planner LLM; "trước" = cùng commit, `OPT_FLAGS=gate,facts,report,challenge,compact`; chạy tuần tự, đã nạp `agent.benchmark_run`). v5 và v7 đều đã xem điểm trước đó nên đây là kiểm tra thoái lui. Một lượt đầu chạy chồng hai tiến trình đo nên đã hủy và đo lại tuần tự.
+
+| chỉ số | v5 trước | v5 sau | v7 trước | v7 sau |
+|---|---|---|---|---|
+| recall phát hiện | 0.925 | 0.925 | 0.969 | 0.969 |
+| trích nguồn | 1.000 | 1.000 | 1.000 | 1.000 |
+| chính xác trích dẫn | 0.967 | 0.976 | 0.979 | 0.984 |
+| phát hiện sai (tổng) | 0 | 0 | 0 | 0 |
+| đúng cổng | 1.00 | 1.00 | 1.00 | 1.00 |
+| trễ s | 26.8 | 25.9 | 24.8 | 31.3 |
+| $/ca | 0.00282 | 0.00258 | 0.00287 | 0.00295 |
+| token/ca | 17 322 | 20 443 | 17 487 | 21 936 |
+| lỗi | 0 | 0 | 0 | 0 |
+
+Gọi bù (sau): v5 1/42 lượt gọi công cụ của chuyên gia/orchestrator (2,4%), v7 0/56; không công cụ nào lặp theo (case, agent, công cụ). Mốc v7 cũ (multi Planner LLM, 24 lượt, 3 lần/ca): trễ 33,3 s, $0,00266.
+
+**Đọc trung thực.** Chất lượng không đổi (1 lần/ca, 6 và 8 ca nên chỉ bắt được thoái lui lớn). Thêm lượt LLM chọn công cụ tăng token ~18–25%, chi phí −8% (v5) và +3% (v7), trễ −3% (v5) và +26% (v7); với n=6–8 và độ lệch trễ ~10–15 s, chênh lệch trễ không tách được khỏi dao động. Công cụ thực tế do LLM tự gọi gần như đủ, nên tỉ lệ gọi bù thấp; chưa kiểm ca LLM bỏ sót nhiều.
