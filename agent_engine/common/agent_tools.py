@@ -40,9 +40,9 @@ def _norm(key: str, v: Any) -> Any:
     return (v if isinstance(v, list) else []) if key in ("financials", "loans", "collateral") else v
 
 
-async def _call(key: str, bid: str, *, system: bool) -> Any:
+async def _call(key: str, request: dict, *, system: bool) -> Any:
     try:
-        return _norm(key, await mcp_client.call_tool(_TOOL_BY_KEY[key], {"business_id": bid},
+        return _norm(key, await mcp_client.call_tool(_TOOL_BY_KEY[key], facts_mod.tool_args(key, request),
                                                      initiated_by="system_compensation" if system else "agent"))
     except Exception:  # noqa: BLE001 - lỗi từng công cụ: để trống, không chặn hồ sơ (như gather)
         return _norm(key, None)
@@ -60,7 +60,7 @@ async def select_and_gather(scope: str, request: dict, case_id: str, *, check_co
             async with locks[key]:
                 if key in board:  # không lặp: dùng lại kết quả đã có, không gọi MCP lần nữa
                     return board[key]
-                board[key] = await _call(key, bid, system=False)
+                board[key] = await _call(key, request, system=False)
                 called.append(key)
                 return board[key]
         return llm.ToolDef(_TOOL_BY_KEY[key], _DESC[key], {"type": "object", "properties": {}}, fn)
@@ -82,7 +82,7 @@ async def select_and_gather(scope: str, request: dict, case_id: str, *, check_co
         trace_ctx.bind(case_id, "orchestrator")  # gọi bù là việc của hệ thống, không gán cho quyết định của agent
         try:
             for k in missing:
-                board[k] = await _call(k, bid, system=True)
+                board[k] = await _call(k, request, system=True)
                 comp.append(k)
         finally:
             if ctx:
@@ -106,10 +106,10 @@ async def merge_for_validation(case_id: str, request: dict, boards: list[dict]) 
     raw: dict[str, Any] = {}
     for b in boards:
         raw.update({k: v for k, v in b.items() if k in _TOOL_BY_KEY})
-    missing = [k for k in _TOOL_BY_KEY if k not in raw]
+    missing = [k for k in _TOOL_BY_KEY if k not in raw]  # gồm bank_exposure: luôn do hệ thống gọi
     trace_ctx.bind(case_id, "orchestrator")
     for k in missing:
-        raw[k] = await _call(k, request["business_id"], system=True)
+        raw[k] = await _call(k, request, system=True)
     for k in ("financials", "loans", "collateral"):
         raw[k] = _norm(k, raw.get(k))
     shared = facts_mod.build(raw, request)

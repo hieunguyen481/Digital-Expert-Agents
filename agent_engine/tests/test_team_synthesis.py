@@ -41,7 +41,7 @@ def test_recompute_numbers():
     col = recompute.collateral_check(COLS, 15e9)
     assert col["eligible_value"] == 20e9 and col["ltv"] == pytest.approx(0.75) and col["ltv_over"]
     assert col["max_secured_limit"] == pytest.approx(14e9) and len(col["excluded"]) == 1
-    exp = recompute.exposure_check(LOANS, 15e9)
+    exp = recompute.exposure_check(LOANS, 15e9, 12e9)
     assert exp["total"] == 27e9 and exp["audit_required"] and exp["tier"] == "head_office_l2"
     assert not recompute.exposure_check([], 20e9)["audit_required"]       # đúng 20 tỷ: chưa bắt buộc
     lev = recompute.leverage_check(FIN, LOANS, 15e9)
@@ -60,7 +60,8 @@ def test_merge_keeps_everything_and_dedups():
 
 async def _run_validation(monkeypatch, verdicts, cols=COLS, loans=LOANS, fin=FIN, sent=None):
     async def fake_tool(name, args=None):
-        return {"get_collateral": cols, "get_existing_loans": loans, "get_financials": fin}[name]
+        return {"get_collateral": cols, "get_existing_loans": loans, "get_financials": fin,
+                "get_bank_exposure": {"existing_bank_exposure": sum(x["outstanding"] for x in loans)}}[name]
 
     async def fake_send(frm, to, env):
         if sent is not None:
@@ -224,3 +225,10 @@ def test_cx4_customer_with_outstanding_loans_is_not_new():
     payload = {"request": REQ, "documents": []}
     plan = planner._template_plan("c", payload, {"is_existing_customer": True}, 1)
     assert "đã có quan hệ" in plan.rationale and "mới" not in plan.rationale
+
+
+def test_other_lenders_debt_does_not_count_toward_approver_level():
+    # rules.md Q4: chỉ dư nợ tại ngân hàng; 98 tỷ ở TCTD khác không đẩy hồ sơ 80 tỷ lên Hội đồng
+    exp = recompute.exposure_check([{"outstanding": 98e9}], 80e9, 0)
+    assert exp["total"] == 80e9 and exp["tier"] == "head_office_l2" and exp["other_lenders"] == 98e9
+    assert any("không tính vào cấp phê duyệt" in x for x in recompute.describe(None, exp, None, 80e9))

@@ -50,10 +50,15 @@ async def _independent_checks(request: dict) -> dict:
 
     cols, loans, fin = await asyncio.gather(
         call("get_collateral"), call("get_existing_loans"), call("get_financials"))
+    try:
+        bank = await mcp_client.call_tool("get_bank_exposure", facts_mod.tool_args("bank_exposure", request))
+    except Exception:  # noqa: BLE001
+        bank = None
+    bank_existing = bank.get("existing_bank_exposure") if isinstance(bank, dict) else None
     if not request.get("has_collateral"):
         cols = []  # CX1: không lấy TSĐB của khoản vay khác của khách
     col = recompute.collateral_check(cols, amount) if cols else None
-    exp = recompute.exposure_check(loans, amount)
+    exp = recompute.exposure_check(loans, amount, bank_existing)
     lev = recompute.leverage_check(fin, loans, amount)
     return {"amount": amount, "collateral": col, "exposure": exp, "leverage": lev,
             "lines": recompute.describe(col, exp, lev, amount), "has_collateral_data": bool(cols)}

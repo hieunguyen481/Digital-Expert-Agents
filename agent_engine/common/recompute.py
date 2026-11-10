@@ -55,13 +55,16 @@ def package_approver_level(exposure: dict | None, limit: float | None) -> str:
     return approver_level(_num(limit) if total is None else _num(total))
 
 
-def exposure_check(loans: list[dict], amount: float) -> dict:
-    """Q4: tổng cấp tín dụng = dư nợ hiện hữu tại ngân hàng + đề xuất mới."""
-    existing = sum(_num(x.get("outstanding")) for x in loans)
+def exposure_check(loans: list[dict], amount: float, bank_existing: float | None = None) -> dict:
+    """Q4: tổng cấp tín dụng = dư nợ hiện hữu TẠI NGÂN HÀNG + đề xuất mới. `bank_existing` lấy từ công cụ
+    get_bank_exposure (cùng cách tính backend credit.total_credit_exposure); thiếu thì coi là 0, không đoán theo tên chủ nợ.
+    Dư nợ ở TCTD khác (`loans`, credit.existing_obligation) không tính vào cấp phê duyệt, chỉ vào khả năng trả nợ."""
+    existing = _num(bank_existing)
+    other_lenders = sum(_num(x.get("outstanding")) for x in loans)
     total = existing + amount
     level = approver_level(total)
     tier = level
-    return {"existing": existing, "loans": len(loans), "total": total, "tier": tier,
+    return {"existing": existing, "other_lenders": other_lenders, "loans": len(loans), "total": total, "tier": tier,
             "audit_required": total > AUDIT_THRESHOLD_VND}
 
 
@@ -86,11 +89,14 @@ def _bn(v: float) -> str:
 
 def describe(col: dict | None, exp: dict, lev: dict | None, amount: float) -> list[str]:
     """Các dòng kết quả tính lại, diễn đạt bằng số (đưa vào báo cáo cuối)."""
-    out = [f"Tính lại tổng cấp tín dụng: dư nợ hiện hữu {_bn(exp['existing'])} + đề xuất {_bn(amount)} "
+    out = [f"Tính lại tổng cấp tín dụng: dư nợ hiện hữu tại ngân hàng {_bn(exp['existing'])} + đề xuất {_bn(amount)} "
            f"= {_bn(exp['total'])}; "
            + ("vượt 20 tỷ nên BCTC kiểm toán bắt buộc" if exp["audit_required"]
               else "không vượt 20 tỷ nên chưa bắt buộc BCTC kiểm toán")
            + f" (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: {LEVEL_LABEL_VI[exp['tier']]} (CS-TD-SME/2025 §3.1)"]
+    if exp.get("other_lenders"):
+        out.append(f"Căn cứ cấp phê duyệt: tổng tại ngân hàng {_bn(exp['total'])}; dư nợ {_bn(exp['other_lenders'])} tại tổ "
+                   "chức tín dụng khác không tính vào cấp phê duyệt theo Q4, nhưng vẫn tính vào khả năng trả nợ")
     if col is not None and col["assets"]:
         if col["eligible_value"]:
             out.append(f"Tính lại LTV: đề xuất {_bn(amount)} / TSĐB đủ điều kiện {_bn(col['eligible_value'])} "

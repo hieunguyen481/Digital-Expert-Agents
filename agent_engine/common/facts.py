@@ -40,7 +40,9 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
     # CX1: hồ sơ không khai TSĐB thì không tính LTV bằng tài sản của khoản vay khác của khách
     cols = (raw.get("collateral") or []) if request.get("has_collateral") else []
     col = recompute.collateral_check(cols, amount) if cols else None
-    exp = recompute.exposure_check(loans, amount)
+    bank = raw.get("bank_exposure")
+    bank_existing = bank.get("existing_bank_exposure") if isinstance(bank, dict) else None
+    exp = recompute.exposure_check(loans, amount, bank_existing)
     # Nợ vay lấy số CAO HƠN giữa BCTC và dư nợ hệ thống (CIC); lệch nhau là một phát hiện (đối chiếu số liệu).
     conflicts: list[str] = []
     fin_for_lev = fin
@@ -116,22 +118,27 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
             "hard_stops": hard_stops, "ancillary": ancillary, "raw": raw}
 
 
+def tool_args(key: str, request: dict) -> dict:
+    args = {"business_id": request["business_id"]}
+    if key == "bank_exposure" and request.get("loan_application_id"):
+        args["loan_application_id"] = str(request["loan_application_id"])
+    return args
+
+
 _TOOLS = {"business": "get_business", "financials": "get_financials", "loans": "get_existing_loans",
           "cic": "get_cic_status", "blacklist": "check_blacklist", "collateral": "get_collateral",
-          "inflow": "get_annual_inflow"}
+          "inflow": "get_annual_inflow", "bank_exposure": "get_bank_exposure"}
 
 
 async def gather(request: dict) -> dict:
     """Gọi mọi công cụ đọc song song, đúng một lần; lỗi từng công cụ thì để trống (không chặn hồ sơ)."""
-    bid = request["business_id"]
-
-    async def one(tool: str):
+    async def one(key: str, tool: str):
         try:
-            return await mcp_client.call_tool(tool, {"business_id": bid})
+            return await mcp_client.call_tool(tool, tool_args(key, request))
         except Exception:  # noqa: BLE001
             return None
 
-    res = await asyncio.gather(*[one(t) for t in _TOOLS.values()])
+    res = await asyncio.gather(*[one(k, t) for k, t in _TOOLS.items()])
     raw = dict(zip(_TOOLS, res))
     for k in ("financials", "loans", "collateral"):
         raw[k] = raw[k] if isinstance(raw[k], list) else []

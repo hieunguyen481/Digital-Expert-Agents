@@ -343,6 +343,17 @@ async def get_existing_loans(business_id: str, ctx: Context) -> list[dict]:
 
 
 @mcp.tool()
+async def get_bank_exposure(business_id: str, ctx: Context, loan_application_id: str = "") -> dict:
+    """Dư nợ hiện hữu TẠI NGÂN HÀNG (dư nợ khoản vay + hạn mức/bảo lãnh, gồm bên liên quan đã xác nhận); không gồm dư nợ
+    ở TCTD khác. Cùng cách tính với credit.total_credit_exposure của backend (Q4), chưa gồm khoản đang đề nghị."""
+    async def fn(con, cust):
+        loan = uuid.UUID(loan_application_id) if loan_application_id else None
+        v = await con.fetchval("SELECT credit.existing_bank_exposure($1, $2)", cust, loan)
+        return {"existing_bank_exposure": float(v or 0), "source": "credit.loan_account + credit.customer_exposure"}
+    return await run_tool("get_bank_exposure", ctx, {"business_id": business_id}, fn)
+
+
+@mcp.tool()
 async def get_annual_inflow(business_id: str, ctx: Context) -> dict:
     """Tiền về tài khoản 12 tháng gần nhất (banking.account_monthly_summary)."""
     async def fn(con, cust):

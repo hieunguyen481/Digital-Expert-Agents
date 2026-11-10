@@ -5,12 +5,12 @@ T = 1e9
 
 
 def test_total_exactly_20_ty_is_branch():
-    assert rc.package_approver_level(rc.exposure_check([{"outstanding": 5 * T}], 15 * T), 15 * T) == "branch_director"
+    assert rc.package_approver_level(rc.exposure_check([], 15 * T, 5 * T), 15 * T) == "branch_director"
 
 
 def test_total_above_20_ty_is_head_office_l2():
     assert rc.approver_level(20 * T + 1) == "head_office_l2"
-    assert rc.package_approver_level(rc.exposure_check([{"outstanding": 8 * T}], 15 * T), 15 * T) == "head_office_l2"
+    assert rc.package_approver_level(rc.exposure_check([], 15 * T, 8 * T), 15 * T) == "head_office_l2"
 
 
 def test_total_exactly_100_ty_is_head_office_l2_above_is_head_office():
@@ -19,7 +19,7 @@ def test_total_exactly_100_ty_is_head_office_l2_above_is_head_office():
 
 
 def test_existing_loans_push_small_request_up_a_tier():
-    exp = rc.exposure_check([{"outstanding": 70 * T}], 15 * T)
+    exp = rc.exposure_check([], 15 * T, 70 * T)
     assert rc.package_approver_level(exp, 15 * T) == "head_office_l2"
 
 
