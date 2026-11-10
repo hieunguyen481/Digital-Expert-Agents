@@ -84,9 +84,12 @@ async def test_risk_overdue() -> None:
     assert by["HSV-2026-00176"].sla_level == "over"
 
 
-async def test_compliance_sees_only_176() -> None:
+async def test_compliance_has_opinion_tasks_for_risk_review_loans() -> None:
+    """L03: hồ sơ ở Ý kiến Rủi ro chưa có ý kiến Tuân thủ là việc của Tuân thủ."""
     result = await _run(COMPLIANCE_HO)
-    assert [i.application_number for i in result.items] == ["HSV-2026-00176"]
+    mine = sorted(i.application_number for i in result.items if i.mine)
+    assert mine == ["HSV-2026-00176", "HSV-2026-00181"]
+    assert result.badge == 2
 
 
 async def test_vinanova_flags() -> None:

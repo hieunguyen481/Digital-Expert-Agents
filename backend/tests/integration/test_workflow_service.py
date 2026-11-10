@@ -1046,6 +1046,44 @@ async def test_notification_goes_through_delivery_outbox(
     assert await mig.fetchval("SELECT status FROM integration.notification_delivery WHERE id = $1", row["id"]) == "SENT"
 
 
+async def test_compliance_gets_task_and_notice_until_opinion_recorded(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    """L03: vào Ý kiến Rủi ro -> Tuân thủ có việc "của tôi" + thông báo; đóng khi đã ghi ý kiến Tuân thủ."""
+    from app.repositories.work_item_repository import WorkItemRepository
+
+    class _P:
+        employee_id = COMPLIANCE_HO
+        roles = frozenset({"compliance_officer"})
+        permissions = frozenset({"loan:read"})
+
+    async def mine() -> bool:
+        comp = await principal(mig, COMPLIANCE_HO)
+        async with (
+            AsyncSession(engine) as session,
+            rls_transaction(session, comp.employee_id, comp.branch_id),
+        ):
+            from app.services.work_item_service import WorkItemService
+
+            result = await WorkItemService(WorkItemRepository(session)).list(_P(), filter_="all")
+        return any(i.mine and i.loan_application_id == case.loan_id for i in result.items)
+
+    await case.create(status="APPRAISAL")
+    assert not await mine()
+    await enter_risk_review(engine, mig, case)
+    assert await mine()
+    assert (COMPLIANCE_HO, "COMPLIANCE_OPINION_NEEDED") in await notifications_of(mig, case.loan_id)
+    await mig.execute(
+        "INSERT INTO credit.risk_opinion (id, loan_application_id, kind, memo_revision, content, author_id)"
+        " VALUES (gen_random_uuid(), $1, 'COMPLIANCE', 1, 'Khong phat hien van de', $2)",
+        case.loan_id, COMPLIANCE_HO,
+    )
+    try:
+        assert not await mine()
+    finally:
+        await mig.execute("DELETE FROM credit.risk_opinion WHERE loan_application_id = $1", case.loan_id)
+
+
 async def test_notification_not_queued_for_email_when_outbox_switch_off(
     mig: asyncpg.Connection, case: Case
 ) -> None:

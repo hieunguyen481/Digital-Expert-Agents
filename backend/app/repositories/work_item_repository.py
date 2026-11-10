@@ -27,6 +27,26 @@ MINE_STEP_PREDICATE = """
                 AND c.relationship_manager_id = :employee_id
           )
       )
+      OR (
+          -- L03 (Q-N): ý kiến con Tuân thủ là việc song song ở bước Ý kiến Rủi ro; đóng khi đã ghi ý kiến.
+          step.step_code = 'RISK_REVIEW'
+          AND loan.status = 'RISK_REVIEW'
+          AND identity.current_has_role('compliance_officer'::public.citext)
+          AND EXISTS (
+              SELECT 1 FROM identity.employee_scope AS sc
+              WHERE sc.scope_type = 'LOAN_APPLICATION' AND sc.scope_id = loan.id
+                AND sc.employee_id = :employee_id AND sc.permission_code = 'loan:read'
+                AND sc.valid_from <= CURRENT_TIMESTAMP
+                AND (sc.valid_until IS NULL OR sc.valid_until > CURRENT_TIMESTAMP)
+          )
+          AND NOT EXISTS (
+              SELECT 1 FROM credit.risk_opinion AS op
+              WHERE op.loan_application_id = loan.id AND op.kind = 'COMPLIANCE'
+                AND op.memo_revision = COALESCE(
+                    SELECT max(v.revision) FROM credit.appraisal_memo_version AS v
+                    WHERE v.loan_application_id = loan.id), op.memo_revision)
+          )
+      )
   )
 """
 
