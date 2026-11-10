@@ -29,7 +29,7 @@ INSERT INTO customer.organization_profile (party_id, legal_name, trading_name, b
     tax_code_hash, incorporation_date, industry_code, legal_representative_party_id, updated_at)
 SELECT pg_temp.u('55000000', n, 0), legal_name, legal_name, 'JSC',
        encode(sha256(convert_to('REG-' || tax_code, 'UTF8')), 'hex'), encode(sha256(convert_to(tax_code, 'UTF8')), 'hex'),
-       DATE '2014-01-01' + (n * 97), '2599', NULL, now()
+       DATE '2014-01-01' + ((n % 40) * 97), '2599', NULL, now()
 FROM v7_case
 ON CONFLICT (party_id) DO UPDATE SET legal_name = EXCLUDED.legal_name, updated_at = now();
 
