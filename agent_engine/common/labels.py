@@ -28,6 +28,8 @@ STATUS = {
     "NOT_PEP": "không thuộc diện PEP", "LOW": "thấp", "MEDIUM": "trung bình", "HIGH": "cao", "CLEAR": "không trùng",
     "need_more_info": "cần thêm thông tin", "approve": "đồng ý", "reject": "từ chối", "flag": "đồng ý có điều kiện",
     "dry-run": "chạy thử, chưa ghi", "dry_run": "chạy thử, chưa ghi", "clear": "rõ ràng", "pending": "chưa hoàn thiện",
+    "branch_director": "Giám đốc chi nhánh (cấp 1)", "head_office_l2": "Cấp 2 Hội sở", "head_office": "Cấp 2 Hội sở",
+    "council": "Hội đồng tín dụng",
     "declared": "giá trị khai báo", "appraised": "giá trị thẩm định", "eligible": "giá trị đủ điều kiện",
 }
 TOOL = {

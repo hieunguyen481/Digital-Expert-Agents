@@ -36,3 +36,9 @@ def test_tool_choices_differ_by_record_with_reasons():
     no_col = agent_tools.choices("compliance", {"has_collateral": False}, {}, ["blacklist"], [], False)
     assert {c["key"]: c["how"] for c in with_col} != {c["key"]: c["how"] for c in no_col} or all(c["reason"] for c in no_col)
     assert all(c["reason"] and "Q3" not in c["reason"] for c in with_col + no_col)
+
+
+def test_approval_tier_keys_are_translated():
+    out = humanize("cấp phê duyệt: head_office (CS-TD-SME/2025 §3.1); head_office_l2, branch_director, council")
+    assert "head_office" not in out and "branch_director" not in out and "council" not in out
+    assert "Cấp 2 Hội sở" in out and "Hội đồng tín dụng" in out

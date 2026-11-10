@@ -20,6 +20,13 @@ test.describe.configure({ mode: 'serial' });
 test.beforeAll(() => { execSync(RESET, { stdio: 'ignore', timeout: 300_000 }); });
 test.afterAll(() => { if (!process.env.E2E_KEEP_DEMO) execSync(RESET, { stdio: 'ignore', timeout: 300_000 }); });
 
+// Không lộ khóa kỹ thuật hay nhãn nội bộ ra giao diện (L06, L07, L18).
+const FORBIDDEN = /regional|head_office|total_debt|NEEDS_VERIFICATION|Giám đốc vùng|Hội đồng agent|rules\.md/i;
+async function noTechnicalKeys(page: Page) {
+  const text = await page.locator('body').innerText();
+  expect(text.match(FORBIDDEN)?.[0] ?? null, 'giao diện lộ khóa kỹ thuật').toBeNull();
+}
+
 async function proposals(page: Page) {
   const list = page.getByTestId('action-proposal');
   await expect(list.first()).toBeVisible({ timeout: 30_000 });
@@ -33,6 +40,7 @@ test('cảnh 1: đội agent ra Đề xuất phê duyệt kèm điều kiện tr
   await expect(page.getByTestId('agent-team')).toContainText(/Đề xuất phê duyệt/i);
   await proposals(page);
   await expect(page.locator('[data-testid="action-proposal"][data-kind="add_disbursement_condition"]').first()).toBeVisible();
+  await noTechnicalKeys(page);
   await shot(page, 'd1-s1', 'de-xuat-phe-duyet');
 });
 
@@ -42,6 +50,7 @@ test('cảnh 2: đội agent ra Cần bổ sung kèm đề xuất yêu cầu b�
   expect(state).toBe('Needs Info');
   await proposals(page);
   await expect(page.locator('[data-testid="action-proposal"][data-kind="request_documents"]').first()).toBeVisible();
+  await noTechnicalKeys(page);
   await shot(page, 'd1-s2', 'can-bo-sung');
 });
 
@@ -50,6 +59,7 @@ test('cảnh 3: hồ sơ bị từ chối vì CIC nợ xấu', async ({ page }) 
   const { state } = await runAgentTeam(page, SCENE.cicReject.loan, 'd1-s3');
   expect(state).toBe('Rejected');
   await expect(page.getByTestId('agent-team')).toContainText(/CIC|nợ xấu|nhóm 3/i);
+  await noTechnicalKeys(page);
   await shot(page, 'd1-s3', 'tu-choi-cic');
 });
 
@@ -87,6 +97,7 @@ test('cảnh 5: hồ sơ ở bước Phê duyệt đi tới quyết định củ
     await page.goto(`/ho-so-vay/${loan}`);
     const btn = page.getByRole('button', { name: 'Quyết định', exact: true });
     if (!(await btn.waitFor({ timeout: 15_000 }).then(() => true, () => false)) || !(await btn.isEnabled())) continue;
+    await noTechnicalKeys(page);
     await shot(page, 'd1-s5', 'cho-quyet-dinh');
     await btn.click();
     const rows = page.getByTestId('exception-row');
