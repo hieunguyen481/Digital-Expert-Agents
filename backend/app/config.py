@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     )
 
     # Application-only settings.
+    # rules.md F12: cảnh báo (không chặn) số tiền đề xuất từ ngưỡng này, đơn vị tỷ đồng.
+    amount_warn_billion: int = Field(default=500, ge=1)
     app_name: str = "bank-ai-backend"
     app_env: Literal["development", "testing", "production"] = "development"
     app_process_type: Literal["api", "worker", "publisher"] = "api"

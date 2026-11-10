@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from decimal import Decimal
 from uuid import UUID
 
 from pydantic import Field
 
 from app.schemas.common import APIModel, DecimalString
 
+# Cận trên cứng 100.000 tỷ: chặn nhầm đơn vị (L10), khác ngưỡng cảnh báo F12 cấu hình được.
+AMOUNT_HARD_MAX = Decimal(10) ** 14
+
 
 class DraftSaveRequest(APIModel):
     product_id: UUID
-    requested_amount: DecimalString = Field(gt=0)
+    requested_amount: DecimalString = Field(gt=0, le=AMOUNT_HARD_MAX)
     requested_term_months: int = Field(gt=0, le=600)
     purpose_text: str | None = Field(default=None, max_length=2000)
     repayment_source_text: str | None = Field(default=None, max_length=2000)
@@ -176,6 +180,7 @@ class SubmitConditions(APIModel):
     can_submit: bool
     lock_reason: str | None
     required_tier: int
+    amount_warning: str | None = None
     conditions: list[SubmitCondition]
     exceptions: list[ExceptionItem]
     collaterals: list[CollateralItem]

@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any, Protocol
 from uuid import UUID
 
+from app.config import get_settings
 from app.exceptions import ConflictError
 from app.services.cic_service import CicService
 from app.services.proposal_service import ProposalService
@@ -109,7 +110,15 @@ class SubmissionService:
         elif not result.ok:
             unmet = [r["label"] for r in rows if r["kind"] == "BLOCKER" and not r["met"]]
             lock = "Chưa đủ điều kiện: " + "; ".join(unmet)
+        warn_billion = get_settings().amount_warn_billion
+        amount = loan["requested_amount"]
+        warning = (
+            f"Số tiền đề xuất từ {warn_billion:,} tỷ đồng trở lên là bất thường, vui lòng kiểm tra lại đơn vị và số liệu."
+            if amount is not None and amount >= warn_billion * 10**9
+            else None
+        )
         return {
+            "amount_warning": warning,
             "editable": loan["editable"], "can_submit": loan["editable"] and result.ok, "lock_reason": lock,
             "required_tier": tier, "conditions": rows,
             "exceptions": [dict(r) for r in await self._repo.exceptions(loan_id)],

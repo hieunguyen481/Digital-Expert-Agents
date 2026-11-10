@@ -153,6 +153,7 @@ export interface SubmitConditions {
   can_submit: boolean;
   lock_reason: string | null;
   required_tier: number;
+  amount_warning?: string | null;
   conditions: SubmitCondition[];
   exceptions: ExceptionItem[];
   collaterals: CollateralItem[];

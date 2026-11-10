@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from decimal import Decimal
 from uuid import UUID
 
 from pydantic import ConfigDict, Field
@@ -13,7 +14,7 @@ from app.schemas.common import APIModel, DecimalString
 class LoanCreateRequest(APIModel):
     primary_customer_id: UUID
     product_id: UUID
-    requested_amount: DecimalString
+    requested_amount: DecimalString = Field(gt=0, le=Decimal(10) ** 14)
     currency: str = Field(min_length=3, max_length=3, pattern=r"^[A-Z]{3}$")
     requested_term_months: int = Field(gt=0, le=600)
     loan_purpose: str = Field(min_length=1, max_length=40)
