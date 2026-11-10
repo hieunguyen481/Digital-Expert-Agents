@@ -54,10 +54,10 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
   }, [caseId, inFlight, qc]);
 
   if (caseQ.isError) {
-    return <Alert type="warning" showIcon message="Không tải được kết quả hội đồng agent" description="Bạn có thể không có quyền xem hồ sơ phân tích này." />;
+    return <Alert type="warning" showIcon message="Không tải được kết quả đội agent" description="Bạn có thể không có quyền xem hồ sơ phân tích này." />;
   }
   const c = caseQ.data;
-  if (!c) return <Alert type="info" message="Đang tải kết quả hội đồng agent…" />;
+  if (!c) return <Alert type="info" message="Đang tải kết quả đội agent…" />;
 
   const pkg = c.package ?? {};
   const events = eventsQ.data ?? [];
@@ -97,7 +97,7 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
   };
 
   return (
-    <Card size="small" data-testid="engine-panel" style={{ marginTop: 12 }} title={`Hội đồng agent · ${c.state}`}>
+    <Card size="small" data-testid="engine-panel" style={{ marginTop: 12 }} title={`Đội agent · ${c.state}`}>
       <Space size={[4, 4]} wrap data-testid="engine-flow">
         {flow.map((e) => (
           <Tag key={e.id} color={e.type === 'plan_created' ? 'blue' : 'green'}>
@@ -132,8 +132,8 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
           data-testid="stop-card"
           message={
             c.state === 'Rejected'
-              ? 'Hội đồng agent đề xuất từ chối — người có thẩm quyền quyết định'
-              : 'Hội đồng agent đề nghị bổ sung hồ sơ trước khi trình — chưa tới bước phê duyệt'
+              ? 'Đội agent đề xuất từ chối — người có thẩm quyền quyết định'
+              : 'Đội agent đề nghị bổ sung hồ sơ trước khi trình — chưa tới bước phê duyệt'
           }
           description={
             <div>

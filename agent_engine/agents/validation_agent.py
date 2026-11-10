@@ -203,7 +203,7 @@ async def handle_task(env: Envelope) -> Verdict:
                 rec += " kèm điều kiện"
         extra = [*gate_why]
         if verified["ancillary"]:
-            extra.append("Bổ sung trước giải ngân (không chặn trình, rules.md Q7): " + "; ".join(verified["ancillary"]))
+            extra.append("Bổ sung trước giải ngân (không chặn trình): " + "; ".join(verified["ancillary"]))
         if extra:
             report = merge_verdicts(verdicts, [*own_findings, *extra], [*own_conditions, *extra], demoted)
     elif VerdictDecision.REJECT in decisions.values():

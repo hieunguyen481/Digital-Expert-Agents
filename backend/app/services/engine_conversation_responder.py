@@ -6,6 +6,8 @@ không âm thầm đổi sang LLM đơn. Mã khách hàng/hồ sơ lấy từ ng
 """
 from __future__ import annotations
 
+import re
+import time
 from collections.abc import Mapping, Sequence
 from typing import Any
 from uuid import UUID
@@ -57,9 +59,9 @@ def compose_engine_reply(case: Mapping[str, Any]) -> str:
     state = str(case.get("state") or "")
     lines: list[str] = []
     if package.get("recommendation"):
-        lines.append(f"**Kết luận của hội đồng agent (đề xuất, chưa có hiệu lực):** "
+        lines.append(f"**Kết luận của đội agent (đề xuất, chưa có hiệu lực):** "
                      f"{package['recommendation']}")
-    if package.get("proposed_limit") is not None:
+    if package.get("proposed_limit"):
         lines.append(f"**Hạn mức đề xuất:** {package['proposed_limit']:,.0f} VND".replace(",", "."))
     if state:
         lines.append(f"**Trạng thái hồ sơ phân tích:** {state}")
@@ -81,6 +83,43 @@ def compose_engine_reply(case: Mapping[str, Any]) -> str:
     return "\n".join(lines)
 
 
+_RERUN = re.compile(r"phân tích lại|chạy lại|đánh giá lại|thẩm định lại|làm mới|phân tích mới|tính lại từ đầu", re.I)
+_PII = re.compile(r"\b(cccd|cmnd|căn cước|số điện thoại|sđt|email|địa chỉ nhà|ngày sinh)\b", re.I)
+_FINAL_STATES = {"Pending Approval", "Needs Info", "Rejected", "Completed", "Executing"}
+PII_REFUSAL = ("Tôi không cung cấp thông tin định danh cá nhân (CCCD, số điện thoại, email, ngày sinh) qua trợ lý. "
+               "Đây là dữ liệu ngoài phạm vi thẩm định của hồ sơ đang mở; nếu có quyền, bạn xem trực tiếp ở trang hồ sơ "
+               "khách hàng. Tôi chỉ trả lời về kết quả thẩm định của hồ sơ hiện tại.")
+
+
+def _epoch(value: Any) -> float | None:
+    try:
+        return value.timestamp() if hasattr(value, "timestamp") else float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def result_context(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]]) -> str:
+    """Kết quả lượt phân tích gần nhất dưới dạng văn bản để trả lời thẳng câu hỏi (gói phê duyệt, hoặc báo cáo cuối khi cần bổ sung/từ chối)."""
+    package = case.get("package") or {}
+    final = next((e.get("payload") or {} for e in reversed(events) if e.get("type") == "state_changed"
+                  and (e.get("payload") or {}).get("report_text")), {})
+    parts = [f"Trạng thái: {case.get('state')}"]
+    if package.get("recommendation"):
+        parts.append(f"Kết luận: {package['recommendation']}")
+    if package.get("required_approver_level"):
+        parts.append(f"Cấp phê duyệt: {package['required_approver_level']}")
+    for v in package.get("verdicts") or []:
+        parts.append(f"{_AGENT_LABEL.get(v.get('agent'), v.get('agent'))} ({v.get('decision')}): {v.get('summary')}; "
+                     f"phát hiện: {'; '.join(v.get('findings') or [])}; điều kiện: {'; '.join(v.get('conditions') or [])}")
+    for k, label in (("reason", "Lý do"), ("report_text", "Báo cáo cuối")):
+        if final.get(k):
+            parts.append(f"{label}: {final[k]}")
+    for k, label in (("findings", "Phát hiện"), ("conditions", "Điều kiện")):
+        if final.get(k) and not package:
+            parts.append(f"{label}: " + "; ".join(final[k]))
+    return "\n".join(parts)[:6000]
+
+
 class EngineConversationResponder:
     def __init__(self, inner: Any, engine: AgentEngineClient, wait_seconds: int = 90) -> None:
         self._inner = inner
@@ -96,6 +135,9 @@ class EngineConversationResponder:
                                              message=message, route=route,
                                              attachment_ids=attachment_ids)
         meta: dict[str, Any] = {"responder": "agent_engine"}
+        if _PII.search(message):  # xin dữ liệu cá nhân: từ chối rõ ràng, không chạy lại phân tích
+            return ConversationReply(content=PII_REFUSAL, route_type="REFUSE", complexity_level=None,
+                                     metadata={**meta, "refused": "PII_OUT_OF_SCOPE"})
         complexity = route.get("complexity_level")
         level = complexity if isinstance(complexity, int) else None
 
@@ -121,6 +163,11 @@ class EngineConversationResponder:
         }
         ids = {"customer_id": str(customer_id), "loan_application_id": str(loan["id"])}
         case_id = None
+        if not _RERUN.search(message):
+            answered = await self._answer_from_latest(principal, conversation, message, route, attachment_ids,
+                                                      customer_id, loan, request, ids)
+            if answered is not None:
+                return answered
         try:
             case_id = await self._engine.create_case(request)
             await self._engine.run(case_id)
@@ -128,7 +175,7 @@ class EngineConversationResponder:
                 await self._engine.wait_final(case_id, timeout_s=self._wait)
             except TimeoutError:
                 case = await self._engine.get_case(case_id)
-                return reply(f"Hội đồng agent vẫn đang phân tích (mã `{case_id}`, trạng thái "
+                return reply(f"Đội agent vẫn đang phân tích (mã `{case_id}`, trạng thái "
                              f"{case.get('state', '?')}). Mở lại hội thoại sau ít phút.",
                              engine_case_id=case_id, engine_state=case.get("state"), **ids)
             case = await self._engine.get_case(case_id)
@@ -154,6 +201,43 @@ class EngineConversationResponder:
                      policy_version=package.get("policy_version"),
                      verdicts=package.get("verdicts") or [], sources=collect_sources(package),
                      confirmation=confirmation, **ids)
+
+    async def _answer_from_latest(self, principal: PrincipalLike, conversation: Mapping[str, Any], message: str,
+                                  route: Mapping[str, Any], attachment_ids: Sequence[UUID], customer_id: UUID,
+                                  loan: Mapping[str, Any], request: Mapping[str, Any], ids: Mapping[str, str]
+                                  ) -> ConversationReply | None:
+        """L18: còn kết quả phân tích hợp lệ của hồ sơ (chưa đổi dữ liệu) thì trả lời thẳng từ đó, không chạy lại cả đội."""
+        try:
+            cases = await self._engine.list_cases(limit=50)
+        except AgentEngineError:
+            return None
+        loan_changed = _epoch(loan.get("updated_at"))
+        latest = next((c for c in sorted(cases, key=lambda c: -(c.get("created_at") or 0))
+                       if str(c.get("customer_id")) == str(customer_id) and c.get("state") in _FINAL_STATES
+                       and abs(float((c.get("request") or {}).get("amount") or 0) - request["amount"]) < 1
+                       and (c.get("request") or {}).get("term_months") == request["term_months"]), None)
+        if latest is None or (loan_changed and loan_changed > float(latest.get("updated_at") or 0)):
+            return None  # chưa có kết quả, hoặc dữ liệu hồ sơ đã đổi sau lần phân tích
+        try:
+            case = await self._engine.get_case(latest["case_id"])
+            events = await self._engine.get_events(latest["case_id"])
+        except AgentEngineError:
+            return None
+        grounded = (f"{message}\n\nKẾT QUẢ PHÂN TÍCH GẦN NHẤT CỦA ĐỘI AGENT CHO HỒ SƠ NÀY (nguồn chính để trả lời; "
+                    f"trả lời thẳng câu hỏi, nêu số liệu và căn cứ có trong kết quả; thiếu thì nói rõ là kết quả chưa nêu):\n"
+                    f"{result_context(case, events)}")
+        inner = await self._inner.respond(principal=principal, conversation=conversation, message=grounded,
+                                          route={**route, "route_type": "DIRECT"}, attachment_ids=attachment_ids)
+        package = case.get("package") or {}
+        when = time.strftime("%H:%M %d/%m/%Y", time.localtime(float(latest.get("updated_at") or 0)))
+        meta = {**(inner.metadata or {}), "responder": "agent_engine", "reused_result": True,
+                "engine_case_id": latest["case_id"], "engine_state": case.get("state"),
+                "verdicts": package.get("verdicts") or [], "sources": collect_sources(package), **ids}
+        return ConversationReply(
+            content=f"{inner.content}\n\n_Dựa trên kết quả phân tích lúc {when}. Gõ “phân tích lại” để chạy lại cả đội agent._",
+            route_type=str(route.get("route_type") or "ORCHESTRATED"),
+            complexity_level=route.get("complexity_level") if isinstance(route.get("complexity_level"), int) else None,
+            metadata=meta)
 
     async def _load_loan(self, principal: PrincipalLike, customer_id: UUID,
                          loan_id: UUID | None) -> Mapping[str, Any] | None:
