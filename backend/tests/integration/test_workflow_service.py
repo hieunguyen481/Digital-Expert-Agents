@@ -23,6 +23,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from tests.integration.seed_ids import (
     ADMIN_HO,
+    AUDITOR_HO,
     APPROVER_HO,
     BRANCH_HN,
     COMPLIANCE_HO,
@@ -1004,3 +1005,28 @@ async def test_submit_notifies_checker_and_decision_notifies_rm(
     )
     sent = await notifications_of(mig, case.loan_id)
     assert (CREDIT_OFFICER, "CASE_DECIDED") in sent
+
+
+async def test_audit_list_filters_by_loan_number_actor_and_date(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="CHECKING")
+    await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    httd = await principal(mig, DOCUMENT_REVIEWER)
+    await transition(engine, httd, case.loan_id, "return_to_rm", 1, reason="Sai de xuat")
+    number = await mig.fetchval(
+        "SELECT application_number FROM credit.loan_application WHERE id = $1", case.loan_id
+    )
+    auditor = await principal(mig, AUDITOR_HO)
+    today = (await mig.fetchval("SELECT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date"))
+    async with (
+        AsyncSession(engine) as session,
+        rls_transaction(session, auditor.employee_id, auditor.branch_id, auditor.is_admin),
+    ):
+        repo = AuditRepository(session)
+        rows = await repo.list(loan_number=number, date_from=today, date_to=today)
+        assert [r["action"] for r in rows] == ["WORKFLOW_RETURN_TO_RM"]
+        assert rows[0]["actor_name"] and rows[0]["loan_application_number"] == number
+        assert await repo.list(loan_number=number, actor_name=rows[0]["actor_name"][:4])
+        assert not await repo.list(loan_number=number, actor_name="khong-ton-tai-xyz")
+        assert not await repo.list(loan_number=number, date_to=date(2000, 1, 1))

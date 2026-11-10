@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { UiRole } from '@/auth/roleFromMe';
 import { RAIL_ITEMS } from './navigation';
@@ -40,5 +41,20 @@ describe('Rail', () => {
   it('không có badge khi 0', () => {
     labelsFor('tdinh', 0);
     expect(screen.queryByTestId('rail-badge')).toBeNull();
+  });
+
+  it('Quản trị không có mục Nhật ký (không có quyền đọc, Q-J)', () => {
+    expect(RAIL_ITEMS.quantri.map((i) => i.label)).not.toContain('Nhật ký kiểm toán');
+  });
+
+  it('Nhật ký kiểm toán và Tra cứu chính sách có trang thật', () => {
+    expect(RAIL_ITEMS.kiemtoan.find((i) => i.label === 'Nhật ký kiểm toán')?.path).toBe('/nhat-ky-kiem-toan');
+    expect(RAIL_ITEMS.qhkh.find((i) => i.label === 'Tra cứu chính sách')?.path).toBe('/tra-cuu-chinh-sach');
+  });
+
+  it('mục chưa có trang hiện toast "sẽ có ở đợt sau" (D1)', async () => {
+    labelsFor('qhkh');
+    await userEvent.click(screen.getByRole('button', { name: 'Khách hàng SME' }));
+    expect(await screen.findByText('Khách hàng SME: sẽ có ở đợt sau')).toBeInTheDocument();
   });
 });

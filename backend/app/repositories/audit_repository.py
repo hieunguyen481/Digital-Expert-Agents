@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from datetime import datetime
+from datetime import date, datetime
 from app.compat import UTC
 from hashlib import sha256
 from typing import Any
@@ -152,14 +152,30 @@ class AuditRepository:
         action: str | None = None,
         customer_id: UUID | None = None,
         loan_application_id: UUID | None = None,
+        actor_name: str | None = None,
+        loan_number: str | None = None,
+        date_from: date | None = None,
+        date_to: date | None = None,
     ) -> list[Record]:
         limit, offset = pagination(page, page_size)
         return await fetch_all(
             self.session,
             """
-            SELECT ae.*, count(*) OVER () AS total_count
+            SELECT ae.*, actor.full_name AS actor_name,
+                   loan.application_number AS loan_application_number,
+                   count(*) OVER () AS total_count
             FROM audit.audit_event AS ae
-            WHERE (CAST(:actor_id AS UUID) IS NULL OR ae.actor_id = CAST(:actor_id AS UUID))
+            LEFT JOIN identity.employee AS actor ON actor.id = ae.actor_id
+            LEFT JOIN credit.loan_application AS loan ON loan.id = ae.loan_application_id
+            WHERE (CAST(:actor_name AS TEXT) IS NULL
+                   OR actor.full_name ILIKE '%' || CAST(:actor_name AS TEXT) || '%')
+              AND (CAST(:loan_number AS TEXT) IS NULL
+                   OR loan.application_number ILIKE '%' || CAST(:loan_number AS TEXT) || '%')
+              AND (CAST(:date_from AS DATE) IS NULL
+                   OR (ae.event_time AT TIME ZONE 'Asia/Ho_Chi_Minh')::date >= CAST(:date_from AS DATE))
+              AND (CAST(:date_to AS DATE) IS NULL
+                   OR (ae.event_time AT TIME ZONE 'Asia/Ho_Chi_Minh')::date <= CAST(:date_to AS DATE))
+              AND (CAST(:actor_id AS UUID) IS NULL OR ae.actor_id = CAST(:actor_id AS UUID))
               AND (CAST(:action AS TEXT) IS NULL OR ae.action = CAST(:action AS TEXT))
               AND (CAST(:customer_id AS UUID) IS NULL
                    OR ae.customer_id = CAST(:customer_id AS UUID))
@@ -173,6 +189,10 @@ class AuditRepository:
                 "action": action,
                 "customer_id": customer_id,
                 "loan_id": loan_application_id,
+                "actor_name": actor_name or None,
+                "loan_number": loan_number or None,
+                "date_from": date_from,
+                "date_to": date_to,
                 "limit": limit,
                 "offset": offset,
             },

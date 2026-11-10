@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Annotated
 from uuid import UUID
 
@@ -28,6 +29,10 @@ async def list_audit_events(
     action: str | None = Query(default=None, max_length=100),
     customer_id: UUID | None = None,
     loan_application_id: UUID | None = None,
+    actor_name: str | None = Query(default=None, max_length=100),
+    loan_number: str | None = Query(default=None, max_length=50),
+    date_from: date | None = None,
+    date_to: date | None = None,
 ) -> PaginatedResponse[AuditEventResponse]:
     rows = await AuditRepository(session).list(
         page=page,
@@ -36,6 +41,10 @@ async def list_audit_events(
         action=action,
         customer_id=customer_id,
         loan_application_id=loan_application_id,
+        actor_name=actor_name,
+        loan_number=loan_number,
+        date_from=date_from,
+        date_to=date_to,
     )
     return page_response(
         AuditEventResponse,

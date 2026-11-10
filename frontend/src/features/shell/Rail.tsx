@@ -11,7 +11,7 @@ import {
   TeamOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
-import { Tooltip } from 'antd';
+import { Tooltip, message } from 'antd';
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import type { UiRole } from '@/auth/roleFromMe';
@@ -89,7 +89,7 @@ export function Rail({ role, badge, onOpenAi }: RailProps) {
         }
         return (
           <Tooltip key={entry.page} title={`${entry.label}: sẽ có ở đợt sau`}>
-            <button type="button" className={cls} aria-label={entry.label} aria-disabled="true">
+            <button type="button" className={cls} aria-label={entry.label} aria-disabled="true" onClick={() => void message.info(`${entry.label}: sẽ có ở đợt sau`)}>
               {content}
             </button>
           </Tooltip>

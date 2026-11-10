@@ -11,6 +11,8 @@ export interface RailItem {
 
 export const AI_PAGE = 10;
 export const MY_WORK_PATH = '/viec-cua-toi';
+export const AUDIT_PATH = '/nhat-ky-kiem-toan';
+export const POLICY_PATH = '/tra-cuu-chinh-sach';
 
 const item = (page: number, label: string, icon: RailItem['icon'], path: string | null = null): RailItem => ({
   page,
@@ -31,7 +33,7 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
     item(2, 'Việc của tôi', 'inbox', MY_WORK_PATH),
     item(3, 'Tạo đề xuất vay', 'plus', '/de-xuat-vay'),
     item(4, 'Khách hàng SME', 'building'),
-    item(7, 'Tra cứu chính sách', 'book'),
+    item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
   ],
@@ -39,7 +41,7 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
     item(2, 'Việc của tôi', 'inbox', MY_WORK_PATH),
     item(5, 'Đối chiếu tài liệu', 'filecheck', '/doi-chieu'),
     item(4, 'Khách hàng SME', 'building'),
-    item(7, 'Tra cứu chính sách', 'book'),
+    item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
   ],
@@ -47,33 +49,33 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
     item(2, 'Việc của tôi', 'inbox', MY_WORK_PATH),
     item(5, 'Đối chiếu tài liệu', 'filecheck', '/doi-chieu'),
     item(4, 'Khách hàng SME', 'building'),
-    item(7, 'Tra cứu chính sách', 'book'),
+    item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
   ],
   ruiro: [
     item(2, 'Hồ sơ chờ ý kiến', 'inbox', MY_WORK_PATH),
     item(4, 'Khách hàng SME', 'building'),
-    item(7, 'Tra cứu chính sách', 'book'),
+    item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
   ],
   pheduyet: [
     item(2, 'Hồ sơ chờ phê duyệt', 'inbox', MY_WORK_PATH),
     item(6, 'Phiên Hội đồng tín dụng', 'users'),
-    item(7, 'Tra cứu chính sách', 'book'),
+    item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
   ],
   kiemtoan: [
     item(2, 'Hồ sơ vay – chỉ đọc', 'inbox', MY_WORK_PATH),
-    item(8, 'Nhật ký kiểm toán', 'clock'),
+    item(8, 'Nhật ký kiểm toán', 'clock', AUDIT_PATH),
     item(6, 'Phiên Hội đồng tín dụng – chỉ đọc', 'users'),
-    item(7, 'Tra cứu chính sách', 'book'),
+    item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
   ],
-  quantri: [item(9, 'Quản trị', 'gear'), item(8, 'Nhật ký kiểm toán', 'clock')],
+  quantri: [item(9, 'Quản trị', 'gear')],
 };
 
 /** Vai trò có Trợ lý AI (quantri không có). */
