@@ -37,7 +37,7 @@ function Workspace({ loanId }: { loanId: string }) {
     <>
       <PageHead
         title={`Đối chiếu tài liệu · ${view.customer_name ?? view.application_number}`}
-        facts={[view.application_number, view.status === 'CHECKING' ? 'Đang hậu kiểm' : statusLabel(view.status)]}
+        facts={[view.application_number, statusLabel(view.status)]}
       />
       <div className={styles.page}>
         <Alert type="info" showIcon message={view.data_label} />

@@ -1,8 +1,9 @@
+import { fmtDay } from '@/utils/format';
 export const fmtNum = (n: number | null | undefined, unit = ''): string =>
   n == null ? '—' : `${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 }).format(n)}${unit ? ` ${unit}` : ''}`;
 
 export const fmtDate = (iso: string | null | undefined): string =>
-  iso ? new Date(iso).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : '—';
+  iso ? fmtDay(iso) : '—';
 
 export const fmtMoney = (v: string | null, currency: string): string =>
   v == null ? '—' : `${new Intl.NumberFormat('vi-VN').format(Number(v))} ${currency}`;

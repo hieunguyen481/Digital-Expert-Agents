@@ -60,7 +60,7 @@ def compose_engine_reply(case: Mapping[str, Any]) -> str:
         lines.append(f"**Kết luận của hội đồng agent (đề xuất, chưa có hiệu lực):** "
                      f"{package['recommendation']}")
     if package.get("proposed_limit") is not None:
-        lines.append(f"**Hạn mức đề xuất:** {package['proposed_limit']:,.0f} VND")
+        lines.append(f"**Hạn mức đề xuất:** {package['proposed_limit']:,.0f} VND".replace(",", "."))
     if state:
         lines.append(f"**Trạng thái hồ sơ phân tích:** {state}")
     verdicts = package.get("verdicts") or []

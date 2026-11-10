@@ -173,7 +173,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
             options={[{ value: 'APPROVED', label: 'Phê duyệt' }, { value: 'APPROVED_WITH_CONDITIONS', label: 'Phê duyệt có điều kiện' }, { value: 'REJECTED', label: 'Từ chối' }]} />
           {decision.type !== 'REJECTED' && (
             <>
-              <label>Số tiền duyệt (VND) <InputNumber style={{ width: '100%' }} status={amountInvalid ? 'error' : undefined} value={decision.amount} onChange={(v) => setDecision({ ...decision, amount: Number(v ?? 0) })} /></label>
+              <label>Số tiền duyệt (VND) <InputNumber style={{ width: '100%' }} formatter={(v) => (v == null ? '' : new Intl.NumberFormat('vi-VN').format(Number(v)))} parser={(v) => Number((v ?? '').replace(/\./g, '').replace(/[^0-9]/g, ''))} status={amountInvalid ? 'error' : undefined} value={decision.amount} onChange={(v) => setDecision({ ...decision, amount: Number(v ?? 0) })} /></label>
               <label>Kỳ hạn (tháng) <InputNumber style={{ width: '100%' }} status={termInvalid ? 'error' : undefined} value={decision.term} onChange={(v) => setDecision({ ...decision, term: Number(v ?? 0) })} /></label>
               {amountInvalid && <Typography.Text type="danger" role="alert">Số tiền duyệt phải lớn hơn 0.</Typography.Text>}
               {termInvalid && <Typography.Text type="danger" role="alert">Kỳ hạn duyệt phải lớn hơn 0.</Typography.Text>}

@@ -1,3 +1,4 @@
+import { fmtInt } from '@/utils/format';
 import { Alert, Button, Input, Radio, Space, Tag, Typography } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -10,7 +11,7 @@ import {
 } from './proposalService';
 import type { ExposureLine } from './types';
 
-const vnd = (v: string) => `${Number(v).toLocaleString('vi-VN')} VND`;
+const vnd = (v: string) => `${fmtInt(Number(v))} VND`;
 const STATUS: Record<string, { text: string; color: string }> = {
   PROPOSED: { text: 'Chờ xác nhận', color: 'warning' },
   CONFIRMED: { text: 'Thuộc nhóm', color: 'success' },

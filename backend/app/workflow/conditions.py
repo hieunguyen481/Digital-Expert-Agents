@@ -42,7 +42,7 @@ def _detail(code: str, facts: GateFacts) -> str | None:
     if code == "LEASE" and facts.lease_unset:
         return f"{facts.lease_unset} tài sản chưa chọn"
     if code == "AUDITED_FS" and facts.total_credit_exposure is not None:
-        return f"Tổng cấp tín dụng {facts.total_credit_exposure:,.0f} VND"
+        return f"Tổng cấp tín dụng {facts.total_credit_exposure:,.0f} VND".replace(",", ".")
     return None
 
 

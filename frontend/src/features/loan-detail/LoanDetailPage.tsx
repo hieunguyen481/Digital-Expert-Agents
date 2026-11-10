@@ -1,3 +1,4 @@
+import { fmtDay } from '@/utils/format';
 import { Alert, Skeleton } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
@@ -31,7 +32,7 @@ export default function LoanDetailPage() {
           <Alert type="warning" showIcon data-testid="supplement-request" message="Hồ sơ đang chờ bổ sung"
             description={<>
               <div>{supplement_request.reason ?? 'Người xử lý chưa ghi nội dung cụ thể.'}</div>
-              <div>Hạn bổ sung: {supplement_request.due_at ? new Date(supplement_request.due_at).toLocaleDateString('vi-VN') : '—'}</div>
+              <div>Hạn bổ sung: {supplement_request.due_at ? fmtDay(supplement_request.due_at) : '—'}</div>
               <Link to={`/doi-chieu/${loanId}`}>Tải tài liệu bổ sung</Link>
             </>} />
         )}

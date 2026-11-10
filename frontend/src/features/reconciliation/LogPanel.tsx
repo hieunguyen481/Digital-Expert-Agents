@@ -1,9 +1,10 @@
+import { fmtDayTime } from '@/utils/format';
 import { Table } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { fetchReconLog } from './reconciliationService';
 import styles from './reconciliation.module.css';
 
-const fmt = (iso: string) => new Date(iso).toLocaleString('vi-VN');
+const fmt = (iso: string) => fmtDayTime(iso);
 
 /** Nhật ký chỉ đọc: backend chỉ cho thêm dòng, không sửa hay xóa. */
 export function LogPanel({ loanId }: { loanId: string }) {
