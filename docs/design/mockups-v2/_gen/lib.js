@@ -21,7 +21,7 @@ const ic=(k,cls)=>cls?IC[k].replace('<svg ',`<svg class="${cls}" `):IC[k];
 // Tên vai khớp UI_ROLE_LABEL trong frontend/src/auth/roleFromMe.ts (6 vai nghiệp vụ; Quản trị chỉ có trang Quản trị)
 const ROLES={
  rm:{n:'Nguyễn Minh Anh',t:'Chuyên viên QHKH',i:'NA'},htd:{n:'Lê Thu Hà',t:'Hỗ trợ tín dụng',i:'LH'},td:{n:'Phạm Quốc Bảo',t:'Chuyên viên Thẩm định',i:'PB'},
- risk:{n:'Trần Đức Long',t:'Quản lý rủi ro/Tuân thủ',i:'TL'},app:{n:'Đỗ Thanh Tùng',t:'Cấp phê duyệt',i:'DT'},aud:{n:'Ngô Bích Ngọc',t:'Kiểm toán nội bộ',i:'NN'},
+ risk:{n:'Trần Đức Long',t:'Quản lý rủi ro/Tuân thủ',i:'TL'},app:{n:'Đỗ Thanh Tùng',t:'Cấp phê duyệt',i:'DT'},aud:{n:'Ngô Bích Ngọc',t:'Kiểm toán nội bộ',i:'NN'},adm:{n:'Võ Hoàng Nam',t:'Quản trị hệ thống',i:'VN'},
 };
 const QH='<abbr title="Quan hệ khách hàng">QHKH</abbr>';
 // --- một danh sách agent dùng chung (khớp agent_engine và AgentTeamPanel)
@@ -35,10 +35,20 @@ const AGENTS=[
  {k:'validation',n:'Validation',r:'Kiểm chứng chéo, phản biện',ms:3800,calls:1},
 ];
 const A=Object.fromEntries(AGENTS.map(a=>[a.k,a]));
+// Thời gian từng agent theo TỪNG hồ sơ (mỗi lượt chạy một bộ riêng). Tổng = Planner + nhánh chậm nhất của 4 agent + Validation (4 agent chạy song song)
+const CASES={
+ pl:{id:'HSV-2026-00201',ms:{planner:2100,credit:7700,compliance:6300,operations:5100,document:9500,validation:3800}},
+ sh:{id:'HSV-2026-00194',ms:{planner:2400,credit:8900,compliance:5500,operations:6100,document:7200,validation:4200}},
+ hd:{id:'HSV-2026-00203',ms:{planner:1800,credit:6400,compliance:8200,operations:4700,document:5900,validation:3100}},
+ dn:{id:'HSV-2026-00192',ms:{planner:1900,credit:7300,compliance:9100,operations:5600,document:6800,validation:3500}},
+};
+const msOf=(k,c='pl')=>CASES[c].ms[k];
+const totOf=(c='pl')=>{const m=CASES[c].ms;return m.planner+Math.max(m.credit,m.compliance,m.operations,m.document)+m.validation;};
+const fmtT=ms=>(ms/1000).toFixed(1).replace('.',',');
 const fmtS=ms=>(ms/1000).toFixed(1).replace('.',',')+' giây';
 const STT={idle:['','Chưa chạy'],run:['ai','Đang chạy'],done:['ok','Xong'],err:['bad','Lỗi'],to:['bad','Quá giờ']};
-function fn(k,st,note,h){const a=A[k];const [bc,bt]=STT[st];const cls=st==='to'?'err':st;
- const badge=`<span class="stt badge ${bc}">${bt}</span>`;const tm=st==='done'?`<span class="tm">${fmtS(a.ms)}</span>`:'';
+function fn(k,st,note,h,c){const a=A[k];const [bc,bt]=STT[st];const cls=st==='to'?'err':st;
+ const badge=`<span class="stt badge ${bc}">${bt}</span>`;const tm=st==='done'?`<span class="tm">${fmtS(msOf(k,c))}</span>`:'';
  if(h)return `<div class="fn h ${cls}"><div><b>${a.n}</b><span class="rl">${note||a.r}</span></div><div class="rt">${badge}${tm}</div></div>`;
  return `<div class="fn ${cls}">${badge}<b>${a.n}</b><span class="rl">${note||a.r}</span>${tm}</div>`;}
 const Y=[12.5,37.5,62.5,87.5];
@@ -48,9 +58,9 @@ const fanIn=`<svg viewBox="0 0 32 100" preserveAspectRatio="none" aria-hidden="t
 function team(states,opt={}){
  const s=k=>states[k]||'idle';
  const note=opt.notes||{};
- const flow=`<div class="flow ${opt.sm?'sm':''}"><div class="one">${fn('planner',s('planner'),note.planner)}</div><div class="cx">${fanOut}</div>
- <div class="col">${['credit','compliance','operations','document'].map(k=>`<div>${fn(k,s(k),note[k],1)}</div>`).join('')}</div><div class="cx">${fanIn}</div>
- <div class="one">${fn('validation',s('validation'),note.validation)}</div></div>`;
+ const flow=`<div class="flow ${opt.sm?'sm':''}"><div class="one">${fn('planner',s('planner'),note.planner,0,opt.c)}</div><div class="cx">${fanOut}</div>
+ <div class="col">${['credit','compliance','operations','document'].map(k=>`<div>${fn(k,s(k),note[k],1,opt.c)}</div>`).join('')}</div><div class="cx">${fanIn}</div>
+ <div class="one">${fn('validation',s('validation'),note.validation,0,opt.c)}</div></div>`;
  return `<div class="teamrow" role="group" aria-label="Sơ đồ đội agent: Planner giao việc cho Credit, Compliance, Operations và Document chạy song song, sau đó Validation kiểm chứng"><div style="padding:var(--s1) 0">${flow}</div></div>`;
 }
 // Người quyết định luôn nằm NGOÀI khối AI: đặt ngay sau khối AI, trong .hwrap; mũi tên liền navy đi qua mép khung nét đứt
@@ -58,34 +68,45 @@ function humanOut(opt={}){
  return `<div class="hdown" aria-hidden="true"></div><div class="hnode ${opt.wait?'wait':''}"><span class="tag-hm">Người quyết định</span><b>${opt.who||'Cấp phê duyệt'}</b><span class="rl">${opt.note||'AI chỉ đề xuất, không tự phê duyệt'}</span></div>`;
 }
 const hwrap=(aiHtml,opt)=>`<div class="hwrap">${aiHtml}${humanOut(opt)}</div>`;
-// Sơ đồ gọn một dải (màn đầu của hồ sơ): Planner → 4 agent song song → Validation
-function teamLine(states,notes={}){
- const s=k=>states[k]||'idle';
- const p=(k)=>{const a=A[k],st=s(k);const cls=st==='to'?'err':st;const lbl={idle:'Chưa chạy',run:'Đang chạy',done:fmtS(a.ms),err:'Lỗi',to:'Quá giờ'}[st];
-  return `<div class="fn ${cls}"><b>${a.n}</b><span class="rl">${notes[k]||lbl}</span></div>`;};
- return `<div class="tline" role="group" aria-label="Đội agent tóm tắt: Planner, bốn agent song song Credit, Compliance, Operations, Document, rồi Validation">${p('planner')}<span class="arr" aria-hidden="true">→</span><div class="grp4">${['credit','compliance','operations','document'].map(p).join('')}</div><span class="arr" aria-hidden="true">→</span>${p('validation')}</div>`;
+// ===== THÀNH PHẦN "ĐỘI AGENT" DUY NHẤT, 3 biến thể: full (cây), compact (một dòng), strip (dải). Thứ tự luôn: Planner → 4 agent song song → Validation → người (ngoài khung AI)
+function agentTeam(states,o={}){
+ const v=o.v||'full',c=o.c||'pl';const s=k=>states[k]||'idle';const notes=o.notes||{};
+ const hm=o.human===false?'':`<div class="at-hm"><span class="arr" aria-hidden="true">→</span><span class="hn">${o.who||'Cấp phê duyệt'}</span><span>${o.hnote||'Người quyết định, ngoài khung AI'}</span></div>`;
+ const lbl=(k,st)=>({idle:'Chưa chạy',run:'Đang chạy',done:fmtS(msOf(k,c)),err:'Lỗi',to:'Quá giờ'}[st]);
+ const allDone=AGENTS.every(a=>s(a.k)==='done');
+ const label='Đội agent: Planner giao việc cho Credit, Compliance, Operations và Document chạy song song, Validation kiểm chứng, rồi chuyển người quyết định';
+ if(v==='full'){return `<div class="at at-full" role="group" aria-label="${label}">${team(states,{c,notes,sm:o.sm})}${hm}</div>`;}
+ if(v==='compact'){
+  const ch=k=>{const st=s(k);const cl=st==='to'?'err':st;return `<span class="c ${cl}" title="${A[k].n}: ${notes[k]||lbl(k,st)}"><i></i><b>${A[k].n}</b></span>`;};
+  const tot=allDone?`<span class="tot">${fmtT(totOf(c))} giây</span>`:'';
+  return `<div class="at at-compact" role="group" aria-label="${label}"><div class="at-frame">${ch('planner')}<span class="arr" aria-hidden="true">→</span>${['credit','compliance','operations','document'].map(ch).join('')}<span class="arr" aria-hidden="true">→</span>${ch('validation')}${tot}</div>${hm}</div>`;
+ }
+ const p=(k)=>{const st=s(k);const cls=st==='to'?'err':st;return `<div class="fn ${cls}" title="${A[k].n}: ${A[k].r}"><b>${A[k].n}</b><span class="rl">${notes[k]||lbl(k,st)}</span></div>`;};
+ return `<div class="at at-strip" role="group" aria-label="${label}"><div class="at-frame">${p('planner')}<span class="arr" aria-hidden="true">→</span><div class="g4">${['credit','compliance','operations','document'].map(p).join('')}</div><span class="arr" aria-hidden="true">→</span>${p('validation')}</div>${hm}</div>`;
 }
+const teamLine=(states,notes,o={})=>agentTeam(states,{v:'strip',notes:notes||{},...o});
 const tagAI=`<span class="tag-ai">${ic('spark')}AI đề xuất</span>`;
 const tagHM='<span class="tag-hm">Người quyết định</span>';
 const tagMe=(t='Việc của bạn')=>`<span class="tag-me">${t}</span>`;
 // Điều hướng theo vai: khớp RAIL_ITEMS trong frontend/src/features/shell/navigation.ts (nhãn thật của code). Badge theo rules.md mục C: qhkh 4 · httd 3 · tdinh 3 · ruiro 2 · pheduyet 3.
 const BADGE={rm:4,htd:3,td:3,risk:2,app:3,aud:0};
-const I_={viec:'inbox',tao:'plus',kh:'users',dc:'cols',cs:'book',chat:'chat',ds:'chart',nk:'audit',hd:'users'};
+const I_={qt:'users',tb:'inbox',viec:'inbox',tao:'plus',kh:'users',dc:'cols',cs:'book',chat:'chat',ds:'chart',nk:'audit',hd:'users'};
 const it=(k,l,h)=>({k,l,h,i:I_[k]});
-const COMMON=[it('cs','Tra cứu chính sách','20-tra-cuu-chinh-sach.html'),it('chat','Trò chuyện','09-chat.html'),it('ds','Bảng điều khiển agent','06-dashboard-tong-quan.html')];
+const COMMON=[it('cs','Tra cứu chính sách','20-tra-cuu-chinh-sach.html'),it('ds','Đội agent','06-dashboard-tong-quan.html')];
 const NAVR={
  rm:[it('viec','Việc của tôi','02-viec-cua-toi.html'),it('tao','Tạo đề xuất vay','17-tao-de-xuat-vay.html'),it('kh','Khách hàng SME','18-khach-hang.html'),...COMMON],
- htd:[it('viec','Việc của tôi','24-thanh-ben-theo-vai.html#htd'),it('dc','Đối chiếu tài liệu','19-doi-chieu-danh-sach.html'),it('kh','Khách hàng SME','18-khach-hang.html'),...COMMON],
- td:[it('viec','Việc của tôi','24-thanh-ben-theo-vai.html#td'),it('dc','Đối chiếu tài liệu','19-doi-chieu-danh-sach.html'),it('kh','Khách hàng SME','18-khach-hang.html'),...COMMON],
- risk:[it('viec','Hồ sơ chờ ý kiến','24-thanh-ben-theo-vai.html#risk'),it('kh','Khách hàng SME','18-khach-hang.html'),...COMMON],
- app:[it('viec','Hồ sơ chờ phê duyệt','02b-viec-cua-toi-phe-duyet.html'),it('hd','Phiên Hội đồng tín dụng','24-thanh-ben-theo-vai.html#hd'),...COMMON],
- aud:[it('viec','Hồ sơ vay – chỉ đọc','24-thanh-ben-theo-vai.html#aud'),it('nk','Nhật ký kiểm toán','10-nhat-ky.html'),it('hd','Phiên Hội đồng tín dụng – chỉ đọc','24-thanh-ben-theo-vai.html#hd'),...COMMON],
+ htd:[it('viec','Việc của tôi','27-viec-cua-toi-htd.html'),it('dc','Đối chiếu tài liệu','19-doi-chieu-danh-sach.html'),it('kh','Khách hàng SME','18-khach-hang.html'),...COMMON],
+ td:[it('viec','Việc của tôi','28-viec-cua-toi-tham-dinh.html'),it('dc','Đối chiếu tài liệu','19-doi-chieu-danh-sach.html'),it('kh','Khách hàng SME','18-khach-hang.html'),...COMMON],
+ risk:[it('viec','Hồ sơ chờ ý kiến','29-ho-so-cho-y-kien.html'),it('kh','Khách hàng SME','18-khach-hang.html'),...COMMON],
+ app:[it('viec','Hồ sơ chờ phê duyệt','02b-viec-cua-toi-phe-duyet.html'),it('hd','Phiên Hội đồng tín dụng','31-phien-hoi-dong.html'),...COMMON],
+ adm:[it('qt','Quản trị','34-quan-tri.html'),it('tb','Thông báo','33-thong-bao.html')],
+ aud:[it('viec','Hồ sơ vay – chỉ đọc','30-ho-so-chi-doc-kiem-toan.html'),it('nk','Nhật ký kiểm toán','10-nhat-ky.html'),it('hd','Phiên Hội đồng tín dụng – chỉ đọc','31-phien-hoi-dong.html'),...COMMON],
 };
 function navHtml(role,active,ai){
  const list=NAVR[role]||NAVR.rm;
  const row=x=>`<a href="${x.h}" ${active===x.k?'aria-current="page"':''}>${ic(x.i)}<span>${x.l}</span>${x.k==='viec'&&BADGE[role]?`<span class="cnt" aria-label="${BADGE[role]} hồ sơ chờ bạn">${BADGE[role]}</span>`:''}</a>`;
  const n=list.length;
- return `<div class="role">${ROLES[role].t}</div>`+list.slice(0,n-3).map(row).join('')+`<div class="sep" role="separator"></div>`+list.slice(n-3).map(row).join('')+`<a href="25-panel-ai-mo.html" ${active==='ai'?'aria-current="page"':''}>${ic('spark')}<span>Trợ lý AI</span></a>`;
+ return `<div class="role">${ROLES[role].t}</div>`+list.slice(0,role==="adm"?n:n-2).map(row).join('')+`<div class="sep" role="separator"></div>`+list.slice(role==="adm"?n:n-2).map(row).join('')+`<a href="09-chat.html" ${active==='ai'?'aria-current="page"':''}>${ic('spark')}<span>Trợ lý AI</span></a>`;
 }
 function demoStrip(role,open){
  const r=ROLES[role]||ROLES.rm;
@@ -117,4 +138,4 @@ const ill=(k)=>{const base='<rect x="26" y="12" width="80" height="72" rx="4" fi
  clock:'<circle cx="100" cy="68" r="17" fill="#DCE7F6" stroke="#1D4F91"/><path d="M100 58v10l7 4" stroke="#1D4F91" stroke-width="3"/>'}[k];
  return `<svg class="ill" viewBox="0 0 132 96" fill="none" stroke="#14284B" stroke-width="2" stroke-linecap="round" role="img" aria-label="Minh họa">${base}${ex}</svg>`;};
 const page=(f,t)=>fs.writeFileSync(path.join(OUT,f),t);
-module.exports={fs,OUT,IC,ic,QH,tagMe,humanOut,hwrap,teamLine,BADGE,NAVR,ROLES,AGENTS,A,fmtS,team,fn,tagAI,tagHM,shell,ph,meta,btn,locked,stepper,kpi,ill,page,demoStrip};
+module.exports={agentTeam,CASES,msOf,totOf,fmtT,fs,OUT,IC,ic,QH,tagMe,humanOut,hwrap,teamLine,BADGE,NAVR,ROLES,AGENTS,A,fmtS,team,fn,tagAI,tagHM,shell,ph,meta,btn,locked,stepper,kpi,ill,page,demoStrip};

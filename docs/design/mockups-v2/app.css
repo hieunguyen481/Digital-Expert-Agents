@@ -38,14 +38,14 @@ p{margin:0} a{color:var(--navy-500);text-decoration:none} a:hover{text-decoratio
 .side .foot{margin-top:auto;font-size:var(--fs-12);color:#9DB0D1;padding:var(--s2)}
 .main{min-width:0;display:flex;flex-direction:column}
 .top{height:var(--topbar-h);display:flex;align-items:center;gap:var(--s4);padding:0 var(--s8);border-bottom:1px solid var(--rule);background:var(--paper);position:sticky;top:0;z-index:5}
-.search{flex:1;max-width:460px;display:flex;align-items:center;gap:var(--s2);background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-md);padding:0 var(--s3);height:34px;color:var(--ink-3);font-size:var(--fs-13)}
+.search{flex:1;max-width:460px;display:flex;align-items:center;gap:var(--s2);background:var(--surface);border:1px solid var(--control);border-radius:var(--r-md);padding:0 var(--s3);height:34px;color:var(--ink-3);font-size:var(--fs-13)}
 .search svg{width:16px;height:16px} .search kbd{margin-left:auto;font:500 12px var(--font-num);border:1px solid var(--rule);border-radius:3px;padding:0 5px}
 .user{margin-left:auto;display:flex;align-items:center;gap:var(--s3)}
 .user .who{text-align:right;line-height:1.25} .user .who b{display:block;font-size:var(--fs-13);font-weight:600} .user .who span{font-size:var(--fs-12);color:var(--ink-3)}
 .avatar{width:32px;height:32px;border-radius:50%;background:var(--navy-700);color:#fff;display:grid;place-items:center;font:600 12px var(--font-body)}
 .bell{position:relative;width:34px;height:34px;border-radius:var(--r-md);border:1px solid var(--rule);display:grid;place-items:center;background:var(--surface)} .bell svg{width:17px;height:17px}
 .bell i{position:absolute;top:5px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--danger-700);border:2px solid var(--surface)}
-.page{padding:var(--s8) var(--s8) var(--s12);max-width:1480px;width:100%} .page.narrow{max-width:1280px} #main:focus{outline:none}
+.page{padding:var(--s8) var(--s8) var(--s12);max-width:1480px;width:100%;margin-inline:auto} .page.narrow{max-width:1280px} #main:focus{outline:none}
 .crumbs{font-size:var(--fs-12);color:var(--ink-3);margin-bottom:var(--s2)} .crumbs a{color:var(--ink-3)}
 .ph{display:flex;align-items:flex-end;gap:var(--s4);margin-bottom:var(--s6);padding-bottom:var(--s4);border-bottom:3px double var(--rule-strong)} .ph .sub{color:var(--ink-3);margin-top:var(--s1);font-size:var(--fs-13)} .ph .act{margin-left:auto;display:flex;gap:var(--s2)}
 /* nút */
@@ -284,11 +284,11 @@ abbr[title]{text-decoration:underline dotted;text-underline-offset:3px;cursor:he
 .dossier.closed{grid-template-columns:184px minmax(0,1fr) 44px}
 .dossier .toc{position:sticky;top:calc(var(--topbar-h) + var(--s4));display:grid;gap:2px;font-size:var(--fs-13)}
 .dossier .toc a{display:block;padding:7px var(--s3);border-radius:var(--r-md);color:var(--ink-2);min-height:32px} .dossier .toc a[aria-current=true]{background:var(--navy-50);box-shadow:inset 3px 0 0 var(--navy-700);color:var(--navy-900);font-weight:600} .dossier .toc a:hover{background:var(--paper-2);text-decoration:none}
-@media (max-width:1359px){.dossier:not(.closed){grid-template-columns:minmax(0,1fr) 360px}.dossier:not(.closed) .toc{display:none}}
+@media (max-width:1439px){.dossier:not(.closed){grid-template-columns:minmax(0,1fr) 360px}.dossier:not(.closed) .toc{display:none}}
 @media (max-width:1100px){.dossier,.dossier.closed{grid-template-columns:1fr}.dossier .toc{display:none}}
 .aipanel{border:1.5px dashed var(--ai-500);background:var(--ai-50);border-radius:var(--r-md);display:flex;flex-direction:column;position:sticky;top:calc(var(--topbar-h) + var(--s4));max-height:calc(100vh - var(--topbar-h) - var(--demo-h) - var(--s8));overflow:hidden}
 .aipanel .scroll{padding:var(--s4);overflow:auto;display:grid;gap:var(--s3);align-content:start}
-.aitab{writing-mode:vertical-rl;border:1.5px dashed var(--ai-500);background:var(--ai-50);color:var(--ai-700);border-radius:var(--r-md);padding:var(--s4) 0;font:600 var(--fs-13) var(--font-body);min-height:140px;width:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:var(--s2);position:sticky;top:calc(var(--topbar-h) + var(--s4))}
+.aitab{border:1.5px dashed var(--ai-500);background:var(--ai-50);color:var(--ai-700);border-radius:var(--r-md);padding:var(--s4) 0;font:600 var(--fs-13) var(--font-body);min-height:140px;width:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:var(--s2);position:sticky;top:calc(var(--topbar-h) + var(--s4))}
 .aitab svg{width:16px;height:16px;transform:rotate(90deg)}
 .xs-scroll{overflow-x:auto}
 .timeline-compact .tl li{padding-bottom:var(--s3)}
@@ -307,3 +307,36 @@ abbr[title]{text-decoration:underline dotted;text-underline-offset:3px;cursor:he
 .dossier .tline .grp4{flex:1 1 100%;grid-template-columns:repeat(2,minmax(0,1fr));border:0;border-top:2px dashed var(--ai-500);border-bottom:2px dashed var(--ai-500);padding:var(--s2) 0}
 .dossier .tline .arr{display:none}
 .dossier .tline>.fn{flex:1 1 40%}
+
+/* ===== v2.3 ===== */
+/* Panel AI đóng: nút biểu tượng ngang, nhãn qua title và aria-label (không dùng chữ dọc) */
+.aitab{min-height:44px;width:44px;padding:0;writing-mode:horizontal-tb}
+.aitab svg{transform:none;width:20px;height:20px}
+/* Thành phần Đội agent duy nhất, 3 biến thể: full (cây), compact (một dòng), strip (dải). Người luôn nằm NGOÀI khung nét đứt */
+.at{display:grid;gap:var(--s2);min-width:0}
+.at-frame{border:1.5px dashed var(--ai-500);border-radius:var(--r-md);padding:var(--s2);background:transparent;min-width:0}
+.at-hm{display:flex;align-items:center;gap:var(--s2);font-size:var(--fs-12);color:var(--ink-2)}
+.at-hm .arr{color:var(--navy-700);font-weight:700}
+.at-hm .hn{border:1px solid var(--navy-700);border-left:5px solid var(--navy-700);border-radius:var(--r-md);padding:2px var(--s3);background:var(--surface);font-weight:600;color:var(--navy-900);font-size:var(--fs-12)}
+.at-strip .at-frame{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,2fr) auto minmax(0,1fr);gap:var(--s2);align-items:center}
+.at-strip .g4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.at-strip .fn{padding:6px 8px;display:block} .at-strip .fn b{font-size:var(--fs-12)} .at-strip .fn .rl{font-size:var(--fs-12);margin:0;white-space:nowrap}
+.at-strip .arr,.at-compact .arr{color:var(--ai-700);font-weight:700}
+.at-compact .at-frame{display:flex;flex-wrap:wrap;gap:6px var(--s2);align-items:center;padding:6px var(--s3);font-size:var(--fs-12)}
+.at-compact .c{display:inline-flex;gap:6px;align-items:center;white-space:nowrap} .at-compact .c i{width:8px;height:8px;border-radius:50%;background:var(--ok-700)} .at-compact .c.run i{background:var(--ai-500)} .at-compact .c.err i{background:var(--danger-700)} .at-compact .c.idle i{background:var(--control)}
+.at-compact .tot{margin-left:auto;font-family:var(--font-num);color:var(--ink-2)}
+.at-full .flow{padding:var(--s1) 0}
+/* Khối người (tờ trình, ý kiến): viền liền, không nét đứt */
+.hmb .doc7{display:grid;gap:var(--s3)} .doc7 dt{font-weight:600;font-size:var(--fs-13)} .doc7 dd{margin:0 0 0;font-size:var(--fs-13);color:var(--ink-2)}
+.sgn{font-size:var(--fs-12);color:var(--ink-2);display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
+.condlist{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2)} .condlist li{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:var(--s2)}
+.condlist .input{min-height:32px}
+.memo7{display:grid;gap:var(--s4)} .memo7 .it{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:var(--s4);border-top:1px solid var(--rule);padding-top:var(--s3)} .memo7 .it h3{font:600 var(--fs-14) var(--font-body);margin-bottom:6px}
+.memo7 .ai{border:1.5px dashed var(--ai-500);background:var(--ai-50);border-radius:var(--r-md);padding:var(--s3);font-size:var(--fs-13)}
+.memo7 .ai .tag-ai{margin-bottom:6px}
+.t-link{text-decoration:underline;text-underline-offset:2px}
+td a.id,td .id a,.tbl a{text-decoration:underline;text-underline-offset:2px}
+.tbl .name a{text-decoration:none} .tbl .name a:hover{text-decoration:underline}
+.lockline{display:flex;gap:var(--s2);align-items:flex-start;font-size:var(--fs-12);color:var(--ink-2)} .lockline svg{width:14px;height:14px;flex:none;margin-top:2px}
+.ghost-note{font-size:var(--fs-12);color:var(--ink-3)}
+@media (max-width:1100px){.at-strip .at-frame{grid-template-columns:1fr}.memo7 .it{grid-template-columns:1fr}}
