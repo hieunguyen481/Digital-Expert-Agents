@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 from datetime import date, datetime
 
-from . import mcp_client, recompute
+from . import config, mcp_client, recompute
 
 CIC_VALID_DAYS = 30  # CS-TD-SME/2025 §6.3; rules.md Q10: hiệu lực đến hết ngày tra cứu + 29
 
@@ -104,8 +104,11 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
     dscr = (latest.get("reported_ratios") or {}).get("dscr")
     if dscr and dscr["value"] < 1.0:
         hard_stops.append(f"DSCR {dscr['value']:.2f} < 1,0: không đủ khả năng trả nợ")
-    elif dscr and dscr["value"] < 1.25:
-        breaches.append(f"DSCR {dscr['value']:.2f} dưới ngưỡng 1,25 (CS-TD-SME/2025 §4.2)")
+    elif dscr and dscr["value"] < config.DSCR_MIN:
+        breaches.append(f"DSCR {dscr['value']:.2f} dưới ngưỡng {config.DSCR_MIN:g} (CS-TD-SME/2025 §4.2)")
+    dscr_line = ([f"DSCR chính thức của hồ sơ = {dscr['value']:.2f} (số đã ghi, trạng thái {dscr['status']}; ngưỡng "
+                  f"{config.DSCR_MIN:g}, CS-TD-SME/2025 §4.2). Chỉ dùng số này làm DSCR; các số tính lại ở cảnh báo chỉ để đối chiếu, "
+                  "không coi là DSCR khác"] if dscr else [])
     # Trường phụ: không chặn, nêu thành điều kiện bổ sung trước giải ngân (rules.md Q7)
     if fin and not dscr:
         ancillary.append("DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ")
@@ -114,7 +117,7 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
     if latest.get("data_note"):
         ancillary.append(str(latest["data_note"]))
     return {"amount": amount, "has_collateral_data": bool(cols), "collateral": col, "exposure": exp, "leverage": lev,
-            "lines": recompute.describe(col, exp, lev, amount) + conflicts, "blockers": blockers, "breaches": breaches,
+            "lines": recompute.describe(col, exp, lev, amount) + dscr_line + conflicts, "blockers": blockers, "breaches": breaches,
             "hard_stops": hard_stops, "ancillary": ancillary, "raw": raw}
 
 

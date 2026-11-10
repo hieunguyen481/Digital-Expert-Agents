@@ -76,9 +76,11 @@ APPROVAL_TOKEN_TTL_SECONDS = int(os.getenv("APPROVAL_TOKEN_TTL_SECONDS", "900"))
 MAX_REPLAN_ROUNDS = int(os.getenv("MAX_REPLAN_ROUNDS", "2"))
 MAX_CHALLENGE_ROUNDS = int(os.getenv("MAX_CHALLENGE_ROUNDS", "2"))
 APPROVAL_SLA_SECONDS = int(os.getenv("APPROVAL_SLA_SECONDS", "60"))  # rút ngắn để demo
-LTV_MAX = float(os.getenv("LTV_MAX", "0.70"))
+# Ngưỡng chính sách là hằng số theo CS-TD-SME/2025 (§7.1, §4.2), KHÔNG đọc từ biến môi trường: .env cũ ghi 1,20 từng làm
+# agent nêu sai ngưỡng DSCR (L16). Đổi chính sách = đổi mã/corpus kèm POLICY_VERSION.
+LTV_MAX = 0.70
 # Q-R: CS-TD-SME/2025 là chuẩn (DSCR >= 1,25); rag_corpus/credit_policy.md (ghi 1,2) không còn là nguồn.
-DSCR_MIN = float(os.getenv("DSCR_MIN", "1.25"))
+DSCR_MIN = 1.25
 
 # ---- Danh tính & dữ liệu thật (Postgres) ----
 # Engine nối bằng role bank_app rồi SET LOCAL ROLE bank_engine (không BYPASSRLS) cho từng lời gọi.

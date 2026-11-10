@@ -13,6 +13,8 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
+from . import thresholds
+
 
 def new_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:12]}"
@@ -169,7 +171,7 @@ class Verdict(BaseModel):
             return out
 
         def _plain(t) -> str:
-            return plain_text(str(t))
+            return thresholds.enforce(plain_text(str(t)))
 
         try:
             decision = VerdictDecision(str(result.get("decision", "need_more_info")).lower())
