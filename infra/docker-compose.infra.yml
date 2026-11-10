@@ -204,7 +204,8 @@ services:
       MINIO_PROMETHEUS_AUTH_TYPE: public
       # Community MinIO supports CORS at server level; per-bucket CORS is an
       # AIStor-only API in the pinned release.
-      MINIO_API_CORS_ALLOW_ORIGIN: http://localhost:3000
+      # 3000 = web demo, 3100/3200 = e2e song song; phân cách dấu phẩy.
+      MINIO_API_CORS_ALLOW_ORIGIN: http://localhost:3000,http://localhost:3100,http://localhost:3200
       # The S3 AbortIncompleteMultipartUpload lifecycle action is unsupported
       # by MinIO; use its server-wide stale multipart cleanup instead.
       MINIO_API_STALE_UPLOADS_EXPIRY: 24h

@@ -107,14 +107,18 @@
       "frontchannelLogout": true,
       "protocol": "openid-connect",
       "redirectUris": [
-        "http://localhost:3000/*"
+        "http://localhost:3000/*",
+        "http://localhost:3100/*",
+        "http://localhost:3200/*"
       ],
       "webOrigins": [
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "http://localhost:3100",
+        "http://localhost:3200"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:3000/*"
+        "post.logout.redirect.uris": "http://localhost:3000/*##http://localhost:3100/*##http://localhost:3200/*"
       },
       "fullScopeAllowed": true,
       "protocolMappers": [
