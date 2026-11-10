@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import email
+import smtplib
 from email import policy
 from uuid import uuid4
 
@@ -80,12 +81,24 @@ class FakeSmtp:
 
 
 class MemStore:
-    def __init__(self, rows) -> None:
+    def __init__(self, rows, sent_last_hour: int = 0) -> None:
         self.rows, self.done = list(rows), {}
+        self.deferred, self.released_calls, self.sent_last_hour, self.claimed_batch = {}, 0, sent_last_hour, None
 
     async def claim(self, worker, batch):
-        rows, self.rows = self.rows, []
+        self.claimed_batch = batch
+        rows, self.rows = self.rows[:batch], self.rows[batch:]
         return rows
+
+    async def release_stale(self):
+        self.released_calls += 1
+        return 0
+
+    async def sent_in_last_hour(self):
+        return self.sent_last_hour
+
+    async def defer(self, delivery_id, until, error):
+        self.deferred[delivery_id] = (until, error)
 
     async def finish(self, delivery_id, ok, error):
         self.done[delivery_id] = (ok, error)
@@ -154,3 +167,45 @@ async def test_failure_is_reported_and_no_duplicate_send() -> None:
 def test_send_smtp_unreachable_raises() -> None:
     with pytest.raises(OSError):
         send_smtp(build_message(ROW, cfg(port=1)), cfg(port=1, timeout_seconds=1))
+
+
+def test_sending_is_off_by_default() -> None:
+    assert not EmailSettings.from_env({"SMTP_APP_PASSWORD": "abcd efgh ijkl mnop"}).enabled
+    on = EmailSettings.from_env({"SMTP_APP_PASSWORD": "x", "EMAIL_SEND_ENABLED": "true"})
+    assert on.enabled and on.max_per_hour == 20
+    assert not EmailSettings.from_env({"EMAIL_SEND_ENABLED": "true"}).enabled  # thiếu mật khẩu
+
+
+@pytest.mark.asyncio
+async def test_hourly_cap_limits_batch_and_stops_at_cap() -> None:
+    rows = [{**ROW, "id": uuid4()} for _ in range(5)]
+    sent_ids: list = []
+    store = MemStore(rows, sent_last_hour=18)
+    worker = EmailWorker(store, cfg(max_per_hour=20), sender=lambda m, c: sent_ids.append(m["Message-ID"]))
+    assert await worker.run_once() == 2 and store.claimed_batch == 2
+    full = MemStore(rows, sent_last_hour=20)
+    assert await EmailWorker(full, cfg(max_per_hour=20), sender=lambda m, c: sent_ids.append("x")).run_once() == 0
+    assert full.claimed_batch is None and len(sent_ids) == 2  # chạm trần thì không claim, không gọi SMTP
+
+
+@pytest.mark.asyncio
+async def test_stale_processing_rows_are_released_each_round() -> None:
+    store = MemStore([])
+    await EmailWorker(store, cfg(), sender=lambda m, c: None).run_once()
+    assert store.released_calls == 1
+
+
+@pytest.mark.asyncio
+async def test_quota_error_defers_batch_and_pauses_instead_of_hammering_smtp() -> None:
+    rows = [{**ROW, "id": uuid4()} for _ in range(3)]
+    calls: list = []
+
+    def limit(msg, c):
+        calls.append(1)
+        raise smtplib.SMTPDataError(550, b"5.4.5 Daily user sending limit exceeded")
+
+    store = MemStore(rows)
+    worker = EmailWorker(store, cfg(quota_pause_seconds=3600), sender=limit)
+    assert await worker.run_once() == 0
+    assert len(calls) == 1 and set(store.deferred) == {r["id"] for r in rows} and not store.done
+    assert await worker.run_once() == 0 and len(calls) == 1  # đang nghỉ: không gọi SMTP, không claim thêm

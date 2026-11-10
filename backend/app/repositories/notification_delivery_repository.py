@@ -6,6 +6,7 @@ Mỗi bản ghi có người nhận, loại, tiêu đề, nội dung, ``link_pat
 
 from __future__ import annotations
 
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,4 +32,27 @@ class NotificationDeliveryRepository:
             self.session,
             "SELECT integration.finish_notification_delivery(:id, :ok, :error) AS done",
             {"id": delivery_id, "ok": ok, "error": error},
+        )
+
+    async def release_stale(self, channel: str, minutes: int = 5) -> int:
+        row = await execute_returning(
+            self.session,
+            "SELECT integration.release_stale_deliveries(:channel, make_interval(mins => :m)) AS n",
+            {"channel": channel, "m": minutes},
+        )
+        return int(row["n"]) if row else 0
+
+    async def sent_in_last_hour(self, channel: str) -> int:
+        row = await execute_returning(
+            self.session,
+            "SELECT integration.deliveries_sent_since(:channel, interval '1 hour') AS n",
+            {"channel": channel},
+        )
+        return int(row["n"]) if row else 0
+
+    async def defer(self, delivery_id: UUID, until: datetime, error: str | None = None) -> None:
+        await execute_returning(
+            self.session,
+            "SELECT integration.defer_notification_delivery(:id, :until, :error) AS done",
+            {"id": delivery_id, "until": until, "error": error},
         )

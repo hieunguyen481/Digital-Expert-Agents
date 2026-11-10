@@ -13,6 +13,8 @@ dc() {
     -f ../agent_engine/docker-compose.engine.yml "$@"
 }
 started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+# Tat cong tat hang gui email: thu sinh tu seed/reset khong vao hang gui (bat lai bang email-outbox.sh on sau khi xong).
+dc exec -T postgres psql -U postgres -d bank_ai -q -c "UPDATE integration.email_outbox_setting SET enabled = FALSE, updated_at = now()"
 dc exec -T postgres psql -U postgres -d bank_ai -v ON_ERROR_STOP=1 -q < database/demo/reset-demo-cleanup.sql
 dc --profile setup run --rm --no-deps db-seed > /tmp/reset-demo-seed.log 2>&1 || { tail -20 /tmp/reset-demo-seed.log >&2; exit 1; }
 # Seed chay lai sinh them ban sao thong bao giao viec cua ho so mau khac: giu ban som nhat cua moi (nguoi nhan, loai, noi dung, ho so) de so thong bao khong tang qua moi lan dat lai.

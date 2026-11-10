@@ -238,6 +238,10 @@ services:
       SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
       SMTP_USER: ${SMTP_USER:-lamdanh100@gmail.com}
       SMTP_APP_PASSWORD: ${SMTP_APP_PASSWORD:-}
+      # Mac dinh TAT: chi gui thu that khi dat EMAIL_SEND_ENABLED=true (va bat cong tat DB, xem infra/scripts/email-outbox.sh).
+      EMAIL_SEND_ENABLED: ${EMAIL_SEND_ENABLED:-false}
+      EMAIL_MAX_PER_HOUR: ${EMAIL_MAX_PER_HOUR:-20}
+      EMAIL_QUOTA_PAUSE_SECONDS: ${EMAIL_QUOTA_PAUSE_SECONDS:-3600}
       SMTP_FROM: ${SMTP_FROM:-lamdanh100@gmail.com}
       EMAIL_DEMO_REDIRECT_TO: ${EMAIL_DEMO_REDIRECT_TO-lamdanh100@gmail.com}
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
