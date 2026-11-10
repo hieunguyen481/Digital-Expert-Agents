@@ -1,31 +1,12 @@
-import { BellOutlined, LogoutOutlined, SearchOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import { LogoutOutlined, SearchOutlined } from '@ant-design/icons';
 import { Avatar, Dropdown } from 'antd';
 import { UI_ROLE_LABEL, type UiRole } from '@/auth/roleFromMe';
 import { logout } from '@/auth/keycloak';
-import apiClient from '@/services/apiClient';
 import type { Me } from '@/types/me';
+import { NotificationBell } from './NotificationBell';
 import styles from './shell.module.css';
 
-interface NotificationList {
-  meta: { total: number };
-}
-
-function useUnreadNotifications() {
-  return useQuery<boolean>({
-    queryKey: ['notifications', 'unread'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<NotificationList>('/notifications', {
-        params: { status: 'UNREAD', page_size: 1 },
-      });
-      return data.meta.total > 0;
-    },
-    refetchOnWindowFocus: true,
-  });
-}
-
 export function Topbar({ me, role }: { me: Me; role: UiRole }) {
-  const unread = useUnreadNotifications();
   const initials = me.full_name
     .split(/\s+/)
     .slice(-2)
@@ -46,10 +27,7 @@ export function Topbar({ me, role }: { me: Me; role: UiRole }) {
         />
       </label>
       <span className={styles.spacer} />
-      <span className={styles.bell} aria-label="Thông báo" role="img" title="Thông báo">
-        <BellOutlined />
-        {unread.data && <i className={styles.bellDot} data-testid="bell-dot" />}
-      </span>
+      <NotificationBell />
       <Dropdown
         trigger={['click']}
         menu={{

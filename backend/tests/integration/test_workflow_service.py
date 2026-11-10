@@ -219,6 +219,7 @@ class Case:
             " AND scope_id = $1",
             self.loan_id,
         )
+        await m.execute("DELETE FROM integration.notification WHERE resource_id = $1", self.loan_id)
         await m.execute("DELETE FROM credit.deadline_extension WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM credit.case_step WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM banking.credit_report WHERE customer_id = $1", self.customer_id)
@@ -972,3 +973,34 @@ async def test_withdraw_overdue_rejected_before_deadline_customer_allowed(
         engine, rm, case.loan_id, "withdraw", 1, reason="Khach rut", params={"withdraw_kind": "CUSTOMER"}
     )
     assert result.status == "WITHDRAWN"
+
+
+async def notifications_of(mig: asyncpg.Connection, loan_id: UUID) -> list[tuple[UUID, str]]:
+    rows = await mig.fetch(
+        "SELECT employee_id, notification_type FROM integration.notification"
+        " WHERE resource_id = $1 ORDER BY created_at, notification_type",
+        loan_id,
+    )
+    return [(r["employee_id"], r["notification_type"]) for r in rows]
+
+
+async def test_return_to_rm_notifies_rm_and_assignment_notifies_assignee(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="CHECKING")
+    await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    httd = await principal(mig, DOCUMENT_REVIEWER)
+    await transition(engine, httd, case.loan_id, "return_to_rm", 1, reason="Sai de xuat")
+    assert (CREDIT_OFFICER, "CASE_RETURNED") in await notifications_of(mig, case.loan_id)
+
+
+async def test_submit_notifies_checker_and_decision_notifies_rm(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="CHECKING")
+    await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    await mig.execute(
+        "UPDATE credit.loan_application SET status = 'APPROVED' WHERE id = $1", case.loan_id
+    )
+    sent = await notifications_of(mig, case.loan_id)
+    assert (CREDIT_OFFICER, "CASE_DECIDED") in sent
