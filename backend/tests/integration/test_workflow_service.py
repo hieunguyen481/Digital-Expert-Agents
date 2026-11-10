@@ -1018,8 +1018,14 @@ async def test_manager_reassigns_step_with_reason(
 async def test_notification_goes_through_delivery_outbox(
     mig: asyncpg.Connection, case: Case
 ) -> None:
-    await case.create(status="CHECKING")
-    await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    # V057: hàng gửi thư mặc định tắt; bật tạm trong test rồi trả về giá trị cũ.
+    was = await mig.fetchval("SELECT enabled FROM integration.email_outbox_setting")
+    await mig.execute("UPDATE integration.email_outbox_setting SET enabled = true")
+    try:
+        await case.create(status="CHECKING")
+        await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    finally:
+        await mig.execute("UPDATE integration.email_outbox_setting SET enabled = $1", was)
     rows = await mig.fetch(
         "SELECT d.* FROM integration.notification_delivery d JOIN integration.notification n ON n.id = d.notification_id"
         " WHERE n.resource_id = $1",
@@ -1038,6 +1044,71 @@ async def test_notification_goes_through_delivery_outbox(
     assert (failed["status"], failed["attempt_count"], failed["last_error"], failed["later"]) == ("PENDING", 1, "smtp down", True)
     await mig.execute("SELECT integration.finish_notification_delivery($1, true)", row["id"])
     assert await mig.fetchval("SELECT status FROM integration.notification_delivery WHERE id = $1", row["id"]) == "SENT"
+
+
+async def test_notification_not_queued_for_email_when_outbox_switch_off(
+    mig: asyncpg.Connection, case: Case
+) -> None:
+    """Email: công tắc tắt (mặc định) -> có thông báo trong ứng dụng nhưng không có dòng nào vào hàng gửi thư."""
+    was = await mig.fetchval("SELECT enabled FROM integration.email_outbox_setting")
+    await mig.execute("UPDATE integration.email_outbox_setting SET enabled = false")
+    try:
+        await case.create(status="CHECKING")
+        await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    finally:
+        await mig.execute("UPDATE integration.email_outbox_setting SET enabled = $1", was)
+    assert (DOCUMENT_REVIEWER, "CASE_ASSIGNED") in await notifications_of(mig, case.loan_id)
+    queued = await mig.fetchval(
+        "SELECT count(*) FROM integration.notification_delivery d JOIN integration.notification n"
+        " ON n.id = d.notification_id WHERE n.resource_id = $1", case.loan_id,
+    )
+    assert queued == 0
+
+
+async def test_return_reason_is_stored_on_rework_step_and_in_notification(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    """L02: lý do trả lại nằm trên bước RM_REWORK và trong nội dung thông báo cho QHKH."""
+    await case.create(status="CHECKING")
+    await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    httd = await principal(mig, DOCUMENT_REVIEWER)
+    await transition(engine, httd, case.loan_id, "return_to_rm", 1, reason="Sai de xuat vay")
+    assert (await open_step(mig, case.loan_id, "RM_REWORK"))["reason"] == "Sai de xuat vay"
+    message = await mig.fetchval(
+        "SELECT message FROM integration.notification WHERE resource_id = $1 AND employee_id = $2"
+        " AND notification_type = 'CASE_RETURNED'", case.loan_id, CREDIT_OFFICER,
+    )
+    assert "Sai de xuat vay" in message
+
+
+async def test_reject_decision_stores_no_approved_amount(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    """L04: quyết định Từ chối không lưu số tiền/kỳ hạn được duyệt dù người gọi gửi lên."""
+    await case.create(status="APPROVAL")
+    await case.add_step("APPROVAL", APPROVER_HO)
+    approver = await principal(mig, APPROVER_HO)
+    approver = CurrentPrincipal(
+        employee_id=approver.employee_id, subject=approver.subject, branch_id=approver.branch_id,
+        roles=approver.roles, permissions=frozenset({"loan:read", "loan:approve"}),
+    )
+    async with (
+        AsyncSession(engine) as session,
+        rls_transaction(session, approver.employee_id, approver.branch_id),
+    ):
+        audit = AuditService(AuditRepository(session))
+        loans = LoanService(
+            LoanRepository(session), audit, None, WorkflowService(WorkflowRepository(session), audit)
+        )
+        row = await loans.decide(
+            approver, case.loan_id, decision_type="REJECTED",
+            approved_amount=Decimal("5000000000"), approved_term_months=12, conditions=[],
+            rationale="Khong du dieu kien", approval_request_id=None, is_override=False,
+            override_reason=None,
+        )
+    assert row["decision_type"] == "REJECTED"
+    assert row["approved_amount"] is None and row["approved_term_months"] is None
+    assert tuple(await loan_row(mig, case.loan_id))[0] == "REJECTED"
 
 
 async def notifications_of(mig: asyncpg.Connection, loan_id: UUID) -> list[tuple[UUID, str]]:
