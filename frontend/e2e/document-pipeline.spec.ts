@@ -70,6 +70,20 @@ test('qhkh tải PDF thật lên, httd thấy trường AI đề xuất có vùn
   expect(box.y).toBeGreaterThan(fbox.y + fbox.height * 0.05);
 });
 
+test('qhkh tải PDF scan (ảnh, không lớp chữ): OCR đọc ra trường AI đề xuất có vùng tô', async ({ page, browser }) => {
+  test.setTimeout(300_000);
+  const documentId = await uploadViaUi(page, 'scan-ho-so-lat-tam.pdf');
+  const hp = await httdAcceptsAndOpens(browser, documentId);
+  const frame = hp.getByTestId('page-frame');
+  await expect(frame).toBeVisible({ timeout: 180_000 });
+  await expect(hp.getByTestId('processing-progress')).toHaveCount(0, { timeout: 180_000 });
+  await expect(hp.getByTestId('processing-error')).toHaveCount(0);
+  const regions = frame.locator('[data-testid^="region-"]');
+  await expect(regions.first()).toBeVisible({ timeout: 60_000 });
+  await regions.first().dispatchEvent('click');
+  await expect(hp.getByTestId('field-card')).toContainText(/chờ xác nhận|AI đề xuất/i);
+});
+
 test('PDF không có lớp chữ: tài liệu thất bại, giao diện báo lỗi, không treo', async ({ page, browser }) => {
   test.setTimeout(300_000);
   const documentId = await uploadViaUi(page, 'scan-khong-chu.pdf');

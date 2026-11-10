@@ -30,7 +30,8 @@ DATA_LABEL = (
 )
 # Mã lỗi của pipeline -> lý do tiếng Việt cho người dùng nghiệp vụ (L05); khớp theo mảnh mã.
 _JOB_ERROR_TEXT = (
-    ("NOTEXTLAYER", "PDF không có lớp chữ (bản scan). Hãy tải bản PDF có chữ hoặc nhập số liệu thủ công."),
+    ("NOTEXTLAYER", "PDF không có lớp chữ và OCR không đọc được chữ nào (bản scan trống hoặc quá mờ). Hãy quét lại rõ hơn hoặc nhập số liệu thủ công."),
+    ("OCRUNAVAILABLE", "Dịch vụ OCR tạm thời không dùng được để đọc bản scan. Hãy thử lại sau hoặc nhập số liệu thủ công."),
     ("PDFIUM", "Tệp PDF bị hỏng hoặc không đọc được. Hãy tải lại tệp gốc."),
     ("TIMEOUT", "Xử lý quá thời gian. Hãy tải lại tệp."),
 )

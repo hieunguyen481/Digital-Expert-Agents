@@ -25,7 +25,7 @@ from app.messaging.kafka_producer import KafkaEventProducer
 from app.messaging.outbox_publisher import OutboxPublisher
 from app.providers.embedding.mock import MockEmbeddingProvider
 from app.providers.llm.openai_compat import OpenAICompatLLMProvider
-from app.providers.ocr.pdf_text import PdfTextOCRProvider
+from app.providers.ocr.scan_ocr import ScanFallbackOCRProvider
 from app.repositories.inbox_repository import InboxRepository
 from app.repositories.outbox_repository import OutboxRepository
 from app.repositories.pipeline_repository import PipelineRepository
@@ -142,7 +142,7 @@ def build_document_worker(spec: WorkerSpec | None = None) -> KafkaWorkerRuntime:
         extractor = DeterministicFieldExtractor()
     pipeline = DocumentPipeline(
         storage=_storage(settings),
-        ocr_provider=PdfTextOCRProvider(),
+        ocr_provider=ScanFallbackOCRProvider(),
         embedding_provider=MockEmbeddingProvider(),
         sink=repository,
         extractor=extractor,

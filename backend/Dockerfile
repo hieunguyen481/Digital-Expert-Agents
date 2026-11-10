@@ -5,6 +5,10 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
     VIRTUAL_ENV=/opt/venv
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-vie tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN python -m venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
@@ -26,6 +30,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH" \
     APP_HOST=0.0.0.0 \
     APP_PORT=8000
+
+# Tesseract (vie) cho PDF quét ảnh không có lớp chữ.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-vie tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --gid 10001 bankapp \
     && useradd --uid 10001 --gid bankapp --create-home --shell /usr/sbin/nologin bankapp
