@@ -77,7 +77,7 @@ export function MemoPanel({ loanId }: { loanId: string }) {
   const editing = view.editable && view.draft;
 
   return (
-    <section className={styles.panel} aria-label="Tờ trình thẩm định">
+    <section id="to-trinh" className={styles.panel} aria-label="Tờ trình thẩm định">
       <h2>Tờ trình thẩm định</h2>
       <PdfButton loanId={loanId} revision={view.finalized?.revision ?? null} />
       {editing && view.draft ? (

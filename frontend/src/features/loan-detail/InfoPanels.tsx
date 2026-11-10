@@ -8,7 +8,7 @@ const SEV: Record<string, string> = { HIGH: 'error', MEDIUM: 'warning', LOW: 'de
 
 export function FlagsPanel({ flags }: { flags: Flag[] }) {
   return (
-    <section className={styles.panel} aria-label="Cờ cảnh báo">
+    <section id="co" className={styles.panel} aria-label="Cờ cảnh báo">
       <h2>Cờ cảnh báo</h2>
       {flags.length === 0 && <span className={styles.note}>Không có cờ.</span>}
       {flags.map((f) => (
@@ -25,7 +25,7 @@ export function FlagsPanel({ flags }: { flags: Flag[] }) {
 
 export function CollateralPanel({ items }: { items: Collateral[] }) {
   return (
-    <section className={styles.panel} aria-label="Tài sản bảo đảm">
+    <section id="tai-san" className={styles.panel} aria-label="Tài sản bảo đảm">
       <h2>Tài sản bảo đảm</h2>
       <Table<Collateral>
         rowKey="id" size="small" pagination={false} dataSource={items} locale={{ emptyText: 'Chưa có tài sản bảo đảm' }}
@@ -42,14 +42,14 @@ export function CollateralPanel({ items }: { items: Collateral[] }) {
 
 export function TimelinePanel({ steps }: { steps: TimelineStep[] }) {
   return (
-    <section className={styles.panel} aria-label="Dòng thời gian">
+    <section id="nhat-ky" className={styles.panel} aria-label="Dòng thời gian">
       <h2>Dòng thời gian</h2>
       {steps.length === 0 && <span className={styles.note}>Chưa có bước nào.</span>}
       {steps.map((s) => (
         <div key={s.id} className={styles.section} data-testid="timeline-row">
           <div><b>{stepLabel(s.step_code)}</b> · {s.assignee_name ?? '—'}</div>
           <span className={styles.note}>
-            Nhận {fmtDate(s.received_at)} · hạn {fmtDate(s.due_at)} · {s.completed_at ? `xong ${fmtDate(s.completed_at)}${s.result ? ` (${stepResultLabel(s.result)})` : ''}` : 'đang xử lý'}
+            Nhận {fmtDate(s.received_at)} · {s.due_at ? `hạn ${fmtDate(s.due_at)}` : 'không đặt hạn'} · {s.completed_at ? `xong ${fmtDate(s.completed_at)}${s.result ? ` (${stepResultLabel(s.result)})` : ''}` : 'đang xử lý'}
           </span>
           {s.reason_restricted ? <span className={styles.note}>Lý do bị hạn chế theo vai trò</span> : s.reason && <span>{s.reason}</span>}
         </div>

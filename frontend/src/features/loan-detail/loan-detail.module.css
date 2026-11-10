@@ -9,3 +9,25 @@
 .aiBlockDone { border-style: solid; border-color: var(--ant-color-border-secondary); background: none; }
 .readText { white-space: pre-wrap; }
 .note { font-size: 12px; color: var(--ant-color-text-secondary); }
+
+/* Khung trang hồ sơ (UX-01/06): nội dung canh giữa, tối đa 1280px. */
+.wrap { max-width: 1280px; width: 100%; margin: 0 auto; }
+.panel[id], section[id] { scroll-margin-top: 150px; }
+.todo { border-left: 4px solid var(--warning); }
+.count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--warning-bg); color: var(--warning); font-size: 12px; margin-left: 4px; }
+.todoList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.todoList li { display: flex; align-items: baseline; gap: 8px; color: var(--text); }
+.todoList li > span:first-child { color: var(--warning); }
+.todoList li a { margin-left: auto; white-space: nowrap; }
+.okLine { color: var(--success); }
+.flow { display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.flowCol { display: flex; flex-direction: column; gap: 6px; }
+.node { border: 1px solid var(--ai-border); background: var(--ai-bg); border-radius: 8px; padding: 6px 10px; min-width: 150px; }
+.node b { display: block; font-size: 13px; color: var(--ai-strong); }
+.node small { color: var(--text-2); font-size: 12px; }
+.nodeDone { border-color: var(--success); background: var(--success-bg); }
+.nodeRun { border-color: var(--info); background: var(--info-bg); }
+.nodeHuman { border: 2px solid var(--navy-700, #2f2e79); background: var(--surface); }
+.nodeHuman b { color: var(--navy-700, #2f2e79); }
+.arrow { align-self: center; color: var(--text-3); font-size: 18px; }
+.agentPanel { border-color: var(--ai-border); background: linear-gradient(180deg, var(--ai-bg), var(--surface) 90px); }

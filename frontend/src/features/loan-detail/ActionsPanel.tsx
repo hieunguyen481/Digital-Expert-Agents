@@ -9,7 +9,7 @@ import {
 import type { Flag, LoanOverview } from './types';
 import styles from './loan-detail.module.css';
 
-const BLOCKERS: Record<string, string> = {
+export const BLOCKERS: Record<string, string> = {
   FIELDS_UNCONFIRMED: 'Còn trường dữ liệu hoặc mâu thuẫn chưa được xác nhận',
   FLAGS_OPEN: 'Còn cờ chặn trình chưa xử lý',
   REPORT_MISSING: 'Tờ trình chưa đủ 7 mục',
@@ -122,7 +122,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   };
 
   return (
-    <section className={styles.panel} aria-label="Hành động trên hồ sơ" data-testid="actions-panel">
+    <section id="hanh-dong" className={styles.panel} aria-label="Hành động trên hồ sơ" data-testid="actions-panel">
       <h2>Hành động</h2>
       <Typography.Text type="secondary">AI chỉ đề xuất; người có thẩm quyền quyết định. Mọi hành động đều kiểm lại ở máy chủ.</Typography.Text>
       {state.blockers.length > 0 && (

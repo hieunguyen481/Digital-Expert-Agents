@@ -14,6 +14,40 @@ import { fetchAgentRuns, startAgentRun } from './loanDetailService';
 import { fmtDate, fmtMoney } from './format';
 import styles from './loan-detail.module.css';
 
+type NodeState = 'idle' | 'running' | 'done';
+const FLOW = [
+  { key: 'planner', title: 'Planner', note: 'Lập kế hoạch, giao việc' },
+  { key: 'experts', title: 'Credit · Compliance · Operations', note: 'Chuyên gia: tài chính, tuân thủ, vận hành' },
+  { key: 'validation', title: 'Validation', note: 'Kiểm chứng chéo, phản biện' },
+] as const;
+
+/** Sơ đồ đội agent: Planner → chuyên gia → Kiểm chứng → người quyết định. Màu node theo tiến độ lượt chạy gần nhất. */
+export function AgentFlow({ tasks, states, decider }: {
+  tasks?: Array<{ task_id: string; agent: string }>; states?: Record<string, { state: string }>; decider: string;
+}) {
+  const stateOf = (keys: string[]): NodeState => {
+    const ts = (tasks ?? []).filter((t) => keys.includes(t.agent));
+    if (!tasks) return 'idle';
+    if (ts.length === 0) return keys.includes('planner') ? 'done' : 'idle';
+    const st = ts.map((t) => states?.[t.task_id]?.state ?? 'waiting');
+    if (st.every((x) => x === 'done')) return 'done';
+    return st.some((x) => x === 'running' || x === 'done') ? 'running' : 'idle';
+  };
+  const cls = (n: NodeState) => (n === 'done' ? styles.nodeDone : n === 'running' ? styles.nodeRun : '');
+  const keys: Record<string, string[]> = { planner: ['planner'], experts: ['credit', 'compliance', 'operations', 'document'], validation: ['validation'] };
+  return (
+    <div className={styles.flow} data-testid="agent-flow" role="group" aria-label="Sơ đồ đội agent">
+      {FLOW.map((n) => (
+        <span key={n.key} style={{ display: 'contents' }}>
+          <div className={`${styles.node} ${cls(stateOf(keys[n.key]))}`}><b>{n.title}</b><small>{n.note}</small></div>
+          <span className={styles.arrow} aria-hidden>→</span>
+        </span>
+      ))}
+      <div className={`${styles.node} ${styles.nodeHuman}`}><b>Người quyết định</b><small>{decider} · AI chỉ đề xuất</small></div>
+    </div>
+  );
+}
+
 const TASK_LABEL = { waiting: 'Chờ', running: 'Đang chạy', done: 'Xong', error: 'Lỗi' } as const;
 
 /** Đội agent trên hồ sơ thật: chạy, theo dõi qua SSE, xem đề xuất. AI chỉ đề xuất; người có thẩm quyền quyết định. */
@@ -35,16 +69,17 @@ export function AgentTeamPanel({ loanId, currency }: { loanId: string; currency:
   const inProgress = !!latestCaseQ.data && !TERMINAL_STATES.includes(latestCaseQ.data.state);
 
   return (
-    <section className={styles.panel} aria-label="Đội agent" data-testid="agent-team">
+    <section id="doi-agent" className={`${styles.panel} ${styles.agentPanel}`} aria-label="Đội agent" data-testid="agent-team">
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
         <h2 style={{ margin: 0 }}><RobotOutlined /> Đội agent thẩm định <Tag color="purple">AI đề xuất – chưa xác nhận</Tag></h2>
         {data?.can_run && (
-          <Button data-testid="run-agent-team" loading={run.isPending} disabled={inProgress} onClick={() => run.mutate()}
+          <Button type={latest ? 'default' : 'primary'} data-testid="run-agent-team" loading={run.isPending} disabled={inProgress} onClick={() => run.mutate()}
             title={inProgress ? 'Đội agent đang chạy, chờ kết thúc rồi mới chạy lại' : undefined}>
             {inProgress ? 'Đội agent đang chạy…' : latest ? 'Chạy lại đội agent' : 'Chạy đội agent'}
           </Button>
         )}
       </div>
+      {!latest && <AgentFlow decider="Cấp phê duyệt có thẩm quyền" />}
       {runsQ.isError && (
         <Alert type="error" showIcon style={{ marginTop: 8 }} message="Không tải được trạng thái đội agent"
           description={normalizeError(runsQ.error).message}
@@ -143,6 +178,7 @@ function RunBody({ caseId, currency }: { caseId: string; currency: string }) {
           </span>
           <Link to={`/dashboard?case=${caseId}`} data-testid="agent-trace-link">Xem trace của case</Link>
         </div>
+        <AgentFlow tasks={plan?.tasks} states={states} decider="Cấp phê duyệt có thẩm quyền" />
         {plan && (
           <div data-testid="agent-progress" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {plan.tasks.map((t) => {
