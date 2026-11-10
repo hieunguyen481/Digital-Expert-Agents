@@ -70,7 +70,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   const buttons: React.ReactNode[] = [];
   const notHolderWhy = state.can_write === false ? 'Hồ sơ đang do người khác xử lý; chỉ người đang giữ bước này mới thực hiện được.' : undefined;
   // Q-N: Tuân thủ ghi ý kiến, Rủi ro/Tuân thủ trả lại Thẩm định và trưởng phòng rút hồ sơ không cần giữ bước.
-  const NO_HOLDER_NEEDED = ['op-comp', 'back', 'withdraw-customer', 'withdraw-overdue'];
+  const NO_HOLDER_NEEDED = ['op-comp', 'explain', 'fraud-hold', 'fraud-release', 'back', 'withdraw-customer', 'withdraw-overdue'];
   let lockedByHolder = false;
   const btn = (key: string, label: string, onClick: () => void, opts: { primary?: boolean; disabled?: string } = {}) => {
     const holderWhy = NO_HOLDER_NEEDED.includes(key) ? undefined : notHolderWhy;
@@ -112,8 +112,18 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     const done = new Set(state.opinions.map((o) => o.kind));
     if (has('risk_officer') && !done.has('RISK')) btn('op-risk', 'Ghi Ý kiến Rủi ro', () => reasonAction('Ý kiến Rủi ro', 'Ý kiến của Rủi ro', 'Ghi ý kiến', (t) => addOpinion(loanId, 'RISK', t)));
     if (has('compliance_officer') && !done.has('COMPLIANCE')) btn('op-comp', 'Ghi ý kiến Tuân thủ', () => reasonAction('Ý kiến Tuân thủ', 'Ý kiến của Tuân thủ', 'Ghi ý kiến', (t) => addOpinion(loanId, 'COMPLIANCE', t)));
+    if (has('compliance_officer')) {
+      btn('explain', 'Yêu cầu giải trình', () => reasonAction('Yêu cầu giải trình', 'Nội dung cần giải trình', 'Gửi yêu cầu', transit('request_explanation')));
+      btn('fraud-hold', 'Giữ hồ sơ nghi gian lận', () => reasonAction('Giữ hồ sơ nghi gian lận', 'Căn cứ nghi ngờ', 'Giữ hồ sơ', transit('fraud_hold')));
+    }
     if ((has('risk_officer') || has('compliance_officer')) ) btn('back', 'Trả lại Thẩm định', () => reasonAction('Trả lại Thẩm định', 'Lý do trả lại', 'Trả lại', transit('risk_return')));
     if (has('risk_officer')) btn('approval', 'Trình phê duyệt', () => void submit(() => runTransition(loanId, 'submit_to_approval', state.version)), { primary: true, disabled: blockedWhy });
+  }
+  if (status === 'RISK_PENDING_INFO' && has('document_reviewer')) {
+    btn('accept-explanation', 'Ghi nhận đã giải trình', () => void submit(() => runTransition(loanId, 'accept_explanation', state.version)), { primary: true });
+  }
+  if (status === 'RISK_HOLD_FRAUD' && has('compliance_officer')) {
+    btn('fraud-release', 'Đóng xử lý nghi gian lận', () => reasonAction('Đóng xử lý nghi gian lận', 'Kết luận xử lý', 'Đóng xử lý', transit('fraud_release')), { primary: true });
   }
   if (status === 'APPROVAL' && has('loan_approver')) {
     const why = state.excluded ? E8_TEXT : undefined;

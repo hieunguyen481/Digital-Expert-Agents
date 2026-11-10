@@ -64,4 +64,30 @@ describe('ActionsPanel – QA3-01 người không giữ bước', () => {
     await screen.findByTestId('actions-panel');
     expect(screen.queryByRole('button', { name: 'Trả lại QHKH' })).toBeNull();
   });
+
+  it('Tuân thủ ở Ý kiến Rủi ro có nút Yêu cầu giải trình và Giữ hồ sơ nghi gian lận', async () => {
+    me.roles = ['compliance_officer'];
+    svc.fetchActionState.mockResolvedValue(state({}));
+    mount('RISK_REVIEW');
+    expect(await screen.findByRole('button', { name: 'Yêu cầu giải trình' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Giữ hồ sơ nghi gian lận' })).toBeTruthy();
+  });
+
+  it('Tuân thủ đóng xử lý nghi gian lận; HTTD ghi nhận đã giải trình', async () => {
+    me.roles = ['compliance_officer'];
+    svc.fetchActionState.mockResolvedValue(state({}));
+    const hold = mount('RISK_HOLD_FRAUD');
+    expect(await screen.findByRole('button', { name: 'Đóng xử lý nghi gian lận' })).toBeTruthy();
+    hold.unmount();
+    me.roles = ['document_reviewer'];
+    mount('RISK_PENDING_INFO');
+    expect(await screen.findByRole('button', { name: 'Ghi nhận đã giải trình' })).toBeTruthy();
+  });
+
+  it('Thẩm định thấy nút Nâng cấp phê duyệt khi tổng cấp tín dụng vượt cấp đã trình', async () => {
+    me.roles = ['credit_appraiser'];
+    svc.fetchActionState.mockResolvedValue(state({ tier: { submitted: 1, required: 2, upgrade_due: true } }));
+    mount('APPRAISAL');
+    expect(await screen.findByRole('button', { name: /Nâng cấp phê duyệt \(cấp 1 → 2\)/ })).toBeTruthy();
+  });
 });
