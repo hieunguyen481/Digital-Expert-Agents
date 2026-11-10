@@ -7,3 +7,18 @@
 - Thử lại do hàm SQL (lùi `5 × lần thử` phút, tối đa 5 lần); `Message-ID` cố định theo id bản ghi. Giới hạn: tiến trình chết giữa lúc gửi xong và ghi SENT thì thư có thể tới hai lần.
 - Thêm kênh mới: mở rộng `ck_notification_delivery_channel` và trigger `integration.enqueue_notification_delivery`.
 - Test: `backend/tests/unit/test_email_worker.py` (SMTP giả lập cục bộ, không gửi thật).
+
+## Sự kiện và người nhận (V045, V047, V051)
+
+| Sự kiện | Loại | Người nhận | Nguồn |
+|---|---|---|---|
+| Giao việc (bước mới, kể cả chờ bổ sung) | `CASE_ASSIGNED` / `CASE_WAITING_INFO` | người được giao bước | trigger `notify_case_step` |
+| Trưởng phòng chuyển người | `CASE_ASSIGNED` | người nhận mới | `credit.reassign_case_step` |
+| Trả lại QHKH | `CASE_RETURNED` | QHKH của khách | `notify_case_step` |
+| Yêu cầu bổ sung | `SUPPLEMENT_REQUESTED` | QHKH của khách | `notify_case_step` |
+| Gia hạn hạn bổ sung | `DEADLINE_EXTENDED` | người đã yêu cầu bổ sung / trả hồ sơ | V051 `notify_deadline_extension` |
+| Quyết định | `CASE_DECIDED` | QHKH của khách | `notify_loan_decision` |
+| Đề xuất hành động mới của agent | `AGENT_ACTION_PROPOSED` | người giữ bước, chỉ khi vai trò được xác nhận loại đề xuất | V051 `notify_action_proposal` |
+| Báo sớm Tuân thủ | `EARLY_WARNING_COMPLIANCE` | một Tuân thủ ít việc nhất, không bị loại trừ | `credit.early_warn_compliance` |
+
+Chốt chặn `trg_notification_scope_guard` (V051): thông báo gắn hồ sơ mà người nhận không thuộc phạm vi đọc (giữ bước, được giao, QHKH của khách, phạm vi hồ sơ, kiểm toán) bị bỏ, không ghi. Ngoại lệ có chủ đích: báo sớm Tuân thủ (người nhận chưa được giao hồ sơ; chờ quyết định nghiệp vụ, xem hand-back). Test: `backend/tests/integration/test_workflow_service.py` (cuối file).

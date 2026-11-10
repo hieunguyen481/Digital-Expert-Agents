@@ -20,7 +20,7 @@ from uuid import UUID, uuid4
 import asyncpg
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from tests.integration.seed_ids import (
     ADMIN_HO,
     AUDITOR_HO,
@@ -1166,3 +1166,123 @@ async def test_exception_accepted_with_reason_allows_approval(
     )
     assert result.status == "APPROVED"
     assert (await exception_row(mig, case.loan_id))["decision_reason"] == "Co ban sao cong chung"
+
+
+# --- V051: sự kiện thông báo còn thiếu và chốt chặn phạm vi đọc -------------------------------------------------
+
+async def _proposal(mig: asyncpg.Connection, case: Case, kind: str) -> str:
+    case_id = f"case_t51_{uuid4().hex[:10]}"
+    await mig.execute(
+        "INSERT INTO agent.case_run (case_id, customer_id, submitted_by, state, payload, created_at, updated_at)"
+        " VALUES ($1, $2, $3, 'Done', $4::jsonb, 1, 1)",
+        case_id, case.customer_id, CREDIT_OFFICER, f'{{"request": {{"loan_application_id": "{case.loan_id}"}}}}',
+    )
+    await mig.execute(
+        "INSERT INTO agent.action_proposal (id, case_id, kind, title, rationale, source_agent, created_at)"
+        " VALUES ($1, $2, $3, 'Đề xuất thử', 'Căn cứ', 'credit', 1)",
+        uuid4(), case_id, kind,
+    )
+    return case_id
+
+
+async def _drop_case(mig: asyncpg.Connection, case_id: str) -> None:
+    await mig.execute("DELETE FROM agent.action_proposal WHERE case_id = $1", case_id)
+    await mig.execute("DELETE FROM agent.case_run WHERE case_id = $1", case_id)
+
+
+async def test_action_proposal_notifies_only_holder_who_can_confirm(
+    mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="APPRAISAL")
+    await case.add_step("APPRAISAL", CREDIT_APPRAISER)
+    made = [await _proposal(mig, case, "add_risk_flag"), await _proposal(mig, case, "request_documents")]
+    try:
+        got = [t for e, t in await notifications_of(mig, case.loan_id) if t == "AGENT_ACTION_PROPOSED"]
+        assert got == ["AGENT_ACTION_PROPOSED"] * 2
+        assert {e for e, t in await notifications_of(mig, case.loan_id) if t == "AGENT_ACTION_PROPOSED"} == {CREDIT_APPRAISER}
+    finally:
+        for c in made:
+            await _drop_case(mig, c)
+
+
+async def test_action_proposal_not_sent_when_holder_cannot_confirm(
+    mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="CHECKING")
+    await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    made = [await _proposal(mig, case, "request_documents")]  # chỉ Thẩm định được xác nhận loại này
+    try:
+        assert [t for _, t in await notifications_of(mig, case.loan_id) if t == "AGENT_ACTION_PROPOSED"] == []
+    finally:
+        for c in made:
+            await _drop_case(mig, c)
+
+
+async def test_deadline_extension_notifies_who_requested_the_supplement(
+    mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="RETURNED_TO_RM")
+    await case.add_step("CHECKING", DOCUMENT_REVIEWER, completed=True, result="RETURNED")
+    await case.add_step("RM_REWORK", CREDIT_OFFICER)
+    step = await mig.fetchval(
+        "SELECT id FROM credit.case_step WHERE loan_application_id = $1 AND step_code = 'RM_REWORK'", case.loan_id
+    )
+    await mig.execute(
+        "INSERT INTO credit.deadline_extension (loan_application_id, case_step_id, extended_by, reason,"
+        " previous_due_at, new_due_at) VALUES ($1, $2, $3, 'Khách cần thêm thời gian', now(), now() + interval '3 days')",
+        case.loan_id, step, CREDIT_OFFICER,
+    )
+    sent = [(e, t) for e, t in await notifications_of(mig, case.loan_id) if t == "DEADLINE_EXTENDED"]
+    assert sent == [(DOCUMENT_REVIEWER, "DEADLINE_EXTENDED")]
+
+
+async def test_notification_for_reader_outside_scope_is_dropped(mig: asyncpg.Connection, case: Case) -> None:
+    await case.create(status="APPRAISAL")
+    await case.add_step("APPRAISAL", CREDIT_APPRAISER)
+    for outsider in (ADMIN_HO, RISK_HO, COMPLIANCE_HO):  # Q-J và Q-M: không thuộc phạm vi đọc của hồ sơ này
+        await mig.execute(
+            "INSERT INTO integration.notification (id, employee_id, notification_type, title, message,"
+            " resource_type, resource_id, status, created_at) VALUES ($1, $2, 'CASE_ASSIGNED', 't', 'm',"
+            " 'LOAN_APPLICATION', $3, 'UNREAD', now())",
+            uuid4(), outsider, case.loan_id,
+        )
+    assert await notifications_of(mig, case.loan_id) == [(CREDIT_APPRAISER, "CASE_ASSIGNED")]  # chỉ người giữ bước
+
+
+async def test_email_worker_sends_outbox_row_to_fake_smtp_once(mig: asyncpg.Connection, case: Case) -> None:
+    """Outbox thật (bank_worker) -> worker email -> SMTP giả lập: đúng người nhận demo, tiêu đề có người nhận gốc và vai trò, không gửi trùng."""
+    from tests.unit.test_email_worker import FakeSmtp, cfg
+
+    from app.workers.email_worker import EmailWorker, _SessionStore
+
+    await case.create(status="CHECKING")
+    await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    smtp = FakeSmtp()
+    port = await smtp.start()
+    eng = create_async_engine(_dsn("TEST_WORKER_DSN").replace("postgresql://", "postgresql+asyncpg://", 1), pool_size=2)
+    try:
+        worker = EmailWorker(
+            _SessionStore(async_sessionmaker(eng, expire_on_commit=False)),
+            cfg(port=port, demo_redirect_to="lamdanh100@gmail.com", batch_size=500),
+            worker_id="test-email",
+        )
+        await worker.run_once()
+        await worker.run_once()
+    finally:
+        await eng.dispose()
+        await smtp.stop()
+    row = await mig.fetchrow(
+        "SELECT d.status, d.id FROM integration.notification_delivery d JOIN integration.notification n ON n.id = d.notification_id"
+        " WHERE n.resource_id = $1", case.loan_id,
+    )
+    assert row["status"] == "SENT"
+    import email as _email
+    from email import policy as _policy
+
+    parsed = [_email.message_from_bytes(m, policy=_policy.default) for m in smtp.messages]
+    mine = [m for m in parsed if str(row["id"]) in m["Message-ID"]]
+    assert len(mine) == 1  # lần chạy thứ hai không gửi lại
+    assert mine[0]["To"] == "lamdanh100@gmail.com"
+    assert "document.reviewer@example.local · Hỗ trợ tín dụng" in mine[0]["Subject"]
+    assert f"/ho-so-vay/{case.loan_id}" in mine[0].get_content()
+    await mig.execute("DELETE FROM integration.notification_delivery WHERE status <> 'SENT'")  # dọn thư seed còn PENDING của test
