@@ -11,7 +11,7 @@ interface Policy { id: string; policy_code: string; policy_name: string; policy_
 interface Clause { policy_version_id: string; clause_number: string; title: string | null; content: string; effective_from: string; effective_until: string | null }
 
 /** Tra cứu chính sách: danh sách chính sách và tìm điều khoản theo từ khóa. */
-const POLICY_ROLES: UiRole[] = ['qhkh', 'httd', 'tdinh', 'ruiro', 'pheduyet', 'kiemtoan'];
+const POLICY_ROLES: UiRole[] = ['qhkh', 'httd', 'tdinh', 'ruiro', 'pheduyet', 'kiemtoan', 'truongphong'];
 
 /** Quản trị không có policy:read (ma trận phân quyền): báo "Không có quyền" như các trang khác. */
 export default function PolicyPage() {

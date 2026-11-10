@@ -73,6 +73,13 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
     ...KEPT,
     AI,
   ],
+  truongphong: [
+    item(2, 'Hồ sơ của phòng', 'inbox', MY_WORK_PATH),
+    item(4, 'Khách hàng SME', 'building'),
+    item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
+    ...KEPT,
+    AI,
+  ],
   quantri: [item(9, 'Quản trị', 'gear'), item(13, 'Thông báo', 'bell')],
 };
 

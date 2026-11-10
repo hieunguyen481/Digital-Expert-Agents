@@ -1,5 +1,5 @@
 /** Vai trò hiển thị trên giao diện (design-system §2.1). */
-export type UiRole = 'qhkh' | 'httd' | 'tdinh' | 'ruiro' | 'pheduyet' | 'kiemtoan' | 'quantri';
+export type UiRole = 'qhkh' | 'httd' | 'tdinh' | 'ruiro' | 'pheduyet' | 'kiemtoan' | 'quantri' | 'truongphong';
 
 export const UI_ROLE_LABEL: Record<UiRole, string> = {
   qhkh: 'Chuyên viên QHKH',
@@ -9,6 +9,7 @@ export const UI_ROLE_LABEL: Record<UiRole, string> = {
   pheduyet: 'Cấp phê duyệt',
   kiemtoan: 'Kiểm toán nội bộ',
   quantri: 'Quản trị hệ thống',
+  truongphong: 'Trưởng phòng Tín dụng',
 };
 
 /** Thứ tự ưu tiên: người có nhiều vai trò chỉ ra đúng một vai trò hiển thị. */
@@ -19,7 +20,9 @@ const PRIORITY: ReadonlyArray<readonly [UiRole, readonly string[]]> = [
   ['ruiro', ['risk_officer', 'compliance_officer']],
   ['tdinh', ['credit_appraiser']],
   ['httd', ['document_reviewer']],
-  ['qhkh', ['credit_officer', 'credit_manager']],
+  ['qhkh', ['credit_officer']],
+  // L11: Trưởng phòng không phải QHKH (không tạo đề xuất vay); chỉ hiện khi không có vai nghiệp vụ khác.
+  ['truongphong', ['credit_manager']],
 ];
 
 export function uiRoleFromRoles(roles: readonly string[]): UiRole | null {

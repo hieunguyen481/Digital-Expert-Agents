@@ -11,7 +11,7 @@ describe('uiRoleFromRoles', () => {
     ['credit_appraiser', 'tdinh'],
     ['document_reviewer', 'httd'],
     ['credit_officer', 'qhkh'],
-    ['credit_manager', 'qhkh'],
+    ['credit_manager', 'truongphong'],
   ])('%s -> %s', (role, expected) => {
     expect(uiRoleFromRoles([role])).toBe(expected);
   });
