@@ -1,8 +1,8 @@
 import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { expect, test, type Browser, type Page } from '@playwright/test';
-import { loginAs, type RoleKey } from './helpers';
-import { createProposal, httdChecksAndTransfers } from './flow-helpers';
+import { type RoleKey } from './helpers';
+import { as, createProposal, httdChecksAndTransfers } from './flow-helpers';
 
 // Lát 8: QHKH tải PDF thật lên trang 05 (/documents/uploads -> MinIO -> outbox -> Kafka -> worker), HTTD nhận bổ sung
 // rồi thấy trường AI đề xuất có vùng tô đúng trang. Chạy trên stack thật có worker; nạp lại seed khi xong.
@@ -35,13 +35,13 @@ async function bearer(browser: Browser, role: RoleKey): Promise<{ auth: string; 
   const context = await browser.newContext({ baseURL: `http://localhost:${process.env.PORT ?? 3000}` });
   const page = await context.newPage();
   const seen = page.waitForRequest((r) => r.url().startsWith(API) && !!r.headers().authorization);
-  await loginAs(page, role);
+  await as(page, role);
   await page.goto('/cong-viec');
   return { auth: (await seen).headers().authorization, request: page.request, page };
 }
 
 async function uploadViaUi(page: Page, file: string): Promise<string> {
-  await loginAs(page, 'qhkh');
+  await as(page, 'qhkh');
   await page.goto(`/doi-chieu/${LOAN}`);
   await expect(page.getByRole('button', { name: 'Tải tài liệu bổ sung' })).toBeEnabled();
   const done = page.waitForResponse((r) => /\/documents\/uploads\/[^/]+\/complete$/.test(r.url()));
@@ -107,7 +107,7 @@ test('PDF không có lớp chữ: tài liệu thất bại, giao diện báo l�
 });
 
 test('qhkh không tải được khi hồ sơ đã chuyển: nút khóa kèm câu lý do, API trả 403 không phải 500', async ({ page, browser }) => {
-  await loginAs(page, 'qhkh');
+  await as(page, 'qhkh');
   await page.goto(`/doi-chieu/${SENT}`);
   await expect(page.getByRole('button', { name: 'Tải tài liệu bổ sung' })).toBeDisabled();
   await expect(page.getByTestId('upload-lock')).toHaveText('Hồ sơ đã chuyển Thẩm định');
