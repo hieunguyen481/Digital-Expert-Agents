@@ -1,8 +1,8 @@
-import { Alert, Button, Input, Modal, Space, Tag } from 'antd';
+import { Alert, Button, Input, Modal, Popconfirm, Space, Tag } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { getErrorMessage } from '@/services/apiClient';
-import { checkItem } from './reconciliationService';
+import { checkItem, removeReconDocument } from './reconciliationService';
 import type { ReconView } from './types';
 import styles from './reconciliation.module.css';
 
@@ -32,10 +32,30 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
       void qc.invalidateQueries({ queryKey: ['recon-log', loanId] });
     },
   });
+  const failedIds = new Set(view.documents.filter((d) => d.processing_status === 'FAILED').map((d) => d.document_id));
+  const canRemove = view.permissions.can_upload || view.permissions.can_check || view.permissions.can_resolve;
+  const remove = useMutation({
+    mutationFn: (id: string) => removeReconDocument(loanId, id),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['reconciliation', loanId] }),
+  });
+  const docRow = (id: string) => (
+    <span key={id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <button type="button" className={styles.docBtn} aria-current={id === documentId} data-testid={`doc-${id}`}
+        onClick={() => onOpenDocument(id)}>{titles.get(id) ?? id}</button>
+      {failedIds.has(id) && <Tag color="error">Lỗi xử lý</Tag>}
+      {failedIds.has(id) && canRemove && (
+        <Popconfirm title="Gỡ tài liệu lỗi khỏi hồ sơ?" description="Bản gốc vẫn được lưu; tài liệu không còn tính vào checklist."
+          okText="Gỡ" cancelText="Hủy" onConfirm={() => remove.mutate(id)}>
+          <Button size="small" danger loading={remove.isPending} data-testid={`remove-${id}`}>Gỡ tài liệu lỗi</Button>
+        </Popconfirm>
+      )}
+    </span>
+  );
   return (
     <section className={styles.panel} aria-label="Checklist tài liệu">
       <h2>Checklist tài liệu</h2>
       {check.isError && <Alert type="error" showIcon message={getErrorMessage(check.error)} />}
+      {remove.isError && <Alert type="error" showIcon message={getErrorMessage(remove.error)} />}
       {view.items.map((it) => (
         <div key={it.item_id} className={styles.item} data-testid={`item-${it.code}`}>
           <Space wrap>
@@ -47,17 +67,7 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
             {it.has_exception && <Tag color="processing">Có ngoại lệ</Tag>}
           </Space>
           {it.document_ids.length === 0 && <span className={styles.note}>Chưa có tài liệu gắn vào</span>}
-          {it.document_ids.map((id) => (
-            <button
-              key={id}
-              type="button"
-              className={styles.docBtn}
-              aria-current={id === documentId} data-testid={`doc-${id}`}
-              onClick={() => onOpenDocument(id)}
-            >
-              {titles.get(id) ?? id}
-            </button>
-          ))}
+          {it.document_ids.map(docRow)}
           {it.check && (
             <span className={styles.note}>
               Hậu kiểm: {it.check.result === 'PASS' ? 'đạt' : 'không đạt'} · {it.check.actor_name ?? ''}
@@ -78,10 +88,7 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
       {view.extra_document_ids.length > 0 && (
         <div className={styles.item}>
           <b>Tài liệu ngoài checklist</b>
-          {view.extra_document_ids.map((id) => (
-            <button key={id} type="button" className={styles.docBtn} aria-current={id === documentId} data-testid={`doc-${id}`}
-              onClick={() => onOpenDocument(id)}>{titles.get(id) ?? id}</button>
-          ))}
+          {view.extra_document_ids.map(docRow)}
         </div>
       )}
       <Modal

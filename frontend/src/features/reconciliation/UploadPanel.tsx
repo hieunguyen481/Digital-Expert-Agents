@@ -22,6 +22,12 @@ export function UploadPanel({ loanId, view, onUploaded }: Props) {
 
   const pick = async (file: File | undefined) => {
     if (!file) return;
+    const looksPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+    if (!looksPdf) {
+      setError(`Tệp "${file.name}" không phải PDF. Chỉ nhận PDF có lớp chữ; ảnh chụp hoặc tệp đổi đuôi sẽ không đọc được.`);
+      if (input.current) input.current.value = '';
+      return;
+    }
     if (!view.customer_id) {
       setError('Hồ sơ chưa gắn khách hàng vay nên chưa tải được tài liệu.');
       return;

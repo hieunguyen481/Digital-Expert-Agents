@@ -11,6 +11,10 @@ export async function fetchReconDocument(loanId: string, documentId: string): Pr
   return (await apiClient.get<ReconDocumentDetail>(`${base(loanId)}/documents/${documentId}`)).data;
 }
 
+export async function removeReconDocument(loanId: string, documentId: string): Promise<void> {
+  await apiClient.delete(`${base(loanId)}/documents/${documentId}`);
+}
+
 export async function fetchReconLog(loanId: string): Promise<ReconLog> {
   return (await apiClient.get<ReconLog>(`${base(loanId)}/log`)).data;
 }

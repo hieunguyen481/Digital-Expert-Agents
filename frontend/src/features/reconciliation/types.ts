@@ -119,6 +119,7 @@ export interface ReconDocumentDetail {
   document: ReconDocument;
   fields: ReconField[];
   has_page_image: boolean;
+  warnings?: string[];
 }
 
 export interface ConflictLogEntry {

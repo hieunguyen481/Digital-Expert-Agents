@@ -78,6 +78,10 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
   return (
     <section className={styles.panel} aria-label="Tài liệu đang xem">
       <h2>{doc.title ?? doc.document_type}</h2>
+      {(q.data.warnings ?? []).map((w) => (
+        <Alert key={w} type="warning" showIcon data-testid="customer-mismatch" style={{ marginBottom: 8 }}
+          message="Tài liệu có thể không thuộc khách hàng của hồ sơ" description={w} />
+      ))}
       {doc.data_source === 'PIPELINE' && doc.processing_error && (
         <Alert type="error" showIcon data-testid="processing-error" message={doc.processing_error} />
       )}
