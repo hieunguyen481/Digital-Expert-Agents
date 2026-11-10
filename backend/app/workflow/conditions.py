@@ -29,9 +29,29 @@ _CARRIED_LABELS = {
 }
 
 
+_DOC_NAMES = {
+    "SME-01-CREDIT-REQUEST": "Giấy đề nghị cấp tín dụng",
+    "SME-02-BUSINESS-REGISTRATION": "Giấy chứng nhận đăng ký doanh nghiệp",
+    "SME-03-CHARTER": "Điều lệ công ty",
+    "SME-04-SHAREHOLDERS-RELATED": "Danh sách cổ đông và bên liên quan",
+    "SME-05-REPRESENTATIVE-ID": "Giấy tờ tùy thân người đại diện",
+    "SME-06-BOARD-RESOLUTION": "Nghị quyết về vay vốn",
+    "SME-07-CIC-CONSENT": "Văn bản đồng ý tra cứu CIC",
+    "SME-08-AUDITED-FS": "BCTC năm đã kiểm toán",
+    "SME-09-QUARTERLY-FS": "BCTC quý gần nhất",
+    "SME-10-RECEIVABLES-INVENTORY": "Bảng kê công nợ phải thu và hàng tồn kho",
+    "SME-11-BANK-STATEMENT-12M": "Sao kê tài khoản 12 tháng",
+    "SME-12-VAT-RETURNS": "Tờ khai thuế GTGT",
+    "SME-13-CIC-REPORT": "Kết quả tra cứu CIC",
+    "SME-14-BUSINESS-PLAN": "Phương án kinh doanh và sử dụng vốn",
+    "SME-15-SALES-CONTRACTS": "Hợp đồng đầu ra",
+    "SME-16-COLLATERAL": "Hồ sơ tài sản bảo đảm",
+}
+
+
 def _detail(code: str, facts: GateFacts) -> str | None:
     if code == "DOCS":
-        short = [i.code for i in facts.checklist if i.mandatory and not i.has_exception
+        short = [_DOC_NAMES.get(i.code, i.code) for i in facts.checklist if i.mandatory and not i.has_exception
                  and (not i.has_document or i.expired or i.status in {"REQUIRED", "INCOMPLETE", "EXPIRED"}) and i.document_type not in CIC_DOCUMENT_TYPES
                  and i.status not in {"WAIVED", "NOT_APPLICABLE"}]
         return f"Còn thiếu hoặc hết hạn: {', '.join(short)}" if short else None

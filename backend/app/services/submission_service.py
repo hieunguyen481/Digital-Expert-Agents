@@ -19,6 +19,11 @@ from app.workflow.gates import CIC_DOCUMENT_TYPES, GateFacts, GateResult
 from app.workflow.service import WorkflowService
 
 
+def _vn_int(value: int) -> str:
+    """Số nguyên kiểu Việt: dấu chấm ngăn nghìn (1.500)."""
+    return f"{int(value):,}".replace(",", ".")
+
+
 class GateFactsSource(Protocol):
     async def gate_facts(self, loan_id: UUID) -> GateFacts: ...
 
@@ -113,14 +118,14 @@ class SubmissionService:
         warn_billion = self._warn_billion
         amount = loan["requested_amount"]
         warning = (
-            f"Số tiền đề xuất từ {warn_billion:,} tỷ đồng trở lên là bất thường, vui lòng kiểm tra lại đơn vị và số liệu."
+            f"Số tiền đề xuất từ {_vn_int(warn_billion)} tỷ đồng trở lên là bất thường, vui lòng kiểm tra lại đơn vị và số liệu."
             if amount is not None and amount >= warn_billion * 10**9
             else None
         )
         revenue = await self._repo.latest_revenue(loan_id)
         sme_limit = 1000 * 10**9  # Q8: SME theo phân khúc nội bộ, doanh thu năm ≤ 1.000 tỷ
         segment = (
-            f"Doanh thu năm {revenue[0]} của khách là {revenue[1] / 10**9:,.0f} tỷ đồng, vượt 1.000 tỷ: "
+            f"Doanh thu năm {revenue[0]} của khách là {_vn_int(round(revenue[1] / 10**9))} tỷ đồng, vượt 1.000 tỷ: "
             "ngoài phân khúc KHDN SME (Q8), cần xác nhận phạm vi áp dụng chính sách."
             if revenue is not None and revenue[1] > sme_limit
             else None
