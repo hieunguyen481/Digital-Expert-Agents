@@ -12,12 +12,6 @@ export interface WelcomeStateProps {
   staffName?: string;
 }
 
-/** Lấy tên riêng (từ cuối) cho lời chào tự nhiên trong tiếng Việt. */
-function getGivenName(fullName: string): string {
-  const parts = fullName.trim().split(/\s+/);
-  return parts.length > 1 ? parts.slice(-2).join(' ') : fullName;
-}
-
 /**
  * Màn hình chào khi hội thoại chưa có tin nhắn.
  * Thứ tự xuất hiện: logo -> heading -> mô tả -> quick cards (stagger).
@@ -46,7 +40,7 @@ export function WelcomeState({ onSelectPrompt, staffName }: WelcomeStateProps) {
         <motion.h1 className={styles.heading} {...fadeUp(0.1)}>
           {staffName ? (
             <>
-              Xin chào, <span className={styles.headingAccent}>{getGivenName(staffName)}</span>
+              Xin chào, <span className={styles.headingAccent}>{staffName.trim()}</span>
             </>
           ) : (
             <>
