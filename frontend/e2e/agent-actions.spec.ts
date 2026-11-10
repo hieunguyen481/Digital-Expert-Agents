@@ -20,7 +20,7 @@ DELETE FROM credit.loan_agent_run WHERE case_id = '${CASE}';
 DELETE FROM agent.case_run WHERE case_id = '${CASE}';
 INSERT INTO agent.case_run (case_id, customer_id, submitted_by, state, payload, created_at, updated_at)
   SELECT '${CASE}', primary_customer_id, '10000000-0000-4000-8000-000000000008', 'Pending Approval',
-         '{"loan_application_id":"${LOAN}"}'::jsonb, extract(epoch from now()) + 100000, extract(epoch from now()) + 100000
+         '{"request":{"loan_application_id":"${LOAN}"}}'::jsonb, extract(epoch from now()) + 100000, extract(epoch from now()) + 100000
   FROM credit.loan_application WHERE id = '${LOAN}';
 INSERT INTO credit.loan_agent_run (id, loan_application_id, case_id, started_by, created_at)
   VALUES (gen_random_uuid(), '${LOAN}', '${CASE}', '10000000-0000-4000-8000-000000000008', now() + interval '1 day');
@@ -42,12 +42,20 @@ test.afterAll(() => {
 const card = (page: import('@playwright/test').Page, kind: string) =>
   page.getByTestId('action-proposal').and(page.locator(`[data-kind="${kind}"]`));
 
-test('người không đúng vai trò (rủi ro) thấy đề xuất nhưng không có nút xác nhận', async ({ page }) => {
+test('người không đúng vai trò (rủi ro) bị từ chối xác nhận, đề xuất vẫn chờ, không có nhật ký', async ({ page }) => {
+  const auth = page.waitForRequest((r) => r.url().includes('/api/v1/') && !!r.headers().authorization);
   await loginAs(page, 'ruiro');
-  await page.goto(`/ho-so-vay/${LOAN}`);
-  await expect(card(page, 'request_documents')).toBeVisible({ timeout: 30_000 });
-  await expect(card(page, 'request_documents').getByTestId('proposal-locked')).toBeVisible();
-  await expect(page.getByTestId('proposal-confirm')).toHaveCount(0);
+  const token = (await auth).headers().authorization;
+  for (const [n, verb] of [[2, 'confirm'], [1, 'dismiss']] as const) {
+    const res = await page.request.post(`http://localhost:8000/api/v1/agent-cases/proposals/a1000000-0000-4000-8000-00000000000${n}/${verb}`, {
+      headers: { authorization: token }, data: { reason: 'Thử không đúng vai trò', loan_application_id: LOAN },
+    });
+    expect([403, 404]).toContain(res.status());
+  }
+  const st = execSync(`${PSQL} -Atc "SELECT count(*) FROM agent.action_proposal WHERE case_id='${CASE}' AND status <> 'PROPOSED'"`, { encoding: 'utf8' }).trim();
+  expect(Number(st)).toBe(0);
+  const log = execSync(`${PSQL} -Atc "SELECT count(*) FROM agent.action_log WHERE case_id='${CASE}'"`, { encoding: 'utf8' }).trim();
+  expect(Number(log)).toBe(0);
 });
 
 test('thẩm định xác nhận ghi cờ, bỏ yêu cầu bổ sung, xác nhận điều kiện; bấm hai lần không nhân đôi; trace có chuỗi', async ({ page }) => {
