@@ -51,6 +51,8 @@ export function AgentFlow({ tasks, states, decider }: {
 
 const TASK_LABEL = { waiting: 'Chờ', running: 'Đang chạy', done: 'Xong', error: 'Lỗi' } as const;
 
+export const AGENT_RUN_TIMEOUT_MS = 5 * 60_000;
+
 /** Đội agent trên hồ sơ thật: chạy, theo dõi qua SSE, xem đề xuất. AI chỉ đề xuất; người có thẩm quyền quyết định. */
 export function AgentTeamPanel({ loanId, currency }: { loanId: string; currency: string }) {
   const qc = useQueryClient();
@@ -68,6 +70,15 @@ export function AgentTeamPanel({ loanId, currency }: { loanId: string; currency:
     refetchInterval: (q) => (q.state.data && TERMINAL_STATES.includes(q.state.data.state) ? false : 4000),
   });
   const inProgress = !!latestCaseQ.data && !TERMINAL_STATES.includes(latestCaseQ.data.state);
+  // X2: lượt chạy quá 5 phút chưa kết thúc thì báo rõ thay vì quay mãi; server tự mở khóa chạy lại khi engine ngừng cập nhật.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!inProgress) return undefined;
+    const t = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(t);
+  }, [inProgress]);
+  const startedMs = latest ? Date.parse(latest.created_at) : NaN;
+  const overdue = inProgress && Number.isFinite(startedMs) && now - startedMs > AGENT_RUN_TIMEOUT_MS;
 
   return (
     <section id="doi-agent" className={`${styles.panel} ${styles.agentPanel}`} aria-label="Đội agent" data-testid="agent-team">
@@ -100,6 +111,12 @@ export function AgentTeamPanel({ loanId, currency }: { loanId: string; currency:
         <span className={styles.note} data-testid="agent-team-empty" style={{ display: 'block', marginTop: 8 }}>
           Chưa chạy đội agent trên hồ sơ này.
         </span>
+      )}
+      {overdue && (
+        <Alert type="warning" showIcon style={{ marginTop: 8 }} data-testid="agent-run-timeout"
+          message="Lượt chạy quá 5 phút chưa kết thúc"
+          description="Đội agent có thể đang xử lý chậm hoặc đã dừng giữa chừng. Bấm cập nhật để kiểm tra lại; nếu engine ngừng cập nhật, hệ thống tự mở khóa để chạy lại sau 20 phút kể từ cập nhật cuối."
+          action={<Button size="small" onClick={() => void latestCaseQ.refetch()}>Cập nhật trạng thái</Button>} />
       )}
       {latest && <RunBody key={latest.case_id} caseId={latest.case_id} currency={currency} />}
       {latest && <ActionProposals caseId={latest.case_id} loanId={loanId} />}

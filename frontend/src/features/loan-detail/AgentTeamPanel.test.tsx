@@ -66,4 +66,16 @@ describe('AgentTeamPanel', () => {
     await waitFor(() => expect((screen.getByTestId('run-agent-team') as HTMLButtonElement).disabled).toBe(true));
     expect(screen.getByTestId('run-agent-team').textContent).toContain('đang chạy');
   });
+
+  it('X2: lượt chạy quá 5 phút chưa kết thúc hiện trạng thái quá thời gian; mới chạy thì không', async () => {
+    (agentCases.getAgentCase as ReturnType<typeof vi.fn>).mockResolvedValue({ case_id: 'case_1', state: 'In Analysis', package: null, plan: null });
+    runs.fetchAgentRuns.mockResolvedValue({ can_run: true, deny_reason: null, latest: { ...item, created_at: new Date(Date.now() - 6 * 60_000).toISOString() }, runs: [item] });
+    const first = mount();
+    expect(await screen.findByTestId('agent-run-timeout')).toBeTruthy();
+    first.unmount();
+    runs.fetchAgentRuns.mockResolvedValue({ can_run: true, deny_reason: null, latest: { ...item, created_at: new Date().toISOString() }, runs: [item] });
+    mount();
+    await screen.findByTestId('agent-run');
+    expect(screen.queryByTestId('agent-run-timeout')).toBeNull();
+  });
 });
