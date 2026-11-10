@@ -29,10 +29,10 @@ const PURPOSE_LABEL: Record<string, string> = {
   WORKING_CAPITAL: 'Vốn lưu động', HOME_PURCHASE: 'Mua nhà', INVESTMENT: 'Đầu tư', TRADE_FINANCE: 'Tài trợ thương mại',
 };
 /** Mục đích vay hiển thị cho người dùng; mã chưa có nhãn thì giữ nguyên (văn bản người nhập như "test"). */
-/** Ca kiểm thử: không gắn hồ sơ vay, hồ sơ e2e (LA-) hoặc hồ sơ mẫu benchmark (HSV-2026-09xxx). Ca của hồ sơ thật/demo thì không. */
+/** Ca kiểm thử: không gắn hồ sơ vay hoặc hồ sơ mẫu benchmark (HSV-2026-09xxx). Hồ sơ do cán bộ tạo (mã LA-) là hồ sơ thật, không ẩn (C3). */
 export function isTestCase(c: { application_number?: string | null }): boolean {
   const no = c.application_number;
-  return !no || no.startsWith('LA-') || /^HSV-\d{4}-09\d{3}$/.test(no);
+  return !no || /^HSV-\d{4}-09\d{3}$/.test(no);
 }
 export const purposeLabel = (p: string) => PURPOSE_LABEL[p] ?? p;
 export const stateLabel = (s: string) => STATE_LABEL[s] ?? s;

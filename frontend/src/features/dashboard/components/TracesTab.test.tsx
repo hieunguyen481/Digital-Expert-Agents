@@ -30,13 +30,13 @@ describe('TracesTab', () => {
     await waitFor(() => expect(screen.getByTestId('case-row-case_ddd')).toBeTruthy());
   });
 
-  it('ẩn mặc định ca kiểm thử (LA-, không gắn hồ sơ), hiện khi bật bộ lọc', async () => {
+  it('hồ sơ do cán bộ tạo (LA-) hiện mặc định; ca không gắn hồ sơ ẩn sau bộ lọc (C3)', async () => {
     render(<MemoryRouter><QueryClientProvider client={new QueryClient()}><TracesTab /></QueryClientProvider></MemoryRouter>);
     await waitFor(() => expect(screen.getByTestId('case-row-case_aaa')).toBeTruthy());
-    expect(screen.queryByTestId('case-row-case_ttt')).toBeNull();
+    expect(screen.getByTestId('case-row-case_ttt')).toBeTruthy();
     expect(screen.queryByTestId('case-row-case_nnn')).toBeNull();
     fireEvent.click(screen.getByTestId('trace-show-test'));
-    await waitFor(() => expect(screen.getByTestId('case-row-case_ttt')).toBeTruthy());
+    await waitFor(() => expect(screen.getByTestId('case-row-case_nnn')).toBeTruthy());
     expect(screen.getByTestId('case-row-case_nnn')).toBeTruthy();
   });
 });
