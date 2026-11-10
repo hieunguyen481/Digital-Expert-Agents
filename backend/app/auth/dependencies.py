@@ -71,7 +71,7 @@ def require_permissions(*codes: str) -> Callable[..., Any]:
         if missing:
             raise AuthorizationError(
                 "MISSING_PERMISSION",
-                "You do not have the required permission.",
+                "Bạn không có quyền thực hiện thao tác này.",
                 {"required": sorted(required)},
             )
         return principal
@@ -91,7 +91,7 @@ def require_roles(*roles: str) -> Callable[..., Any]:
         if not principal.roles.intersection(required):
             raise AuthorizationError(
                 "MISSING_ROLE",
-                "You do not have the required role.",
+                "Vai trò của bạn không được thực hiện thao tác này.",
                 {"required": sorted(required)},
             )
         return principal

@@ -419,7 +419,7 @@ class WorkflowRepository:
             if state == VERSION_CONFLICT_SQLSTATE:
                 raise ConflictError(
                     "VERSION_CONFLICT",
-                    "The loan application was changed by another request.",
+                    "Hồ sơ vừa được người khác cập nhật. Hãy tải lại trang rồi thử lại.",
                     {"loan_application_id": str(loan_id)},
                 ) from error
             if state == "42501":

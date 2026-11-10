@@ -65,7 +65,7 @@ class CaseActionService:
         if loan["status"] != status:
             raise ConflictError(
                 "INVALID_STATE_TRANSITION",
-                f"Action is not allowed from status {loan['status']}.",
+                "Hồ sơ không còn ở trạng thái cho phép thao tác này. Hãy tải lại trang.",
                 {"status": loan["status"]},
             )
         return loan

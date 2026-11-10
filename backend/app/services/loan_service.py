@@ -137,7 +137,7 @@ class LoanService:
             # Trang thai chi doi qua POST /loan-applications/{id}/transitions (WorkflowService).
             raise ValidationError(
                 "STATUS_READ_ONLY",
-                "Loan status changes only through the workflow transitions endpoint.",
+                "Trạng thái hồ sơ chỉ đổi qua các bước nghiệp vụ, không sửa trực tiếp.",
             )
         current = await self.get(principal, loan_application_id)
         _require_assigned_handler(principal, current)

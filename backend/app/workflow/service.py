@@ -156,14 +156,14 @@ class WorkflowService:
             raise PermissionError("Action extend_deadline requires role credit_officer")
         clean = (reason or "").strip()
         if not clean:
-            raise ValueError("Action extend_deadline requires a reason")
+            raise ValueError("Cần nhập lý do gia hạn.")
         loan = await self._repo.get_loan(loan_id)
         if loan is None:
             raise LookupError("Loan application was not found or is outside the authorized scope")
         if str(loan["status"]) not in _SUPPLEMENT_STATUSES:
             raise ConflictError(
                 "INVALID_STATE_TRANSITION",
-                f"Action extend_deadline is not allowed from status {loan['status']}.",
+                "Hồ sơ không còn ở bước cho phép gia hạn.",
                 {"status": str(loan["status"]), "action": "extend_deadline"},
             )
         step = _supplement_step(await self._repo.open_steps(loan_id))
@@ -198,7 +198,7 @@ class WorkflowService:
             raise PermissionError("Action reassign requires role credit_manager")
         clean = (reason or "").strip()
         if not clean:
-            raise ValueError("Action reassign requires a reason")
+            raise ValueError("Cần nhập lý do chuyển người xử lý.")
         if await self._repo.get_loan(loan_id) is None:
             raise LookupError("Loan application was not found or is outside the authorized scope")
         step_id = await self._repo.reassign(loan_id, principal.employee_id, new_assignee, clean)
@@ -249,13 +249,13 @@ class WorkflowService:
         if int(loan["version"]) != expected_version:
             raise ConflictError(
                 "VERSION_CONFLICT",
-                "The loan application was changed by another request.",
+                "Hồ sơ vừa được người khác cập nhật. Hãy tải lại trang rồi thử lại.",
                 {"loan_application_id": str(loan_id)},
             )
         # 3. Ly do va tham so.
         clean_reason = (reason or "").strip() or None
         if transition.reason_required and clean_reason is None:
-            raise ValueError(f"Action {action} requires a reason")
+            raise ValueError("Thao tác này bắt buộc phải nhập lý do.")
         plan = _validate_params(transition, params or {}, loan)
         if plan.withdraw_kind == "OVERDUE":
             step = _supplement_step(await self._repo.open_steps(loan_id))
@@ -452,13 +452,13 @@ class WorkflowService:
         if missing:
             raise ValidationError(
                 "EXCEPTIONS_UNDECIDED",
-                "Every proposed exception must be accepted or rejected together with the decision.",
+                "Mỗi ngoại lệ được đề xuất phải được chấp thuận hoặc từ chối cùng với quyết định.",
                 {"exception_ids": sorted(str(i) for i in missing)},
             )
         if plan.to_status.startswith("APPROVED") and any(d == "REJECTED" for d, _ in given.values()):
             raise ValidationError(
                 "EXCEPTION_REJECTED_REQUIRES_RETURN",
-                "A rejected exception means the case must be returned for supplement.",
+                "Đã từ chối ngoại lệ thì hồ sơ phải được trả lại để bổ sung, không thể phê duyệt.",
                 {},
             )
         return given
@@ -552,11 +552,11 @@ def _decision_params(params: Mapping[str, Any], requested_amount: Any) -> dict[s
             },
         )
     if decision_type == "APPROVED_WITH_CONDITIONS" and not conditions:
-        raise ValueError("APPROVED_WITH_CONDITIONS requires at least one condition")
+        raise ValueError("Phê duyệt có điều kiện phải nêu ít nhất một điều kiện.")
     is_override = bool(params.get("is_override", False))
     override_reason = params.get("override_reason")
     if is_override and not str(override_reason or "").strip():
-        raise ValueError("An override reason is required")
+        raise ValueError("Cần nhập lý do khi quyết định vượt đề xuất.")
     approval_request_id = params.get("approval_request_id")
     return {
         "decision_type": str(decision_type),
