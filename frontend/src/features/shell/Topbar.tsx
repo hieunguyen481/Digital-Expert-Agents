@@ -17,7 +17,7 @@ export function Topbar({ me, role }: { me: Me; role: UiRole }) {
 
   return (
     <div className={styles.topbar}>
-      <span className={styles.appName}>SHB AI Assistant</span>
+      <span className={styles.appName}>Sổ Tín Dụng</span>
       <label className={styles.search} title="Tìm kiếm sẽ có ở đợt sau">
         <SearchOutlined aria-hidden />
         <input

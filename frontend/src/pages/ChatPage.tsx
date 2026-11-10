@@ -383,9 +383,9 @@ export default function ChatPage() {
 
   const showAiPolicy = useCallback(() => {
     modal.info({
-      title: 'Chính sách sử dụng SH-AI',
+      title: 'Chính sách sử dụng Trợ lý AI',
       content:
-        'SH-AI là trợ lý thông tin. Nội dung mang tính tham khảo, không thay thế tư vấn chính thức và không thực hiện giao dịch trong phiên bản demo này.',
+        'Trợ lý AI là công cụ thông tin. Nội dung mang tính tham khảo, không thay thế tư vấn chính thức và không thực hiện giao dịch trong phiên bản demo này.',
       okText: 'Đã hiểu',
     });
   }, [modal]);
@@ -481,9 +481,9 @@ export default function ChatPage() {
               </Button>
             )}
             {showWelcome ? (
-              <span className={styles.toolbarTitle}>{activeConversation?.title ?? 'Trợ lý SHB'}</span>
+              <span className={styles.toolbarTitle}>{activeConversation?.title ?? 'Trợ lý AI'}</span>
             ) : (
-              <h1 className={styles.toolbarTitle}>{activeConversation?.title ?? 'Trợ lý SHB'}</h1>
+              <h1 className={styles.toolbarTitle}>{activeConversation?.title ?? 'Trợ lý AI'}</h1>
             )}
             <Button onClick={() => void handleCreateConversation()}>Cuộc trò chuyện mới</Button>
           </div>

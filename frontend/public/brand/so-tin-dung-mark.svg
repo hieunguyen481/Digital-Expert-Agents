@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Sổ Tín Dụng">
+  <rect x=".5" y=".5" width="31" height="31" rx="4" fill="#F1F2EE" stroke="#AEB3A1"/>
+  <path d="M20.8 9.6C19.5 8 17.8 7.4 16 7.4c-3 0-4.9 1.6-4.9 3.8 0 2.4 2 3.3 5 4.2 3.1.9 5.1 2 5.1 4.5 0 2.3-2.2 3.9-5.2 3.9-2.3 0-4.3-.9-5.6-2.5" fill="none" stroke="#14284B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="6" y="26" width="20" height="2" fill="#B08A3E"/>
+</svg>

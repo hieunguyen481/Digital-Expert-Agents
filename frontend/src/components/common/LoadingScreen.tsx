@@ -12,7 +12,7 @@ export interface LoadingScreenProps {
  * Màn hình khởi tạo ứng dụng.
  * Không cố tình delay — chỉ hiển thị khi thực sự đang chờ.
  */
-export function LoadingScreen({ message = 'Đang khởi tạo SH-AI', inline = false }: LoadingScreenProps) {
+export function LoadingScreen({ message = 'Đang khởi tạo Sổ Tín Dụng', inline = false }: LoadingScreenProps) {
   const prefersReducedMotion = useReducedMotion();
 
   return (

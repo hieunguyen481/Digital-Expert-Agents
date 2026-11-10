@@ -10,7 +10,7 @@ export type SourceType =
 
 /** Nhãn tiếng Việt hiển thị cho từng loại nguồn. */
 export const SOURCE_TYPE_LABEL: Record<SourceType, string> = {
-  policy: 'Chính sách SHB',
+  policy: 'Chính sách ngân hàng',
   product: 'Trang sản phẩm',
   fee: 'Biểu phí',
   faq: 'FAQ',
