@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Card, Input, Space, Tag, Typography } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
-import { approverLevelLabel } from '@/features/dashboard/agentTrace';
+import { approverLevelLabel, sourceLabel } from '@/features/dashboard/agentTrace';
 import {
   TERMINAL_STATES,
   type AgentVerdict,
@@ -118,7 +118,7 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
           <ul>
             {sources.map((s, i) => (
               <li key={i}>
-                <Typography.Text code>{s.source}</Typography.Text> {s.quote}
+                <Typography.Text code>{sourceLabel(s.source)}</Typography.Text> {s.quote}
               </li>
             ))}
           </ul>

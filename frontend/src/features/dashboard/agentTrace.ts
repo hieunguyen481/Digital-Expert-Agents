@@ -53,6 +53,7 @@ export const DECISION_LABEL: Record<string, string> = {
   pass: 'Đạt',
   fail: 'Không đạt',
   need_more_info: 'Cần thêm thông tin',
+  flag: 'Đồng ý có điều kiện',
 };
 
 export interface PlanTask {
@@ -172,8 +173,15 @@ export const TOOL_LABEL: Record<string, string> = {
   check_blacklist: 'Tra danh sách đen/trừng phạt',
   get_collateral: 'Tài sản bảo đảm',
   get_annual_inflow: 'Tiền về tài khoản 12 tháng',
+  get_bank_exposure: 'Dư nợ tại ngân hàng',
+  create_loan_draft: 'Tạo bản nháp hồ sơ vay',
 };
 export const toolLabel = (t: string) => TOOL_LABEL[t] ?? t;
+/** Nguồn trích dẫn: "core-banking:create_loan_draft" -> nhãn tiếng Việt; tên tài liệu/điều khoản giữ nguyên. */
+export const sourceLabel = (s: string) => {
+  const name = s.replace(/^core-banking:/, '');
+  return name !== s || TOOL_LABEL[name] ? (TOOL_LABEL[name] ?? name) : s;
+};
 /** Khóa trên bảng chung -> nhãn hiển thị (cùng nguồn với công cụ tương ứng). */
 export const BOARD_LABEL: Record<string, string> = {
   business: 'Doanh nghiệp', financials: 'Báo cáo tài chính', loans: 'Khoản vay hiện hữu', cic: 'CIC',

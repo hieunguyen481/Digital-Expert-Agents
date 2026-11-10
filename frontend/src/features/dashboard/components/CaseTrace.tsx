@@ -5,7 +5,7 @@ import { TERMINAL_STATES, getAgentCase, getAgentCaseEvents, getApproverNames, st
 import {
   DECISION_LABEL, STATE_COLOR, agentName, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
-  BOARD_LABEL, approverLevelLabel, realActions, scrubInternal, sharedBoards, toolLabel, validationView,
+  BOARD_LABEL, approverLevelLabel, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
 } from '../agentTrace';
 import { ProposalChain } from '@/features/agent-actions/ActionProposals';
 import { statusLabel } from '@/features/my-work/format';
@@ -319,9 +319,12 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
           <h3 style={h}>Nguồn trích dẫn ({sources.length})</h3>
           <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
             {sources.map((s, i) => (
-              <li key={i}><Typography.Text code>{s.source}</Typography.Text> {s.quote} <Text type="secondary">({agentName(s.agent)})</Text></li>
+              <li key={i}><Typography.Text code>{sourceLabel(s.source)}</Typography.Text> {s.quote} <Text type="secondary">({agentName(s.agent)})</Text></li>
             ))}
           </ul>
+          <details style={{ fontSize: 12, marginTop: 6 }}><summary>Chi tiết kỹ thuật (kiểm toán)</summary>
+            {sources.map((s, i) => <div key={i}>{s.source}: {s.raw_quote ?? s.quote}</div>)}
+          </details>
         </section>
       )}
     </div>

@@ -12,7 +12,7 @@ import traceback
 
 import httpx
 
-from common import agent_tools, config, identity, recompute, trace_ctx
+from common import agent_tools, config, identity, labels, recompute, trace_ctx
 from common import facts as facts_mod
 from common.schemas import (
     ApprovalPackage, CaseState, Envelope, MessageType, Plan, Verdict, VerdictDecision,
@@ -201,6 +201,7 @@ async def _build_package(case_id: str, plan: Plan, validation: Verdict) -> None:
         required_approver_level=level,
         findings=report["findings"], citations=report["citations"], report_text=report["report_text"],
     ).model_dump(mode="json")
+    package = labels.humanize_payload(package)  # L07: gói hiển thị cho người dùng bằng tiếng Việt (hash tính trên bản này)
 
     import time as _t
     await db.update_case(case_id, package=package,

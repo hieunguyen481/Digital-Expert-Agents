@@ -131,7 +131,9 @@ async def _llm_plan(case_id: str, payload: dict, context: dict, version: int,
                        "operations dry-run chỉ phụ thuộc document (nếu có), chạy song song với credit và compliance; "
                        "chỉ tạo task document nếu có tài liệu đính kèm; "
                        "điều chỉnh objective theo đặc điểm hồ sơ (TSĐB, ngành, CIC). "
-                       "Mỗi task phải có params.request = request gốc.",
+                       "Mỗi task phải có params.request = request gốc. "
+                       "Viết rationale và objective bằng tiếng Việt nghiệp vụ, không dùng tên trường/công cụ kỹ thuật "
+                       "(như has_collateral, industry_risk, dry-run) và không chép mã hồ sơ.",
                 user=f"Hồ sơ: {payload}\nBối cảnh: {context}",
                 schema_hint=schema,
             )

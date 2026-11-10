@@ -14,7 +14,7 @@ from typing import Any, AsyncIterator
 
 import asyncpg
 
-from common import config, identity
+from common import config, identity, labels
 
 _pool: asyncpg.Pool | None = None
 _JSON_COLS = {"payload", "package", "plan"}
@@ -177,6 +177,7 @@ async def add_system_event(case_id: str, etype: str, payload: dict) -> dict:
 
 # ---- events (trace) ----
 async def add_event(case_id: str, agent: str, etype: str, payload: dict) -> dict:
+    payload = labels.humanize_payload(payload)  # L07: người dùng chỉ thấy tiếng Việt; bản gốc quote ở raw_quote
     ts = time.time()
     async with tx() as con:
         eid = await con.fetchval(
@@ -263,6 +264,7 @@ _PROP_COLS = ("id::text AS id, case_id, kind, title, rationale, evidence, params
 
 
 async def add_proposals(case_id: str, items: list[dict]) -> list[dict]:
+    items = labels.humanize_payload(items)
     out = []
     async with tx() as con:
         have = {(r["kind"], r["title"]) for r in await con.fetch(

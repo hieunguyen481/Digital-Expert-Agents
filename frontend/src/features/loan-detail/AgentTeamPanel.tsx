@@ -8,7 +8,7 @@ import {
   TERMINAL_STATES, getAgentCase, getAgentCaseEvents, streamAgentCase, type AgentCaseEvent,
 } from '@/services/agentCaseService';
 import {
-  DECISION_LABEL, STATE_COLOR, agentName, approverLevelLabel, latestPlan, packageOf, stateLabel, taskStates, type TraceVerdict,
+  DECISION_LABEL, STATE_COLOR, agentName, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
 } from '@/features/dashboard/agentTrace';
 import { ActionProposals } from '@/features/agent-actions/ActionProposals';
 import { fetchAgentRuns, startAgentRun } from './loanDetailService';
@@ -238,8 +238,9 @@ function RunBody({ caseId, currency }: { caseId: string; currency: string }) {
         <div className={styles.section} data-testid="agent-sources">
           <b>Trích nguồn</b>
           {sources.map((s, i) => (
-            <span key={i} className={styles.note}>{agentName(s.agent)} · {s.source}: “{s.quote}”</span>
+            <span key={i} className={styles.note}>{agentName(s.agent)} · {sourceLabel(s.source)}: “{s.quote}”</span>
           ))}
+          <details className={styles.note}><summary>Chi tiết kỹ thuật (kiểm toán)</summary>{sources.map((s, i) => <div key={i}>{s.source}: {s.raw_quote ?? s.quote}</div>)}</details>
         </div>
       )}
       {c.state === 'Pending Approval' && <span className={styles.note}>Đang chờ người có thẩm quyền xác nhận; agent không tự phê duyệt.</span>}

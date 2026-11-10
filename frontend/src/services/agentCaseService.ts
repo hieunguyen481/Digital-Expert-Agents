@@ -5,7 +5,7 @@ export interface AgentVerdict {
   agent: string;
   decision: string;
   summary: string;
-  evidence?: { source: string; quote: string }[];
+  evidence?: { source: string; quote: string; raw_quote?: string }[];
 }
 
 export interface AgentCase {
@@ -104,7 +104,7 @@ export interface ActionProposal {
   kind: ProposalKind;
   title: string;
   rationale: string;
-  evidence: { source: string; quote: string }[];
+  evidence: { source: string; quote: string; raw_quote?: string }[];
   params: Record<string, unknown>;
   source_agent: string;
   status: 'PROPOSED' | 'CONFIRMED' | 'DISMISSED';
