@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
+import { message } from 'antd';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import type { UiRole } from '@/auth/roleFromMe';
 import { RAIL_ITEMS } from './navigation';
 import { Rail } from './Rail';
@@ -18,6 +19,12 @@ function labelsFor(role: UiRole, badge?: number) {
 }
 
 describe('Rail', () => {
+  // Toast và tooltip antd còn hẹn giờ/raf sau khi test xong; dọn trước khi jsdom bị đóng để khỏi lỗi 'window is not defined'.
+  afterEach(() => {
+    message.destroy();
+    cleanup();
+  });
+
   it.each(ROLES)('mục rail đúng bảng §2.1 cho %s', (role) => {
     const labels = labelsFor(role);
     for (const entry of RAIL_ITEMS[role]) expect(labels).toContain(entry.label);
