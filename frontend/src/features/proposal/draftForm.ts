@@ -51,3 +51,26 @@ export function formToSaveBody(form: DraftForm, version: number): DraftSaveBody 
 export function sameForm(a: DraftForm, b: DraftForm): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
+
+export const MAX_TERM_MONTHS = 600;
+
+/** Lỗi nhập ở form tạo đề xuất (L10): chuỗi rỗng là chưa nhập, chưa báo lỗi. */
+export function validateAmount(text: string): string | null {
+  const t = text.trim();
+  if (!t) return null;
+  if (!/^\d+([.,]\d+)?$/.test(t)) return 'Nhập số dương, ví dụ 7,5 (đơn vị tỷ đồng).';
+  if (!/^\d+([.,]\d{1,4})?$/.test(t)) return 'Tối đa 4 chữ số thập phân.';
+  if (!billionToVnd(t)) return 'Số tiền phải lớn hơn 0.';
+  if (Number(t.replace(',', '.')) > 1_000_000) return 'Số tiền vượt giới hạn nhập (1.000.000 tỷ đồng).';
+  return null;
+}
+
+export function validateTerm(text: string): string | null {
+  const t = text.trim();
+  if (!t) return null;
+  if (!/^\d+$/.test(t)) return 'Kỳ hạn là số nguyên tháng, ví dụ 36.';
+  const n = Number(t);
+  if (n < 1) return 'Kỳ hạn tối thiểu 1 tháng.';
+  if (n > MAX_TERM_MONTHS) return `Kỳ hạn tối đa ${MAX_TERM_MONTHS} tháng.`;
+  return null;
+}

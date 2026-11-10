@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { RequireRole } from '@/auth/RequireRole';
 import { getErrorMessage } from '@/services/apiClient';
 import { PageHead } from '@/features/shell/PageHead';
-import { billionToVnd } from './draftForm';
+import { billionToVnd, validateAmount, validateTerm } from './draftForm';
 import { createLoan, fetchProducts, searchCustomers } from './proposalService';
 import styles from './proposal.module.css';
 
@@ -24,7 +24,11 @@ function Content() {
   const product = products.data?.find((p) => p.id === productId);
   const vnd = billionToVnd(amount);
   const months = /^\d+$/.test(term.trim()) ? Number(term) : 0;
-  const ready = !!(customerId && product && vnd && months > 0);
+  const amountErr = validateAmount(amount);
+  const termErr = validateTerm(term);
+  const ready = !!(customerId && product && vnd && months > 0 && !amountErr && !termErr);
+  const missing = !customerId ? 'Chọn khách hàng.' : !product ? 'Chọn sản phẩm.'
+    : !amount.trim() ? 'Nhập số tiền đề nghị.' : !term.trim() ? 'Nhập kỳ hạn.' : (amountErr ?? termErr);
 
   const create = async () => {
     if (!ready || !product || !vnd || !customerId) return;
@@ -44,9 +48,12 @@ function Content() {
       <PageHead
         title="Tạo đề xuất vay"
         actions={
-          <Button type="primary" disabled={!ready || busy} loading={busy} onClick={() => void create()}>
-            Tạo bản nháp
-          </Button>
+          <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+            <Button type="primary" disabled={!ready || busy} loading={busy} onClick={() => void create()}>
+              Tạo bản nháp
+            </Button>
+            {!ready && missing && <span data-testid="create-lock-reason" style={{ fontSize: 12, color: 'var(--text-3)' }}>{missing}</span>}
+          </span>
         }
       />
       <div className={styles.page}>
@@ -73,10 +80,10 @@ function Content() {
               options={(products.data ?? []).map((p) => ({ value: p.id, label: p.product_name }))}
             />
           </Form.Item>
-          <Form.Item label="Số tiền đề nghị (tỷ đồng)" htmlFor="new-amount">
+          <Form.Item label="Số tiền đề nghị (tỷ đồng)" htmlFor="new-amount" validateStatus={amountErr ? 'error' : undefined} help={amountErr ?? undefined}>
             <Input id="new-amount" inputMode="decimal" suffix="tỷ đồng" value={amount} onChange={(e) => setAmount(e.target.value)} />
           </Form.Item>
-          <Form.Item label="Kỳ hạn (tháng)" htmlFor="new-term">
+          <Form.Item label="Kỳ hạn (tháng)" htmlFor="new-term" validateStatus={termErr ? 'error' : undefined} help={termErr ?? undefined}>
             <Input id="new-term" inputMode="numeric" suffix="tháng" value={term} onChange={(e) => setTerm(e.target.value)} />
           </Form.Item>
           {err && <div role="alert" style={{ color: 'var(--ant-color-error)' }}>{err}</div>}
