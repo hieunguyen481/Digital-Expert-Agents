@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, type Page } from '@playwright/test';
 
-export type RoleKey = 'qhkh' | 'httd' | 'tdinh' | 'ruiro' | 'tuanthu' | 'pheduyet' | 'pheduyet2' | 'giamdoc' | 'kiemtoan' | 'quantri';
+export type RoleKey = 'qhkh' | 'httd' | 'tdinh' | 'ruiro' | 'tuanthu' | 'pheduyet' | 'pheduyet2' | 'giamdoc' | 'kiemtoan' | 'quantri' | 'truongphong' | 'tdinh2';
 
 export const ACCOUNTS: Record<RoleKey, string> = {
   qhkh: 'credit.officer@example.local',
@@ -15,6 +15,8 @@ export const ACCOUNTS: Record<RoleKey, string> = {
   giamdoc: 'director.hn@example.local',
   kiemtoan: 'auditor@example.local',
   quantri: 'admin@example.local',
+  truongphong: 'credit.manager@example.local',
+  tdinh2: 'appraiser2@example.local',
 };
 
 /** Mật khẩu seed đọc lúc chạy từ infra/.env.local; không ghi ra file hay log. */

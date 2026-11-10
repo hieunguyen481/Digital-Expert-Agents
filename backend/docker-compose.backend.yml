@@ -241,6 +241,13 @@ services:
       SMTP_FROM: ${SMTP_FROM:-lamdanh100@gmail.com}
       EMAIL_DEMO_REDIRECT_TO: ${EMAIL_DEMO_REDIRECT_TO-lamdanh100@gmail.com}
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+    healthcheck:
+      # Worker khong mo cong HTTP (healthcheck cua image goi /health/live nen bao unhealthy gia): kiem tra PID 1.
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0 if b'app.workers.email_worker' in open('/proc/1/cmdline','rb').read() else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     networks: [bank-edge, bank-application, bank-data]  # bank-edge: ra smtp.gmail.com
     depends_on:
       backend-api:
