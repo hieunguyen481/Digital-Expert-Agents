@@ -43,7 +43,7 @@ export interface TimelineStep {
 export interface LoanOverview {
   loan: {
     id: string; application_number: string; status: string; requested_amount: string; currency: string;
-    requested_term_months: number | null; approved_amount?: string | number | null; approved_term_months?: number | null; decision_type?: string | null; approval_tier: string | null; customer_name: string | null; assignee_name: string | null;
+    requested_term_months: number | null; approved_amount?: string | number | null; approved_term_months?: number | null; decision_type?: string | null; conditions?: string[] | null; approval_tier: string | null; customer_name: string | null; assignee_name: string | null;
   };
   metrics: Metric[];
   flags: Flag[];
