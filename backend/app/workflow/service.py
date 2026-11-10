@@ -23,6 +23,7 @@ from app.workflow import sla
 from app.workflow.gates import CarriedFlag, GateFacts, carried_flag_rows, evaluate
 from app.workflow.routing import ApproverCandidate, pick_approver
 from app.workflow.transitions import (
+    COMPLIANCE_READ_ACTIONS,
     DECISION_STATUSES,
     SUPPLEMENT_TARGETS,
     TRANSITIONS,
@@ -234,7 +235,10 @@ class WorkflowService:
         from_status = str(loan["status"])
         # Chi nguoi dang giu buoc (hoac QHKH cua ho so o buoc nhap) moi duoc chuyen buoc;
         # chan som de tra 403 co ly do thay vi loi RLS o tang du lieu.
-        if not await self._repo.can_write_loan(principal.employee_id, loan_id):
+        # Ngoại lệ Q-N: Tuân thủ thao tác COMPLIANCE_READ_ACTIONS và trưởng phòng rút hồ sơ mà không giữ bước;
+        # quyền ghi của các hành động đó do credit.apply_transition kiểm.
+        needs_holder = action not in COMPLIANCE_READ_ACTIONS and action != "withdraw"
+        if needs_holder and not await self._repo.can_write_loan(principal.employee_id, loan_id):
             raise PermissionError("Chỉ người đang giữ bước xử lý của hồ sơ này mới được thực hiện thao tác.")
         if from_status not in transition.from_status:
             raise ConflictError(

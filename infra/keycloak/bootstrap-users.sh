@@ -141,6 +141,7 @@ user_specs=(
   '10000000-0000-4000-8000-000000000009|risk@example.local|risk_officer|Risk|Officer'
   '10000000-0000-4000-8000-000000000010|director.hn@example.local|loan_approver|Branch|Director'
   '10000000-0000-4000-8000-000000000011|approver2@example.local|loan_approver|Thu Ha|Pham'
+  '10000000-0000-4000-8000-000000000012|appraiser2@example.local|credit_appraiser|Appraiser|Second'
 )
 
 for specification in "${user_specs[@]}"; do
@@ -181,4 +182,4 @@ for specification in "${user_specs[@]}"; do
     --rolename "$role" >/dev/null
 done
 
-log 'client secrets and eleven demo identities were reconciled without storing passwords in realm JSON'
+log 'client secrets and twelve demo identities were reconciled without storing passwords in realm JSON'

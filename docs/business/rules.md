@@ -199,6 +199,7 @@ Nguồn: mục 15 của đặc tả đợt 1. Các mã Q-A…Q-U dưới đây �
 | Q-B | Role Thẩm định? | Thêm `credit_appraiser`; `credit_manager` để phân công lại. Lưu ý: trưởng phòng là tác nhân thứ 8, ngoài 7 vai trò đã chốt, chỉ phân công chứ không có trang riêng |
 | Q-C | Rủi ro và Tuân thủ? | 2 role, 1 mã UI; kết luận F8, AML chỉ Tuân thủ |
 | Q-D | Hệ thống phân công hồ sơ thế nào? | Mỗi bước một nhóm, chọn người ít việc nhất, trưởng phòng được chuyển kèm lý do |
+| Q-D2 | Trưởng phòng đọc và chuyển người ở phạm vi nào? | **Chốt 11/11/2026:** trưởng phòng đọc hồ sơ thuộc phòng mình (người được giao, người giữ hoặc từng giữ bước, hoặc QHKH của khách chính thuộc cùng phòng). "Chuyển người xử lý" chỉ chọn người cùng phòng, đúng vai trò của bước đang mở, không bị loại theo E8 và không phải người đang giữ; bắt buộc có lý do. Trưởng phòng không ghi được vào hồ sơ |
 | Q-E | Tính SLA khi tạm dừng giữa ngày? | Còn lại = số ngày LV từ ngày tạm dừng đến hạn; hạn mới = ngày HTTD ghi đạt + số còn lại, 17:00 |
 | Q-F | Ngày nghỉ lấy từ đâu? | Bảng do Quản trị nhập, seed lễ Việt Nam 2026–2027 |
 | Q-G | OCR, LLM, CIC thật hay giả? | CIC giả lập có nhãn; OCR, LLM thật cấu hình được, có che PII; dữ liệu seed làm dự phòng |

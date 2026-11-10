@@ -346,6 +346,16 @@
       "realmRoles": [
         "loan_approver"
       ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000012",
+      "username": "appraiser2@example.local",
+      "email": "appraiser2@example.local",
+      "emailVerified": true,
+      "enabled": true,
+      "realmRoles": [
+        "credit_appraiser"
+      ]
     }
   ]
 }

@@ -65,6 +65,8 @@ Mọi ô khác bị từ chối. Hành động ghi "Cần lý do: có" bị từ
 | return_for_supplement | APPROVAL | có | — | — | — | — | — | ✔ | — | — | — | Q-O |
 | withdraw | RETURNED_TO_RM,APPRAISAL_PENDING_INFO | có | ✔ | — | — | — | — | — | ✔ | — | — | Q11, Q-O |
 
+Phạm vi của Trưởng phòng (Q-D2): `loan:read` chỉ áp dụng cho hồ sơ thuộc phòng của họ (hàm `identity.loan_in_manager_department`, V053); người nhận khi chuyển phải cùng phòng. Test: `backend/tests/integration/test_manager_department_scope.py`.
+
 Hành động ngoài bảng (Trưởng phòng chuyển người xử lý, gia hạn bổ sung của QHKH, báo sớm Tuân thủ) không đổi trạng thái: xem mục 4.
 
 ## 3. Route API của backend (113 route, quyền khai báo ở dependency)
