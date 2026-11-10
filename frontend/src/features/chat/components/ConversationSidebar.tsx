@@ -15,15 +15,12 @@ import {
   SearchOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
-import { logout } from '@/auth/keycloak';
 import { SHBLogo } from '@/components/common/SHBLogo';
-import { UserAvatar } from '@/components/common/UserAvatar';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PageError } from '@/components/common/PageError';
 import { filterConversations, groupConversations } from '@/features/chat/utils/groupConversations';
 import type { Conversation } from '@/types/conversation';
 import type { UserProfile } from '@/types/user';
-import { UI_ROLE_LABEL } from '@/auth/roleFromMe';
 import styles from './ConversationSidebar.module.css';
 
 export interface ConversationSidebarProps {
@@ -49,7 +46,6 @@ export function ConversationSidebar({
   error,
   onRetry,
   collapsed = false,
-  user,
   onSelectConversation,
   onCreateConversation,
   onRenameConversation,
@@ -166,13 +162,6 @@ export function ConversationSidebar({
           ))}
         </div>
 
-        <div className={styles.footer}>
-          <Tooltip title={user.displayName} placement="right">
-            <span style={{ display: 'block', textAlign: 'center' }}>
-              <UserAvatar user={user} />
-            </span>
-          </Tooltip>
-        </div>
       </div>
     );
   }
@@ -327,31 +316,6 @@ export function ConversationSidebar({
           </button>
         </div>
 
-        <Dropdown
-          menu={{
-            items: [
-              { key: 'profile', label: 'Hồ sơ của tôi' },
-              { key: 'settings', label: 'Cài đặt tài khoản' },
-              { type: 'divider' },
-              { key: 'logout', label: 'Đăng xuất', danger: true },
-            ],
-            onClick: ({ key }) => {
-              if (key === 'logout') void logout();
-            },
-          }}
-          trigger={['click']}
-          placement="topRight"
-        >
-          <button type="button" className={styles.profile}>
-            <UserAvatar user={user} />
-            <span className={styles.profileBody}>
-              <span className={styles.profileName}>{user.displayName}</span>
-              <span className={styles.profileRole}>
-                {user.role ? UI_ROLE_LABEL[user.role] : 'Chưa gán vai trò'} • {user.branch}
-              </span>
-            </span>
-          </button>
-        </Dropdown>
       </div>
 
       <Modal

@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
-import { App, Avatar, Button, Card, Empty, Modal, Tabs, Tag, Timeline } from 'antd';
+import { App, Avatar, Button, Card, Empty, Modal, Result, Tabs, Tag, Timeline } from 'antd';
 import {
-  ArrowLeftOutlined,
   AuditOutlined,
   ClockCircleOutlined,
   FileTextOutlined,
@@ -12,7 +11,7 @@ import {
 } from '@ant-design/icons';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, useReducedMotion } from 'motion/react';
-import { SHBLogo } from '@/components/common/SHBLogo';
+import { PageHead } from '@/features/shell/PageHead';
 import { LoanApprovalCard } from '@/features/customer/components/LoanApprovalCard';
 import { formatCurrency, formatRate } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
@@ -73,18 +72,14 @@ export default function CustomerDetailPage() {
   if (!customer) {
     return (
       <div className={styles.page}>
-        <header className={styles.header}>
-          <SHBLogo size="small" showProductName />
-          <Link to="/">
-            <Button icon={<ArrowLeftOutlined />}>Về giao diện trò chuyện</Button>
-          </Link>
-        </header>
+        <PageHead title="Khách hàng" />
         <div className={styles.container}>
-          <Empty description="Không tìm thấy khách hàng" style={{ paddingTop: 60 }}>
-            <Button type="primary" onClick={() => navigate('/')}>
-              Quay lại
-            </Button>
-          </Empty>
+          <Result
+            status="404"
+            title="Không tìm thấy khách hàng"
+            subTitle="Mã khách hàng trong đường dẫn không tồn tại hoặc nằm ngoài phạm vi bạn được xem."
+            extra={<Button type="primary" onClick={() => navigate('/viec-cua-toi')}>Về Việc của tôi</Button>}
+          />
         </div>
       </div>
     );
@@ -250,12 +245,8 @@ export default function CustomerDetailPage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <SHBLogo size="small" showProductName />
-        <Link to="/">
-          <Button icon={<ArrowLeftOutlined />}>Về giao diện trò chuyện</Button>
-        </Link>
-      </header>
+      <PageHead title={customer.fullName} facts={[customer.code, customer.branch]}
+        actions={<Link to="/viec-cua-toi"><Button>Về Việc của tôi</Button></Link>} />
 
       <div className={styles.container}>
         <div className={styles.identity}>
@@ -265,8 +256,8 @@ export default function CustomerDetailPage() {
             style={{ background: shbColors.navy[100], color: shbColors.navy[700], flexShrink: 0 }}
           />
           <div className={styles.identityBody}>
-            {/* h1 duy nhất của trang */}
-            <h1 className={styles.name}>{customer.fullName}</h1>
+            {/* h1 của trang nằm ở PageHead */}
+            <h2 className={styles.name}>{customer.fullName}</h2>
             <span className={styles.code}>{customer.code}</span>
             <div className={styles.tags}>
               <Tag color={RISK_COLOR[customer.riskLevel]}>{RISK_LABEL[customer.riskLevel]}</Tag>

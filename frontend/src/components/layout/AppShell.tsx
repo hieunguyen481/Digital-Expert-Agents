@@ -36,9 +36,9 @@ export function AppShell({ sidebar, header, children, sidebarCollapsed }: AppShe
 
       <div className={styles.main}>
         {header}
-        <main id="main-content" className={styles.content}>
+        <div className={styles.content}>
           {children}
-        </main>
+        </div>
       </div>
     </div>
   );

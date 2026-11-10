@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { Button, Tabs } from 'antd';
+import { Tabs } from 'antd';
 import {
-  ArrowLeftOutlined,
   DeploymentUnitOutlined,
   RiseOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
-import { Link, useSearchParams } from 'react-router-dom';
-import { SHBLogo } from '@/components/common/SHBLogo';
+import { useSearchParams } from 'react-router-dom';
+import { PageHead } from '@/features/shell/PageHead';
 import { OverviewTab, TracesTab, ComparisonTab } from '@/features/dashboard/components';
 import styles from './AgentDashboardPage.module.css';
 
@@ -24,21 +23,9 @@ export default function AgentDashboardPage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <SHBLogo size="small" showProductName />
-        <Link to="/">
-          <Button icon={<ArrowLeftOutlined />}>Về giao diện trò chuyện</Button>
-        </Link>
-      </header>
-
+      <PageHead title="Giám sát đội agent"
+        facts={['Theo dõi tiến trình, quyết định và luồng cộng tác giữa các agent chuyên môn']} />
       <div className={styles.container}>
-        <div className={styles.titleBlock}>
-          <h1 className={styles.title}>Giám sát hệ chuyên gia số</h1>
-          <p className={styles.subtitle}>
-            Theo dõi tiến trình, quyết định và luồng cộng tác giữa các agent chuyên môn.
-          </p>
-        </div>
-
         <Tabs
           activeKey={tab}
           onChange={setTab}
