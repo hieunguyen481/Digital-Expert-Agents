@@ -127,7 +127,7 @@ def test_gate_never_more_favourable_than_expert_without_reason():
     v = {"credit": Verdict(agent="credit", task_id="t", decision=D.NEED_MORE_INFO, summary="thiếu lịch trả nợ"),
          "compliance": Verdict(agent="compliance", task_id="t", decision=D.APPROVE, summary="ok")}
     out, notes = gate.reconcile_experts(v, D.APPROVE)
-    assert out["credit"].decision == D.FLAG and out["credit"].summary.startswith("Đồng ý có điều kiện")
+    assert out["credit"].decision == D.FLAG and out["credit"].summary.startswith("Phần còn thiếu không chặn")
     assert out["compliance"].decision == D.APPROVE and len(notes) == 1
     same, none = gate.reconcile_experts(v, D.NEED_MORE_INFO)
     assert same["credit"].decision == D.NEED_MORE_INFO and not none
