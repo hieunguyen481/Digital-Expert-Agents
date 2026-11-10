@@ -30,7 +30,7 @@ INSERT INTO agent.action_proposal (id, case_id, kind, title, rationale, evidence
  ('a1000000-0000-4000-8000-000000000002', '${CASE}', 'request_documents', 'Yêu cầu bổ sung tài liệu', 'Thiếu báo cáo thuế quý 4',
    '["Checklist"]', '{"documents":["Báo cáo thuế quý 4"],"reason":"Thiếu báo cáo thuế"}', 'document', 2),
  ('a1000000-0000-4000-8000-000000000003', '${CASE}', 'add_disbursement_condition', 'Điều kiện giải ngân', 'Cần đăng ký tài sản bảo đảm',
-   '["Hồ sơ tài sản"]', '{"condition":"Hoàn tất đăng ký tài sản bảo đảm trước giải ngân"}', 'credit', 3);
+   '["Hồ sơ tài sản"]', '{"text":"Hoàn tất đăng ký tài sản bảo đảm trước giải ngân"}', 'credit', 3);
 `);
 });
 

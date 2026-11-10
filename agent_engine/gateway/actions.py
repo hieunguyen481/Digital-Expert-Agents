@@ -92,8 +92,10 @@ async def execute_proposal(jwt: str, loan: dict, proposal: dict, reason: str) ->
             "title": proposal["title"][:300], "reason": reason})
         return {"api": "agent-flags", "flag_id": out.get("id"), "created": out.get("created")}
     if kind == "add_disbursement_condition":
+        if not str(params.get("text") or "").strip():
+            raise ActionRefused(422, "BAD_PROPOSAL", "Đề xuất thiếu nội dung điều kiện.")
         out = await _post(jwt, f"/api/v1/loan-applications/{loan_id}/disbursement-conditions", {
-            "proposal_id": proposal["id"], "text": params["text"][:2000], "reason": reason})
+            "proposal_id": proposal["id"], "text": str(params["text"])[:2000], "reason": reason})
         return {"api": "disbursement-conditions", "condition_id": out.get("id"), "created": out.get("created")}
     if kind == "request_documents":
         if "request_info" not in ALLOWED_ACTIONS:
