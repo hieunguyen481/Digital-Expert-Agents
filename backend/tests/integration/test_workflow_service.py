@@ -28,6 +28,7 @@ from tests.integration.seed_ids import (
     BRANCH_HN,
     COMPLIANCE_HO,
     CREDIT_APPRAISER,
+    CREDIT_MANAGER,
     CREDIT_OFFICER,
     DOCUMENT_REVIEWER,
     RISK_HO,
@@ -221,6 +222,7 @@ class Case:
             self.loan_id,
         )
         await m.execute("DELETE FROM integration.notification WHERE resource_id = $1", self.loan_id)
+        await m.execute("DELETE FROM credit.case_reassignment WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM credit.deadline_extension WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM credit.case_step WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM banking.credit_report WHERE customer_id = $1", self.customer_id)
@@ -974,6 +976,44 @@ async def test_withdraw_overdue_rejected_before_deadline_customer_allowed(
         engine, rm, case.loan_id, "withdraw", 1, reason="Khach rut", params={"withdraw_kind": "CUSTOMER"}
     )
     assert result.status == "WITHDRAWN"
+
+
+async def test_manager_reassigns_step_with_reason(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="CHECKING")
+    await case.add_step("CHECKING", CREDIT_OFFICER)
+    manager = await principal(mig, CREDIT_MANAGER)
+
+    async def call(who: CurrentPrincipal, fn: str, *args: object) -> object:
+        async with (
+            AsyncSession(engine) as session,
+            rls_transaction(session, who.employee_id, who.branch_id, who.is_admin),
+        ):
+            service = WorkflowService(WorkflowRepository(session), AuditService(AuditRepository(session)))
+            return await getattr(service, fn)(who, *args)
+
+    scope_id = uuid4()
+    await mig.execute(
+        "INSERT INTO identity.employee_scope (id, employee_id, scope_type, scope_id, permission_code,"
+        " valid_from, created_at) VALUES ($1, $2, 'LOAN_APPLICATION', $3, 'loan:read', now() - interval '1 day', now())",
+        scope_id, CREDIT_MANAGER, case.loan_id,
+    )
+    candidates = await call(manager, "reassign_candidates", case.loan_id)
+    assert DOCUMENT_REVIEWER in {c["employee_id"] for c in candidates}
+    assert await call(await principal(mig, DOCUMENT_REVIEWER), "reassign_candidates", case.loan_id) == []
+    with pytest.raises(ValueError):
+        await call(manager, "reassign", case.loan_id, DOCUMENT_REVIEWER, " ")
+    with pytest.raises(PermissionError):
+        await call(await principal(mig, CREDIT_OFFICER), "reassign", case.loan_id, DOCUMENT_REVIEWER, "x")
+    with pytest.raises(ConflictError) as wrong_role:
+        await call(manager, "reassign", case.loan_id, CREDIT_APPRAISER, "Sai vai tro")
+    assert wrong_role.value.code == "REASSIGN_NOT_ELIGIBLE"
+    await call(manager, "reassign", case.loan_id, DOCUMENT_REVIEWER, "Nguoi cu nghi phep")
+    assert (await open_step(mig, case.loan_id, "CHECKING"))["assignee_employee_id"] == DOCUMENT_REVIEWER
+    assert "WORKFLOW_REASSIGN" in await audit_actions(mig, case.loan_id)
+    assert (DOCUMENT_REVIEWER, "CASE_ASSIGNED") in await notifications_of(mig, case.loan_id)
+    await mig.execute("DELETE FROM identity.employee_scope WHERE id = $1", scope_id)
 
 
 async def notifications_of(mig: asyncpg.Connection, loan_id: UUID) -> list[tuple[UUID, str]]:

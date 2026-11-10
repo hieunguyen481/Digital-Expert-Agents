@@ -44,6 +44,19 @@ class SubmissionRepository:
     async def exposure_lines(self, loan_id: UUID) -> list[Record]:
         return await fetch_all(self.session, _LINES_SQL, {"loan_id": loan_id})
 
+    async def latest_revenue(self, loan_id: UUID) -> tuple[int, Any] | None:
+        """Doanh thu năm gần nhất của khách chính (Q8); None nếu chưa có số liệu."""
+        row = await fetch_one(
+            self.session,
+            """SELECT fy.fiscal_year, fy.revenue
+               FROM credit.loan_application AS la
+               JOIN credit.sme_financial_year AS fy ON fy.customer_id = la.primary_customer_id
+               WHERE la.id = :loan_id AND fy.revenue IS NOT NULL
+               ORDER BY fy.fiscal_year DESC LIMIT 1""",
+            {"loan_id": loan_id},
+        )
+        return (int(row["fiscal_year"]), row["revenue"]) if row else None
+
     async def total_exposure_and_tier(self, loan_id: UUID) -> tuple[Any, int]:
         row = await fetch_one(
             self.session,

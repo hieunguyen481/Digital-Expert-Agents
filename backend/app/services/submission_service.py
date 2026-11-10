@@ -117,8 +117,16 @@ class SubmissionService:
             if amount is not None and amount >= warn_billion * 10**9
             else None
         )
+        revenue = await self._repo.latest_revenue(loan_id)
+        sme_limit = 1000 * 10**9  # Q8: SME theo phân khúc nội bộ, doanh thu năm ≤ 1.000 tỷ
+        segment = (
+            f"Doanh thu năm {revenue[0]} của khách là {revenue[1] / 10**9:,.0f} tỷ đồng, vượt 1.000 tỷ: "
+            "ngoài phân khúc KHDN SME (Q8), cần xác nhận phạm vi áp dụng chính sách."
+            if revenue is not None and revenue[1] > sme_limit
+            else None
+        )
         return {
-            "amount_warning": warning,
+            "amount_warning": warning, "segment_warning": segment,
             "editable": loan["editable"], "can_submit": loan["editable"] and result.ok, "lock_reason": lock,
             "required_tier": tier, "conditions": rows,
             "exceptions": [dict(r) for r in await self._repo.exceptions(loan_id)],

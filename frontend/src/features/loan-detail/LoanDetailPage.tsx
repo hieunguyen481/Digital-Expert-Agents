@@ -13,6 +13,7 @@ import { fetchOverview } from './loanDetailService';
 import { LoanHeader } from './LoanHeader';
 import { TodoPanel, buildTodos } from './TodoPanel';
 import { fetchActionState, fetchAgentRuns } from './loanDetailService';
+import { ReassignControl } from './ReassignControl';
 import { PreDisbursementPanel } from './PreDisbursementPanel';
 import styles from './loan-detail.module.css';
 
@@ -47,6 +48,7 @@ export default function LoanDetailPage() {
         <PreDisbursementPanel loanId={loanId} status={loan.status} decisionConditions={loan.conditions} />
         <MemoPanel key={loan.status} loanId={loanId} />
         <CollateralPanel items={collaterals} />
+        <ReassignControl loanId={loanId} />
         <ActionsPanel loanId={loanId} overview={q.data} />
       </div>
     </>

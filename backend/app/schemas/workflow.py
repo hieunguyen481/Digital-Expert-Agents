@@ -30,6 +30,17 @@ class ExtendDeadlineRequest(APIModel):
     reason: str | None = Field(default=None, max_length=4000)
 
 
+class ReassignRequest(APIModel):
+    new_assignee_id: UUID
+    reason: str | None = Field(default=None, max_length=4000)
+
+
+class ReassignCandidate(APIModel):
+    employee_id: UUID
+    full_name: str
+    open_count: int
+
+
 class ExtendDeadlineResponse(APIModel):
     due_at: datetime
 

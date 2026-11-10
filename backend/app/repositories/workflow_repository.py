@@ -116,6 +116,35 @@ class WorkflowRepository:
             raise RuntimeError("extend_case_deadline returned no row")
         return row["due_at"]
 
+    async def reassign_candidates(self, loan_id: UUID) -> list[dict[str, Any]]:
+        rows = await fetch_all(
+            self.session, "SELECT employee_id, full_name, open_count FROM credit.reassign_candidates(:loan_id)",
+            {"loan_id": loan_id},
+        )
+        return [dict(r) for r in rows]
+
+    async def reassign(self, loan_id: UUID, caller: UUID, new_assignee: UUID, reason: str) -> UUID:
+        try:
+            row = await fetch_one(
+                self.session,
+                "SELECT credit.reassign_case_step(:loan_id, :caller, :new, :reason) AS step_id",
+                {"loan_id": loan_id, "caller": caller, "new": new_assignee, "reason": reason},
+            )
+        except DBAPIError as error:
+            state = _sqlstate(error)
+            if state == "42501":
+                raise PermissionError("Only a credit manager may reassign a case") from error
+            if state == "23514":
+                raise ConflictError(
+                    "REASSIGN_NOT_ELIGIBLE", "Người nhận không đủ điều kiện (sai vai trò, bị loại hoặc đang giữ hồ sơ).", {}
+                ) from error
+            if state in {"22023", "55000"}:
+                raise ValueError("The case cannot be reassigned") from error
+            raise
+        if row is None:
+            raise RuntimeError("reassign_case_step returned no row")
+        return row["step_id"]
+
     async def extension_count(self, loan_id: UUID) -> int:
         row = await fetch_one(
             self.session,

@@ -39,6 +39,15 @@ export async function runTransition(loanId: string, action: string, version: num
 export async function extendDeadline(loanId: string, reason: string) {
   return (await apiClient.post<{ due_at: string }>(`${base(loanId)}/extend-deadline`, { reason })).data;
 }
+export interface ReassignCandidate { employee_id: string; full_name: string; open_count: number }
+/** Q-D: người đủ điều kiện nhận hồ sơ (chỉ trưởng phòng thấy danh sách). */
+export async function fetchReassignCandidates(loanId: string) {
+  return (await apiClient.get<ReassignCandidate[]>(`${base(loanId)}/reassign-candidates`)).data;
+}
+/** Q-D: trưởng phòng chuyển người xử lý kèm lý do. */
+export async function reassignLoan(loanId: string, newAssigneeId: string, reason: string) {
+  await apiClient.post(`${base(loanId)}/reassign`, { new_assignee_id: newAssigneeId, reason });
+}
 export async function handleFlag(loanId: string, flagId: string, note: string) {
   await apiClient.post(`${base(loanId)}/flags/${flagId}/handle`, { note });
 }

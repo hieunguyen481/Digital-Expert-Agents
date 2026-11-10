@@ -181,6 +181,7 @@ class SubmitConditions(APIModel):
     lock_reason: str | None
     required_tier: int
     amount_warning: str | None = None
+    segment_warning: str | None = None
     conditions: list[SubmitCondition]
     exceptions: list[ExceptionItem]
     collaterals: list[CollateralItem]

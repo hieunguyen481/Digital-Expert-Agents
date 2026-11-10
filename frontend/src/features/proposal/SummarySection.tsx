@@ -38,6 +38,7 @@ export function SummarySection({ loanId, blocked, saveNow, onGoto, onSubmitted }
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
       <Typography.Title level={5} style={{ margin: 0 }}>Điều kiện gửi Hỗ trợ tín dụng (HTTD)</Typography.Title>
       {c.amount_warning && <Alert type="warning" showIcon data-testid="amount-warning" message={c.amount_warning} />}
+      {c.segment_warning && <Alert type="warning" showIcon data-testid="segment-warning" message={c.segment_warning} />}
       <p style={{ margin: 0 }}>Cấp phê duyệt theo tổng cấp tín dụng của nhóm: <b>cấp {c.required_tier}</b></p>
       <Table<SubmitCondition>
         size="small"

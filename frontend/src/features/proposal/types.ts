@@ -154,6 +154,7 @@ export interface SubmitConditions {
   lock_reason: string | null;
   required_tier: number;
   amount_warning?: string | null;
+  segment_warning?: string | null;
   conditions: SubmitCondition[];
   exceptions: ExceptionItem[];
   collaterals: CollateralItem[];

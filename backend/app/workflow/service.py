@@ -61,6 +61,8 @@ class WorkflowRepositoryLike(Protocol):
     async def extend_deadline(
         self, loan_id: UUID, caller: UUID, reason: str, new_due_at: datetime
     ) -> datetime: ...
+    async def reassign_candidates(self, loan_id: UUID) -> Sequence[Mapping[str, Any]]: ...
+    async def reassign(self, loan_id: UUID, caller: UUID, new_assignee: UUID, reason: str) -> UUID: ...
     async def list_steps(self, loan_id: UUID) -> Sequence[Mapping[str, Any]]: ...
     async def last_step(
         self, loan_id: UUID, step_code: str, *, result: str | None = None
@@ -179,6 +181,32 @@ class WorkflowService:
                 metadata={"previous_due_at": step["due_at"], "new_due_at": result, "reason": clean},
             )
         return result
+
+    async def reassign_candidates(self, principal: PrincipalLike, loan_id: UUID) -> list[Mapping[str, Any]]:
+        if "credit_manager" not in set(getattr(principal, "roles", ())) or getattr(principal, "is_admin", False):
+            return []
+        return list(await self._repo.reassign_candidates(loan_id))
+
+    async def reassign(
+        self, principal: PrincipalLike, loan_id: UUID, new_assignee: UUID, reason: str | None,
+        *, request_id: UUID | None = None,
+    ) -> None:
+        """Q-D: trưởng phòng chuyển người xử lý bước đang mở, bắt buộc lý do."""
+        if "credit_manager" not in set(getattr(principal, "roles", ())) or getattr(principal, "is_admin", False):
+            raise PermissionError("Action reassign requires role credit_manager")
+        clean = (reason or "").strip()
+        if not clean:
+            raise ValueError("Action reassign requires a reason")
+        if await self._repo.get_loan(loan_id) is None:
+            raise LookupError("Loan application was not found or is outside the authorized scope")
+        step_id = await self._repo.reassign(loan_id, principal.employee_id, new_assignee, clean)
+        if self._audit is not None:
+            await self._audit.record(
+                principal=principal, action="WORKFLOW_REASSIGN", resource_type="LOAN_APPLICATION",
+                resource_id=loan_id, loan_application_id=loan_id, result="SUCCESS",
+                request_id=request_id, correlation_id=request_id,
+                metadata={"case_step_id": step_id, "to_employee_id": new_assignee, "reason": clean},
+            )
 
     async def transition(
         self,

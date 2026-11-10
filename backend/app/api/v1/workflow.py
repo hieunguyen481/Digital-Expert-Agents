@@ -20,6 +20,8 @@ from app.schemas.workflow import (
     CaseStepResponse,
     ExtendDeadlineRequest,
     ExtendDeadlineResponse,
+    ReassignCandidate,
+    ReassignRequest,
     TransitionRequest,
     TransitionResponse,
 )
@@ -61,6 +63,30 @@ async def transition_loan_application(
         assignee_employee_id=result.assignee_employee_id,
         due_at=result.due_at,
         carried_flags=list(result.carried_flags),
+    )
+
+
+@router.get("/{loan_application_id}/reassign-candidates", response_model=list[ReassignCandidate])
+async def reassign_candidates(
+    loan_application_id: UUID,
+    principal: Annotated[CurrentPrincipal, Depends(require_permissions("loan:read"))],
+    service: Annotated[WorkflowService, Depends(get_workflow_service)],
+) -> list[ReassignCandidate]:
+    """Q-D: người đủ điều kiện nhận hồ sơ (cùng vai trò bước, không bị loại); chỉ trưởng phòng thấy."""
+    return [ReassignCandidate.model_validate(r) for r in await service.reassign_candidates(principal, loan_application_id)]
+
+
+@router.post("/{loan_application_id}/reassign", status_code=204)
+async def reassign(
+    loan_application_id: UUID,
+    body: ReassignRequest,
+    request: Request,
+    principal: Annotated[CurrentPrincipal, Depends(require_permissions("loan:read"))],
+    service: Annotated[WorkflowService, Depends(get_workflow_service)],
+) -> None:
+    """Q-D: trưởng phòng chuyển người xử lý kèm lý do."""
+    await service.reassign(
+        principal, loan_application_id, body.new_assignee_id, body.reason, request_id=request_uuid(request)
     )
 
 
