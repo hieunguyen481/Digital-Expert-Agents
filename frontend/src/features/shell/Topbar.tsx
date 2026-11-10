@@ -3,7 +3,6 @@ import { Avatar, Dropdown } from 'antd';
 import { UI_ROLE_LABEL, type UiRole } from '@/auth/roleFromMe';
 import { logout } from '@/auth/keycloak';
 import type { Me } from '@/types/me';
-import { DemoSwitcher } from './DemoSwitcher';
 import { NotificationBell } from './NotificationBell';
 import styles from './shell.module.css';
 
@@ -17,18 +16,16 @@ export function Topbar({ me, role }: { me: Me; role: UiRole }) {
 
   return (
     <div className={styles.topbar}>
-      <span className={styles.appName}>Sổ Tín Dụng</span>
-      <label className={styles.search} title="Tìm kiếm sẽ có ở đợt sau">
+      <label className={styles.search} role="search" title="Tìm kiếm sẽ có ở đợt sau">
         <SearchOutlined aria-hidden />
         <input
           disabled
           aria-label="Tìm kiếm"
-          placeholder="Tìm hồ sơ, khách hàng, MST, điều khoản…"
+          placeholder="Tìm hồ sơ, khách hàng, mã số thuế"
           title="Tìm kiếm sẽ có ở đợt sau"
         />
       </label>
       <span className={styles.spacer} />
-      {me.roles.includes('admin') && <DemoSwitcher />}
       <NotificationBell />
       <Dropdown
         trigger={['click']}

@@ -1,21 +1,22 @@
 import {
+  AuditOutlined,
   BankOutlined,
+  BarChartOutlined,
+  BellOutlined,
   BookOutlined,
-  ClockCircleOutlined,
-  DashboardOutlined,
   FileDoneOutlined,
   InboxOutlined,
-  MessageOutlined,
   PlusOutlined,
   SettingOutlined,
   TeamOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
-import { Tooltip, message } from 'antd';
+import { message } from 'antd';
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import type { UiRole } from '@/auth/roleFromMe';
-import { AI_PAGE, RAIL_ITEMS, type RailItem } from './navigation';
+import { UI_ROLE_LABEL, type UiRole } from '@/auth/roleFromMe';
+import { SHBLogo } from '@/components/common/SHBLogo';
+import { AI_PAGE, COMMON_GROUP_START_PAGE, RAIL_ITEMS, type RailItem } from './navigation';
 import styles from './shell.module.css';
 
 const ICONS: Record<RailItem['icon'], ReactNode> = {
@@ -25,11 +26,11 @@ const ICONS: Record<RailItem['icon'], ReactNode> = {
   filecheck: <FileDoneOutlined />,
   users: <TeamOutlined />,
   book: <BookOutlined />,
-  clock: <ClockCircleOutlined />,
+  clock: <AuditOutlined />,
   gear: <SettingOutlined />,
   spark: <ThunderboltOutlined />,
-  chat: <MessageOutlined />,
-  dash: <DashboardOutlined />,
+  bell: <BellOutlined />,
+  dash: <BarChartOutlined />,
 };
 
 interface RailProps {
@@ -39,60 +40,64 @@ interface RailProps {
   onOpenAi: () => void;
 }
 
+/** Thanh bên theo vai (§6 "Thanh bên theo vai", §11.4): nền navy, mục chọn nền giấy + vạch đồng. */
 export function Rail({ role, badge, onOpenAi }: RailProps) {
   const items = RAIL_ITEMS[role];
+  const separatorBefore = items.findIndex((i) => i.page === COMMON_GROUP_START_PAGE);
   return (
-    <nav className={styles.rail} aria-label="Điều hướng chính">
-      <div className={styles.railLogo} aria-hidden>
-        SHB
+    <nav className={styles.side} aria-label="Điều hướng chính">
+      <div className={styles.brand}>
+        <SHBLogo variant="white" showProductName />
       </div>
+      <div className={styles.navRole}>{UI_ROLE_LABEL[role]}</div>
       {items.map((entry, index) => {
         const isAi = entry.page === AI_PAGE;
         const showBadge = index === 0 && typeof badge === 'number' && badge > 0;
         const content = (
           <>
-            {ICONS[entry.icon]}
+            <span className={styles.navIcon} aria-hidden>
+              {ICONS[entry.icon]}
+            </span>
+            <span className={styles.navLabel}>{entry.label}</span>
             {showBadge && (
-              <span className={styles.railBadge} data-testid="rail-badge">
+              <span className={styles.navCount} data-testid="rail-badge">
                 {badge}
               </span>
             )}
           </>
         );
-        const cls = `${styles.railItem} ${isAi ? styles.railAi : ''}`;
+        const separator = index === separatorBefore && index > 0 ? <div key={`sep-${entry.page}`} className={styles.navSep} role="separator" /> : null;
+        let node: ReactNode;
         if (isAi) {
-          return (
-            <button
-              key={entry.page}
-              type="button"
-              className={cls}
-              title={entry.label}
-              aria-label={entry.label}
-              onClick={onOpenAi}
-            >
+          node = (
+            <button type="button" className={styles.navItem} aria-label={entry.label} onClick={onOpenAi}>
               {content}
             </button>
           );
-        }
-        if (entry.path) {
-          return (
-            <NavLink
-              key={entry.page}
-              to={entry.path}
-              className={({ isActive }) => `${cls} ${isActive ? styles.railActive : ''}`}
-              title={entry.label}
-              aria-label={entry.label}
-            >
+        } else if (entry.path) {
+          node = (
+            <NavLink to={entry.path} className={styles.navItem} aria-label={entry.label}>
               {content}
             </NavLink>
           );
-        }
-        return (
-          <Tooltip key={entry.page} title={`${entry.label}: sẽ có ở đợt sau`}>
-            <button type="button" className={cls} aria-label={entry.label} aria-disabled="true" onClick={() => void message.info(`${entry.label}: sẽ có ở đợt sau`)}>
+        } else {
+          node = (
+            <button
+              type="button"
+              className={styles.navItem}
+              aria-label={entry.label}
+              aria-disabled="true"
+              onClick={() => void message.info(`${entry.label}: sẽ có ở đợt sau`)}
+            >
               {content}
             </button>
-          </Tooltip>
+          );
+        }
+        return (
+          <span key={entry.page} className={styles.navCell}>
+            {separator}
+            {node}
+          </span>
         );
       })}
     </nav>

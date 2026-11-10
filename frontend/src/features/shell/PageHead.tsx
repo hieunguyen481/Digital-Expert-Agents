@@ -21,20 +21,22 @@ export function PageHead({ title, facts = [], actions, onAskAi, crumbs }: PageHe
   return (
     <>
     {crumbs && crumbs.length > 0 && (
-      <nav aria-label="Đường dẫn" className={styles.crumbs} data-testid="breadcrumb">
+      <nav aria-label="Vị trí" className={styles.crumbs} data-testid="breadcrumb">
         {crumbs.map((c, i) => (
           <span key={c.label}>
-            {i > 0 && <span aria-hidden> › </span>}
+            {i > 0 && <span aria-hidden> / </span>}
             {c.to ? <Link to={c.to}>{c.label}</Link> : <span aria-current="page">{c.label}</span>}
           </span>
         ))}
       </nav>
     )}
     <header className={styles.pageHead}>
-      <Typography.Title level={1} className={styles.pageTitle}>
-        {title}
-      </Typography.Title>
-      <span className={styles.pageMeta}>{text}</span>
+      <div className={styles.pageTitleBox}>
+        <Typography.Title level={1} className={styles.pageTitle}>
+          {title}
+        </Typography.Title>
+        <span className={styles.pageMeta}>{text}</span>
+      </div>
       <div className={styles.pageActions}>
         {onAskAi && (
           <Button icon={<ThunderboltOutlined />} onClick={onAskAi}>
