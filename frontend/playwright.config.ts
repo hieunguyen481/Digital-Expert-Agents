@@ -6,6 +6,7 @@ const BASE_URL = `http://localhost:${PORT}`;
 /** E2E chạy trên stack thật: Keycloak :8080, backend :8000, frontend dev :3000. */
 export default defineConfig({
   testDir: './e2e',
+  globalSetup: './e2e/global-setup.ts',
   timeout: 60_000,
   fullyParallel: false,
   // Mọi spec dùng chung một DB seed; spec đổi trạng thái tự nạp lại seed (E2E_RESEED_CMD),
