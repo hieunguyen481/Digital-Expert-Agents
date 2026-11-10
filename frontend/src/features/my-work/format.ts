@@ -59,7 +59,7 @@ export const STATUS_LABEL: Record<string, string> = {
   RISK_PENDING_INFO: 'Rủi ro – chờ bổ sung',
   RISK_HOLD_FRAUD: 'Tạm dừng nghi gian lận',
   APPROVAL: 'Chờ phê duyệt',
-  COUNCIL_SESSION: 'Trình hội đồng tín dụng',
+  COUNCIL_SESSION: 'Chờ phiên Hội đồng – có ở đợt 2',
   APPROVED: 'Đã phê duyệt',
   APPROVED_WITH_CONDITIONS: 'Phê duyệt có điều kiện',
   REJECTED: 'Từ chối',

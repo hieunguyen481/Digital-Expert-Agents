@@ -20,7 +20,9 @@ export async function as(page: Page, role: RoleKey): Promise<void> {
   await loginAs(page, role);
 }
 
-export async function createProposal(page: Page, flow: string, customer = 'Mekong Flex'): Promise<string> {
+export async function createProposal(
+  page: Page, flow: string, customer = 'Mekong Flex', amountBillion = 2,
+): Promise<string> {
   await as(page, 'qhkh');
   await page.goto('/de-xuat-vay');
   await page.locator('#new-customer').click();
@@ -28,7 +30,7 @@ export async function createProposal(page: Page, flow: string, customer = 'Mekon
   await page.locator('.ant-select-item-option').filter({ hasText: customer }).first().click();
   await page.locator('#new-product').click();
   await page.locator('.ant-select-item-option').filter({ hasText: 'Hạn mức vốn' }).click();
-  await page.locator('#new-amount').fill('2');
+  await page.locator('#new-amount').fill(String(amountBillion));
   await page.locator('#new-term').fill('24');
   await shot(page, flow, '01-tao-de-xuat');
   await page.getByRole('button', { name: 'Tạo bản nháp' }).click();
@@ -48,6 +50,13 @@ export async function createProposal(page: Page, flow: string, customer = 'Mekon
     .setInputFiles(resolve(process.cwd(), 'e2e/fixtures/scan-khong-chu.pdf'));
   await up;
   await expect(page.getByTestId('doc-SME-02-BUSINESS-REGISTRATION')).toContainText('Đã đủ');
+  if (amountBillion > 20) {
+    // E5: trên 20 tỷ bắt buộc BCTC kiểm toán; tải vào đúng mục để đủ điều kiện (QA3-05).
+    const audited = page.waitForResponse((r) => /\/checklist\/[^/]+\/documents$/.test(r.url()) && r.status() === 204);
+    await page.getByTestId('upload-SME-08-AUDITED-FS').setInputFiles(resolve(process.cwd(), 'e2e/fixtures/scan-khong-chu.pdf'));
+    await audited;
+    await expect(page.getByTestId('doc-SME-08-AUDITED-FS')).toContainText('Đã đủ');
+  }
   for (let left = await page.getByRole('button', { name: 'Đề xuất ngoại lệ', exact: true }).count(); left > 0; left--) {
     await page.getByRole('button', { name: 'Đề xuất ngoại lệ', exact: true }).first().click();
     await page.getByPlaceholder('Lý do (tối thiểu 10 ký tự)').fill('Khách hứa bổ sung trong tuần tới theo cam kết.');
