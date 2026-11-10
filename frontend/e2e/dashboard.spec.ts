@@ -5,7 +5,7 @@ const REQUEST =
   'Phân tích sâu hồ sơ vay VinaNova: thẩm định tín dụng, kiểm tra tuân thủ chính sách và đề xuất hạn mức';
 
 async function openCases(page: import('@playwright/test').Page) {
-  await page.getByRole('link', { name: 'Bảng điều khiển agent' }).click();
+  await page.getByRole('link', { name: 'Đội agent' }).click();
   await page.getByRole('tab', { name: /Agent traces/ }).click();
   // Ca trò chuyện không gắn hồ sơ là ca kiểm thử: mặc định ẩn, bật bộ lọc để thấy.
   const showTest = page.getByTestId('trace-show-test');
@@ -79,7 +79,7 @@ test('dashboard hiện đúng case vừa chạy ở /chat: DAG, task, luồng ph
 
 test('tổng quan lấy số liệu thật từ trace', async ({ page }) => {
   await loginAs(page, 'tdinh');
-  await page.getByRole('link', { name: 'Bảng điều khiển agent' }).click();
+  await page.getByRole('link', { name: 'Đội agent' }).click();
   const overview = page.getByTestId('overview');
   await expect(overview).toContainText('Tổng lượt phân tích');
   await expect(overview).toContainText('Công cụ MCP đã gọi');

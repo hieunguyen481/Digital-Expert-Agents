@@ -79,7 +79,7 @@ export default function LoginPage() {
               showIcon
               role="status"
               data-testid="login-expired"
-              message="Phiên đăng nhập đã hết hạn."
+              title="Phiên đăng nhập đã hết hạn."
               description="Vì an toàn, phiên tự đóng sau một thời gian không hoạt động. Hãy đăng nhập lại; bạn sẽ quay về đúng trang đang làm."
             />
           )}
@@ -90,7 +90,7 @@ export default function LoginPage() {
               showIcon
               role="alert"
               data-testid="login-error"
-              message="Chưa thể chuyển sang trang xác thực."
+              title="Chưa thể chuyển sang trang xác thực."
               description="Kiểm tra kết nối mạng nội bộ rồi thử lại. Nếu vẫn lỗi, liên hệ Quản trị hệ thống."
             />
           )}
@@ -99,7 +99,7 @@ export default function LoginPage() {
               className={styles.alert}
               type="info"
               showIcon
-              message="Bạn sẽ được chuyển sang trang xác thực của ngân hàng, rồi quay lại đây sau khi đăng nhập."
+              title="Bạn sẽ được chuyển sang trang xác thực của ngân hàng, rồi quay lại đây sau khi đăng nhập."
             />
           )}
           <Button type="primary" size="large" block icon={<LoginOutlined />} loading={redirecting} onClick={() => void handleLogin()}>
