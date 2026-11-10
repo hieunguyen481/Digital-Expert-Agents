@@ -62,6 +62,7 @@ describe('Rail', () => {
   it('mục chưa có trang hiện toast "sẽ có ở đợt sau" (D1)', async () => {
     labelsFor('qhkh');
     await userEvent.click(screen.getByRole('button', { name: 'Khách hàng SME' }));
-    expect(await screen.findByText('Khách hàng SME: sẽ có ở đợt sau')).toBeInTheDocument();
+    // Tooltip khi rê chuột và toast cùng hiện câu này: đủ một phần tử trở lên.
+    expect((await screen.findAllByText('Khách hàng SME: sẽ có ở đợt sau')).length).toBeGreaterThan(0);
   });
 });
