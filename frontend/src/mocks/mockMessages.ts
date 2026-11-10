@@ -219,7 +219,7 @@ const demoPlainText = `Đã hoàn tất thẩm định hồ sơ ${demoApplicatio
 
 Cơ sở đề xuất: DTI 31% dưới ngưỡng 50%; điểm tín dụng 742 không có nợ quá hạn; LTV 65% dưới ngưỡng 70%; không trùng danh sách cảnh báo AML; đủ 8/8 chứng từ bắt buộc.
 
-Quyết định phê duyệt thuộc thẩm quyền của chuyên viên. SH-AI không tự phê duyệt khoản vay.
+Quyết định phê duyệt thuộc thẩm quyền của chuyên viên. Trợ lý AI không tự phê duyệt khoản vay.
 
 ${DEMO_DISCLAIMER}`;
 

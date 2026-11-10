@@ -11,7 +11,7 @@ import { AppLayout } from '@/features/shell/AppLayout';
  * Không khai báo route rải rác trong component.
  *
  * - `/login`        : trang đăng nhập (route công khai duy nhất).
- * - `/` chuyển `/viec-cua-toi` (Việc của tôi); `/chat`: trò chuyện SH-AI.
+ * - `/` chuyển `/viec-cua-toi` (Việc của tôi); `/chat`: trò chuyện Trợ lý AI.
  * - Tất cả nằm trong layout route AppLayout (rail, topbar, panel AI).
  * - `/dashboard`    : bảng điều khiển agent.
  * - `/de-xuat-vay`   : tạo đề xuất vay (04); `/de-xuat-vay/:loanId`: soạn nháp.
