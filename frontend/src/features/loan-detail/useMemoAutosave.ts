@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { isApiError } from '@/services/apiClient';
 import { decideAiBlock, fetchMemo, saveMemo } from './loanDetailService';
 import type { MemoView } from './types';
@@ -9,6 +10,7 @@ export type MemoSaveState =
 
 /** Tự lưu Tờ trình: gõ xong `debounceMs` thì PUT kèm version đã nạp; 409 VERSION_CONFLICT → dừng, không ghi đè. */
 export function useMemoAutosave(loanId: string, debounceMs = 1200) {
+  const qc = useQueryClient();
   const [view, setView] = useState<MemoView | null>(null);
   const [bodies, setBodies] = useState<Record<string, string>>({});
   const [state, setState] = useState<MemoSaveState>({ kind: 'idle' });
@@ -48,6 +50,7 @@ export function useMemoAutosave(loanId: string, debounceMs = 1200) {
       version.current = v.draft?.version ?? version.current;
       setView(v);
       setState({ kind: 'saved', at: v.draft?.updated_at ?? new Date().toISOString() });
+      void qc.invalidateQueries({ queryKey: ['loan-actions', loanId] }); // điều kiện khóa phụ thuộc tờ trình (L11)
     } catch (e) {
       dirty.current = { ...sending, ...dirty.current };
       if (isApiError(e) && e.status === 409 && e.code === 'VERSION_CONFLICT') {

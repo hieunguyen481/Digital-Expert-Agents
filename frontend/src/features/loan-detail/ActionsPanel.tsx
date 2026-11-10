@@ -65,6 +65,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     open({ kind: 'reason', title, label, required, okText, run });
   const transit = (action: string, params?: Record<string, unknown>) => (reason: string) => runTransition(loanId, action, state.version, reason, params);
 
+  const blockedWhy = state.blockers.length > 0 ? `Chưa đủ điều kiện: ${state.blockers.map((b) => BLOCKERS[b] ?? b).join('; ')}` : undefined;
   const buttons: React.ReactNode[] = [];
   const btn = (key: string, label: string, onClick: () => void, opts: { primary?: boolean; disabled?: string } = {}) =>
     buttons.push(<Button key={key} type={opts.primary ? 'primary' : 'default'} disabled={!!opts.disabled} title={opts.disabled} onClick={onClick}>{label}</Button>);
@@ -79,14 +80,14 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
       btn('upgrade', `Nâng cấp phê duyệt (cấp ${state.tier.submitted} → ${state.tier.required})`, () =>
         reasonAction('Nâng cấp phê duyệt', 'Lý do nâng cấp', 'Nâng cấp', (t) => upgradeApproval(loanId, t)));
     }
-    btn('risk', 'Trình Rủi ro', () => void submit(() => runTransition(loanId, 'submit_to_risk', state.version)), { primary: true });
+    btn('risk', 'Trình Rủi ro', () => void submit(() => runTransition(loanId, 'submit_to_risk', state.version)), { primary: true, disabled: blockedWhy });
   }
   if (status === 'RISK_REVIEW') {
     const done = new Set(state.opinions.map((o) => o.kind));
     if (has('risk_officer') && !done.has('RISK')) btn('op-risk', 'Ghi Ý kiến Rủi ro', () => reasonAction('Ý kiến Rủi ro', 'Ý kiến của Rủi ro', 'Ghi ý kiến', (t) => addOpinion(loanId, 'RISK', t)));
     if (has('compliance_officer') && !done.has('COMPLIANCE')) btn('op-comp', 'Ghi ý kiến Tuân thủ', () => reasonAction('Ý kiến Tuân thủ', 'Ý kiến của Tuân thủ', 'Ghi ý kiến', (t) => addOpinion(loanId, 'COMPLIANCE', t)));
     if ((has('risk_officer') || has('compliance_officer')) ) btn('back', 'Trả lại Thẩm định', () => reasonAction('Trả lại Thẩm định', 'Lý do trả lại', 'Trả lại', transit('risk_return')));
-    if (has('risk_officer')) btn('approval', 'Trình phê duyệt', () => void submit(() => runTransition(loanId, 'submit_to_approval', state.version)), { primary: true });
+    if (has('risk_officer')) btn('approval', 'Trình phê duyệt', () => void submit(() => runTransition(loanId, 'submit_to_approval', state.version)), { primary: true, disabled: blockedWhy });
   }
   if (status === 'APPROVAL' && has('loan_approver')) {
     const why = state.excluded ? E8_TEXT : undefined;
@@ -125,7 +126,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     <section id="hanh-dong" className={styles.panel} aria-label="Hành động trên hồ sơ" data-testid="actions-panel">
       <h2>Hành động</h2>
       <Typography.Text type="secondary">AI chỉ đề xuất; người có thẩm quyền quyết định. Mọi hành động đều kiểm lại ở máy chủ.</Typography.Text>
-      {state.blockers.length > 0 && (
+      {state.blockers.length > 0 && buttons.length > 0 && (
         <Alert type="warning" showIcon style={{ margin: '8px 0' }} message="Chưa đủ điều kiện để trình"
           description={<ul style={{ margin: 0 }}>{state.blockers.map((b) => <li key={b}>{BLOCKERS[b] ?? b}</li>)}</ul>} />
       )}

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Alert, Button, Space, Table, Tag, Typography } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getErrorMessage } from '@/services/apiClient';
@@ -16,6 +17,7 @@ interface Props {
 export function SummarySection({ loanId, blocked, saveNow, onGoto, onSubmitted }: Props) {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ['proposal-conditions', loanId], queryFn: () => fetchSubmitConditions(loanId) });
+  const sent = useRef(false);
   const submit = useMutation({
     mutationFn: async () => {
       await saveNow();
@@ -75,11 +77,16 @@ export function SummarySection({ loanId, blocked, saveNow, onGoto, onSubmitted }
       {submit.isError && <Alert type="error" showIcon message={getErrorMessage(submit.error)} />}
       <Space>
         <Button
-          type="primary"
+          type={submit.isSuccess ? 'default' : 'primary'}
+          disabled={submit.isSuccess}
           aria-disabled={locked || submit.isPending || submit.isSuccess}
           title={locked ? (reason ?? undefined) : undefined}
           loading={submit.isPending}
-          onClick={() => { if (!locked && !submit.isPending && !submit.isSuccess) submit.mutate(); }}
+          onClick={() => {
+            if (sent.current || locked || submit.isPending || submit.isSuccess) return;
+            sent.current = true; // chặn bấm đúp trước khi React kịp vẽ lại trạng thái đang gửi
+            submit.mutate(undefined, { onSettled: () => { sent.current = false; } });
+          }}
         >
           Gửi Hỗ trợ tín dụng
         </Button>
