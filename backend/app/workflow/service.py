@@ -524,6 +524,9 @@ def _decision_params(params: Mapping[str, Any], requested_amount: Any) -> dict[s
     term = params.get("approved_term_months")
     term = int(term) if term is not None else None
     conditions = list(params.get("conditions") or [])
+    if decision_type == "REJECTED":
+        # Tu choi khong co so tien/ky han duoc duyet (L04).
+        amount, term = None, None
     if str(decision_type).startswith("APPROVED") and (amount is None or amount <= 0):
         raise ValidationError(
             "APPROVED_AMOUNT_INVALID",

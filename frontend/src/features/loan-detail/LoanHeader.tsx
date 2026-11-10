@@ -37,7 +37,7 @@ export function LoanHeader({ overview, todoCount }: { overview: LoanOverview; to
   const { loan, timeline } = overview;
   const current = timeline.find((s) => !s.completed_at);
   const stage = stageIndex(loan.status);
-  const approved = loan.approved_amount != null && Number(loan.approved_amount) > 0;
+  const approved = loan.decision_type !== 'REJECTED' && loan.approved_amount != null && Number(loan.approved_amount) > 0;
   return (
     <div className={styles.header} data-testid="loan-header">
       <nav aria-label="Đường dẫn" className={styles.crumb}>

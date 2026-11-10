@@ -49,4 +49,19 @@ describe('ActionsPanel – QA3-01 người không giữ bước', () => {
     expect(await screen.findByRole('button', { name: 'Ghi ý kiến Tuân thủ' })).toBeEnabled();
     expect(screen.queryByTestId('not-holder-notice')).toBeNull();
   });
+
+  it('L01: HTTD ở bước Kiểm tra có nút Trả lại QHKH', async () => {
+    me.roles = ['document_reviewer'];
+    svc.fetchActionState.mockResolvedValue(state({ can_write: true }));
+    mount('CHECKING');
+    expect(await screen.findByRole('button', { name: 'Trả lại QHKH' })).toBeEnabled();
+  });
+
+  it('L01: vai khác HTTD không thấy nút Trả lại QHKH ở bước Kiểm tra', async () => {
+    me.roles = ['credit_officer'];
+    svc.fetchActionState.mockResolvedValue(state({ can_write: true }));
+    mount('CHECKING');
+    await screen.findByTestId('actions-panel');
+    expect(screen.queryByRole('button', { name: 'Trả lại QHKH' })).toBeNull();
+  });
 });

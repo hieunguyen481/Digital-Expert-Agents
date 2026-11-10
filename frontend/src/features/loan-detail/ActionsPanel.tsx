@@ -96,6 +96,9 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   if (status === 'APPRAISAL_PENDING_INFO' && has('document_reviewer')) {
     btn('accept-info', 'Ghi nhận đã bổ sung', () => void submit(() => runTransition(loanId, 'accept_info', state.version)), { primary: true });
   }
+  if (status === 'CHECKING' && has('document_reviewer')) {
+    btn('return', 'Trả lại QHKH', () => reasonAction('Trả lại QHKH', 'Lý do trả lại', 'Trả lại', transit('return_to_rm')));
+  }
   if (status === 'APPRAISAL' && has('credit_appraiser')) {
     btn('info', 'Yêu cầu bổ sung', () => reasonAction('Yêu cầu bổ sung', 'Nội dung cần QHKH bổ sung', 'Gửi yêu cầu', transit('request_info')));
     btn('return', 'Trả lại QHKH', () => reasonAction('Trả lại QHKH', 'Lý do trả lại', 'Trả lại', transit('return_to_rm')));
@@ -138,7 +141,8 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   const exceptionsDecided = state.pending_exceptions.every((e) => exceptionChoice[e.id] && exceptionReason[e.id]?.trim());
   const decideBody = () => {
     const params = {
-      decision_type: decision.type, approved_amount: decision.amount, approved_term_months: decision.term,
+      decision_type: decision.type,
+      ...(approving ? { approved_amount: decision.amount, approved_term_months: decision.term } : {}),
       conditions: decision.conditions.split('\n').map((c) => c.trim()).filter(Boolean),
       exceptions: state.pending_exceptions.map((e) => ({ id: e.id, decision: exceptionChoice[e.id], reason: exceptionReason[e.id]?.trim() })),
     };
