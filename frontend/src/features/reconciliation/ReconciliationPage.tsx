@@ -38,6 +38,7 @@ function Workspace({ loanId }: { loanId: string }) {
       <PageHead
         title={`Đối chiếu tài liệu · ${view.customer_name ?? view.application_number}`}
         facts={[view.application_number, statusLabel(view.status)]}
+        crumbs={[{ label: 'Việc của tôi', to: '/viec-cua-toi' }, { label: view.application_number, to: `/ho-so-vay/${loanId}` }, { label: 'Đối chiếu tài liệu' }]}
       />
       <div className={styles.page}>
         <Alert type="info" showIcon message={view.data_label} />

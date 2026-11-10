@@ -34,6 +34,7 @@ function Editor({ loanId }: { loanId: string }) {
     <PageHead
       title={draft ? `Đề xuất vay · ${draft.customer_name ?? draft.application_number}` : 'Đề xuất vay'}
       facts={[draft?.application_number, draft ? (draft.status === 'DRAFT' ? 'Bản nháp' : statusLabel(draft.status)) : null]}
+      crumbs={[{ label: 'Việc của tôi', to: '/viec-cua-toi' }, { label: draft?.application_number ?? 'Đề xuất' }, { label: 'Soạn đề xuất' }]}
       onAskAi={() => openWith({ type: 'session', id: 'proposal', label: 'Đề xuất đang soạn' })}
       actions={
         <>

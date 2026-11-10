@@ -47,6 +47,7 @@ function Content() {
     <>
       <PageHead
         title="Tạo đề xuất vay"
+        crumbs={[{ label: 'Việc của tôi', to: '/viec-cua-toi' }, { label: 'Tạo đề xuất vay' }]}
         actions={
           <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
             <Button type="primary" disabled={!ready || busy} loading={busy} onClick={() => void create()}>
