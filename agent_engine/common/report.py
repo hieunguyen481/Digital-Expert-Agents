@@ -64,7 +64,7 @@ def contradicted_by_tools(text: str, verified: dict | None) -> bool:
     if exp and not exp["audit_required"] and _affirmed(
             r"(bắt buộc|phải)[^.\n]{0,30}(BCTC|báo cáo tài chính)[^.\n]{0,30}kiểm toán", text):
         return True
-    if exp and exp["tier"] != "head_office" and _affirmed(r"vượt\s*100\s*tỷ", text):
+    if exp and exp["tier"] != "council" and _affirmed(r"vượt\s*100\s*tỷ", text):
         return True
     if col and col["eligible_value"] and not col["ltv_over"] and _affirmed(r"LTV[^.\n]{0,40}vượt", text):
         return True

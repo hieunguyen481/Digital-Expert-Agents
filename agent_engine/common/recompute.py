@@ -37,11 +37,16 @@ def collateral_check(collaterals: list[dict], amount: float, ltv_max: float | No
     }
 
 
+LEVEL_LABEL_VI = {"branch_director": "Giám đốc chi nhánh (cấp 1)", "head_office_l2": "Cấp 2 Hội sở",
+                  "council": "Hội đồng tín dụng"}
+
+
 def approver_level(total: float) -> str:
-    """Cấp duyệt theo TỔNG cấp tín dụng (Q4, CS-TD-SME/2025 §3.1): nguồn duy nhất, khớp `credit.required_tier`."""
+    """Cấp duyệt theo TỔNG cấp tín dụng (Q4: ≤20 chi nhánh / 20–100 Cấp 2 Hội sở / >100 Hội đồng, Q-P): nguồn duy
+    nhất, khớp `credit.required_tier`."""
     if total <= TIER_LIMITS_VND[0]:
         return "branch_director"
-    return "regional" if total <= TIER_LIMITS_VND[1] else "head_office"
+    return "head_office_l2" if total <= TIER_LIMITS_VND[1] else "council"
 
 
 def package_approver_level(exposure: dict | None, limit: float | None) -> str:
@@ -55,7 +60,7 @@ def exposure_check(loans: list[dict], amount: float) -> dict:
     existing = sum(_num(x.get("outstanding")) for x in loans)
     total = existing + amount
     level = approver_level(total)
-    tier = "branch" if level == "branch_director" else level
+    tier = level
     return {"existing": existing, "loans": len(loans), "total": total, "tier": tier,
             "audit_required": total > AUDIT_THRESHOLD_VND}
 
@@ -85,7 +90,7 @@ def describe(col: dict | None, exp: dict, lev: dict | None, amount: float) -> li
            f"= {_bn(exp['total'])}; "
            + ("vượt 20 tỷ nên BCTC kiểm toán bắt buộc" if exp["audit_required"]
               else "không vượt 20 tỷ nên chưa bắt buộc BCTC kiểm toán")
-           + f" (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: {exp['tier']} (CS-TD-SME/2025 §3.1)"]
+           + f" (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: {LEVEL_LABEL_VI[exp['tier']]} (CS-TD-SME/2025 §3.1)"]
     if col is not None and col["assets"]:
         if col["eligible_value"]:
             out.append(f"Tính lại LTV: đề xuất {_bn(amount)} / TSĐB đủ điều kiện {_bn(col['eligible_value'])} "

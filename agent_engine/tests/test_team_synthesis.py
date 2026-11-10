@@ -42,7 +42,7 @@ def test_recompute_numbers():
     assert col["eligible_value"] == 20e9 and col["ltv"] == pytest.approx(0.75) and col["ltv_over"]
     assert col["max_secured_limit"] == pytest.approx(14e9) and len(col["excluded"]) == 1
     exp = recompute.exposure_check(LOANS, 15e9)
-    assert exp["total"] == 27e9 and exp["audit_required"] and exp["tier"] == "regional"
+    assert exp["total"] == 27e9 and exp["audit_required"] and exp["tier"] == "head_office_l2"
     assert not recompute.exposure_check([], 20e9)["audit_required"]       # đúng 20 tỷ: chưa bắt buộc
     lev = recompute.leverage_check(FIN, LOANS, 15e9)
     assert lev["ratio"] == pytest.approx(4.5) and lev["over"]
@@ -211,7 +211,10 @@ async def test_gate_approve_title_does_not_contradict_expert_opinion(monkeypatch
                                        "verdicts": {k: v.model_dump(mode="json") for k, v in sv.items()}}})
     out = await va.handle_task(env)
     assert out.decision == VerdictDecision.APPROVE
-    assert out.summary.startswith("ĐỀ XUẤT PHÊ DUYỆT") and "dư nợ lệch 56 vs 98 tỷ" in out.summary
+    # L05: chuyên gia "Cần thêm thông tin" không còn trái cổng: thành "Đồng ý có điều kiện", ghi lý do
+    assert out.summary.startswith("ĐỀ XUẤT PHÊ DUYỆT") and out.summary.endswith("kèm điều kiện")
+    fv = out.data["final_verdicts"]["credit"]
+    assert fv["decision"] == "flag" and "dư nợ lệch 56 vs 98 tỷ" in fv["summary"]
 
 
 def test_cx4_customer_with_outstanding_loans_is_not_new():

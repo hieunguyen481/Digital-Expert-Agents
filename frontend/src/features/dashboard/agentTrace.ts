@@ -180,8 +180,7 @@ export const BOARD_LABEL: Record<string, string> = {
   blacklist: 'Danh sách đen', collateral: 'Tài sản bảo đảm', inflow: 'Tiền về tài khoản',
 };
 export const APPROVER_LEVEL_LABEL: Record<string, string> = {
-  branch_director: 'Giám đốc chi nhánh', branch: 'Giám đốc chi nhánh',
-  regional: 'Giám đốc vùng', head_office: 'Hội sở chính',
+  branch_director: 'Giám đốc chi nhánh (cấp 1)', head_office_l2: 'Cấp 2 Hội sở', council: 'Hội đồng tín dụng',
 };
 export const approverLevelLabel = (l: string) => APPROVER_LEVEL_LABEL[l] ?? l;
 export function toolCalls(events: AgentCaseEvent[]): ToolCall[] {
