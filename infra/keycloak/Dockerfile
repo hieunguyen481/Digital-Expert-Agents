@@ -1,4 +1,4 @@
-# Keycloak với login theme SHB nhúng sẵn (dùng cho bản deploy cloud).
+# Keycloak với login theme Sổ Tín Dụng nhúng sẵn (dùng cho bản deploy cloud).
 FROM quay.io/keycloak/keycloak:26.7.0
 
-COPY theme/shb /opt/keycloak/themes/shb
+COPY theme/so-tin-dung /opt/keycloak/themes/so-tin-dung

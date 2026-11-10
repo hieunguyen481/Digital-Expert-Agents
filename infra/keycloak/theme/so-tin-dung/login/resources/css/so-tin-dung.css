@@ -1,0 +1,36 @@
+/* Theme đăng nhập "Sổ Tín Dụng" (mockup 22): nền giấy, thẻ phẳng viền mảnh, nút navy, chữ Be Vietnam Pro.
+   Phủ lên keycloak.v2 (PatternFly v5). Màu lấy từ docs/design/mockups-v2/tokens.css. */
+:root {
+  --sk-paper: #F1F2EE; --sk-surface: #FBFBF8; --sk-navy: #1E3A6E; --sk-navy-900: #14284B;
+  --sk-ink: #1B2430; --sk-ink-3: #5E6573; --sk-rule: #D3D7CC; --sk-control: #6F7660; --sk-danger: #A8281D;
+  --pf-v5-global--primary-color--100: var(--sk-navy);
+  --pf-v5-global--primary-color--200: var(--sk-navy-900);
+  --pf-v5-global--primary-color--dark-100: var(--sk-navy-900);
+  --pf-v5-global--link--Color: var(--sk-navy);
+  --pf-v5-global--link--Color--hover: var(--sk-navy-900);
+  --pf-v5-global--FontFamily--text: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --pf-v5-global--FontFamily--heading: 'Newsreader', Georgia, serif;
+  --keycloak-bg-logo-url: none;
+  --keycloak-card-top-color: transparent;
+}
+.login-pf body { background: var(--sk-paper) !important; color: var(--sk-ink); font-family: var(--pf-v5-global--FontFamily--text); }
+.pf-v5-c-login__container { max-width: 440px; }
+.pf-v5-c-login__header { text-align: left; }
+.pf-v5-c-login__header::before {
+  content: ''; display: block; width: 36px; height: 36px; margin-bottom: 12px;
+  background: url('../img/so-tin-dung-mark.svg') no-repeat center / contain;
+}
+#kc-header-wrapper, .pf-v5-c-brand { color: var(--sk-ink) !important; font: 600 20px 'Newsreader', Georgia, serif; letter-spacing: 0; text-transform: none; }
+.pf-v5-c-login__main {
+  background: var(--sk-surface); border: 1px solid var(--sk-rule); border-radius: 6px; box-shadow: none; overflow: hidden;
+  color: var(--sk-ink);
+}
+#kc-page-title, .pf-v5-c-login__main .pf-v5-c-title { font: 600 26px/1.2 'Newsreader', Georgia, serif; color: var(--sk-ink); }
+.pf-v5-c-form__label-text { color: var(--sk-ink); font-weight: 500; font-size: 13px; }
+.pf-v5-c-form-control { background: #fff; border-radius: 6px; --pf-v5-c-form-control--BorderColor: var(--sk-control); }
+.pf-v5-c-form-control:focus-within { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--sk-navy); }
+.pf-v5-c-button.pf-m-primary { background-color: var(--sk-navy); border-radius: 6px; font-weight: 600; min-height: 44px; }
+.pf-v5-c-button.pf-m-primary:hover { background-color: var(--sk-navy-900); }
+.pf-v5-c-button:focus-visible, a:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--sk-navy); }
+.pf-v5-c-alert.pf-m-danger, .pf-v5-c-alert.pf-m-warning, .pf-v5-c-alert.pf-m-info { border-radius: 6px; }
+.pf-v5-c-helper-text__item.pf-m-error, .kc-feedback-text { color: var(--sk-danger); }
