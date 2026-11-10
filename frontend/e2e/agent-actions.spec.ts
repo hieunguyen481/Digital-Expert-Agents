@@ -13,11 +13,18 @@ test.describe.configure({ mode: 'serial' });
 
 const sql = (q: string) => execSync(PSQL, { input: q, stdio: ['pipe', 'ignore', 'inherit'], timeout: 60_000 });
 
-test.beforeAll(() => {
-  sql(`
+const CLEAN = `
+DELETE FROM agent.action_log WHERE case_id = '${CASE}';
+DELETE FROM agent.case_event WHERE case_id = '${CASE}';
 DELETE FROM agent.action_proposal WHERE case_id = '${CASE}';
 DELETE FROM credit.loan_agent_run WHERE case_id = '${CASE}';
 DELETE FROM agent.case_run WHERE case_id = '${CASE}';
+DELETE FROM credit.pre_disbursement_condition WHERE source LIKE 'AGENT:a1000000%';
+DELETE FROM credit.case_flag WHERE source LIKE 'AGENT:a1000000%';
+`;
+
+test.beforeAll(() => {
+  sql(CLEAN + `
 INSERT INTO agent.case_run (case_id, customer_id, submitted_by, state, payload, created_at, updated_at)
   SELECT '${CASE}', primary_customer_id, '10000000-0000-4000-8000-000000000008', 'Pending Approval',
          '{"request":{"loan_application_id":"${LOAN}"}}'::jsonb, extract(epoch from now()) + 100000, extract(epoch from now()) + 100000
@@ -35,6 +42,7 @@ INSERT INTO agent.action_proposal (id, case_id, kind, title, rationale, evidence
 });
 
 test.afterAll(() => {
+  try { sql(CLEAN); } catch { /* seed dọn tiếp */ }
   const cmd = process.env.E2E_RESEED_CMD;
   if (cmd) execSync(cmd, { stdio: 'ignore', timeout: 240_000 });
 });
