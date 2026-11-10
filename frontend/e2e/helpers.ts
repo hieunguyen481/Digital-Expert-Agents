@@ -33,6 +33,6 @@ export async function loginAs(page: Page, role: RoleKey): Promise<void> {
   await page.locator('#username').fill(ACCOUNTS[role]);
   await page.locator('#password').fill(seedPassword());
   await page.locator('#kc-login').click();
-  await page.waitForURL(/localhost:3000\/(?!login)/);
+  await page.waitForURL(new RegExp(`localhost:${process.env.PORT ?? 3000}/(?!login)`));
   await expect(page.getByRole('navigation', { name: 'Điều hướng chính' })).toBeVisible();
 }

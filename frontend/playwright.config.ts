@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const PORT = Number(process.env.PORT ?? 3000);
+const BASE_URL = `http://localhost:${PORT}`;
+
 /** E2E chạy trên stack thật: Keycloak :8080, backend :8000, frontend dev :3000. */
 export default defineConfig({
   testDir: './e2e',
@@ -10,13 +13,13 @@ export default defineConfig({
   workers: 1,
   reporter: [['list']],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: BASE_URL,
     trace: 'retain-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
+    url: BASE_URL,
     reuseExistingServer: true,
     timeout: 60_000,
   },

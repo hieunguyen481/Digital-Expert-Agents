@@ -17,7 +17,7 @@ test.afterEach(() => {
 
 /** Đăng nhập thật rồi lấy bearer từ chính request của ứng dụng (token chỉ nằm trong bộ nhớ trình duyệt). */
 async function bearer(browser: Browser, role: RoleKey): Promise<{ auth: string; request: Page['request']; page: Page }> {
-  const context = await browser.newContext({ baseURL: 'http://localhost:3000' });
+  const context = await browser.newContext({ baseURL: `http://localhost:${process.env.PORT ?? 3000}` });
   const page = await context.newPage();
   const seen = page.waitForRequest((r) => r.url().startsWith(API) && !!r.headers().authorization);
   await loginAs(page, role);
