@@ -1,5 +1,6 @@
 import { Fragment, memo, useMemo, type ReactNode } from 'react';
 import { parseMarkdown, type InlineToken, type MarkdownNode } from '@/features/chat/utils/parseMarkdown';
+import { humanizeCodes } from '@/features/chat/utils/humanizeCodes';
 import styles from './MarkdownContent.module.css';
 
 export interface MarkdownContentProps {
@@ -158,7 +159,7 @@ export const MarkdownContent = memo(function MarkdownContent({
   content,
   className,
 }: MarkdownContentProps) {
-  const nodes = useMemo(() => parseMarkdown(content), [content]);
+  const nodes = useMemo(() => parseMarkdown(humanizeCodes(content)), [content]);
 
   return (
     <div className={[styles.content, className].filter(Boolean).join(' ')}>

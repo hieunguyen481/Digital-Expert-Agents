@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, DatePicker, Input, Table } from 'antd';
+import { Alert, Button, DatePicker, Input, Select, Table, Typography } from 'antd';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RequireRole } from '@/auth/RequireRole';
 import { PageHead } from '@/features/shell/PageHead';
 import apiClient from '@/services/apiClient';
 import styles from './audit.module.css';
+import { ACTION_LABELS, RESOURCE_LABELS, RESULT_LABELS, actionLabel } from './labels';
 
 interface AuditEvent {
   id: string;
@@ -52,7 +53,9 @@ export default function AuditLogPage() {
       <div className={styles.page}>
         <form className={styles.filters} onSubmit={(e) => { e.preventDefault(); apply(); }} aria-label="Bộ lọc nhật ký">
           <Input aria-label="Số hồ sơ" placeholder="Số hồ sơ (LA-…)" value={draft.loan_number} onChange={(e) => setDraft({ ...draft, loan_number: e.target.value })} />
-          <Input aria-label="Hành động" placeholder="Hành động (WORKFLOW_…)" value={draft.action} onChange={(e) => setDraft({ ...draft, action: e.target.value })} />
+          <Select aria-label="Hành động" placeholder="Hành động" allowClear showSearch optionFilterProp="label" value={draft.action || undefined}
+            options={Object.entries(ACTION_LABELS).map(([code, label]) => ({ value: code, label }))}
+            onChange={(v) => setDraft({ ...draft, action: v ?? '' })} />
           <Input aria-label="Người thao tác" placeholder="Người thao tác" value={draft.actor_name} onChange={(e) => setDraft({ ...draft, actor_name: e.target.value })} />
           <DatePicker aria-label="Từ ngày" placeholder="Từ ngày" format="DD/MM/YYYY" onChange={(d) => setDraft({ ...draft, date_from: d ? d.format('YYYY-MM-DD') : '' })} />
           <DatePicker aria-label="Đến ngày" placeholder="Đến ngày" format="DD/MM/YYYY" onChange={(d) => setDraft({ ...draft, date_to: d ? d.format('YYYY-MM-DD') : '' })} />
@@ -65,10 +68,10 @@ export default function AuditLogPage() {
           columns={[
             { title: 'Thời gian', dataIndex: 'event_time', render: (v: string) => new Date(v).toLocaleString('vi-VN') },
             { title: 'Người thao tác', render: (_, r) => r.actor_name ?? r.actor_type },
-            { title: 'Hành động', dataIndex: 'action' },
-            { title: 'Đối tượng', dataIndex: 'resource_type' },
+            { title: 'Hành động', dataIndex: 'action', render: (v: string) => <>{actionLabel(v)}<br /><Typography.Text type="secondary" style={{ fontSize: 11 }}>{v}</Typography.Text></> },
+            { title: 'Đối tượng', dataIndex: 'resource_type', render: (v: string) => RESOURCE_LABELS[v] ?? v },
             { title: 'Hồ sơ', render: (_, r) => r.loan_application_id ? <Link to={`/ho-so-vay/${r.loan_application_id}`}>{r.loan_application_number ?? 'Mở hồ sơ'}</Link> : '—' },
-            { title: 'Kết quả', dataIndex: 'result' },
+            { title: 'Kết quả', dataIndex: 'result', render: (v: string) => RESULT_LABELS[v] ?? v },
           ]}
         />
       </div>

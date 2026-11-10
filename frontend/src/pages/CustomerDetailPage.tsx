@@ -75,7 +75,7 @@ export default function CustomerDetailPage() {
         <PageHead title="Khách hàng" />
         <div className={styles.container}>
           <Result
-            status="404"
+            status="warning"
             title="Không tìm thấy khách hàng"
             subTitle="Mã khách hàng trong đường dẫn không tồn tại hoặc nằm ngoài phạm vi bạn được xem."
             extra={<Button type="primary" onClick={() => navigate('/viec-cua-toi')}>Về Việc của tôi</Button>}
