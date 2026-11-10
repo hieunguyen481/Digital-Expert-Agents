@@ -103,6 +103,8 @@ class CaseActionService:
             "tier": {"submitted": current, "required": required, "upgrade_due": current is not None and required > current},
             # E8: người đã tham gia hoặc từng là QHKH trong 2 năm không được duyệt (kèm lý do cho giao diện).
             "excluded": await self._repo.is_excluded(principal.employee_id, loan_id),
+            # Chỉ người đang giữ bước (hoặc QHKH ở bước nháp/bổ sung) được ghi; người khác thấy nút khóa.
+            "can_write": await self._repo.can_write(principal.employee_id, loan_id),
             "blockers": blockers,
             "supplement": await self._supplement(loan_id, str(loan["status"])),
         }

@@ -36,6 +36,9 @@ class _Repo:
     def __init__(self, status: str) -> None:
         self.status = status
 
+    async def can_write_loan(self, *_args: Any) -> bool:
+        return True
+
     async def get_loan(self, _loan_id: Any) -> dict[str, Any]:
         return {"status": self.status, "version": 1, "requested_amount": 1000}
 

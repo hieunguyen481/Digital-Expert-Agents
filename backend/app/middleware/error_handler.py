@@ -8,10 +8,12 @@ from uuid import uuid4
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import DBAPIError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.exceptions import AppError
 from app.logging import get_logger
+from app.repositories.workflow_repository import _sqlstate
 from app.schemas.common import ErrorDetail, ErrorResponse
 
 logger = get_logger(__name__)
@@ -69,6 +71,24 @@ def register_exception_handlers(app: FastAPI) -> None:
             code="ACCESS_DENIED",
             message="Bạn không có quyền thực hiện thao tác này.",
             details={"reason": str(exc)},
+        )
+
+    @app.exception_handler(DBAPIError)
+    async def handle_db_error(request: Request, exc: DBAPIError) -> JSONResponse:
+        # 42501 = RLS / quyền bị từ chối ở tầng dữ liệu: là 403 có lý do, không phải 500.
+        state = _sqlstate(exc)
+        if state == "42501":
+            logger.info("ACCESS_DENIED_DB", path=request.url.path)
+            return _response(
+                request,
+                status=403,
+                code="ACCESS_DENIED",
+                message="Bạn không có quyền thực hiện thao tác này.",
+                details={"reason": "Chỉ người đang giữ bước xử lý của hồ sơ mới được ghi."},
+            )
+        logger.exception("UNHANDLED_APPLICATION_ERROR", exc_info=exc)
+        return _response(
+            request, status=500, code="INTERNAL_ERROR", message="An unexpected error occurred.", details={}
         )
 
     @app.exception_handler(LookupError)

@@ -18,8 +18,12 @@ LOAN_ID = uuid4()
 class _Repo:
     """Chi get_loan; moi lenh khac lam test that bai (kiem tra phai chan truoc)."""
 
-    def __init__(self, requested: Decimal) -> None:
+    def __init__(self, requested: Decimal, holder: bool = True) -> None:
         self.requested = requested
+        self.holder = holder
+
+    async def can_write_loan(self, *_args: Any) -> bool:
+        return self.holder
 
     async def get_loan(self, loan_id: UUID) -> dict[str, Any]:
         return {
@@ -74,3 +78,13 @@ async def test_decide_rejects_non_positive_amount(amount: str | None) -> None:
         )
     assert error.value.code == "APPROVED_AMOUNT_INVALID"
     assert error.value.status == 422
+
+
+async def test_decide_by_non_holder_is_403_not_db_error() -> None:
+    """QA3-01: nguoi khong giu buoc bi chan truoc khi ghi (PermissionError -> 403)."""
+    service = WorkflowService(_Repo(Decimal("1000000000"), holder=False))
+    with pytest.raises(PermissionError, match="đang giữ bước"):
+        await service.transition(
+            _approver(), LOAN_ID, "decide", expected_version=1, reason="Dong y",
+            params={"decision_type": "APPROVED", "approved_amount": "1", "approved_term_months": 12},
+        )

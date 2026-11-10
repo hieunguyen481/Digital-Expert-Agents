@@ -83,6 +83,7 @@ export interface CaseActionState {
   pending_exceptions: { id: string; checklist_code: string; kind: string; reason: string; proposed_by_name?: string }[];
   tier: { submitted: number | null; required: number | null; upgrade_due: boolean };
   excluded: boolean;
+  can_write?: boolean;
   supplement?: { due_at: string; extended: boolean } | null;
   blockers: string[];
 }

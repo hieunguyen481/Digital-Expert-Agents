@@ -218,6 +218,14 @@ class WorkflowRepository:
         )
         return bool(row and row["excluded"])
 
+    async def can_write_loan(self, employee_id: UUID, loan_id: UUID) -> bool:
+        row = await fetch_one(
+            self.session,
+            "SELECT identity.can_write_loan(:employee_id, :loan_id) AS ok",
+            {"employee_id": employee_id, "loan_id": loan_id},
+        )
+        return bool(row and row["ok"])
+
     async def required_tier(self, loan_id: UUID) -> int:
         row = await fetch_one(
             self.session, "SELECT credit.required_tier(:loan_id) AS tier", {"loan_id": loan_id}

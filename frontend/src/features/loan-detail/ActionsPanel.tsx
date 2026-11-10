@@ -68,8 +68,11 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
 
   const blockedWhy = state.blockers.length > 0 ? `Chưa đủ điều kiện: ${state.blockers.map((b) => BLOCKERS[b] ?? b).join('; ')}` : undefined;
   const buttons: React.ReactNode[] = [];
-  const btn = (key: string, label: string, onClick: () => void, opts: { primary?: boolean; disabled?: string } = {}) =>
-    buttons.push(<Button key={key} type={opts.primary ? 'primary' : 'default'} disabled={!!opts.disabled} title={opts.disabled} onClick={onClick}>{label}</Button>);
+  const notHolderWhy = state.can_write === false ? 'Hồ sơ đang do người khác xử lý; chỉ người đang giữ bước này mới thực hiện được.' : undefined;
+  const btn = (key: string, label: string, onClick: () => void, opts: { primary?: boolean; disabled?: string } = {}) => {
+    const why = notHolderWhy ?? opts.disabled;
+    buttons.push(<Button key={key} type={opts.primary ? 'primary' : 'default'} disabled={!!why} title={why} onClick={onClick}>{label}</Button>);
+  };
 
   if ((status === 'RETURNED_TO_RM' || status === 'APPRAISAL_PENDING_INFO') && state.supplement) {
     const sup = state.supplement;
@@ -145,6 +148,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
         <Alert type="warning" showIcon style={{ margin: '8px 0' }} message="Chưa đủ điều kiện để trình"
           description={<ul style={{ margin: 0 }}>{state.blockers.map((b) => <li key={b}>{BLOCKERS[b] ?? b}</li>)}</ul>} />
       )}
+      {notHolderWhy && buttons.length > 0 && <Alert type="info" showIcon style={{ margin: '8px 0' }} message={notHolderWhy} data-testid="not-holder-notice" />}
       {state.excluded && has('loan_approver') && status === 'APPROVAL' && <Alert type="error" showIcon style={{ margin: '8px 0' }} message={E8_TEXT} data-testid="e8-notice" />}
       {state.opinions.map((o) => (
         <div key={o.kind} className={styles.section} data-testid={`opinion-${o.kind}`}>

@@ -43,6 +43,7 @@ class CaseActionState(APIModel):
     pending_exceptions: list[dict[str, Any]]
     tier: dict[str, Any]
     excluded: bool
+    can_write: bool = True
     supplement: dict[str, Any] | None = None
     blockers: list[str]
 
