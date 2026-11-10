@@ -93,6 +93,27 @@ def test_supplement_request_shows_reason_to_rm() -> None:
     assert supplement_request("APPRAISAL", steps) is None
 
 
+def test_supplement_request_covers_returned_to_rm_and_own_reason() -> None:
+    """L02: lý do trả lại hiện cho QHKH; ưu tiên lý do ghi trên chính bước mới mở (V056)."""
+    from datetime import UTC, datetime, timedelta
+
+    from app.services.loan_detail_service import supplement_request
+
+    t0 = datetime(2026, 11, 5, tzinfo=UTC)
+    steps = [
+        {"step_code": "CHECKING", "received_at": t0, "completed_at": t0 + timedelta(days=1),
+         "due_at": None, "reason": "Cũ"},
+        {"step_code": "RM_REWORK", "received_at": t0 + timedelta(days=1), "completed_at": None,
+         "due_at": None, "reason": "Sửa lại mục đích vay"},
+    ]
+    got = supplement_request("RETURNED_TO_RM", steps)
+    assert got is not None and got["kind"] == "RETURNED" and got["reason"] == "Sửa lại mục đích vay"
+    pend = [{"step_code": "PENDING_INFO", "received_at": t0, "completed_at": None, "due_at": None,
+             "reason": "Bổ sung sao kê"}]
+    got = supplement_request("APPRAISAL_PENDING_INFO", pend)
+    assert got is not None and got["kind"] == "SUPPLEMENT" and got["reason"] == "Bổ sung sao kê"
+
+
 def test_job_error_text_is_vietnamese_without_raw_code() -> None:
     """L05: lỗi OCR hiện lý do tiếng Việt, không mã thô, không bảo 'báo quản trị'."""
     from app.services.reconciliation_service import job_error_text
