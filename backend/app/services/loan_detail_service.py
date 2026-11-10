@@ -110,21 +110,35 @@ _SUPPLEMENT_STEPS = {"PENDING_INFO", "RISK_PENDING_INFO"}
 
 
 def supplement_request(status: Any, timeline: list[dict[str, Any]]) -> dict[str, Any] | None:
-    """E2: hồ sơ đang chờ bổ sung thì cho QHKH thấy nội dung cần bổ sung (lý do ở bước vừa đóng)."""
-    if not str(status or "").endswith("_PENDING_INFO"):
+    """E2: QHKH thấy nội dung cần bổ sung / lý do trả lại ngay trên hồ sơ.
+
+    Lý do nằm ở chính bước mới mở (PENDING_INFO / RM_REWORK, V056). Hồ sơ cũ chưa có thì
+    lùi về lý do của bước chính đã đóng gần nhất.
+    """
+    status_text = str(status or "")
+    if status_text == "RETURNED_TO_RM":
+        opened = next((s for s in reversed(timeline) if s["step_code"] == "RM_REWORK" and not s["completed_at"]), None)
+        kind = "RETURNED"
+    elif status_text.endswith("_PENDING_INFO"):
+        opened = next(
+            (s for s in reversed(timeline) if s["step_code"] in _SUPPLEMENT_STEPS and not s["completed_at"]), None
+        )
+        kind = "SUPPLEMENT"
+    else:
         return None
-    opened = next(
-        (s for s in reversed(timeline) if s["step_code"] in _SUPPLEMENT_STEPS and not s["completed_at"]), None
-    )
     if opened is None:
         return None
-    before = [
-        s for s in timeline
-        if s["completed_at"] and s["step_code"] not in _SUPPLEMENT_STEPS and s["received_at"] <= opened["received_at"]
-    ]
-    source = before[-1] if before else None
+    reason = opened.get("reason")
+    if not reason:
+        before = [
+            s for s in timeline
+            if s["completed_at"] and s["step_code"] not in _SUPPLEMENT_STEPS and s["received_at"] <= opened["received_at"]
+            and s.get("reason")
+        ]
+        reason = before[-1]["reason"] if before else None
     return {
-        "reason": None if source is None else source.get("reason"),
+        "kind": kind,
+        "reason": reason,
         "requested_at": opened["received_at"],
         "due_at": opened["due_at"],
     }

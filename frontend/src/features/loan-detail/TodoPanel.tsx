@@ -6,12 +6,16 @@ import type { CaseActionState, LoanOverview } from './types';
 import type { AgentRunOverview } from './loanDetailService';
 import styles from './loan-detail.module.css';
 
+const TERMINAL = new Set(['WITHDRAWN', 'APPROVED', 'APPROVED_WITH_CONDITIONS', 'REJECTED']);
+
 export interface TodoItem { key: string; text: string; to?: string; anchor?: string }
 
 /** Việc còn lại, lấy từ dữ liệu thật của hồ sơ (điều kiện chặn, cờ, mâu thuẫn, bổ sung, đội agent). Không dựng số. */
 export function buildTodos(overview: LoanOverview, state: CaseActionState | undefined, runs: AgentRunOverview | undefined): TodoItem[] {
   const items: TodoItem[] = [];
-  if (overview.supplement_request) items.push({ key: 'supplement', text: 'Hồ sơ đang chờ bổ sung tài liệu', to: `/doi-chieu/${overview.loan.id}` });
+  // L14: hồ sơ đã kết thúc (rút, quyết định) thì không còn việc.
+  if (TERMINAL.has(overview.loan.status)) return items;
+  if (overview.supplement_request) items.push({ key: 'supplement', text: overview.supplement_request.kind === 'RETURNED' ? 'Hồ sơ bị trả lại, cần chỉnh sửa và gửi lại' : 'Hồ sơ đang chờ bổ sung tài liệu', to: `/doi-chieu/${overview.loan.id}` });
   state?.blockers.forEach((b) => items.push({ key: `b-${b}`, text: BLOCKERS[b] ?? b, anchor: b === 'FLAGS_OPEN' ? 'co' : b === 'REPORT_MISSING' ? 'to-trinh' : undefined }));
   const conflicts = overview.metrics.filter((m) => m.conflict_id && !m.chosen).length;
   if (conflicts > 0) items.push({ key: 'conflicts', text: `${conflicts} chỉ số còn mâu thuẫn giữa các nguồn, chưa chốt`, to: `/doi-chieu/${overview.loan.id}` });
