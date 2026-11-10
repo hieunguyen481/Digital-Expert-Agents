@@ -42,8 +42,8 @@ test.afterAll(() => {
 const card = (page: import('@playwright/test').Page, kind: string) =>
   page.getByTestId('action-proposal').and(page.locator(`[data-kind="${kind}"]`));
 
-test('người không đúng vai trò thấy đề xuất nhưng không có nút xác nhận', async ({ page }) => {
-  await loginAs(page, 'qhkh');
+test('người không đúng vai trò (rủi ro) thấy đề xuất nhưng không có nút xác nhận', async ({ page }) => {
+  await loginAs(page, 'ruiro');
   await page.goto(`/ho-so-vay/${LOAN}`);
   await expect(card(page, 'request_documents')).toBeVisible({ timeout: 30_000 });
   await expect(card(page, 'request_documents').getByTestId('proposal-locked')).toBeVisible();
