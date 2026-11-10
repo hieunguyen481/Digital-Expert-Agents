@@ -24,7 +24,8 @@ test.afterAll(() => { if (!process.env.E2E_KEEP_DEMO) execSync(RESET, { stdio: '
 const FORBIDDEN = /regional|head_office|total_debt|NEEDS_VERIFICATION|Giám đốc vùng|Hội đồng agent|rules\.md/i;
 async function noTechnicalKeys(page: Page) {
   const text = await page.locator('body').innerText();
-  expect(text.match(FORBIDDEN)?.[0] ?? null, 'giao diện lộ khóa kỹ thuật').toBeNull();
+  const m = FORBIDDEN.exec(text);
+  expect(m ? text.slice(Math.max(0, m.index - 80), m.index + 60) : null, 'giao diện lộ khóa kỹ thuật').toBeNull();
 }
 
 async function proposals(page: Page) {
