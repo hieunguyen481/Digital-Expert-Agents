@@ -250,12 +250,16 @@ async def test_past_assignee_cannot_write_customer_or_documents(db):
         await db.execute("UPDATE document.extracted_field SET verification_reason = 'x' WHERE id = $1", _SEED_FIELD)
         == "UPDATE 0"
     )
-    # Trừ tài khoản VinaNova (seed VinaNova): thẩm định viên đang có bước APPRAISAL mở thật trên hồ sơ đó nên được ghi.
+    # Trừ tài khoản của khách mà thẩm định viên đang có bước mở thật (VinaNova, hồ sơ demo): được ghi.
     assert (
         await db.execute(
             """UPDATE banking.account SET status = 'CLOSED' WHERE id NOT IN (
                SELECT h.account_id FROM banking.account_holder h JOIN customer.customer c ON c.party_id = h.party_id
-               WHERE c.id = '56000000-0000-4000-8000-000000000001')"""
+               WHERE c.id = '56000000-0000-4000-8000-000000000001'
+                  OR c.id IN (SELECT la.primary_customer_id FROM credit.loan_application la
+                              JOIN credit.case_step cs ON cs.loan_application_id = la.id
+                              WHERE cs.assignee_employee_id = $1 AND cs.completed_at IS NULL))""",
+            CREDIT_APPRAISER,
         )
         == "UPDATE 0"
     )

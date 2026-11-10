@@ -206,6 +206,11 @@ class Case:
             await m.execute("ALTER TABLE credit.appraisal_memo_version DISABLE TRIGGER trg_appraisal_memo_version_append_only")
             await m.execute("DELETE FROM credit.appraisal_memo_version WHERE loan_application_id = $1", self.loan_id)
             await m.execute("ALTER TABLE credit.appraisal_memo_version ENABLE TRIGGER trg_appraisal_memo_version_append_only")
+        # Mo lai to trinh tang revision ban nhap; tra ve dung seed de test sau khong lech.
+        await m.execute(
+            "UPDATE credit.appraisal_memo SET revision = 1, state = 'DRAFT', version = 1 WHERE loan_application_id = $1",
+            self.loan_id,
+        )
         await m.execute("DELETE FROM credit.risk_opinion WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM credit.approval_tier_event WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM integration.notification WHERE resource_id = $1", self.loan_id)

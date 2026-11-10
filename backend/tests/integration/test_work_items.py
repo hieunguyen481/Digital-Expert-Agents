@@ -62,7 +62,7 @@ async def _run(employee: UUID, filter_: str = "all"):  # type: ignore[no-untyped
 
 @pytest.mark.parametrize(
     ("employee", "badge"),
-    [(CREDIT_OFFICER, 4), (DOCUMENT_REVIEWER, 3), (CREDIT_APPRAISER, 3), (RISK_HO, 2), (APPROVER_HO, 3)],
+    [(CREDIT_OFFICER, 4), (DOCUMENT_REVIEWER, 3), (CREDIT_APPRAISER, 4), (RISK_HO, 2), (APPROVER_HO, 3)],
 )
 async def test_badge_and_mine_rows(employee, badge) -> None:  # type: ignore[no-untyped-def]
     result = await _run(employee)

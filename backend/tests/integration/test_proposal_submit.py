@@ -20,6 +20,7 @@ from tests.integration.seed_ids import (
 )
 from tests.integration.test_proposal_draft import RM, _as, _P
 
+from app.workflow.conditions import _DOC_NAMES
 from app.exceptions import ConflictError
 from app.repositories.cic_repository import CicRepository
 from app.repositories.proposal_repository import ProposalRepository
@@ -155,8 +156,9 @@ async def test_withdrawn_exception_no_longer_exempts_document() -> None:
     if out is None:
         pytest.skip("Mekong không còn mục bắt buộc thiếu tài liệu")
     code, with_exc, without = out
-    assert f"EXCEPTION:{code}" in with_exc and code not in (with_exc["DOCS"]["detail"] or "")
-    assert f"EXCEPTION:{code}" not in without and code in (without["DOCS"]["detail"] or "")
+    name = _DOC_NAMES.get(code, code)  # chi tiet DOCS hien ten tieng Viet cua tai lieu, khong hien ma
+    assert f"EXCEPTION:{code}" in with_exc and name not in (with_exc["DOCS"]["detail"] or "")
+    assert f"EXCEPTION:{code}" not in without and name in (without["DOCS"]["detail"] or "")
 
 
 async def test_submit_goes_through_workflow_and_locks_edit() -> None:

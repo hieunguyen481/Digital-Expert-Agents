@@ -6,7 +6,9 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 from uuid import UUID
 
+import asyncpg
 import pytest
+import pytest_asyncio
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,6 +46,25 @@ class _P:
 
 async def _memo(employee: UUID, body: Callable[[MemoService, AsyncSession], Awaitable[Any]]) -> Any:
     return await _as(employee, lambda s: body(MemoService(MemoRepository(s)), s))
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def _vinanova_memo_clean_state() -> None:
+    """Đưa tờ trình VinaNova về chưa chốt lần nào: e2e gửi Rủi ro để lại bản chốt (append-only) làm lệch các test này."""
+    import os
+
+    conn = await asyncpg.connect(os.environ["TEST_MIGRATOR_DSN"])
+    try:
+        async with conn.transaction():
+            await conn.execute("ALTER TABLE credit.appraisal_memo_version DISABLE TRIGGER trg_appraisal_memo_version_append_only")
+            await conn.execute("DELETE FROM credit.appraisal_memo_version WHERE loan_application_id = $1", LOAN_VINANOVA)
+            await conn.execute("ALTER TABLE credit.appraisal_memo_version ENABLE TRIGGER trg_appraisal_memo_version_append_only")
+            await conn.execute(
+                "UPDATE credit.appraisal_memo SET revision = 1, state = 'DRAFT', version = 1 WHERE loan_application_id = $1",
+                LOAN_VINANOVA,
+            )
+    finally:
+        await conn.close()
 
 
 FULL = {str(n): f"Nội dung mục {n}" for n in rules.SECTION_NOS}
