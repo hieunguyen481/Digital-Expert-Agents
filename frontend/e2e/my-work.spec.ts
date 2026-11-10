@@ -4,7 +4,7 @@ import { loginAs, type RoleKey } from './helpers';
 const CASES: Array<{ role: RoleKey; title: string; badge: string | null }> = [
   { role: 'qhkh', title: 'Hồ sơ của tôi', badge: '4' },
   { role: 'httd', title: 'Hồ sơ chờ kiểm tra', badge: '3' },
-  { role: 'tdinh', title: 'Việc của tôi', badge: '3' },
+  { role: 'tdinh', title: 'Việc của tôi', badge: '4' }, // gồm HSV-2026-00223 (hồ sơ demo cảnh Cần bổ sung),
   { role: 'ruiro', title: 'Hồ sơ chờ ý kiến', badge: '2' },
   { role: 'pheduyet', title: 'Hồ sơ chờ phê duyệt', badge: '3' },
   { role: 'kiemtoan', title: 'Hồ sơ vay (chỉ đọc)', badge: null },
