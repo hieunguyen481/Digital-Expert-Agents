@@ -5,6 +5,8 @@ import {
 } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
+import { fmtDec, fmtInt } from '@/utils/format';
+import { TERM } from '@/utils/glossary';
 import { shbColors } from '@/theme/tokens';
 import { getAgentCaseStats } from '@/services/agentCaseService';
 import { STATE_COLOR, agentName, fmtSeconds, stateLabel } from '../agentTrace';
@@ -22,20 +24,20 @@ export function OverviewTab() {
   }
   const s = q.data;
   if (!s || s.cases === 0) {
-    return <Empty description="Chưa có case nào để tổng hợp. Gửi một yêu cầu phân tích sâu ở trang trò chuyện, số liệu sẽ hiện ở đây." />;
+    return <Empty description="Chưa có lượt phân tích nào để tổng hợp. Gửi một yêu cầu phân tích sâu ở trang trò chuyện, số liệu sẽ hiện ở đây." />;
   }
 
   const done = (s.by_state['Completed'] ?? 0) + (s.by_state['Pending Approval'] ?? 0);
   const tiles = [
-    { label: 'Tổng case', icon: <DeploymentUnitOutlined />, value: String(s.cases), unit: 'case' },
-    { label: 'Đã có kết luận', icon: <CheckCircleFilled style={{ color: shbColors.semantic.success }} />, value: String(done), unit: `/ ${s.cases}` },
-    { label: 'Công cụ đã gọi', icon: <ToolOutlined />, value: String(s.tool_calls), unit: 'lần', accent: true },
-    { label: 'Challenge của Validation', icon: <WarningOutlined />, value: String(s.challenges), unit: 'lần' },
+    { label: TERM.totalRuns, icon: <DeploymentUnitOutlined />, value: fmtInt(s.cases), unit: 'lượt' },
+    { label: 'Đã có kết luận', icon: <CheckCircleFilled style={{ color: shbColors.semantic.success }} />, value: fmtInt(done), unit: `/ ${fmtInt(s.cases)}` },
+    { label: TERM.toolCalls, icon: <ToolOutlined />, value: fmtInt(s.tool_calls), unit: 'lần', accent: true },
+    { label: TERM.challenge, icon: <WarningOutlined />, value: fmtInt(s.challenges), unit: 'lần' },
     ...(s.avg_seconds != null
       ? [{ label: 'Thời gian trung bình', icon: <ClockCircleOutlined />, value: fmtSeconds(s.avg_seconds).split(' ')[0], unit: fmtSeconds(s.avg_seconds).split(' ')[1] }]
       : []),
     ...(s.cost_usd != null
-      ? [{ label: 'Chi phí LLM', icon: <DollarOutlined />, value: s.cost_usd.toFixed(4), unit: `USD · ${s.llm_calls} lượt` }]
+      ? [{ label: 'Chi phí LLM', icon: <DollarOutlined />, value: fmtDec(s.cost_usd, 4), unit: `USD · ${fmtInt(s.llm_calls)} lượt` }]
       : []),
   ];
 
@@ -52,10 +54,10 @@ export function OverviewTab() {
         ))}
       </div>
 
-      <Card className={styles.section} title="Trạng thái case" size="small">
+      <Card className={styles.section} title="Trạng thái các lượt phân tích" size="small">
         <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {Object.entries(s.by_state).map(([st, n]) => (
-            <Tag key={st} color={STATE_COLOR[st] ?? 'default'}>{stateLabel(st)}: {n}</Tag>
+            <Tag key={st} color={STATE_COLOR[st] ?? 'default'}>{stateLabel(st)}: {fmtInt(n)}</Tag>
           ))}
         </span>
       </Card>
@@ -65,7 +67,7 @@ export function OverviewTab() {
           emptyTitle="Chưa có tác vụ nào hoàn tất"
           columns={[
             { title: 'Agent', dataIndex: 'agent', key: 'agent', render: (a: string) => agentName(a) },
-            { title: 'Tác vụ hoàn tất', dataIndex: 'tasks', key: 'tasks', align: 'right' },
+            { title: 'Tác vụ hoàn tất', dataIndex: 'tasks', key: 'tasks', align: 'right', render: (n: number) => fmtInt(n) },
             { title: 'Lỗi', dataIndex: 'errors', key: 'errors', align: 'right' },
             { title: 'Công cụ gọi', dataIndex: 'tool_calls', key: 'tool_calls', align: 'right' },
           ]}
@@ -77,7 +79,7 @@ export function OverviewTab() {
           <DataTable<(typeof s.tools)[number]> rowKey="tool" dataSource={s.tools} size="small"
             columns={[
               { title: 'Công cụ', dataIndex: 'tool', key: 'tool' },
-              { title: 'Số lần', dataIndex: 'n', key: 'n', align: 'right' },
+              { title: 'Số lần', dataIndex: 'n', key: 'n', align: 'right', render: (n: number) => fmtInt(n) },
               { title: 'Không thành công', dataIndex: 'failed', key: 'failed', align: 'right' },
             ]}
           />

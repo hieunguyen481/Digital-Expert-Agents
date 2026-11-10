@@ -5,9 +5,11 @@ import { TERMINAL_STATES, getAgentCase, getAgentCaseEvents, getApproverNames, st
 import {
   DECISION_LABEL, STATE_COLOR, agentName, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
-  BOARD_LABEL, approverLevelLabel, realActions, sharedBoards, toolLabel, validationView,
+  BOARD_LABEL, approverLevelLabel, realActions, scrubInternal, sharedBoards, toolLabel, validationView,
 } from '../agentTrace';
 import { statusLabel } from '@/features/my-work/format';
+import { fmtInt, fmtUsd } from '@/utils/format';
+import { TERM } from '@/utils/glossary';
 
 const { Text } = Typography;
 const TASK_TAG: Record<TaskState, { color: string; label: string }> = {
@@ -24,9 +26,22 @@ const h: React.CSSProperties = { margin: '0 0 8px', fontSize: 14, fontWeight: 65
 /** Chi tiết một case: DAG planner, task, luồng phối hợp, công cụ MCP, quyết định, nguồn. Case đang chạy cập nhật qua SSE. */
 export function CaseTrace({ caseId, onClose }: { caseId: string | null; onClose: () => void }) {
   return (
-    <Drawer open={!!caseId} onClose={onClose} width={760} destroyOnHidden title={`Case ${caseId ?? ''}`}>
+    <Drawer open={!!caseId} onClose={onClose} width={760} destroyOnHidden title={`${TERM.runs} ${caseId ?? ''}`}>
       {caseId && <CaseTraceBody caseId={caseId} />}
     </Drawer>
+  );
+}
+
+/** Văn bản dài do agent sinh: che mã nội bộ, rút gọn 3 dòng, bấm để xem đầy đủ. */
+function ClampText({ text, secondary }: { text: string; secondary?: boolean }) {
+  const [full, setFull] = useState(false);
+  const clean = scrubInternal(text);
+  const long = clean.length > 160;
+  return (
+    <span style={secondary ? { color: 'var(--text-3)', fontSize: 12.5 } : undefined}>
+      <span style={!full && long ? { display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' } : undefined}>{clean}</span>
+      {long && <button type="button" onClick={() => setFull(!full)} style={{ border: 0, background: 'none', color: 'var(--info)', cursor: 'pointer', padding: 0, fontSize: 12 }}>{full ? 'Thu gọn' : 'Xem đầy đủ'}</button>}
+    </span>
   );
 }
 
@@ -75,7 +90,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
   });
 
   if (caseQ.isError) {
-    return <Alert type="warning" showIcon message="Không tải được case này" description="Bạn có thể không có quyền xem hồ sơ phân tích này." />;
+    return <Alert type="warning" showIcon message="Không tải được lượt phân tích này" description="Bạn có thể không có quyền xem hồ sơ phân tích này." />;
   }
   if (!caseQ.data) return <Skeleton active />;
 
@@ -111,17 +126,17 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         <Text type="secondary" style={{ fontSize: 12 }}>{events.length} sự kiện</Text>
         {usage && (
           <Text type="secondary" style={{ fontSize: 12 }}>
-            LLM: {usage.calls} lượt · {usage.tokens.toLocaleString('vi-VN')} token
-            {usage.cost !== null && ` · $${usage.cost.toFixed(4)}`}
+            LLM: {usage.calls} lượt · {fmtInt(usage.tokens)} token
+            {usage.cost !== null && ` · ${fmtUsd(usage.cost)}`}
           </Text>
         )}
       </div>
 
       <section style={section} data-testid="trace-dag">
-        <h3 style={h}>Planner giao việc cho đội agent{AI_TAG}</h3>
+        <h3 style={h}>{TERM.plannerAssign}{AI_TAG}</h3>
         {plan ? (
           <>
-            {plan.rationale && <Text type="secondary" style={{ fontSize: 12.5 }}>{plan.rationale}</Text>}
+            {plan.rationale && <ClampText text={plan.rationale} secondary />}
             <div style={{ display: 'flex', gap: 24, alignItems: 'stretch', marginTop: 8, overflowX: 'auto' }}>
               {dagLevels(plan.tasks).map((col, i) => (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 200 }}>
@@ -135,7 +150,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                           <b>{agentName(t.agent)}</b>
                           <Tag color={tag.color} style={{ marginInlineEnd: 0 }}>{tag.label}</Tag>
                         </div>
-                        <div style={{ fontSize: 12.5, margin: '4px 0' }}>{t.objective}</div>
+                        <div style={{ fontSize: 12.5, margin: '4px 0' }}><ClampText text={t.objective} /></div>
                         {t.depends_on.length > 0 && (
                           <Text type="secondary" style={{ fontSize: 11.5 }}>
                             Chờ kết quả của: {t.depends_on.map((d) => { const dep = plan.tasks.find((x) => x.task_id === d); return dep ? agentName(dep.agent) : d; }).join(', ')}
@@ -143,7 +158,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                         )}
                         {st?.verdict && (
                           <div style={{ fontSize: 12, marginTop: 4 }}>
-                            {DECISION_LABEL[st.verdict.decision] ?? st.verdict.decision} — {st.verdict.summary}
+                            {DECISION_LABEL[st.verdict.decision] ?? st.verdict.decision} — {scrubInternal(st.verdict.summary)}
                           </div>
                         )}
                       </div>
@@ -154,7 +169,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             </div>
           </>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Planner chưa lập kế hoạch cho case này." />
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Planner chưa lập kế hoạch cho lượt phân tích này." />
         )}
       </section>
 
@@ -174,7 +189,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có trao đổi giữa các agent." />
         )}
         {!flow.some((f) => f.kind === 'challenge') && flow.length > 0 && (
-          <Text type="secondary" style={{ fontSize: 12 }}>Validation không phát challenge nào: các kết luận không mâu thuẫn.</Text>
+          <Text type="secondary" style={{ fontSize: 12 }}>Validation không phát phản biện nào: các kết luận không mâu thuẫn.</Text>
         )}
       </section>
 
@@ -199,7 +214,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             </tbody>
           </table>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Case này chưa ghi nhận lời gọi công cụ." />
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Lượt phân tích này chưa ghi nhận lời gọi công cụ." />
         )}
       </section>
 
@@ -247,7 +262,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             )}
           </>
         ) : (
-          <Text type="secondary" style={{ fontSize: 13 }}>Validation chưa kiểm chứng case này.</Text>
+          <Text type="secondary" style={{ fontSize: 13 }}>Validation chưa kiểm chứng lượt phân tích này.</Text>
         )}
       </section>
 
@@ -256,7 +271,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         {pkg?.recommendation && (
           <div style={{ fontSize: 13, marginBottom: 6 }}>
             Đề xuất của đội agent{AI_TAG}: <b>{pkg.recommendation}</b>
-            {pkg.proposed_limit != null && ` · Hạn mức ${pkg.proposed_limit.toLocaleString('vi-VN')} VND`}
+            {pkg.proposed_limit != null && ` · Hạn mức ${fmtInt(pkg.proposed_limit)} VND`}
             {pkg.required_approver_level && ` · Cấp xác nhận: ${approverLevelLabel(pkg.required_approver_level)}`}
           </div>
         )}
@@ -267,7 +282,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         )}
         {verdicts.map((v) => (
           <div key={v.agent + v.summary} style={{ fontSize: 13 }}>
-            <b>{agentName(v.agent)}</b>: {DECISION_LABEL[v.decision] ?? v.decision} — {v.summary}
+            <b>{agentName(v.agent)}</b>: {DECISION_LABEL[v.decision] ?? v.decision} — {scrubInternal(v.summary)}
           </div>
         ))}
         {decided.map((d) => (
@@ -286,9 +301,16 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
           <Text type="secondary" style={{ fontSize: 13 }}>Đang chờ người có thẩm quyền xác nhận; agent không tự phê duyệt.</Text>
         )}
         {!pkg && !stopReason && verdicts.length === 0 && decided.length === 0 && state !== 'Pending Approval' && (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có quyết định cho case này." />
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có quyết định cho lượt phân tích này." />
         )}
       </section>
+
+      <div data-testid="trace-decider" style={{ ...section, fontSize: 13 }}>
+        <b>{TERM.decider}:</b>{' '}
+        {(caseQ.data.approver && namesQ.data?.[caseQ.data.approver])
+          || (pkg?.required_approver_level ? `cấp ${approverLevelLabel(pkg.required_approver_level)}` : 'người có thẩm quyền theo cấp phê duyệt')}
+        . Đội agent chỉ đề xuất, không tự phê duyệt.
+      </div>
 
       {sources.length > 0 && (
         <section style={section} data-testid="trace-sources">

@@ -41,3 +41,11 @@ describe('agentTrace: dữ liệu cho trace đội agent', () => {
     expect(realActions(events)).toEqual([{ id: 8, workflowStatus: 'APPROVED', state: 'Completed' }]);
   });
 });
+
+describe('scrubInternal', () => {
+  it('che UUID và tên trường kỹ thuật', async () => {
+    const { scrubInternal } = await import('./agentTrace');
+    const out = scrubInternal('Xét industry_risk và collateral_id 77100000-0000-4000-8000-000000000001 của hồ sơ; mã 12345678-1234-1234-1234-123456789abc');
+    expect(out).toBe('Xét rủi ro ngành và tài sản bảo đảm của hồ sơ; mã (mã nội bộ)');
+  });
+});

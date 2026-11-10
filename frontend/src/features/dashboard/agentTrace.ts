@@ -1,3 +1,4 @@
+import { fmtSec } from '@/utils/format';
 import type { AgentCaseEvent } from '@/services/agentCaseService';
 
 export const AGENT_NAME: Record<string, string> = {
@@ -233,7 +234,19 @@ export function packageOf(events: AgentCaseEvent[]) {
     | null;
 }
 
-export const fmtSeconds = (s: number) => (s < 60 ? `${s.toFixed(1)} giây` : `${(s / 60).toFixed(1)} phút`);
+export const fmtSeconds = (s: number) => fmtSec(s);
+
+const FIELD_LABEL: Record<string, string> = {
+  industry_risk: 'rủi ro ngành', collateral_id: 'tài sản bảo đảm', customer_id: 'khách hàng', loan_application_id: 'hồ sơ vay',
+  business_id: 'doanh nghiệp', requested_amount: 'số tiền đề nghị', term_months: 'kỳ hạn', loan_purpose: 'mục đích vay',
+};
+/** Che mã nội bộ trong văn bản do Planner/agent sinh: UUID, tên trường kỹ thuật. Không đổi nghĩa câu. */
+export function scrubInternal(text: string): string {
+  return text
+    .replace(/\b([a-z]+(?:_[a-z]+)*_id)\s+[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, (_m, f: string) => FIELD_LABEL[f] ?? f.replace(/_/g, ' '))
+    .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '(mã nội bộ)')
+    .replace(/\b[a-z]+(?:_[a-z]+)+\b/g, (f) => FIELD_LABEL[f] ?? f.replace(/_/g, ' '));
+}
 
 export interface BoardItem {
   id: number;
