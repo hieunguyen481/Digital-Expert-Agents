@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from common.schemas import Verdict, VerdictDecision
 
-MAX_CONDITIONS = 5
 MAX_DOCUMENTS = 8
 _LABEL = {"credit": "Tín dụng", "compliance": "Tuân thủ", "operations": "Vận hành", "validation": "Thẩm định chéo"}
 
@@ -44,7 +43,8 @@ def derive(validation: Verdict, final_verdicts: list[Verdict], report: dict) -> 
                         "rationale": validation.summary[:1500], "params": {"documents": docs}})
 
     if validation.decision == VerdictDecision.APPROVE:
-        for cond in list(dict.fromkeys(report.get("conditions") or []))[:MAX_CONDITIONS]:
+        # điều kiện bắt buộc (vd. Q-V thiếu TK thanh toán) không bị cắt: mỗi điều kiện khác nhau là một đề xuất
+        for cond in list(dict.fromkeys(report.get("conditions") or [])):
             out.append({"kind": "add_disbursement_condition", "source_agent": "validation",
                         "evidence": _evidence(validation, 3),
                         "title": f"Điều kiện trước giải ngân: {cond[:140]}",

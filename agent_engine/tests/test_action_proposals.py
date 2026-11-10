@@ -117,3 +117,10 @@ async def test_backend_refusal_returns_to_proposed_and_logs(env):
         await proposal_flow.confirm("p1", employee_id="e1", roles=APPR, jwt="denied", reason="đủ căn cứ rồi", loan_application_id=None)
     assert e.value.status == 403 and fake.p["status"] == "PROPOSED"
     assert fake.actions[0][5] == "REFUSED" and "action_refused" in fake.events
+
+
+def test_derive_keeps_every_condition_including_q_v_account():
+    conds = [f"Điều kiện {i}" for i in range(1, 6)] + ["Mở tài khoản thanh toán trước giải ngân (Q-V)"]
+    out = proposals.derive(verdict("validation", VerdictDecision.APPROVE, evidence=[Evidence(source="g", quote="q")]),
+                           [], {"conditions": conds})
+    assert [p["params"]["text"] for p in out] == conds
