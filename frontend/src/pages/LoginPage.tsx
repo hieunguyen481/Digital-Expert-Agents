@@ -3,6 +3,7 @@ import { Alert, Button } from 'antd';
 import { useState } from 'react';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { isAuthenticated, login } from '@/auth/keycloak';
+import { AgentTeam } from '@/components/ui';
 import { SHBLogo } from '@/components/common/SHBLogo';
 import styles from './LoginPage.module.css';
 
@@ -60,6 +61,10 @@ export default function LoginPage() {
           <div className={`${styles.sample} ${styles.sampleHm}`}>
             <span className={styles.tagHm}>Người quyết định</span>
             <span>Viền liền, thanh navy bên trái: quyết định của Cấp phê duyệt hoặc Hội đồng.</span>
+          </div>
+          <div className={`${styles.sample} ${styles.sampleTeam}`}>
+            <span>Đội agent, cùng một sơ đồ ở mọi màn hình:</span>
+            <AgentTeam variant="compact" human={{ who: 'Người quyết định' }} />
           </div>
         </div>
       </section>

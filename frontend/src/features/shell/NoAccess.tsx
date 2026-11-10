@@ -1,7 +1,8 @@
-import { InboxOutlined, SafetyOutlined, SettingOutlined } from '@ant-design/icons';
+import { InboxOutlined, SettingOutlined } from '@ant-design/icons';
 import { Button, Tooltip, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import type { UiRole } from '@/auth/roleFromMe';
+import { StateBlock } from '@/components/ui/StateBlock';
 import { UI_ROLE_LABEL } from '@/auth/roleFromMe';
 import styles from './shell.module.css';
 
@@ -25,24 +26,27 @@ export function NoAccess({ role, pageName = 'Việc của tôi' }: NoAccessProps
       <Typography.Title level={4} className={styles.noAccessHead}>
         {pageName}
       </Typography.Title>
-      <div className={styles.noAccess} role="alert">
-        <SafetyOutlined className={styles.noAccessIcon} aria-hidden />
-        <Typography.Title level={5}>{title}</Typography.Title>
-        <Typography.Paragraph type="secondary">{reason}</Typography.Paragraph>
-        {isAdmin ? (
-          <Tooltip title="Trang Quản trị sẽ có ở đợt sau">
-            <span>
-              <Button icon={<SettingOutlined />} disabled>
-                Mở Quản trị
-              </Button>
-            </span>
-          </Tooltip>
-        ) : (
-          <Button type="primary" icon={<InboxOutlined />} onClick={() => navigate('/viec-cua-toi')}>
-            Về Việc của tôi
-          </Button>
-        )}
-      </div>
+      <StateBlock
+        kind="forbidden"
+        alert
+        title={title}
+        description={reason}
+        action={
+          isAdmin ? (
+            <Tooltip title="Trang Quản trị sẽ có ở đợt sau">
+              <span>
+                <Button icon={<SettingOutlined />} disabled>
+                  Mở Quản trị
+                </Button>
+              </span>
+            </Tooltip>
+          ) : (
+            <Button type="primary" icon={<InboxOutlined />} onClick={() => navigate('/viec-cua-toi')}>
+              Về Việc của tôi
+            </Button>
+          )
+        }
+      />
     </div>
   );
 }

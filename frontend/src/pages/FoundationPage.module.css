@@ -1,55 +1,15 @@
-/* CSS Modules được kiểm chứng ngay trên trang này. */
-.page {
-  min-height: 100dvh;
-  padding: 32px 24px 64px;
-  background: var(--shb-canvas);
-}
-
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
-
-.title {
-  margin: 0;
-  font-size: 26px;
-  font-weight: 680;
-  color: var(--shb-navy-800);
-  letter-spacing: -0.02em;
-}
-
-.subtitle {
-  margin: 0 0 24px;
-  color: var(--shb-text-secondary);
-  font-size: 14px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-}
-
-.cssProof {
-  padding: 14px 16px;
-  border-radius: var(--shb-radius-md);
-  background: linear-gradient(135deg, var(--shb-orange-50), var(--shb-navy-50));
-  border: 1px dashed var(--shb-orange-300);
-  font-size: 13.5px;
-  color: var(--shb-navy-700);
-}
-
-.statusRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.sections { display: grid; gap: var(--s8); padding: 0 var(--s8) var(--s12); }
+.sections h2 { font: 600 var(--fs-20)/1.3 var(--font-display); margin: 0 0 var(--s3); }
+.secT { font-size: var(--fs-12); font-weight: 600; color: var(--ink-2); margin: var(--s4) 0 var(--s2); }
+.gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: var(--s4); align-items: start; }
+.galWide { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--s4); align-items: start; }
+.cell { min-width: 0; }
+.lbl { font: 600 12px var(--font-body); color: var(--ink-2); margin-bottom: 6px; display: block; }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--s3); }
+.sw { border: 1px solid var(--rule); border-radius: var(--r-md); overflow: hidden; background: var(--surface); font-size: var(--fs-12); }
+.sw i { display: block; height: 40px; }
+.sw span { display: block; padding: 4px 8px; font-family: var(--font-num); }
+.row { display: flex; gap: var(--s3); flex-wrap: wrap; align-items: center; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); box-shadow: var(--sh-1); }
+.stateCard { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); }
+.note { color: var(--ink-3); font-size: var(--fs-12); }

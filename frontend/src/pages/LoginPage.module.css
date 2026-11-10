@@ -37,3 +37,4 @@
   .left { padding: var(--s8); }
   .left::after { left: var(--s8); }
 }
+.sampleTeam { flex-direction: column; align-items: stretch; gap: 8px; border-radius: 6px; color: var(--ink-2); }

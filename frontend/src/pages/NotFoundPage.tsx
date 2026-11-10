@@ -1,48 +1,30 @@
-import { Button, Result } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
-import { motion, useReducedMotion } from 'motion/react';
+import { Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { AnimatedSHBLogo } from '@/components/common/AnimatedSHBLogo';
-import { SHBAmbientBackground } from '@/features/chat/components/SHBAmbientBackground';
+import { SHBLogo } from '@/components/common/SHBLogo';
+import { StateBlock } from '@/components/ui/StateBlock';
 
-/** Trang 404 — giữ đúng nhận diện SHB. */
+/** Trang 404: một hình, một câu, một nút. */
 export default function NotFoundPage() {
   const navigate = useNavigate();
-  const prefersReducedMotion = useReducedMotion();
-
   return (
-    <div
-      style={{
-        position: 'relative',
-        minHeight: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-      }}
-    >
-      <SHBAmbientBackground />
-
-      <motion.div
-        style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}
-        initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <AnimatedSHBLogo size="large" glow glowIntensity="subtle" />
-
-        <Result
-          status="404"
-          title="404"
-          subTitle="Rất tiếc, trang bạn tìm không tồn tại hoặc đã được chuyển đi."
-          extra={
+    <main id="main" style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', background: 'var(--paper)', padding: 24 }}>
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <SHBLogo size="medium" showProductName />
+        </div>
+        <StateBlock
+          kind="notfound"
+          code="404"
+          title="Không tìm thấy trang"
+          description="Đường dẫn có thể đã cũ hoặc trang đã được chuyển đi."
+          action={
             <Button type="primary" icon={<HomeOutlined />} onClick={() => navigate('/')}>
-              Trở về trang trò chuyện
+              Về Việc của tôi
             </Button>
           }
         />
-      </motion.div>
-    </div>
+      </div>
+    </main>
   );
 }

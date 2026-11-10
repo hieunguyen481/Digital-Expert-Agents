@@ -1,6 +1,7 @@
-import { Button, Result } from 'antd';
+import { Button } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import { StateBlock } from '@/components/ui/StateBlock';
 import { getErrorMessage, normalizeError } from '@/services/apiClient';
 
 export interface PageErrorProps {
@@ -29,26 +30,28 @@ export function PageError({
   // 403/404: thử lại vô ích; chỉ 5xx và lỗi mạng mới có nút "Thử lại".
   if (status === 403 || status === 404) {
     return (
-      <Result
-        status={status}
+      <StateBlock
+        kind={status === 403 ? 'forbidden' : 'notfound'}
+        alert
+        compact={compact}
         title={status === 403 ? 'Bạn không có quyền xem nội dung này' : 'Không tìm thấy nội dung'}
-        subTitle={description ?? (status === 403
+        description={description ?? (status === 403
           ? 'Hồ sơ ngoài phạm vi được xem của vai trò hoặc đơn vị bạn. Nếu cần xem, hãy nhờ người đang giữ hồ sơ.'
           : 'Đường dẫn có thể đã cũ, hồ sơ không còn tồn tại, hoặc hồ sơ ngoài phạm vi được xem của vai trò bạn.')}
-        style={compact ? { padding: '24px 16px' } : undefined}
-        extra={<Link to="/viec-cua-toi"><Button type="primary">Về Việc của tôi</Button></Link>}
+        action={<Link to="/viec-cua-toi"><Button type="primary">Về Việc của tôi</Button></Link>}
       />
     );
   }
   const message = description ?? (error ? getErrorMessage(error) : 'Vui lòng thử lại sau ít phút.');
 
   return (
-    <Result
-      status="warning"
+    <StateBlock
+      kind="error"
+      alert
+      compact={compact}
       title={title}
-      subTitle={message}
-      style={compact ? { padding: '24px 16px' } : undefined}
-      extra={
+      description={message}
+      action={
         onRetry && (
           <Button type="primary" icon={<ReloadOutlined />} onClick={onRetry}>
             {retryLabel}
