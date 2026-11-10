@@ -32,7 +32,8 @@ class ConfirmBody(BaseModel):
 
 
 class ProposalBody(BaseModel):
-    reason: str = Field(min_length=1, max_length=2000)
+    # Độ dài tối thiểu (5 ký tự) do engine kiểm: trả REASON_REQUIRED tiếng Việt, không 422 pydantic tiếng Anh (B4).
+    reason: str = Field(default="", max_length=2000)
     loan_application_id: str | None = None
 
 
