@@ -46,6 +46,9 @@ export interface AgentCaseSummary {
   tool_calls: number;
   llm_calls: number;
   cost_usd: number | null;
+  customer_name?: string | null;
+  application_number?: string | null;
+  loan_id?: string | null;
 }
 
 export interface AgentCaseStats {

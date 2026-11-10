@@ -50,13 +50,59 @@ def _raise(e: AgentEngineError) -> AppError:
 
 
 @router.get("", operation_id="list_agent_cases")
-async def list_cases(request: Request, principal: PrincipalDep, limit: int = 50) -> Any:
-    """Danh sách case mà người gọi được phép thấy (engine áp RLS bằng JWT của họ)."""
+async def list_cases(request: Request, principal: PrincipalDep, session: SessionDep, limit: int = 50) -> Any:
+    """Danh sách case mà người gọi được phép thấy (engine áp RLS bằng JWT của họ).
+
+    Backend bổ sung tên khách hàng và mã hồ sơ (nếu case chạy từ một hồ sơ vay) để giao diện không hiện mã băm.
+    """
     del principal
     try:
-        return await _engine(request).list_cases(limit)
+        cases = await _engine(request).list_cases(limit)
     except AgentEngineError as e:
         raise _raise(e) from e
+    return await enrich_cases(session, cases)
+
+
+async def enrich_cases(session: Any, cases: Any) -> Any:
+    """Gắn `customer_name`, `application_number`, `loan_id`; thiếu quyền xem hoặc không có thì để null."""
+    if not isinstance(cases, list) or not cases:
+        return cases
+    case_ids = ",".join(str(c.get("case_id")) for c in cases if isinstance(c, dict) and c.get("case_id"))
+    customer_ids = ",".join(sorted({str(c.get("customer_id")) for c in cases if isinstance(c, dict) and c.get("customer_id")}))
+    by_case = {
+        str(r["case_id"]): r
+        for r in await fetch_all(
+            session,
+            """SELECT run.case_id, la.id::text AS loan_id, la.application_number, party.display_name AS customer_name
+               FROM credit.loan_agent_run AS run
+               JOIN credit.loan_application AS la ON la.id = run.loan_application_id
+               LEFT JOIN credit.loan_party AS borrower
+                 ON borrower.loan_application_id = la.id AND borrower.party_role = 'PRIMARY_BORROWER'
+               LEFT JOIN customer.party AS party ON party.id = borrower.party_id
+               WHERE run.case_id = ANY(string_to_array(:ids, ','))""",
+            {"ids": case_ids},
+        )
+    }
+    by_customer = {
+        str(r["id"]): str(r["display_name"])
+        for r in await fetch_all(
+            session,
+            """SELECT c.id::text AS id, p.display_name FROM customer.customer AS c
+               JOIN customer.party AS p ON p.id = c.party_id
+               WHERE c.id::text = ANY(string_to_array(:ids, ','))""",
+            {"ids": customer_ids},
+        )
+    }
+    out = []
+    for c in cases:
+        run = by_case.get(str(c.get("case_id")))
+        out.append({
+            **c,
+            "loan_id": run["loan_id"] if run else None,
+            "application_number": run["application_number"] if run else None,
+            "customer_name": (run["customer_name"] if run else None) or by_customer.get(str(c.get("customer_id"))),
+        })
+    return out
 
 
 @router.get("/stats", operation_id="agent_case_stats")
