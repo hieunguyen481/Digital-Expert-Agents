@@ -10,7 +10,8 @@ DELETE FROM agent.case_event      WHERE case_id IN (SELECT case_id FROM reset_ca
 DELETE FROM agent.case_plan       WHERE case_id IN (SELECT case_id FROM reset_case);
 DELETE FROM credit.loan_agent_run WHERE case_id IN (SELECT case_id FROM reset_case);
 DELETE FROM agent.case_run        WHERE case_id IN (SELECT case_id FROM reset_case);
--- Thong bao: seed khong tao thong bao nao, moi dong la do thao tac demo/e2e.
+-- Thong bao + outbox email: moi dong la do thao tac demo/e2e (seed chi sinh lai thong bao qua trigger; reset-demo.sh
+-- danh dau cac dong outbox do khong gui).
 DELETE FROM integration.notification_delivery;
 DELETE FROM integration.notification;
 COMMIT;
