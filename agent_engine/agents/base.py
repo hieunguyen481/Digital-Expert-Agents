@@ -79,6 +79,8 @@ def build_agent_app(
                 payload = {"verdict": verdict.model_dump(mode="json")}
             elif env.type == MessageType.INFO_REQUEST and handle_info:
                 info = await handle_info(env)
+                await events.emit(env.case_id, card.agent_id, "info_answered",
+                                  {"to": env.from_agent, "field": env.payload.get("field", "")})
                 reply_type = MessageType.INFO_RESPONSE
                 payload = info
             else:

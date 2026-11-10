@@ -28,3 +28,11 @@ def test_payload_only_touches_text_keys_and_keeps_raw_quote():
     assert out["decision"] == "need_more_info" and out["evidence"][0]["source"] == p["evidence"][0]["source"]
     assert out["evidence"][0]["quote"] == "nhóm nợ CIC: 3" and out["evidence"][0]["raw_quote"] == "cic_group: 3"
     assert out["findings"] == ["trạng thái định giá: cần xác minh"]
+
+
+def test_tool_choices_differ_by_record_with_reasons():
+    from common import agent_tools
+    with_col = agent_tools.choices("compliance", {"has_collateral": True}, {}, ["blacklist"], [], False)
+    no_col = agent_tools.choices("compliance", {"has_collateral": False}, {}, ["blacklist"], [], False)
+    assert {c["key"]: c["how"] for c in with_col} != {c["key"]: c["how"] for c in no_col} or all(c["reason"] for c in no_col)
+    assert all(c["reason"] and "Q3" not in c["reason"] for c in with_col + no_col)

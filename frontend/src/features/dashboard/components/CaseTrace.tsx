@@ -229,6 +229,15 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                 {b.compensated.length > 0 && (
                   <> — <Tag color="blue" bordered={false}>Hệ thống gọi bù</Tag>{b.compensated.map((k) => BOARD_LABEL[k] ?? k).join(', ')} (agent bỏ sót mục bắt buộc)</>
                 )}
+                {b.choices.length > 0 && (
+                  <ul data-testid="tool-choices" style={{ margin: '2px 0 4px', paddingLeft: 16 }}>
+                    {b.choices.map((c) => (
+                      <li key={c.tool}>
+                        {toolLabel(c.tool)}: <Text type="secondary">{c.how === 'agent' ? 'agent tự chọn' : c.how === 'system' ? 'hệ thống gọi bù' : 'không gọi'} — {c.reason}</Text>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>

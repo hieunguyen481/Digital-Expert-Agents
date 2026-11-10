@@ -17,6 +17,29 @@ _TOOL_BY_KEY = facts_mod._TOOLS  # khóa bảng chung -> tên công cụ MCP
 _DESC = {"business": "Hồ sơ pháp nhân (KYB)", "blacklist": "Tra danh sách đen/trừng phạt AML", "cic": "Tra CIC",
          "collateral": "Hồ sơ tài sản bảo đảm", "financials": "Báo cáo tài chính các năm", "loans": "Khoản vay hiện hữu",
          "inflow": "Tiền về tài khoản 12 tháng đã xác minh"}
+_WHY = {"business": "xác định pháp nhân, người đại diện và tình trạng KYC", "blacklist": "sàng lọc AML/trừng phạt bắt buộc trước khi trình",
+        "cic": "kiểm tra nhóm nợ và hiệu lực CIC (CS-TD-SME/2025 §6.3)", "collateral": "định giá và pháp lý tài sản để tính LTV (§7.1)",
+        "financials": "tính DSCR, đòn bẩy và kiểm tra BCTC (§4.1, §4.2)", "loans": "tổng dư nợ hiện hữu để tính nghĩa vụ trả nợ",
+        "inflow": "đối chiếu dòng tiền thực với doanh thu BCTC"}
+
+
+def choices(scope: str, request: dict, board: dict, called: list[str], comp: list[str], check_collateral: bool) -> list[dict]:
+    """Công cụ của chuyên môn đã dùng/không dùng cho hồ sơ này, kèm lý do suy ra từ chính hồ sơ (không do LLM tự thuật)."""
+    need = set(mandatory(scope, request, check_collateral))
+    out = []
+    for k in facts_mod._SCOPES[scope]:
+        if k in comp:
+            how, why = "system", f"agent bỏ sót mục bắt buộc: {_WHY[k]}"
+        elif k in called or k in board:
+            how, why = "agent", _WHY[k]
+        elif k == "collateral" and k not in need:
+            how, why = "skipped", "hồ sơ không khai tài sản bảo đảm nên không cần tra"
+        else:
+            how, why = "skipped", "chưa cần cho kết luận của chuyên môn này"
+        out.append({"tool": _TOOL_BY_KEY[k], "key": k, "how": how, "reason": why})
+    return out
+
+
 _boards: dict[tuple[str, str], dict[str, Any]] = {}  # (case, scope) -> kết quả công cụ đã gọi
 
 
@@ -89,7 +112,8 @@ async def select_and_gather(scope: str, request: dict, case_id: str, *, check_co
                 trace_ctx.bind(*ctx)
     await events.emit(case_id, scope, "shared_board_updated",
                       {"scope": scope, "called_by_agent": called, "compensated": comp,
-                       "mandatory": mandatory(scope, request, check_collateral), "board_keys": sorted(board)})
+                       "mandatory": mandatory(scope, request, check_collateral), "board_keys": sorted(board),
+                       "choices": choices(scope, request, board, called, comp, check_collateral)})
     out = dict(board)
     out["_meta"] = {"called": called, "compensated": comp}
     return out

@@ -147,7 +147,7 @@ async def case_stats() -> dict:
             " COUNT(*) FILTER (WHERE payload->>'outcome' <> 'ok') AS failed"
             " FROM agent.case_event WHERE type='tool_call' GROUP BY 1 ORDER BY n DESC")
         agents = await con.fetch(
-            "SELECT agent, COUNT(*) FILTER (WHERE type='task_finished') AS tasks,"
+            "SELECT agent, COUNT(*) FILTER (WHERE type IN ('task_finished','info_answered')) AS tasks,"
             " COUNT(*) FILTER (WHERE type='agent_error') AS errors,"
             " COUNT(*) FILTER (WHERE type='tool_call') AS tool_calls"
             " FROM agent.case_event WHERE agent NOT IN ('gateway','orchestrator','hitl','sla')"

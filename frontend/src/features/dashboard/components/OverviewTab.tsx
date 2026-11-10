@@ -67,7 +67,7 @@ export function OverviewTab() {
           emptyTitle="Chưa có tác vụ nào hoàn tất"
           columns={[
             { title: 'Agent', dataIndex: 'agent', key: 'agent', render: (a: string) => agentName(a) },
-            { title: 'Tác vụ hoàn tất', dataIndex: 'tasks', key: 'tasks', align: 'right', render: (n: number) => fmtInt(n) },
+            { title: 'Việc đã xử lý', dataIndex: 'tasks', key: 'tasks', align: 'right', render: (n: number) => fmtInt(n) },
             { title: 'Lỗi', dataIndex: 'errors', key: 'errors', align: 'right' },
             { title: 'Công cụ gọi', dataIndex: 'tool_calls', key: 'tool_calls', align: 'right' },
           ]}

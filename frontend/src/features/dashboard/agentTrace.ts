@@ -266,6 +266,8 @@ export interface BoardItem {
   called: string[];
   compensated: string[];
   keys: string[];
+  /** Công cụ đã dùng/bỏ qua cho hồ sơ này, kèm lý do (how: agent tự chọn | system gọi bù | skipped). */
+  choices: { tool: string; how: string; reason: string }[];
 }
 /** Bảng chung: mỗi lần chuyên gia gom xong dữ liệu, khóa nào do agent gọi, khóa nào hệ thống gọi bù. */
 export function sharedBoards(events: AgentCaseEvent[]): BoardItem[] {
@@ -273,6 +275,9 @@ export function sharedBoards(events: AgentCaseEvent[]): BoardItem[] {
   return events.filter((e) => e.type === 'shared_board_updated').map((e) => ({
     id: e.id, scope: str(e.payload?.scope) || e.agent,
     called: arr(e.payload?.called_by_agent), compensated: arr(e.payload?.compensated), keys: arr(e.payload?.board_keys),
+    choices: (Array.isArray(e.payload?.choices) ? e.payload.choices : []).map((c: Record<string, unknown>) => ({
+      tool: str(c.tool), how: str(c.how), reason: str(c.reason),
+    })),
   }));
 }
 
