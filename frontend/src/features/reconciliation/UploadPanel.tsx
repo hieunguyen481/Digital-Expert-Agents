@@ -68,6 +68,7 @@ export function UploadPanel({ loanId, view, onUploaded }: Props) {
       <input
         ref={input}
         type="file"
+        aria-label="Chọn tệp PDF tài liệu bổ sung"
         accept="application/pdf"
         data-testid="recon-upload"
         style={{ display: 'none' }}

@@ -20,6 +20,7 @@ function Frame({ me, role }: { me: NonNullable<ReturnType<typeof useMe>['data']>
   const work = useWorkItems('all', role !== 'quantri');
   return (
     <div className={`${styles.layout} ${open ? styles.layoutAiOpen : ''}`}>
+      <a href="#main-content" className={styles.skip}>Bỏ qua tới nội dung chính</a>
       <Rail role={role} badge={role === 'quantri' ? undefined : work.data?.badge} onOpenAi={() => openWith()} />
       <div className={styles.mainCol}>
         <Topbar me={me} role={role} />

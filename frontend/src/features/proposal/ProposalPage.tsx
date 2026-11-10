@@ -64,7 +64,7 @@ function Editor({ loanId }: { loanId: string }) {
             aria-label="Các bước soạn đề xuất"
             className={styles.toc}
           />
-          <main className={styles.content} tabIndex={-1}>
+          <div className={styles.content}>
             {section === 'need' && (
               <NeedSection
                 form={form}
@@ -84,7 +84,7 @@ function Editor({ loanId }: { loanId: string }) {
                 onSubmitted={() => void reload()}
               />
             )}
-          </main>
+          </div>
         </div>
       </div>
     </>

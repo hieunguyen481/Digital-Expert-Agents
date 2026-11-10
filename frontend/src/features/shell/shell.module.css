@@ -77,3 +77,6 @@
 .pageMeta { flex: 1; min-width: 0; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pageActions { flex: none; display: flex; gap: 8px; align-items: center; }
 .skeletonWrap { padding: 32px; }
+
+.skip { position: absolute; left: -9999px; top: 8px; z-index: 1000; background: var(--surface, #fff); color: var(--info, #0b5cad); padding: 8px 14px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.skip:focus { left: 8px; }

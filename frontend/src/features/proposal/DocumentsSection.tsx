@@ -100,7 +100,7 @@ function ItemUpload({ loanId, customerId, doc, onDone }: { loanId: string; custo
   };
   return (
     <>
-      <input ref={input} type="file" accept="application/pdf" style={{ display: 'none' }} data-testid={`upload-${doc.code}`}
+      <input ref={input} type="file" aria-label={`Tải tệp PDF cho ${doc.code}`} accept="application/pdf" style={{ display: 'none' }} data-testid={`upload-${doc.code}`}
         onChange={(e) => void pick(e.target.files?.[0])} />
       <Button size="small" loading={busy} onClick={() => input.current?.click()}>
         {doc.document_id ? 'Tải bản khác' : 'Tải lên'}
