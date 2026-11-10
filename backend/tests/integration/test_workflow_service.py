@@ -1016,6 +1016,31 @@ async def test_manager_reassigns_step_with_reason(
     await mig.execute("DELETE FROM identity.employee_scope WHERE id = $1", scope_id)
 
 
+async def test_notification_goes_through_delivery_outbox(
+    mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="CHECKING")
+    await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    rows = await mig.fetch(
+        "SELECT d.* FROM integration.notification_delivery d JOIN integration.notification n ON n.id = d.notification_id"
+        " WHERE n.resource_id = $1",
+        case.loan_id,
+    )
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["recipient_employee_id"] == DOCUMENT_REVIEWER and row["channel"] == "EMAIL"
+    assert row["notification_type"] == "CASE_ASSIGNED" and row["title"]
+    assert row["link_path"] == f"/ho-so-vay/{case.loan_id}" and row["status"] == "PENDING"
+    mine = [r for r in await mig.fetch("SELECT * FROM integration.claim_notification_deliveries('EMAIL', 'test', 500)") if r["id"] == row["id"]]
+    assert len(mine) == 1 and mine[0]["recipient_email"].endswith("@example.local")
+    assert await mig.fetchval("SELECT status FROM integration.notification_delivery WHERE id = $1", row["id"]) == "PROCESSING"
+    await mig.execute("SELECT integration.finish_notification_delivery($1, false, 'smtp down')", row["id"])
+    failed = await mig.fetchrow("SELECT status, attempt_count, last_error, available_at > now() AS later FROM integration.notification_delivery WHERE id = $1", row["id"])
+    assert (failed["status"], failed["attempt_count"], failed["last_error"], failed["later"]) == ("PENDING", 1, "smtp down", True)
+    await mig.execute("SELECT integration.finish_notification_delivery($1, true)", row["id"])
+    assert await mig.fetchval("SELECT status FROM integration.notification_delivery WHERE id = $1", row["id"]) == "SENT"
+
+
 async def notifications_of(mig: asyncpg.Connection, loan_id: UUID) -> list[tuple[UUID, str]]:
     rows = await mig.fetch(
         "SELECT employee_id, notification_type FROM integration.notification"

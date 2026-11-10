@@ -56,7 +56,7 @@ test('nhánh Từ chối: Giám đốc từ chối, hồ sơ đóng; điều ki�
 
 test('nhánh Phê duyệt có điều kiện: điều kiện được ghi và hồ sơ đóng', async ({ page }) => {
   test.setTimeout(600_000);
-  const id = await toApproval(page, 'b2');
+  const id = await toApproval(page, 'b2', true);
   await openDecision(page, id);
   await pickDecision(page, 'Phê duyệt có điều kiện');
   await page.getByPlaceholder('Mỗi điều kiện một dòng').fill('Mở tài khoản thanh toán trước giải ngân\nTheo dõi dòng tiền hằng quý');
@@ -65,6 +65,10 @@ test('nhánh Phê duyệt có điều kiện: điều kiện được ghi và h�
   await expect(page.getByText(/Phê duyệt có điều kiện/).first()).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText('Mở tài khoản thanh toán trước giải ngân').first()).toBeVisible();
   await expect(page.getByRole('button', { name: 'Quyết định', exact: true })).toHaveCount(0);
+  // R-03: khối điều kiện trước giải ngân liệt kê điều kiện từ quyết định và từ đội agent.
+  const block = page.getByTestId('pre-disbursement');
+  await expect(block.getByTestId('pre-disbursement-decision').first()).toContainText('Mở tài khoản thanh toán trước giải ngân');
+  await expect(block.getByTestId('pre-disbursement-agent').first()).toBeVisible();
   await shot(page, 'b2', 'da-quyet-dinh');
 });
 
@@ -79,6 +83,26 @@ test('nhánh Trả về Thẩm định: cấp phê duyệt trả lại, Thẩm �
   await as(page, 'tdinh');
   await page.goto(`/ho-so-vay/${id}`);
   await expect(page.getByRole('button', { name: 'Trình Rủi ro' })).toBeVisible();
+});
+
+test('R-05: từ chối một ngoại lệ kèm lý do thì không ghi được quyết định, chỉ trả lại bổ sung', async ({ page }) => {
+  test.setTimeout(600_000);
+  const id = await toApproval(page, 'b5');
+  await as(page, 'giamdoc');
+  await page.goto(`/ho-so-vay/${id}`);
+  await page.getByRole('button', { name: 'Quyết định', exact: true }).click();
+  const rows = page.getByTestId('exception-row');
+  await expect(rows.first()).toBeVisible();
+  const reasonBox = rows.first().getByRole('textbox');
+  await rows.first().getByText('Từ chối (phải trả lại bổ sung)').click();
+  await page.locator('#action-text').fill('Cần bổ sung thêm chứng từ.');
+  await expect(page.getByRole('button', { name: 'Trả lại bổ sung' })).toBeDisabled(); // thiếu lý do của ngoại lệ
+  await reasonBox.fill('Chứng từ thay thế chưa đủ căn cứ.');
+  const others = await rows.count();
+  for (let i = 1; i < others; i++) { await rows.nth(i).getByText('Chấp thuận').click(); await rows.nth(i).getByRole('textbox').fill('Chấp thuận theo đề xuất.'); }
+  await shot(page, 'b5', 'tu-choi-ngoai-le');
+  await page.getByRole('button', { name: 'Trả lại bổ sung' }).click();
+  await expect(page.getByText('Đang thẩm định').first()).toBeVisible({ timeout: 30_000 });
 });
 
 test('nhánh Rủi ro trả lại Thẩm định: lý do bắt buộc, hồ sơ về Thẩm định', async ({ page }) => {
