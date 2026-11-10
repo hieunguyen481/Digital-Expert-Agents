@@ -24,7 +24,7 @@ from sse_starlette.sse import EventSourceResponse  # noqa: E402
 
 from common import config, identity, mcp_client, rag  # noqa: E402
 from common.schemas import CaseCreate, CaseState, new_id  # noqa: E402
-from gateway import actions, approval, db, orchestrator, planner  # noqa: E402
+from gateway import actions, approval, db, orchestrator, planner, proposal_flow  # noqa: E402
 from gateway.auth import (Principal, current_principal, internal_only,  # noqa: E402
                           require_roles)
 
@@ -236,6 +236,43 @@ async def loan_decided(case_id: str, body: LoanDecidedBody, request: Request,
     except actions.ActionRefused as e:
         raise HTTPException(e.status if e.status in (403, 404, 409) else 409,
                             {"code": e.code, "message": e.message}) from e
+
+
+# ---- Đề xuất hành động của agent: chỉ người có thẩm quyền xác nhận/bỏ; agent không có đường tự thực hiện ----
+class ProposalDecisionBody(BaseModel):
+    reason: str
+    loan_application_id: str | None = None
+
+
+def _proposal_http(e: proposal_flow.ProposalError) -> HTTPException:
+    return HTTPException(e.status, {"code": e.code, "message": e.message})
+
+
+@app.get("/cases/{case_id}/proposals")
+async def list_proposals(case_id: str, user: Principal = USER) -> list[dict]:
+    await _visible_case(case_id)
+    return await db.list_proposals(case_id)
+
+
+@app.post("/proposals/{proposal_id}/confirm")
+async def confirm_proposal(proposal_id: str, body: ProposalDecisionBody, request: Request,
+                           user: Principal = USER) -> dict:
+    jwt = request.headers["authorization"].partition(" ")[2].strip()
+    try:
+        return await proposal_flow.confirm(
+            proposal_id, employee_id=user.employee_id, roles=user.roles, jwt=jwt, reason=body.reason,
+            loan_application_id=body.loan_application_id)
+    except proposal_flow.ProposalError as e:
+        raise _proposal_http(e) from e
+
+
+@app.post("/proposals/{proposal_id}/dismiss")
+async def dismiss_proposal(proposal_id: str, body: ProposalDecisionBody, user: Principal = USER) -> dict:
+    try:
+        return await proposal_flow.dismiss(
+            proposal_id, employee_id=user.employee_id, roles=user.roles, reason=body.reason)
+    except proposal_flow.ProposalError as e:
+        raise _proposal_http(e) from e
 
 
 @app.post("/cases/{case_id}/supplement")

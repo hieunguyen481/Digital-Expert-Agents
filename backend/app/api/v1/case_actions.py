@@ -12,6 +12,9 @@ from app.api.v1._utils import request_uuid
 from app.auth.dependencies import require_permissions
 from app.auth.principal import CurrentPrincipal
 from app.schemas.case_action import (
+    AgentActionResponse,
+    AgentConditionRequest,
+    AgentFlagRequest,
     CaseActionState,
     FlagConclusionRequest,
     FlagConclusionResponse,
@@ -63,3 +66,21 @@ async def add_opinion(loan_id: UUID, body: OpinionRequest, principal: Principal,
 @router.post("/{loan_id}/approval-upgrade", response_model=UpgradeResponse)
 async def upgrade_approval(loan_id: UUID, body: UpgradeRequest, principal: Principal, service: Service) -> UpgradeResponse:
     return UpgradeResponse(tier=await service.upgrade_approval(principal, loan_id, body.reason))
+
+
+@router.post("/{loan_id}/agent-flags", response_model=AgentActionResponse)
+async def add_agent_flag(loan_id: UUID, body: AgentFlagRequest, principal: Principal, service: Service) -> AgentActionResponse:
+    flag_id, created = await service.add_agent_flag(
+        principal, loan_id, body.proposal_id, body.severity, body.title, body.reason
+    )
+    return AgentActionResponse(id=str(flag_id), created=created)
+
+
+@router.post("/{loan_id}/disbursement-conditions", response_model=AgentActionResponse)
+async def add_disbursement_condition(
+    loan_id: UUID, body: AgentConditionRequest, principal: Principal, service: Service
+) -> AgentActionResponse:
+    cond_id, created = await service.add_disbursement_condition(
+        principal, loan_id, body.proposal_id, body.text, body.reason
+    )
+    return AgentActionResponse(id=str(cond_id), created=created)

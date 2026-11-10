@@ -44,3 +44,23 @@ class CaseActionState(APIModel):
     tier: dict[str, Any]
     excluded: bool
     blockers: list[str]
+
+
+class AgentFlagRequest(APIModel):
+    """Cờ rủi ro do người xác nhận đề xuất của agent (proposal_id để chống ghi trùng và truy vết)."""
+
+    proposal_id: str = Field(min_length=1, max_length=80)
+    severity: Literal["HIGH", "MEDIUM", "LOW"]
+    title: str = Field(min_length=1, max_length=300)
+    reason: str = Field(min_length=1, max_length=4000)
+
+
+class AgentConditionRequest(APIModel):
+    proposal_id: str = Field(min_length=1, max_length=80)
+    text: str = Field(min_length=1, max_length=2000)
+    reason: str = Field(min_length=1, max_length=4000)
+
+
+class AgentActionResponse(APIModel):
+    id: str
+    created: bool

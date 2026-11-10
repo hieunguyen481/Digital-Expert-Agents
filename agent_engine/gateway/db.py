@@ -257,6 +257,69 @@ async def get_action_by_key(key: str) -> dict | None:
     return dict(r) if r else None
 
 
+# ---- đề xuất hành động của đội agent (V049): chỉ người xác nhận mới chuyển trạng thái ----
+_PROP_COLS = ("id::text AS id, case_id, kind, title, rationale, evidence, params, source_agent, status,"
+              " decided_by::text AS decided_by, decided_reason, decided_at, result, created_at")
+
+
+async def add_proposals(case_id: str, items: list[dict]) -> list[dict]:
+    out = []
+    async with tx() as con:
+        have = {(r["kind"], r["title"]) for r in await con.fetch(
+            "SELECT kind, title FROM agent.action_proposal WHERE case_id=$1", case_id)}
+        for it in items:
+            if (it["kind"], it["title"]) in have:  # chạy lại/phân tích lại không nhân đôi đề xuất
+                continue
+            pid = uuid.uuid4()
+            await con.execute(
+                "INSERT INTO agent.action_proposal(id, case_id, kind, title, rationale, evidence, params,"
+                " source_agent, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+                pid, case_id, it["kind"], it["title"], it["rationale"], it["evidence"], it["params"],
+                it["source_agent"], time.time())
+            out.append({**it, "id": str(pid), "status": "PROPOSED"})
+    return out
+
+
+async def list_proposals(case_id: str) -> list[dict]:
+    async with tx() as con:
+        rows = await con.fetch(f"SELECT {_PROP_COLS} FROM agent.action_proposal WHERE case_id=$1"
+                               " ORDER BY created_at, id", case_id)
+    return [dict(r) for r in rows]
+
+
+async def get_proposal(pid: str) -> dict | None:
+    try:
+        key = uuid.UUID(pid)
+    except ValueError:
+        return None
+    async with tx() as con:
+        r = await con.fetchrow(f"SELECT {_PROP_COLS} FROM agent.action_proposal WHERE id=$1", key)
+    return dict(r) if r else None
+
+
+async def claim_proposal(pid: str, status: str, by: str, reason: str) -> bool:
+    """Chuyển PROPOSED -> CONFIRMED/DISMISSED đúng một lần (bấm hai lần: lần sau trả False)."""
+    async with tx() as con:
+        return await con.fetchval(
+            "UPDATE agent.action_proposal SET status=$2, decided_by=$3, decided_reason=$4, decided_at=$5"
+            " WHERE id=$1 AND status='PROPOSED' RETURNING TRUE",
+            uuid.UUID(pid), status, uuid.UUID(by), reason, time.time()) is True
+
+
+async def release_proposal(pid: str, by: str, result: dict) -> None:
+    """Backend từ chối: trả về PROPOSED để người có quyền khác/sau đó xử lý; lý do từ chối ghi vào result."""
+    async with tx() as con:
+        await con.execute(
+            "UPDATE agent.action_proposal SET status='PROPOSED', decided_by=NULL, decided_reason=NULL,"
+            " decided_at=NULL, result=$3 WHERE id=$1 AND status='CONFIRMED' AND decided_by=$2",
+            uuid.UUID(pid), uuid.UUID(by), result)
+
+
+async def set_proposal_result(pid: str, result: dict) -> None:
+    async with tx() as con:
+        await con.execute("UPDATE agent.action_proposal SET result=$2 WHERE id=$1", uuid.UUID(pid), result)
+
+
 # ---- benchmark (V032, V033): chỉ đọc, dưới RLS ----
 _BENCH_COLS = ("run_id, created_at, label, cases_version, grader_version, regrade_of, llm_mode, planner_model,"
                " specialist_model, git_commit, runs_per_case, total_cost_usd, summary, per_case, runs")

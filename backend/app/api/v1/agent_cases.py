@@ -5,7 +5,7 @@ Mọi lời gọi mang JWT của người dùng; engine tự xác thực và áp
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Request
@@ -29,6 +29,11 @@ class ConfirmBody(BaseModel):
     approved_amount: float | None = None
     approved_term_months: int | None = None
     conditions: list[str] | None = None
+
+
+class ProposalBody(BaseModel):
+    reason: str = Field(min_length=1, max_length=2000)
+    loan_application_id: str | None = None
 
 
 class RejectBody(BaseModel):
@@ -131,6 +136,26 @@ async def approver_names(principal: PrincipalDep, session: SessionDep, ids: str 
         session, "SELECT id::text AS id, full_name FROM identity.employee WHERE id::text = ANY(string_to_array(:ids, ','))",
         {"ids": ",".join(str(w) for w in wanted)})
     return {str(r["id"]): str(r["full_name"]) for r in rows}
+
+
+@router.post("/proposals/{proposal_id}/{verb}", operation_id="decide_agent_proposal")
+async def decide_proposal(proposal_id: str, verb: Literal["confirm", "dismiss"], body: ProposalBody,
+                          request: Request, principal: PrincipalDep) -> Any:
+    """Người có quyền xác nhận hoặc bỏ đề xuất hành động; engine thực hiện bằng JWT của chính người bấm."""
+    del principal
+    try:
+        return await _engine(request).decide_proposal(proposal_id, verb, body.model_dump(exclude_none=True))
+    except AgentEngineError as e:
+        raise _raise(e) from e
+
+
+@router.get("/{case_id}/proposals", operation_id="list_agent_case_proposals")
+async def list_proposals(case_id: str, request: Request, principal: PrincipalDep) -> Any:
+    del principal
+    try:
+        return await _engine(request).proposals(case_id)
+    except AgentEngineError as e:
+        raise _raise(e) from e
 
 
 @router.get("/{case_id}", operation_id="get_agent_case")

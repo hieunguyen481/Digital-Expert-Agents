@@ -273,3 +273,36 @@ async def test_http_decide_refused_for_e8_excluded_employee(
     assert response.status_code == 403, response.text
     assert "E8" in response.text
     assert await mig.fetchval("SELECT count(*) FROM credit.loan_decision WHERE loan_application_id = $1", case.loan_id) == 0
+
+
+async def test_agent_proposal_actions_need_role_holder_and_are_idempotent(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    """Ghi cờ / điều kiện trước giải ngân theo đề xuất agent: đúng vai trò, người giữ hồ sơ, ghi một lần, có nhật ký."""
+    await case.create(status="APPRAISAL")
+    await case.add_step("APPRAISAL", CREDIT_APPRAISER)
+    appraiser = await principal(mig, CREDIT_APPRAISER)
+    officer = await principal(mig, CREDIT_OFFICER)
+    approver = await principal(mig, APPROVER_HO)
+
+    with pytest.raises(PermissionError):  # sai vai trò
+        await act(engine, officer, lambda s: s.add_agent_flag(officer, case.loan_id, "p1", "HIGH", "Lech MST", "Co can cu"))
+    with pytest.raises(PermissionError):  # đúng vai trò nhưng không giữ hồ sơ
+        await act(engine, approver, lambda s: s.add_agent_flag(approver, case.loan_id, "p1", "HIGH", "Lech MST", "Co can cu"))
+    assert await mig.fetchval("SELECT count(*) FROM credit.case_flag WHERE source = 'AGENT:p1'") == 0
+
+    first = await act(engine, appraiser, lambda s: s.add_agent_flag(appraiser, case.loan_id, "p1", "HIGH", "Lech MST", "Co can cu"))
+    again = await act(engine, appraiser, lambda s: s.add_agent_flag(appraiser, case.loan_id, "p1", "HIGH", "Lech MST", "Co can cu"))
+    assert first[1] is True and again == (first[0], False)  # bấm lần hai: không tạo thêm
+    row = await mig.fetchrow("SELECT severity, status, created_by, code FROM credit.case_flag WHERE source = 'AGENT:p1'")
+    assert (row["severity"], row["status"], row["created_by"], row["code"]) == ("HIGH", "OPEN", CREDIT_APPRAISER, "agent_proposed")
+
+    cond = await act(engine, appraiser, lambda s: s.add_disbursement_condition(appraiser, case.loan_id, "p2", "Mo tai khoan thanh toan", "Co can cu"))
+    again = await act(engine, appraiser, lambda s: s.add_disbursement_condition(appraiser, case.loan_id, "p2", "Mo tai khoan thanh toan", "Co can cu"))
+    assert cond[1] is True and again == (cond[0], False)
+    assert await mig.fetchval("SELECT count(*) FROM credit.pre_disbursement_condition WHERE loan_application_id = $1", case.loan_id) == 1
+    audited = await mig.fetch(
+        "SELECT action FROM audit.audit_event WHERE resource_id = $1 AND action IN ('CASE_AGENT_FLAG_ADD','CASE_DISBURSEMENT_CONDITION_ADD')",
+        str(case.loan_id),
+    )
+    assert sorted(r["action"] for r in audited) == ["CASE_AGENT_FLAG_ADD", "CASE_DISBURSEMENT_CONDITION_ADD"]

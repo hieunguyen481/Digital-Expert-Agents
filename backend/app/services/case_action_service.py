@@ -31,6 +31,16 @@ def _need_role(principal: PrincipalLike, role: str) -> None:
         raise PermissionError(f"This action requires role {role}")
 
 
+def _need_any_role(principal: PrincipalLike, roles: tuple[str, ...]) -> None:
+    if getattr(principal, "is_admin", False) or not set(roles) & set(getattr(principal, "roles", ())):
+        raise PermissionError("This action requires one of the roles: " + ", ".join(roles))
+
+
+FLAG_ROLES = ("credit_appraiser", "risk_officer", "document_reviewer")
+CONDITION_ROLES = ("credit_appraiser", "loan_approver")
+CLOSED_STATUSES = {"DRAFT", "APPROVED", "APPROVED_WITH_CONDITIONS", "REJECTED", "WITHDRAWN", "CANCELLED"}
+
+
 def _need_text(value: str | None, what: str) -> str:
     clean = (value or "").strip()
     if not clean:
@@ -179,3 +189,42 @@ class CaseActionService:
         )
         await self._log(principal, "CASE_APPROVAL_UPGRADE", loan_id, from_tier=current, to_tier=required)
         return required
+
+    async def _open_loan(self, principal: PrincipalLike, loan_id: UUID) -> Any:
+        loan = await self._repo.loan(loan_id)
+        if loan is None:
+            raise NotFoundError("LOAN_NOT_FOUND", "Không tìm thấy hồ sơ hoặc ngoài phạm vi được xem.")
+        if loan["status"] in CLOSED_STATUSES:
+            raise ConflictError("LOAN_CLOSED", "Hồ sơ không còn ở bước xử lý.", {"status": loan["status"]})
+        if not await self._repo.can_write(principal.employee_id, loan_id):
+            raise PermissionError("Only the person holding the case may act on it")
+        return loan
+
+    async def add_agent_flag(
+        self, principal: PrincipalLike, loan_id: UUID, proposal_id: str, severity: str, title: str, reason: str
+    ) -> tuple[UUID, bool]:
+        """Ghi cờ rủi ro theo đề xuất của đội agent, do người đúng vai trò xác nhận (AI chỉ đề xuất)."""
+        _need_any_role(principal, FLAG_ROLES)
+        clean_title, clean_reason = _need_text(title, "A flag title"), _need_text(reason, "A reason")
+        await self._open_loan(principal, loan_id)
+        flag_id, created = await self._repo.add_agent_flag(
+            loan_id, f"AGENT:{proposal_id}", severity, clean_title, principal.employee_id
+        )
+        if created:
+            await self._log(principal, "CASE_AGENT_FLAG_ADD", loan_id, flag_id=flag_id, proposal_id=proposal_id,
+                            severity=severity, reason=clean_reason)
+        return flag_id, created
+
+    async def add_disbursement_condition(
+        self, principal: PrincipalLike, loan_id: UUID, proposal_id: str, text: str, reason: str
+    ) -> tuple[UUID, bool]:
+        _need_any_role(principal, CONDITION_ROLES)
+        clean_text, clean_reason = _need_text(text, "A condition"), _need_text(reason, "A reason")
+        await self._open_loan(principal, loan_id)
+        cond_id, created = await self._repo.add_disbursement_condition(
+            loan_id, f"AGENT:{proposal_id}", clean_text, principal.employee_id
+        )
+        if created:
+            await self._log(principal, "CASE_DISBURSEMENT_CONDITION_ADD", loan_id, condition_id=cond_id,
+                            proposal_id=proposal_id, reason=clean_reason)
+        return cond_id, created

@@ -205,6 +205,7 @@ class LoanRequest(BaseModel):
     purpose: str
     has_collateral: bool = False
     collateral_id: Optional[str] = None
+    loan_application_id: Optional[str] = None  # hồ sơ vay đã chạy đội agent (để áp dụng đề xuất hành động)
 
 
 class CaseCreate(BaseModel):

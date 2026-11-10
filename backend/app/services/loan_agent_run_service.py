@@ -122,6 +122,7 @@ class LoanAgentRunService:
             "purpose": str(loan["loan_purpose"]),
             "has_collateral": collateral_id is not None,
             "collateral_id": collateral_id,
+            "loan_application_id": str(loan_id),
         }
         case_id = await self._engine.create_case(request)
         await self._engine.run(case_id)

@@ -17,7 +17,7 @@ from common import facts as facts_mod
 from common.schemas import (
     ApprovalPackage, CaseState, Envelope, MessageType, Plan, Verdict, VerdictDecision,
 )
-from . import actions, approval, db, planner
+from . import actions, approval, db, planner, proposals
 
 
 async def _emit(case_id: str, agent: str, etype: str, payload: dict | None = None):
@@ -89,6 +89,7 @@ async def run_analysis(case_id: str, ident: identity.Identity | None = None) -> 
         if validation is None:
             raise RuntimeError("thiếu verdict validation")
 
+        await _propose_actions(case_id, validation)
         if validation.decision == VerdictDecision.APPROVE:
             await _build_package(case_id, plan, validation)
         elif validation.decision == VerdictDecision.REJECT:
@@ -156,6 +157,19 @@ async def _execute_dag(case_id: str, plan: Plan
             verdict_by_agent[t.agent] = v
             remaining.pop(t.task_id)
     return verdicts, verdict_by_agent
+
+
+async def _propose_actions(case_id: str, validation: Verdict) -> None:
+    """Agent chỉ ĐỀ XUẤT: lưu đề xuất + ghi trace; không có lời gọi nào ghi vào hồ sơ ở đây."""
+    try:
+        final = [Verdict(**v) for v in validation.data.get("final_verdicts", {}).values()]
+        items = proposals.derive(validation, final, _final_report(validation))
+        for p in await db.add_proposals(case_id, items):
+            await _emit(case_id, p["source_agent"], "action_proposed",
+                        {"proposal_id": p["id"], "kind": p["kind"], "title": p["title"],
+                         "rationale": p["rationale"], "evidence": p["evidence"]})
+    except Exception:  # noqa: BLE001 - lỗi dựng đề xuất không được làm hỏng kết luận phân tích
+        traceback.print_exc()
 
 
 def _final_report(validation: Verdict) -> dict:

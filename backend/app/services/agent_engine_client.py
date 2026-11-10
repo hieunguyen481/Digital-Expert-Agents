@@ -92,6 +92,13 @@ class AgentEngineClient:
         return await self._call("POST", f"/cases/{case_id}/loan-decided", jwt=jwt,
                                 json={"loan_application_id": loan_id})
 
+    async def proposals(self, case_id: str, jwt: str | None = None) -> Any:
+        return await self._call("GET", f"/cases/{case_id}/proposals", jwt=jwt)
+
+    async def decide_proposal(self, proposal_id: str, verb: str, body: dict[str, Any], jwt: str | None = None) -> Any:
+        """verb: confirm | dismiss. Engine thực hiện bằng JWT của chính người bấm."""
+        return await self._call("POST", f"/proposals/{proposal_id}/{verb}", jwt=jwt, json=body)
+
     async def reject(self, case_id: str, body: dict[str, Any], jwt: str | None = None) -> Any:
         return await self._call("POST", f"/cases/{case_id}/reject", jwt=jwt, json=body)
 

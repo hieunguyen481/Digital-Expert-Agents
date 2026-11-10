@@ -128,3 +128,48 @@ class CaseActionRepository:
                        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id""",
             {"id": uuid4(), "l": loan_id, "title": title, "b": by},
         )
+
+    async def add_agent_flag(self, loan_id: UUID, source: str, severity: str, title: str, by: UUID) -> tuple[UUID, bool]:
+        """Cờ do người xác nhận đề xuất của agent; cùng `source` thì không tạo thêm (idempotent). Trả (id, mới?)."""
+        existing = await fetch_one(
+            self.session,
+            "SELECT id FROM credit.case_flag WHERE loan_application_id = :l AND source = :s",
+            {"l": loan_id, "s": source},
+        )
+        if existing is not None:
+            return existing["id"], False
+        flag_id = uuid4()
+        await fetch_one(
+            self.session,
+            """INSERT INTO credit.case_flag (id, loan_application_id, code, severity, title, blocks_submission,
+                                             status, source, created_by, created_at, updated_at)
+               VALUES (:id, :l, 'agent_proposed', :sev, :title, FALSE, 'OPEN', :src, :b,
+                       CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id""",
+            {"id": flag_id, "l": loan_id, "sev": severity, "title": title, "src": source, "b": by},
+        )
+        return flag_id, True
+
+    async def add_disbursement_condition(self, loan_id: UUID, source: str, text: str, by: UUID) -> tuple[UUID, bool]:
+        existing = await fetch_one(
+            self.session,
+            "SELECT id FROM credit.pre_disbursement_condition WHERE loan_application_id = :l AND source = :s",
+            {"l": loan_id, "s": source},
+        )
+        if existing is not None:
+            return existing["id"], False
+        cond_id = uuid4()
+        await fetch_one(
+            self.session,
+            "INSERT INTO credit.pre_disbursement_condition (id, loan_application_id, condition_text, source, created_by) "
+            "VALUES (:id, :l, :t, :s, :b) RETURNING id",
+            {"id": cond_id, "l": loan_id, "t": text, "s": source, "b": by},
+        )
+        return cond_id, True
+
+    async def disbursement_conditions(self, loan_id: UUID) -> list[Record]:
+        return await fetch_all(
+            self.session,
+            "SELECT id, condition_text, source, created_at FROM credit.pre_disbursement_condition "
+            "WHERE loan_application_id = :l ORDER BY created_at",
+            {"l": loan_id},
+        )
