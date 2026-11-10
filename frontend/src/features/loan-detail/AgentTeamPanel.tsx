@@ -10,6 +10,7 @@ import {
 import {
   DECISION_LABEL, STATE_COLOR, agentName, approverLevelLabel, latestPlan, packageOf, stateLabel, taskStates, type TraceVerdict,
 } from '@/features/dashboard/agentTrace';
+import { ActionProposals } from '@/features/agent-actions/ActionProposals';
 import { fetchAgentRuns, startAgentRun } from './loanDetailService';
 import { fmtDate, fmtMoney } from './format';
 import styles from './loan-detail.module.css';
@@ -101,6 +102,7 @@ export function AgentTeamPanel({ loanId, currency }: { loanId: string; currency:
         </span>
       )}
       {latest && <RunBody key={latest.case_id} caseId={latest.case_id} currency={currency} />}
+      {latest && <ActionProposals caseId={latest.case_id} loanId={loanId} />}
       {data && data.runs.length > 1 && (
         <div className={styles.section} data-testid="agent-run-history">
           <b>Các lượt trước ({data.runs.length - 1})</b>

@@ -97,6 +97,31 @@ export async function getApproverNames(ids: string[]): Promise<Record<string, st
   return (await apiClient.get<Record<string, string>>('/agent-cases/approver-names', { params: { ids: ids.join(',') } })).data;
 }
 
+export type ProposalKind = 'add_risk_flag' | 'request_documents' | 'add_disbursement_condition';
+export interface ActionProposal {
+  id: string;
+  case_id: string;
+  kind: ProposalKind;
+  title: string;
+  rationale: string;
+  evidence: { source: string; quote: string }[];
+  params: Record<string, unknown>;
+  source_agent: string;
+  status: 'PROPOSED' | 'CONFIRMED' | 'DISMISSED';
+  decided_reason: string | null;
+  result: Record<string, unknown> | null;
+}
+
+export async function getActionProposals(caseId: string): Promise<ActionProposal[]> {
+  return (await apiClient.get<ActionProposal[]>(`/agent-cases/${caseId}/proposals`)).data;
+}
+
+export async function decideActionProposal(
+  proposalId: string, verb: 'confirm' | 'dismiss', input: { reason: string; loan_application_id?: string },
+): Promise<{ status: string; replay?: boolean }> {
+  return (await apiClient.post(`/agent-cases/proposals/${proposalId}/${verb}`, input)).data;
+}
+
 export async function confirmAgentCase(caseId: string, input: ConfirmInput): Promise<unknown> {
   return (await apiClient.post(`/agent-cases/${caseId}/approve`, input)).data;
 }

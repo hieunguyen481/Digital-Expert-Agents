@@ -7,6 +7,7 @@ import {
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
   BOARD_LABEL, approverLevelLabel, realActions, scrubInternal, sharedBoards, toolLabel, validationView,
 } from '../agentTrace';
+import { ProposalChain } from '@/features/agent-actions/ActionProposals';
 import { statusLabel } from '@/features/my-work/format';
 import { fmtInt, fmtUsd } from '@/utils/format';
 import { TERM } from '@/utils/glossary';
@@ -297,6 +298,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             Hồ sơ vay đã chuyển sang <b>{statusLabel(a.workflowStatus)}</b> qua bước quyết định của quy trình (có ghi nhật ký kiểm toán).
           </div>
         ))}
+        <ProposalChain events={events} />
         {state === 'Pending Approval' && decided.length === 0 && (
           <Text type="secondary" style={{ fontSize: 13 }}>Đang chờ người có thẩm quyền xác nhận; agent không tự phê duyệt.</Text>
         )}

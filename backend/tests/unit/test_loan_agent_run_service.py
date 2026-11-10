@@ -127,7 +127,7 @@ async def test_request_built_from_real_loan_data() -> None:
     out = await svc(FakeRepo(), engine).start(P(("credit_officer",)), LOAN)  # type: ignore[arg-type]
     assert engine.created == [{"business_id": str(CUSTOMER), "amount": 5_000_000_000.0, "term_months": 36,
                                "purpose": "WORKING_CAPITAL", "has_collateral": True,
-                               "collateral_id": COLLATERAL}]
+                               "collateral_id": COLLATERAL, "loan_application_id": str(LOAN)}]
     assert out["latest"]["case_id"] == "case_1" and engine.ran == ["case_1"]
 
 

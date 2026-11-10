@@ -206,6 +206,7 @@ class Case:
         await m.execute("DELETE FROM credit.risk_opinion WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM credit.approval_tier_event WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM integration.notification WHERE resource_id = $1", self.loan_id)
+        await m.execute("DELETE FROM credit.pre_disbursement_condition WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM credit.case_flag WHERE loan_application_id = $1", self.loan_id)
         await m.execute(
             "DELETE FROM credit.case_exception WHERE loan_application_id = $1", self.loan_id
