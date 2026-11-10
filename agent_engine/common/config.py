@@ -79,8 +79,6 @@ APPROVAL_SLA_SECONDS = int(os.getenv("APPROVAL_SLA_SECONDS", "60"))  # rút ng�
 LTV_MAX = float(os.getenv("LTV_MAX", "0.70"))
 # Q-R: CS-TD-SME/2025 là chuẩn (DSCR >= 1,25); rag_corpus/credit_policy.md (ghi 1,2) không còn là nguồn.
 DSCR_MIN = float(os.getenv("DSCR_MIN", "1.25"))
-# Thẩm quyền phê duyệt theo hạn mức (VND)
-BRANCH_APPROVAL_LIMIT = float(os.getenv("BRANCH_APPROVAL_LIMIT", "8000000000"))
 
 # ---- Danh tính & dữ liệu thật (Postgres) ----
 # Engine nối bằng role bank_app rồi SET LOCAL ROLE bank_engine (không BYPASSRLS) cho từng lời gọi.

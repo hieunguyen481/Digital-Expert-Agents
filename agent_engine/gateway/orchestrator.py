@@ -12,7 +12,7 @@ import traceback
 
 import httpx
 
-from common import agent_tools, config, identity, trace_ctx
+from common import agent_tools, config, identity, recompute, trace_ctx
 from common import facts as facts_mod
 from common.schemas import (
     ApprovalPackage, CaseState, Envelope, MessageType, Plan, Verdict, VerdictDecision,
@@ -189,8 +189,7 @@ async def _build_package(case_id: str, plan: Plan, validation: Verdict) -> None:
         v.data.pop("_board", None)
     report = _final_report(validation)
     limit = validation.proposed_limit
-    level = ("branch_director"
-             if (limit or 0) <= config.BRANCH_APPROVAL_LIMIT else "head_office")
+    level = recompute.package_approver_level((validation.data.get("verified") or {}).get("exposure"), limit)
     package = ApprovalPackage(
         case_id=case_id, plan_version=plan.version,
         policy_version=config.POLICY_VERSION,

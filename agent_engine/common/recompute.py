@@ -37,11 +37,25 @@ def collateral_check(collaterals: list[dict], amount: float, ltv_max: float | No
     }
 
 
+def approver_level(total: float) -> str:
+    """Cấp duyệt theo TỔNG cấp tín dụng (Q4, CS-TD-SME/2025 §3.1): nguồn duy nhất, khớp `credit.required_tier`."""
+    if total <= TIER_LIMITS_VND[0]:
+        return "branch_director"
+    return "regional" if total <= TIER_LIMITS_VND[1] else "head_office"
+
+
+def package_approver_level(exposure: dict | None, limit: float | None) -> str:
+    """Cấp duyệt của gói: theo tổng cấp tín dụng đã tính lại (gồm dư nợ hiện hữu); thiếu thì theo hạn mức đề xuất."""
+    total = (exposure or {}).get("total")
+    return approver_level(_num(limit) if total is None else _num(total))
+
+
 def exposure_check(loans: list[dict], amount: float) -> dict:
     """Q4: tổng cấp tín dụng = dư nợ hiện hữu tại ngân hàng + đề xuất mới."""
     existing = sum(_num(x.get("outstanding")) for x in loans)
     total = existing + amount
-    tier = "branch" if total <= TIER_LIMITS_VND[0] else ("regional" if total <= TIER_LIMITS_VND[1] else "head_office")
+    level = approver_level(total)
+    tier = "branch" if level == "branch_director" else level
     return {"existing": existing, "loans": len(loans), "total": total, "tier": tier,
             "audit_required": total > AUDIT_THRESHOLD_VND}
 
