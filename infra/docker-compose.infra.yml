@@ -322,6 +322,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Generate .env.local}
       KEYCLOAK_BACKEND_CLIENT_SECRET: ${KEYCLOAK_BACKEND_CLIENT_SECRET:?Generate .env.local}
       KEYCLOAK_WORKER_CLIENT_SECRET: ${KEYCLOAK_WORKER_CLIENT_SECRET:?Generate .env.local}
+      KEYCLOAK_DEMO_CLIENT_SECRET: ${KEYCLOAK_DEMO_CLIENT_SECRET:-}
       SEED_USER_PASSWORD: ${SEED_USER_PASSWORD:?Generate .env.local}
     entrypoint: [/bin/bash, /opt/bank/keycloak/bootstrap-users.sh]
     volumes:

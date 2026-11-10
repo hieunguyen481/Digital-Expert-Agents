@@ -10,7 +10,7 @@ const useWorkItems = vi.fn();
 vi.mock('@/auth/session', () => ({ useMe: () => useMe() }));
 vi.mock('./useWorkItems', () => ({ useWorkItems: (f: QueueFilter, e?: boolean) => useWorkItems(f, e) }));
 vi.mock('@/features/ai-panel/AiPanel', () => ({ AiPanel: () => null }));
-vi.mock('@/auth/keycloak', () => ({ logout: vi.fn() }));
+vi.mock('@/auth/keycloak', () => ({ logout: vi.fn(), getDemoSession: () => null, startDemoSession: vi.fn(), endDemoSession: vi.fn() }));
 vi.mock('@/services/apiClient', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/services/apiClient')>()),
   default: { get: vi.fn().mockResolvedValue({ data: { meta: { total: 0 } } }) },

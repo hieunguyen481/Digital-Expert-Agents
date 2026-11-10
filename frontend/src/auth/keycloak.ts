@@ -49,6 +49,30 @@ export function redirectToLogin(): void {
   window.location.assign(`/login?returnTo=${returnTo}`);
 }
 
+/** Phiên demo (rules.md, ngoại lệ Q-J): token thật của tài khoản đang đóng vai, giữ theo tab; không có mật khẩu. */
+const DEMO_KEY = 'bank-ai-demo-session';
+export type DemoSession = { accessToken: string; expiresAt: number; email: string; fullName: string; roles: string[] };
+
+export function getDemoSession(): DemoSession | null {
+  try {
+    const raw = sessionStorage.getItem(DEMO_KEY);
+    return raw ? (JSON.parse(raw) as DemoSession) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Vào/ra phiên demo rồi nạp lại trang để mọi dữ liệu (hồ sơ người dùng, cache) đọc lại theo tài khoản mới. */
+export function startDemoSession(session: DemoSession): void {
+  sessionStorage.setItem(DEMO_KEY, JSON.stringify(session));
+  window.location.assign('/');
+}
+
+export function endDemoSession(): void {
+  sessionStorage.removeItem(DEMO_KEY);
+  window.location.assign('/');
+}
+
 /**
  * Trả token ngắn hạn trong bộ nhớ (không ghi vào storage). Tự làm mới khi sắp hết hạn;
  * làm mới lỗi (phiên Keycloak đã mất) thì chuyển về /login giữ đường quay lại.
@@ -56,6 +80,16 @@ export function redirectToLogin(): void {
  */
 export async function getValidAccessToken(force = false): Promise<string | null> {
   if (useMockApi) return null;
+
+  const demo = getDemoSession();
+  if (demo) {
+    // Token demo hết hạn hoặc bị từ chối thì quay về Quản trị (phiên Keycloak của Quản trị vẫn còn).
+    if (force || demo.expiresAt <= Date.now() + 5_000) {
+      endDemoSession();
+      throw new Error('Phiên demo đã hết hạn. Đang quay về Quản trị.');
+    }
+    return demo.accessToken;
+  }
 
   const client = getKeycloak();
   if (!client.authenticated) return null;

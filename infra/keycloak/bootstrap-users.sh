@@ -92,6 +92,23 @@ kcadm update "clients/$worker_id" -r "$KEYCLOAK_REALM" \
   -s directAccessGrantsEnabled=false \
   -s "secret=$KEYCLOAK_WORKER_CLIENT_SECRET" >/dev/null
 
+# Client demo (chế độ đổi tài khoản, rules.md ngoại lệ Q-J): chỉ chạy khi có secret; không đổi mật khẩu người dùng.
+if [[ -n "${KEYCLOAK_DEMO_CLIENT_SECRET:-}" ]]; then
+  demo_response="$(kcadm get clients -r "$KEYCLOAK_REALM" -q "clientId=bank-ai-demo" --fields id,clientId)"
+  demo_id="$(printf '%s\n' "$demo_response" | extract_first_id)"
+  if [[ -z "$demo_id" ]]; then
+    log "creating client bank-ai-demo"
+    kcadm create clients -r "$KEYCLOAK_REALM" -f /opt/bank/keycloak/demo-client.json >/dev/null
+    demo_id="$(client_internal_id bank-ai-demo)"
+  fi
+  kcadm update "clients/$demo_id" -r "$KEYCLOAK_REALM" \
+    -s enabled=true \
+    -s publicClient=false \
+    -s serviceAccountsEnabled=false \
+    -s directAccessGrantsEnabled=true \
+    -s "secret=$KEYCLOAK_DEMO_CLIENT_SECRET" >/dev/null
+fi
+
 roles=(
   credit_officer
   credit_manager

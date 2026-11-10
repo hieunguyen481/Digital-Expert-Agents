@@ -104,6 +104,11 @@ class Settings(BaseSettings):
     keycloak_jwks_internal_url: str
     keycloak_token_url: str
     oidc_expected_audience: str
+    # Chế độ demo đổi tài khoản (rules.md, ngoại lệ Q-J): mặc định tắt, mọi route liên quan trả 404.
+    demo_switch_enabled: bool = False
+    demo_client_id: str = "bank-ai-demo"
+    demo_client_secret: SecretStr | None = None
+    seed_user_password: SecretStr | None = None
     oidc_allowed_algorithms: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["RS256"])
     oidc_jwks_cache_ttl_seconds: int = Field(default=300, ge=30, le=3600)
     oidc_clock_skew_seconds: int = Field(default=30, ge=0, le=300)

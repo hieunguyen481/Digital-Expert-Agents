@@ -67,7 +67,7 @@ Mọi ô khác bị từ chối. Hành động ghi "Cần lý do: có" bị từ
 
 Hành động ngoài bảng (Trưởng phòng chuyển người xử lý, gia hạn bổ sung của QHKH, báo sớm Tuân thủ) không đổi trạng thái: xem mục 4.
 
-## 3. Route API của backend (111 route, quyền khai báo ở dependency)
+## 3. Route API của backend (113 route, quyền khai báo ở dependency)
 
 Dấu `-` nghĩa là route không đòi quyền chức năng ở lớp route: chỉ cần đăng nhập, phạm vi đọc do RLS (Q-M), hoặc kiểm
 quyền ở service (ví dụ `loan:analyze` trong chạy đội agent, `document:*`). Nhóm `-`: `/health/*`, `/me`, `/notifications` (chỉ thông báo của chính người đó), `/conversations` (chat Trợ lý AI, Q-K; chỉ chủ phiên),
@@ -78,6 +78,8 @@ quyền ở service (ví dụ `loan:analyze` trong chạy đội agent, `documen
 <!-- matrix:route -->
 | Route | Quyền yêu cầu | Căn cứ `rules.md` |
 |---|---|---|
+| GET /demo/accounts | - | Q-J (ngoại lệ demo: chỉ Quản trị, tắt thì 404) |
+| POST /demo/switch | - | Q-J (ngoại lệ demo: chỉ Quản trị, tắt thì 404) |
 | GET /agent-cases | - | Q-H, Q-M, Q-J |
 | GET /agent-cases/stats | - | Q-H, Q-M, Q-J |
 | GET /agent-cases/approver-names | - | Q-H, Q-M, Q-J |

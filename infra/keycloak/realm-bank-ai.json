@@ -199,6 +199,41 @@
           }
         }
       ]
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000004",
+      "clientId": "bank-ai-demo",
+      "name": "Bank AI Demo Switch",
+      "description": "Chỉ dùng cho chế độ demo đổi tài khoản (rules.md, ngoại lệ Q-J): backend đổi token bằng password grant cho tài khoản seed. Không dùng ở sản xuất.",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "publicClient": false,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "attributes": {
+        "access.token.lifespan": "3600"
+      },
+      "protocolMappers": [
+        {
+          "name": "bank-ai-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "bank-ai-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
     }
   ],
   "users": [

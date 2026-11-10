@@ -10,6 +10,7 @@ from app.api.v1 import (
     case_actions,
     conversations,
     customers,
+    demo_switch,
     documents,
     findings,
     jobs,
@@ -29,6 +30,7 @@ from app.api.v1 import (
 router = APIRouter()
 router.include_router(agent_simulations.router)
 router.include_router(customers.router)
+router.include_router(demo_switch.router)
 router.include_router(documents.router)
 router.include_router(loans.router)
 router.include_router(proposals.router)

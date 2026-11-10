@@ -51,6 +51,7 @@ umask 077
   echo "KEYCLOAK_ADMIN_PASSWORD=$(secure_value)"
   echo "KEYCLOAK_BACKEND_CLIENT_SECRET=$(secure_value)"
   echo "KEYCLOAK_WORKER_CLIENT_SECRET=$(secure_value)"
+  echo "KEYCLOAK_DEMO_CLIENT_SECRET=$(secure_value)"
   echo "SEED_USER_PASSWORD=$(secure_value)"
   echo "KAFKA_CLUSTER_ID=$(secure_value 16)"
   echo 'KAFKA_ADMIN_USERNAME=kafka-admin'

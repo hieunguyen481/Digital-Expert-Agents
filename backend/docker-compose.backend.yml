@@ -43,6 +43,10 @@ services:
       KEYCLOAK_JWKS_INTERNAL_URL: http://keycloak:8080/realms/bank-ai/protocol/openid-connect/certs
       KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/bank-ai/protocol/openid-connect/token
       OIDC_EXPECTED_AUDIENCE: bank-ai-api
+      # Chế độ demo đổi tài khoản (mặc định tắt, tắt thì route /demo trả 404). Mật khẩu seed chỉ đọc khi bật.
+      DEMO_SWITCH_ENABLED: ${DEMO_SWITCH_ENABLED:-false}
+      DEMO_CLIENT_SECRET: ${KEYCLOAK_DEMO_CLIENT_SECRET:-}
+      SEED_USER_PASSWORD: ${SEED_USER_PASSWORD:-}
       FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY:?Generate infra/.env.local}
       OCR_PROVIDER: mock
       EMBEDDING_PROVIDER: mock

@@ -3,6 +3,7 @@ import { Avatar, Dropdown } from 'antd';
 import { UI_ROLE_LABEL, type UiRole } from '@/auth/roleFromMe';
 import { logout } from '@/auth/keycloak';
 import type { Me } from '@/types/me';
+import { DemoSwitcher } from './DemoSwitcher';
 import { NotificationBell } from './NotificationBell';
 import styles from './shell.module.css';
 
@@ -27,6 +28,7 @@ export function Topbar({ me, role }: { me: Me; role: UiRole }) {
         />
       </label>
       <span className={styles.spacer} />
+      {me.roles.includes('admin') && <DemoSwitcher />}
       <NotificationBell />
       <Dropdown
         trigger={['click']}

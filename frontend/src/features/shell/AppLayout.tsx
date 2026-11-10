@@ -7,6 +7,7 @@ import { AiPanel } from '@/features/ai-panel/AiPanel';
 import { AiPanelProvider, useAiPanel } from '@/features/ai-panel/AiPanelContext';
 import { useAiShortcut } from '@/features/ai-panel/useAiShortcut';
 import { useWorkItems } from '@/features/my-work/useWorkItems';
+import { DemoBanner } from './DemoSwitcher';
 import { NoAccess } from './NoAccess';
 import { roleHasAi } from './navigation';
 import { Rail } from './Rail';
@@ -23,6 +24,7 @@ function Frame({ me, role }: { me: NonNullable<ReturnType<typeof useMe>['data']>
       <a href="#main-content" className={styles.skip}>Bỏ qua tới nội dung chính</a>
       <Rail role={role} badge={role === 'quantri' ? undefined : work.data?.badge} onOpenAi={() => openWith()} />
       <div className={styles.mainCol}>
+        <DemoBanner />
         <Topbar me={me} role={role} />
         <main id="main-content" className={styles.content}>
           <Outlet />
