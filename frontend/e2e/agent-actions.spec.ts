@@ -66,6 +66,17 @@ test('người không đúng vai trò (rủi ro) bị từ chối xác nhận, �
   expect(Number(log)).toBe(0);
 });
 
+test('QHKH thấy khối đề xuất nhưng khóa kèm lý do: không có nút xác nhận hay bỏ (ma-tran-phan-quyen)', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  await page.goto(`/ho-so-vay/${LOAN}`);
+  for (const kind of KINDS) {
+    await expect(card(page, kind)).toBeVisible({ timeout: 30_000 });
+    await expect(card(page, kind).getByTestId('proposal-locked')).toContainText('Chỉ người đúng vai trò');
+    await expect(card(page, kind).getByTestId('proposal-confirm')).toHaveCount(0);
+    await expect(card(page, kind).getByTestId('proposal-dismiss')).toHaveCount(0);
+  }
+});
+
 test('thẩm định xác nhận ghi cờ, bỏ yêu cầu bổ sung, xác nhận điều kiện; bấm hai lần không nhân đôi; trace có chuỗi', async ({ page }) => {
   await loginAs(page, 'tdinh');
   await page.goto(`/ho-so-vay/${LOAN}`);
