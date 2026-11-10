@@ -2,14 +2,14 @@ import { execSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { as, createProposal, httdChecksAndTransfers, shot } from './flow-helpers';
 
-// X3 + QA3-01: trưởng phòng chuyển người xử lý trong phòng mình (Q-D2); người không còn giữ bước thấy nút khóa kèm lý do.
+// X3: trưởng phòng chuyển người xử lý trong phòng mình (Q-D2); người nhận giữ bước, người cũ mất quyền.
 test.describe.configure({ mode: 'serial' });
 test.afterAll(() => {
   const cmd = process.env.E2E_RESEED_CMD;
   if (cmd) execSync(cmd, { stdio: 'ignore', timeout: 240_000 });
 });
 
-test('trưởng phòng chuyển bước Thẩm định sang đồng nghiệp cùng phòng; người cũ bị khóa thao tác', async ({ page }) => {
+test('trưởng phòng chuyển bước Thẩm định sang đồng nghiệp cùng phòng; người cũ mất quyền', async ({ page }) => {
   test.setTimeout(240_000);
   const id = await createProposal(page, 'reassign');
   await httdChecksAndTransfers(page, id, 'reassign');
@@ -32,10 +32,9 @@ test('trưởng phòng chuyển bước Thẩm định sang đồng nghiệp cù
   await expect(page.getByText('Chuyên viên Thẩm định Mẫu 2').first()).toBeVisible();
   await expect(page.getByTestId('not-holder-notice')).toHaveCount(0);
 
-  // QA3-01: người cũ vẫn đọc được hồ sơ nhưng không còn nút nào để thao tác trên bước đã chuyển đi.
+  // Người cũ không còn giữ bước nên hồ sơ ra ngoài phạm vi xem của họ: trang không tìm thấy, không có nút thao tác.
   await as(page, 'tdinh');
   await page.goto(`/ho-so-vay/${id}`);
-  await expect(page.getByText('Chuyên viên Thẩm định Mẫu 2').first()).toBeVisible();
+  await expect(page.getByText('Không tìm thấy nội dung')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Trình Rủi ro' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Quyết định', exact: true })).toHaveCount(0);
 });

@@ -2,11 +2,11 @@ import { expect, test } from '@playwright/test';
 import { loginAs, type RoleKey } from './helpers';
 
 const CASES: Array<{ role: RoleKey; title: string; badge: number | null }> = [
-  { role: 'qhkh', title: 'Hồ sơ của tôi', badge: 4 },
-  { role: 'httd', title: 'Hồ sơ chờ kiểm tra', badge: 3 },
-  { role: 'tdinh', title: 'Việc của tôi', badge: 3 },
-  { role: 'ruiro', title: 'Hồ sơ chờ ý kiến', badge: 2 },
-  { role: 'pheduyet', title: 'Hồ sơ chờ phê duyệt', badge: 3 },
+  { role: 'qhkh', title: 'Hồ sơ của tôi', badge: 1 },
+  { role: 'httd', title: 'Hồ sơ chờ kiểm tra', badge: 1 },
+  { role: 'tdinh', title: 'Việc của tôi', badge: 1 },
+  { role: 'ruiro', title: 'Hồ sơ chờ ý kiến', badge: 1 },
+  { role: 'pheduyet', title: 'Hồ sơ chờ phê duyệt', badge: 1 },
   { role: 'kiemtoan', title: 'Hồ sơ vay (chỉ đọc)', badge: null },
 ];
 
@@ -16,7 +16,7 @@ for (const c of CASES) {
     await expect(page).toHaveURL(/\/viec-cua-toi/);
     await expect(page.getByRole('heading', { level: 1, name: c.title })).toBeVisible();
     const badge = page.getByTestId('rail-badge');
-    // Seed là số tối thiểu: hồ sơ phát sinh từ các luồng khác làm badge tăng, không được làm giảm.
+    // Chỉ kiểm có số dương: hồ sơ phát sinh từ các luồng khác làm số này đổi, không có con số cố định.
     if (c.badge) {
       await expect(badge).toHaveText(/^\d+$/);
       expect(Number(await badge.textContent())).toBeGreaterThanOrEqual(c.badge);
