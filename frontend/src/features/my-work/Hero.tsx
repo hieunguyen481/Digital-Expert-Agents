@@ -1,5 +1,6 @@
 import { ThunderboltOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import { useAiPanel } from '@/features/ai-panel/AiPanelContext';
 import { formatBillion, slaText, stepLabel } from './format';
 import styles from './my-work.module.css';
@@ -16,12 +17,15 @@ export function heroTasks(item: WorkItem): string[] {
         : `Xử lý ${item.open_flags} cờ cảnh báo`,
     );
   }
-  tasks.push(`Việc ở bước ${stepLabel(item.step_code)}`);
+  if (item.step_code === 'RM_REWORK') tasks.push('Hồ sơ bị trả lại: đọc lý do trong nhật ký hồ sơ rồi sửa đề xuất');
+  else tasks.push(`Việc ở bước ${stepLabel(item.step_code)}`);
   return tasks.slice(0, 4);
 }
 
 export function Hero({ item }: { item: WorkItem }) {
   const { openWith } = useAiPanel();
+  const navigate = useNavigate();
+  const rework = item.step_code === 'RM_REWORK';
   return (
     <section className={styles.hero} aria-label="Việc khẩn nhất">
       <div className={styles.heroMain}>
@@ -36,6 +40,9 @@ export function Hero({ item }: { item: WorkItem }) {
           ))}
         </ul>
       </div>
+      <Button type="primary" data-testid="hero-open" onClick={() => navigate(rework ? `/de-xuat-vay/${item.loan_application_id}` : `/ho-so-vay/${item.loan_application_id}`)}>
+        {rework ? 'Sửa đề xuất ›' : 'Mở hồ sơ ›'}
+      </Button>
       <Button
         icon={<ThunderboltOutlined />}
         onClick={() =>

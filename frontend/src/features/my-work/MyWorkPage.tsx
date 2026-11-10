@@ -98,7 +98,7 @@ function Content() {
         {all.data.items.length === 0 ? (
           <EmptyState
             title="Không có việc đang chờ bạn"
-            description="Khi có hồ sơ chuyển tới bạn, hồ sơ sẽ hiện ở đây."
+            description="0 hồ sơ đang chờ bạn. Khi có hồ sơ chuyển tới bước của bạn, hồ sơ sẽ hiện ở đây và tăng số trên thanh trái."
           />
         ) : (
           <>
