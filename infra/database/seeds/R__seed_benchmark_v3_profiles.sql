@@ -31,7 +31,7 @@ SELECT pg_temp.u('55000000', n, 0), legal_name, legal_name, 'JSC',
        encode(sha256(convert_to('REG-' || tax_code, 'UTF8')), 'hex'), encode(sha256(convert_to(tax_code, 'UTF8')), 'hex'),
        DATE '2014-01-01' + ((n % 40) * 97), '2599', NULL, now()
 FROM v3_case
-ON CONFLICT (party_id) DO UPDATE SET legal_name = EXCLUDED.legal_name, updated_at = now();
+ON CONFLICT (party_id) DO UPDATE SET legal_name = EXCLUDED.legal_name, incorporation_date = EXCLUDED.incorporation_date, updated_at = now();
 
 INSERT INTO customer.customer (id, party_id, customer_number, customer_segment, home_branch_id, relationship_manager_id,
     onboarding_date, kyc_status, risk_rating, risk_rating_as_of, status, created_at, updated_at, version)
