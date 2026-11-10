@@ -2,14 +2,29 @@ import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import { loginAs, type RoleKey } from './helpers';
+import { createProposal, httdChecksAndTransfers } from './flow-helpers';
 
 // Lát 8: QHKH tải PDF thật lên trang 05 (/documents/uploads -> MinIO -> outbox -> Kafka -> worker), HTTD nhận bổ sung
 // rồi thấy trường AI đề xuất có vùng tô đúng trang. Chạy trên stack thật có worker; nạp lại seed khi xong.
 const API = 'http://localhost:8000/api/v1';
-const LOAN = '75000000-0000-4000-8000-000000000005'; // HSV-2026-00196: Thẩm định – chờ bổ sung, QHKH giữ, HTTD kiểm tra
+// L15: hồ sơ riêng do chính test tạo (LA-…, bị reset dọn), không ghi lên hồ sơ demo HSV-2026-00196.
+let LOAN = '';
 const SENT = '75000000-0000-4000-8000-000000000009'; // đã chuyển Hậu kiểm: QHKH không được tải
 
 test.describe.configure({ mode: 'serial' });
+test.beforeEach(async ({ page, browser }) => {
+  test.setTimeout(300_000);
+  LOAN = await createProposal(page, 'doc-pipeline');
+  await httdChecksAndTransfers(page, LOAN, 'doc-pipeline');
+  const tdinh = await bearer(browser, 'tdinh');
+  const headers = { authorization: tdinh.auth };
+  const view = await (await tdinh.request.get(`${API}/loan-applications/${LOAN}/reconciliation`, { headers })).json();
+  const ask = await tdinh.request.post(`${API}/loan-applications/${LOAN}/transitions`, {
+    headers, data: { action: 'request_info', reason: 'Cần bản scan hồ sơ pháp lý mới nhất.', expected_version: view.transfer.expected_version },
+  });
+  expect(ask.status(), await ask.text()).toBe(200); // Thẩm định yêu cầu bổ sung: QHKH giữ, HTTD nhận lại
+  await tdinh.page.context().close();
+});
 test.afterEach(() => {
   const cmd = process.env.E2E_RESEED_CMD;
   if (cmd) execSync(cmd, { stdio: 'ignore', timeout: 240_000 });
