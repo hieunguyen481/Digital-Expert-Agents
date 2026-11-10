@@ -135,8 +135,9 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await dialog(page).locator('#action-text').fill('Rủi ro: chấp nhận với điều kiện theo dõi DSCR');
   await dialog(page).getByRole('button', { name: 'Ghi ý kiến' }).click();
   await expect(page.getByTestId('opinion-RISK')).toBeVisible();
-  await page.getByRole('button', { name: 'Trình phê duyệt' }).click();
-  await expect(page.getByTestId('actions-panel').getByRole('alert')).toContainText('Thiếu Ý kiến');
+  const toApproval = page.getByRole('button', { name: 'Trình phê duyệt' });
+  await expect(toApproval).toBeDisabled();
+  await expect(toApproval).toHaveAttribute('title', /Thiếu Ý kiến/);
 
   // 3. Tuân thủ: kết luận cờ CIC (3 lựa chọn, bắt buộc lý do, không gợi ý trước) và ghi ý kiến.
   page = await open('tuanthu');
