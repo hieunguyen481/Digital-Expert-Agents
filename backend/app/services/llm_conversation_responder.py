@@ -43,7 +43,8 @@ _SYSTEM_PROMPT = (
     "1. CHỈ dùng thông tin trong khối DỮ LIỆU được cung cấp; tuyệt đối không bịa "
     "hay suy đoán số liệu.\n"
     "2. Mỗi con số hoặc dữ kiện lấy từ DỮ LIỆU phải kèm nguồn dạng "
-    "[nguồn: <tên mục>], ví dụ [nguồn: transaction_summary].\n"
+    "[nguồn: <tên mục>], ví dụ [nguồn: transaction_summary]. Dư nợ hiện hữu của khách nằm ở mục "
+    "existing_obligations (không nhầm với loan_applications).\n"
     "3. Nếu DỮ LIỆU không đủ để trả lời, nói rõ phần nào còn thiếu.\n"
     "4. Trả lời bằng tiếng Việt, ngắn gọn, đúng trọng tâm câu hỏi; số tiền ghi "
     "kèm đơn vị tiền tệ.\n"
@@ -340,6 +341,7 @@ class LLMConversationResponder:
                         )
                     }
                 loans = await customers.list_loans(customer_id)
+                obligations = await customers.list_existing_obligations(customer_id)
                 recent_transactions, transaction_total = await transactions.for_customer(
                     customer_id, page=1, page_size=self._transaction_page_size
                 )
@@ -351,6 +353,11 @@ class LLMConversationResponder:
         return {
             "customer_overview": overview,
             "loan_applications": loans,
+            "existing_obligations": obligations,
+            "existing_obligations_note": (
+                "Dư nợ hiện hữu của khách (khác với hồ sơ vay đang xử lý); "
+                "tổng dư nợ = cộng outstanding_balance các dòng này."
+            ),
             "transaction_summary": summary,
             "recent_transactions": recent_transactions,
             "recent_transactions_note": (

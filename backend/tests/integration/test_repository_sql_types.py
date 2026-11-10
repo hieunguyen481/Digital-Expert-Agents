@@ -106,3 +106,20 @@ async def test_claim_other_owner_returns_none(session):
         CUSTOMER_A, employee_id=CREDIT_MANAGER, expected_version=current
     )
     assert row is None
+
+
+async def test_chat_context_reads_existing_obligations_in_scope(session):
+    """CX2: chat đọc dư nợ hiện hữu (credit.existing_obligation) của khách trong quyền."""
+    await set_rls_context(session, CREDIT_OFFICER, BRANCH_HN)
+    expected = (
+        await session.execute(
+            text(
+                "SELECT count(*) FROM credit.existing_obligation eo "
+                "JOIN customer.customer c ON c.party_id = eo.party_id WHERE c.id = :cid"
+            ),
+            {"cid": CUSTOMER_A},
+        )
+    ).scalar_one()
+    rows = await CustomerRepository(session).list_existing_obligations(CUSTOMER_A)
+    assert len(rows) == expected
+    assert all("outstanding_balance" in r for r in rows)

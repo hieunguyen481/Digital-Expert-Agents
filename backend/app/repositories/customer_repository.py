@@ -226,6 +226,21 @@ class CustomerRepository:
             {"customer_id": customer_id},
         )
 
+    async def list_existing_obligations(self, customer_id: UUID) -> builtins.list[Record]:
+        """Dư nợ hiện hữu của khách tại ngân hàng/TCTD (credit.existing_obligation), theo quyền thấy khách."""
+        return await fetch_all(
+            self.session,
+            """
+            SELECT eo.lender_name, eo.obligation_type, eo.outstanding_balance,
+                   eo.monthly_payment, eo.verified_status, eo.as_of_date
+            FROM credit.existing_obligation AS eo
+            JOIN customer.customer AS c ON c.party_id = eo.party_id
+            WHERE c.id = :customer_id
+            ORDER BY eo.as_of_date DESC, eo.id
+            """,
+            {"customer_id": customer_id},
+        )
+
     async def can_access(self, customer_id: UUID) -> bool:
         row = await fetch_one(
             self.session,
