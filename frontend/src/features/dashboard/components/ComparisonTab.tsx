@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
 import { LazyBaseChart } from '@/components/charts/LazyBaseChart';
 import { shbColors } from '@/theme/tokens';
+import { fmtDay, fmtDayTime, fmtDec, fmtInt, fmtPct, fmtSec, fmtUsd } from '@/utils/format';
+import { modelName } from '@/utils/glossary';
 import { getBenchmarkRun, getBenchmarkRuns, getLatestBenchmark } from '@/services/benchmarkService';
 import type {
   BenchmarkMode,
@@ -28,8 +30,8 @@ interface MetricDef {
   format: (v: number) => string;
 }
 
-const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
-const num = (d: number) => (v: number) => v.toFixed(d);
+const pct = (v: number) => fmtPct(v);
+const num = (d: number) => (v: number) => fmtDec(v, d);
 
 export const METRICS: MetricDef[] = [
   { key: 'finding_recall', label: 'Độ phủ phát hiện đúng', description: 'Tỷ lệ phát hiện kỳ vọng được nêu trong kết luận', better: 'higher', format: pct },
@@ -39,9 +41,9 @@ export const METRICS: MetricDef[] = [
   { key: 'tool_recall', label: 'Độ phủ công cụ', description: 'Tỷ lệ công cụ bắt buộc đã gọi', better: 'higher', format: pct },
   { key: 'gate_ok', label: 'Tới đúng bước chờ người xác nhận', description: 'Tỷ lệ lượt dừng đúng cổng kỳ vọng, không tự duyệt', better: 'higher', format: pct },
   { key: 'tool_calls', label: 'Số lượt gọi công cụ MCP', description: 'Trung bình mỗi lượt (không xếp hơn/kém)', better: 'none', format: num(1) },
-  { key: 'latency_s', label: 'Độ trễ', description: 'Giây từ lúc gửi đến kết luận', better: 'lower', format: (v) => `${v.toFixed(1)}s` },
-  { key: 'total_tokens', label: 'Token', description: 'Tổng token LLM mỗi lượt', better: 'lower', format: (v) => Math.round(v).toLocaleString('vi-VN') },
-  { key: 'cost_usd', label: 'Chi phí LLM', description: 'USD mỗi lượt (OpenRouter usage.cost)', better: 'lower', format: (v) => `$${v.toFixed(4)}` },
+  { key: 'latency_s', label: 'Độ trễ', description: 'Giây từ lúc gửi đến kết luận', better: 'lower', format: fmtSec },
+  { key: 'total_tokens', label: 'Token', description: 'Tổng token LLM mỗi lượt', better: 'lower', format: (v) => fmtInt(v) },
+  { key: 'cost_usd', label: 'Chi phí LLM', description: 'USD mỗi lượt (OpenRouter usage.cost)', better: 'lower', format: (v) => fmtUsd(v) },
 ];
 
 export function statText(stat: BenchmarkStat | undefined, def: MetricDef): string {
@@ -94,6 +96,16 @@ function conclusion(rows: Row[]): string {
   return `Hệ đa agent hơn ở ${m.length} chỉ số: ${list(m)}. Chatbot đơn agent hơn ở ${s.length} chỉ số: ${list(s)}.`;
 }
 
+/** Dòng kết luận đầu trang: chênh lệch độ phủ phát hiện đúng giữa hai hệ, tính từ số đo thật. */
+export function headline(run: BenchmarkRun): string {
+  const a = run.summary.single?.finding_recall?.mean;
+  const b = run.summary.multi?.finding_recall?.mean;
+  if (a == null || b == null) return 'Lượt đo này chỉ chạy một chế độ nên chưa so sánh được hai hệ.';
+  const d = (b - a) * 100;
+  if (Math.abs(d) < 0.05) return 'Hệ đa agent và chatbot đơn agent bằng nhau về độ phủ phát hiện đúng.';
+  return `Hệ đa agent ${d > 0 ? 'cao' : 'thấp'} hơn chatbot đơn agent ${fmtDec(Math.abs(d), 1)} điểm phần trăm về độ phủ phát hiện đúng (${fmtPct(b)} so với ${fmtPct(a)}).`;
+}
+
 function chartData(run: BenchmarkRun) {
   const keys: MetricKey[] = ['finding_recall', 'citation_recall', 'tool_recall', 'gate_ok'];
   const modes: [BenchmarkMode, string][] = [['single', 'Đơn agent'], ['multi', 'Đa agent']];
@@ -107,22 +119,38 @@ function chartData(run: BenchmarkRun) {
   });
 }
 
+/** Lượt đo kiểm thử/thoái lui/bỏ từng phần (ablation): có nhãn riêng, không làm mặc định. */
+export function isTestRun(m: { label: string }): boolean {
+  return /kiểm thoái lui|kiểm thử|\babl\b|smoke|\btest\b/i.test(m.label ?? '');
+}
+
+/** Mặc định: lượt đo mới (không phải chấm lại, không phải kiểm thử) của bộ ca mới nhất, mới nhất trong bộ đó. */
+export function defaultRunId(metas: BenchmarkRunMeta[]): string | null {
+  const ok = metas.filter((m) => !m.regrade_of && !isTestRun(m));
+  const set = ok.map((m) => m.cases_version).sort().pop();
+  const pick = ok.filter((m) => m.cases_version === set).sort((a, b) => a.created_at.localeCompare(b.created_at)).pop();
+  return pick?.run_id ?? null;
+}
+
 export function runOptionLabel(m: BenchmarkRunMeta): string {
-  const when = new Date(m.created_at).toLocaleString('vi-VN');
+  const when = fmtDayTime(m.created_at);
   const kind = m.regrade_of ? 'chấm lại dữ liệu cũ' : 'đo mới';
-  return `Bộ ca ${m.cases_version} · bộ chấm ${m.grader_version} · chế độ ${m.llm_mode} · ${kind} · ${when}${m.label ? ` · ${m.label}` : ''}`;
+  return `Bộ ca ${m.cases_version} · bộ chấm ${m.grader_version} · chế độ ${m.llm_mode} · ${kind} · ${when}${m.label ? ` · ${m.label}` : ''}${isTestRun(m) ? ' · [Kiểm thử]' : ''}`;
 }
 
 export function ComparisonTab() {
   const [selected, setSelected] = useState<string | null>(null);
   const runsQ = useQuery({ queryKey: ['agent-benchmark-runs'], queryFn: getBenchmarkRuns });
-  // Mặc định: lượt đo mới nhất của bộ ca mới nhất (engine quyết định); chọn thì đọc đúng lượt đó.
+  // Mặc định: lượt đo mới nhất không phải kiểm thử của bộ ca mới nhất; chọn thì đọc đúng lượt đó.
+  const defaultId = runsQ.data ? defaultRunId(runsQ.data) : null;
+  const effective = selected ?? defaultId;
   const q = useQuery({
-    queryKey: ['agent-benchmark', selected],
-    queryFn: () => (selected ? getBenchmarkRun(selected) : getLatestBenchmark()),
+    queryKey: ['agent-benchmark', effective],
+    queryFn: () => (effective ? getBenchmarkRun(effective) : getLatestBenchmark()),
+    enabled: !runsQ.isLoading,
   });
 
-  if (q.isLoading) return <Skeleton active />;
+  if (runsQ.isLoading || q.isLoading) return <Skeleton active />;
   if (q.isError) {
     return <Alert type="error" showIcon message="Không tải được kết quả so sánh" description="Kiểm tra quyền truy cập hoặc trạng thái agent engine." />;
   }
@@ -147,7 +175,7 @@ export function ComparisonTab() {
         <Select
           data-testid="cmp-select"
           style={{ minWidth: 560, maxWidth: '100%' }}
-          value={selected ?? run.run_id}
+          value={effective ?? run.run_id}
           onChange={setSelected}
           options={(runsQ.data ?? []).map((m) => ({ value: m.run_id, label: runOptionLabel(m) }))}
           loading={runsQ.isLoading}
@@ -156,13 +184,15 @@ export function ComparisonTab() {
           {run.label || `Đo mới, bộ chấm ${run.grader_version}`}
         </Text>
       </Card>
+      <Alert type="info" showIcon style={{ marginBottom: 12 }} data-testid="cmp-headline" message={headline(run)} />
       <div className={styles.cmpHead} data-testid="cmp-meta">
         <ThunderboltOutlined />
         <span>
           Bộ ca <strong>{run.cases_version}</strong> · bộ chấm <strong>{run.grader_version}</strong> · {cases.length} ca × {run.runs_per_case} lượt × {modeCount(run)} ·{' '}
-          Planner <strong>{run.planner_model}</strong> · Specialist/đơn agent <strong>{run.specialist_model}</strong> ·{' '}
+          Planner <strong>{modelName(run.planner_model)}</strong> · Chuyên gia/đơn agent <strong>{modelName(run.specialist_model)}</strong> ·{' '}
           chế độ {run.llm_mode} · chi phí đo thật{' '}
-          <strong>{run.total_cost_usd === null ? '—' : `$${run.total_cost_usd.toFixed(4)}`}</strong> · {run.run_id}
+          <strong>{run.total_cost_usd === null ? '—' : fmtUsd(run.total_cost_usd)}</strong> · {fmtDay(run.created_at)}
+          <details style={{ display: 'inline', marginLeft: 6 }}><summary style={{ display: 'inline', cursor: 'pointer', color: 'var(--text-3)' }}>Mã kỹ thuật</summary> <code>{run.run_id}</code></details>
         </span>
       </div>
 

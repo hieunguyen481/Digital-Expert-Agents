@@ -14,12 +14,14 @@ const all = readdirSync(DIR)
   .sort()
   .map((f) => JSON.parse(readFileSync(resolve(DIR, f), 'utf8')));
 
-const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
+const nf = (v: number, d: number) => new Intl.NumberFormat('vi-VN', { minimumFractionDigits: d, maximumFractionDigits: d }).format(v);
+const pct = (v: number) => `${nf(v * 100, 1)}%`;
 const withSd = (s: { mean: number; sd: number | null }, f: (v: number) => string) =>
   `${f(s.mean)}${s.sd === null ? '' : ` ± ${f(s.sd)}`}`;
 
 async function expectRun(page: Page, stored: any) {
-  await expect(page.getByTestId('cmp-meta')).toContainText(stored.run_id);
+  await expect(page.getByTestId('cmp-meta')).toContainText(stored.run_id); // nằm trong <details>, vẫn có trong DOM
+  await expect(page.getByTestId('cmp-headline')).toContainText('điểm phần trăm');
   await expect(page.getByTestId('cmp-meta')).toContainText(`bộ chấm ${stored.grader_version ?? 'v1'}`);
   for (const mode of ['single', 'multi'] as const) {
     const s = stored.summary[mode];
@@ -28,10 +30,10 @@ async function expectRun(page: Page, stored: any) {
       continue;
     }
     await expect(page.getByTestId(`cmp-finding_recall-${mode}`)).toHaveText(withSd(s.finding_recall, pct));
-    await expect(page.getByTestId(`cmp-false_findings-${mode}`)).toHaveText(withSd(s.false_findings, (v) => v.toFixed(2)));
+    await expect(page.getByTestId(`cmp-false_findings-${mode}`)).toHaveText(withSd(s.false_findings, (v) => nf(v, 2)));
     await expect(page.getByTestId(`cmp-gate_ok-${mode}`)).toHaveText(withSd(s.gate_ok, pct));
-    await expect(page.getByTestId(`cmp-latency_s-${mode}`)).toHaveText(withSd(s.latency_s, (v) => `${v.toFixed(1)}s`));
-    await expect(page.getByTestId(`cmp-cost_usd-${mode}`)).toHaveText(withSd(s.cost_usd, (v) => `$${v.toFixed(4)}`));
+    await expect(page.getByTestId(`cmp-latency_s-${mode}`)).toHaveText(withSd(s.latency_s, (v) => `${nf(v, 1)} giây`));
+    await expect(page.getByTestId(`cmp-cost_usd-${mode}`)).toHaveText(withSd(s.cost_usd, (v) => `${nf(v, 4)} USD`));
     for (const id of Object.keys(stored.per_case)) {
       await expect(page.getByTestId(`cmp-case-${id}-${mode}`)).toHaveText(withSd(stored.per_case[id][mode].finding_recall, pct));
     }
@@ -40,7 +42,7 @@ async function expectRun(page: Page, stored: any) {
 
 test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ ca mới nhất và chọn được mọi lượt đã lưu', async ({ page }) => {
   test.setTimeout(240_000); // duyệt từng lượt qua danh sách ảo: càng nhiều lượt càng lâu
-  const measured = all.filter((r) => !r.regrade_of);
+  const measured = all.filter((r) => !r.regrade_of && !/kiểm thoái lui|kiểm thử|\babl\b|smoke|\btest\b/i.test(r.label ?? ''));
   const newestSet = measured.map((r) => r.cases_version).sort().pop();
   const defaultRun = measured.filter((r) => r.cases_version === newestSet).sort((a, b) => a.created_at.localeCompare(b.created_at)).pop();
   test.skip(!defaultRun, 'Chưa có file kết quả benchmark đo thật');
