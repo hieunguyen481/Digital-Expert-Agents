@@ -59,15 +59,23 @@ test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ
     const kind = stored.regrade_of ? ' · chấm lại dữ liệu cũ' : '';
     const expected = `${fmtDayTime(stored.created_at)} · Bộ ca ${stored.cases_version} · ${both ? 'So sánh single và multi' : 'Chỉ đa agent'} · ${stored.runs_per_case} lượt mỗi ca${kind}`;
     const active = page.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-active');
-    await page.keyboard.press('Home');
-    let found = false;
-    for (let i = 0; i < all.length + 5 && !found; i++) {
-      const title = (await active.first().getAttribute('title').catch(() => null)) ?? '';
-      if (title.startsWith(expected)) found = true;
-      else await page.keyboard.press('ArrowDown');
+    // Vài lượt cùng giờ/bộ ca/số lượt có cùng nhãn: thử lần lượt từng mục khớp nhãn tới khi đúng mã lượt.
+    let chosen = false;
+    for (let skip = 0; skip < 6 && !chosen; skip++) {
+      if (skip > 0) await page.getByTestId('cmp-select').click();
+      await page.keyboard.press('Home');
+      let seen = 0;
+      let found = false;
+      for (let i = 0; i < all.length + 5 && !found; i++) {
+        const title = (await active.first().getAttribute('title').catch(() => null)) ?? '';
+        if (title.startsWith(expected) && seen++ === skip) found = true;
+        else await page.keyboard.press('ArrowDown');
+      }
+      if (!found) break;
+      await page.keyboard.press('Enter');
+      chosen = await page.getByTestId('cmp-meta').innerText().then((t) => t.includes(stored.run_id));
     }
-    expect(found, `không thấy lượt ${stored.run_id} trong danh sách`).toBe(true);
-    await page.keyboard.press('Enter');
+    expect(chosen, `không thấy lượt ${stored.run_id} trong danh sách`).toBe(true);
     await expectRun(page, stored);
   }
 });
