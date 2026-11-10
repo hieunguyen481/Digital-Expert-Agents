@@ -384,7 +384,7 @@ export const MOCK_POLICY_MESSAGES: ChatMessage[] = [
           { metric: 'Điểm tín dụng tối thiểu', threshold: '620', note: 'Theo từng chương trình' },
           { metric: 'Thời hạn tối đa', threshold: '25 năm', note: 'Tuỳ độ tuổi người vay' },
         ],
-        footnote: 'Dữ liệu minh hoạ cho bản demo, không phải chính sách chính thức của SHB.',
+        footnote: 'Dữ liệu minh hoạ cho bản demo, không phải chính sách chính thức của ngân hàng.',
       },
       {
         type: 'alert',

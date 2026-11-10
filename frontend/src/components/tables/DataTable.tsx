@@ -22,7 +22,7 @@ export interface DataTableProps<TRecord> {
 
 /**
  * Adapter Table generic dựng trên Ant Design Table.
- * Không chứa logic nghiệp vụ SHB, không hard-code dữ liệu.
+ * Không chứa logic nghiệp vụ, không hard-code dữ liệu.
  */
 export function DataTable<TRecord extends object>({
   columns,

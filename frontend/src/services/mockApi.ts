@@ -329,7 +329,7 @@ function parseTermYears(normalized: string): number | null {
 }
 
 const LOAN_DISCLAIMER =
-  'Kết quả trên chỉ mang tính minh hoạ. Hạn mức, lãi suất và điều kiện thực tế phụ thuộc hồ sơ, kết quả thẩm định và chính sách SHB tại từng thời kỳ.';
+  'Kết quả trên chỉ mang tính minh hoạ. Hạn mức, lãi suất và điều kiện thực tế phụ thuộc hồ sơ, kết quả thẩm định và chính sách ngân hàng tại từng thời kỳ.';
 
 function buildLoanResponse(normalized: string): GeneratedResponse {
   const amount = parseAmount(normalized) ?? 2_000_000_000;
@@ -377,7 +377,7 @@ ${LOAN_DISCLAIMER}`;
           { item: 'Phương thức', value: 'Dư nợ giảm dần hoặc trả đều' },
           { item: 'Khoản trả ước tính', value: `${formatCurrency(result.monthlyPayment)}/tháng` },
         ],
-        footnote: 'Dữ liệu minh hoạ, không phải báo giá tín dụng chính thức của SHB.',
+        footnote: 'Dữ liệu minh hoạ, không phải báo giá tín dụng chính thức của ngân hàng.',
       },
       {
         type: 'chart',
@@ -414,12 +414,12 @@ ${LOAN_DISCLAIMER}`;
           {
             id: 'cta-product',
             label: 'Xem sản phẩm vay mua nhà',
-            prompt: 'Cho tôi biết thêm về sản phẩm vay mua nhà của SHB.',
+            prompt: 'Cho tôi biết thêm về sản phẩm vay mua nhà của ngân hàng.',
           },
           {
             id: 'cta-advisor',
             label: 'Đăng ký nhận tư vấn',
-            prompt: 'Tôi muốn đăng ký nhận tư vấn từ chuyên viên SHB.',
+            prompt: 'Tôi muốn đăng ký nhận tư vấn từ chuyên viên ngân hàng.',
           },
         ],
       },
@@ -431,11 +431,11 @@ ${LOAN_DISCLAIMER}`;
 }
 
 function buildSavingsResponse(): GeneratedResponse {
-  const content = `Lãi suất tiền gửi tại SHB được công bố theo từng kỳ hạn và có thể thay đổi theo từng thời kỳ.
+  const content = `Lãi suất tiền gửi tại ngân hàng được công bố theo từng kỳ hạn và có thể thay đổi theo từng thời kỳ.
 
 Tiền lãi của khoản tiền gửi có kỳ hạn thường được tính theo công thức: Tiền lãi = Số tiền gửi × Lãi suất năm × Số ngày gửi / 365.
 
-Thông tin do SH-AI cung cấp mang tính tham khảo và không thay thế biểu lãi suất chính thức của SHB.`;
+Thông tin do Trợ lý AI cung cấp mang tính tham khảo và không thay thế biểu lãi suất chính thức của ngân hàng.`;
 
   return {
     content,
@@ -443,7 +443,7 @@ Thông tin do SH-AI cung cấp mang tính tham khảo và không thay thế bi�
     blocks: [
       {
         type: 'markdown',
-        content: `Lãi suất tiền gửi tại SHB được công bố theo **từng kỳ hạn** và có thể thay đổi theo từng thời kỳ.
+        content: `Lãi suất tiền gửi tại ngân hàng được công bố theo **từng kỳ hạn** và có thể thay đổi theo từng thời kỳ.
 
 ### Cách tiền lãi được tính
 
@@ -473,12 +473,12 @@ Tiền lãi = Số tiền gửi × Lãi suất năm × Số ngày gửi / 365
           { term: '12 tháng trở lên', rate: 'Cao hơn', flex: 'Thấp hơn' },
         ],
         footnote:
-          'Bảng mang tính minh hoạ. Mức lãi suất cụ thể được SHB công bố chính thức theo từng thời kỳ.',
+          'Bảng mang tính minh hoạ. Mức lãi suất cụ thể được ngân hàng công bố chính thức theo từng thời kỳ.',
       },
       {
         type: 'disclaimer',
         content:
-          'Thông tin do SH-AI cung cấp mang tính tham khảo và không thay thế biểu lãi suất chính thức của SHB.',
+          'Thông tin do Trợ lý AI cung cấp mang tính tham khảo và không thay thế biểu lãi suất chính thức của ngân hàng.',
       },
     ],
     sources: [
@@ -503,7 +503,7 @@ Tiền lãi = Số tiền gửi × Lãi suất năm × Số ngày gửi / 365
       {
         id: 'sug-compare-terms',
         label: 'So sánh thêm các kỳ hạn',
-        prompt: 'So sánh chi tiết hơn các kỳ hạn tiền gửi tại SHB.',
+        prompt: 'So sánh chi tiết hơn các kỳ hạn tiền gửi tại ngân hàng.',
       },
       {
         id: 'sug-calc-interest',
@@ -539,14 +539,14 @@ Không cung cấp số thẻ đầy đủ, mã CVV hoặc mã OTP cho bất kỳ
       },
       {
         type: 'product',
-        title: 'Thẻ tín dụng quốc tế SHB',
+        title: 'Thẻ tín dụng quốc tế ngân hàng',
         description:
           'Phù hợp với khách hàng có nhu cầu mua sắm trực tuyến và thanh toán khi đi nước ngoài.',
         badge: 'Khách hàng cá nhân',
         benefits: [
           'Thanh toán trong nước và quốc tế',
           'Nhiều hạng thẻ theo nhu cầu chi tiêu',
-          'Quản lý giao dịch trên ngân hàng số SHB SAHA',
+          'Quản lý giao dịch trên ngân hàng số ứng dụng ngân hàng số',
         ],
         primaryActionLabel: 'Xem các dòng thẻ',
         secondaryActionLabel: 'Điều kiện mở thẻ',
@@ -561,13 +561,13 @@ Không cung cấp số thẻ đầy đủ, mã CVV hoặc mã OTP cho bất kỳ
       {
         type: 'disclaimer',
         content:
-          'Đặc điểm và chính sách sản phẩm thẻ có thể thay đổi theo từng thời kỳ. Vui lòng tham khảo thông tin chính thức từ SHB trước khi đăng ký.',
+          'Đặc điểm và chính sách sản phẩm thẻ có thể thay đổi theo từng thời kỳ. Vui lòng tham khảo thông tin chính thức từ ngân hàng trước khi đăng ký.',
       },
     ],
     sources: [
       {
         id: 'src-card-product-2',
-        title: 'Thẻ tín dụng quốc tế SHB',
+        title: 'Thẻ tín dụng quốc tế ngân hàng',
         type: 'product',
         excerpt:
           'Các dòng thẻ tín dụng quốc tế dành cho khách hàng cá nhân với nhiều hạng thẻ khác nhau.',
@@ -585,21 +585,21 @@ Không cung cấp số thẻ đầy đủ, mã CVV hoặc mã OTP cho bất kỳ
       {
         id: 'sug-card-condition',
         label: 'Xem điều kiện áp dụng',
-        prompt: 'Điều kiện mở thẻ tín dụng SHB là gì?',
+        prompt: 'Điều kiện mở thẻ tín dụng ngân hàng là gì?',
       },
       {
         id: 'sug-card-advisor',
-        label: 'Liên hệ chuyên viên SHB',
-        prompt: 'Tôi muốn được chuyên viên SHB tư vấn về thẻ.',
+        label: 'Liên hệ chuyên viên ngân hàng',
+        prompt: 'Tôi muốn được chuyên viên ngân hàng tư vấn về thẻ.',
       },
     ],
   };
 }
 
 function buildSahaResponse(): GeneratedResponse {
-  const content = `SHB SAHA là ứng dụng ngân hàng số của SHB. Bạn có thể tải ứng dụng từ App Store hoặc Google Play, sau đó đăng ký bằng số điện thoại và giấy tờ tuỳ thân.
+  const content = `ứng dụng ngân hàng số là ứng dụng ngân hàng số của ngân hàng. Bạn có thể tải ứng dụng từ App Store hoặc Google Play, sau đó đăng ký bằng số điện thoại và giấy tờ tuỳ thân.
 
-SH-AI không trực tiếp thực hiện giao dịch trong phiên bản demo này.`;
+Trợ lý AI không trực tiếp thực hiện giao dịch trong phiên bản demo này.`;
 
   return {
     content,
@@ -607,11 +607,11 @@ SH-AI không trực tiếp thực hiện giao dịch trong phiên bản demo nà
     blocks: [
       {
         type: 'markdown',
-        content: `**SHB SAHA** là ứng dụng ngân hàng số của SHB, cho phép bạn quản lý tài khoản và sử dụng dịch vụ ngay trên điện thoại.
+        content: `**ứng dụng ngân hàng số** là ứng dụng ngân hàng số của ngân hàng, cho phép bạn quản lý tài khoản và sử dụng dịch vụ ngay trên điện thoại.
 
 ### Các bước bắt đầu
 
-1. **Tải ứng dụng** — tìm "SHB SAHA" trên App Store hoặc Google Play.
+1. **Tải ứng dụng** — tìm "ứng dụng ngân hàng số" trên App Store hoặc Google Play.
 2. **Đăng ký** — sử dụng số điện thoại và giấy tờ tuỳ thân của bạn.
 3. **Xác thực** — hoàn tất định danh theo hướng dẫn trong ứng dụng.
 4. **Thiết lập bảo mật** — tạo mật khẩu và bật phương thức xác thực sinh trắc học nếu thiết bị hỗ trợ.
@@ -620,7 +620,7 @@ SH-AI không trực tiếp thực hiện giao dịch trong phiên bản demo nà
 
 - Tra cứu số dư và lịch sử giao dịch.
 - Quản lý thẻ và tài khoản.
-- Sử dụng các dịch vụ ngân hàng số của SHB.`,
+- Sử dụng các dịch vụ ngân hàng số của ngân hàng.`,
       },
       {
         type: 'alert',
@@ -631,16 +631,16 @@ SH-AI không trực tiếp thực hiện giao dịch trong phiên bản demo nà
       },
       {
         type: 'disclaimer',
-        content: 'SH-AI không trực tiếp thực hiện giao dịch trong phiên bản demo này.',
+        content: 'Trợ lý AI không trực tiếp thực hiện giao dịch trong phiên bản demo này.',
       },
     ],
     sources: [
       {
         id: 'src-saha-guide',
-        title: 'Hướng dẫn sử dụng SHB SAHA',
+        title: 'Hướng dẫn sử dụng ứng dụng ngân hàng số',
         type: 'procedure',
         excerpt:
-          'Tài liệu hướng dẫn đăng ký, kích hoạt và sử dụng các tính năng cơ bản của ngân hàng số SHB SAHA.',
+          'Tài liệu hướng dẫn đăng ký, kích hoạt và sử dụng các tính năng cơ bản của ngân hàng số ứng dụng ngân hàng số.',
         updatedAt: '2026-06-18T00:00:00.000Z',
       },
     ],
@@ -652,17 +652,17 @@ SH-AI không trực tiếp thực hiện giao dịch trong phiên bản demo nà
       },
       {
         id: 'sug-saha-features',
-        label: 'SHB SAHA có tính năng gì?',
-        prompt: 'SHB SAHA có những tính năng chính nào?',
+        label: 'ứng dụng ngân hàng số có tính năng gì?',
+        prompt: 'ứng dụng ngân hàng số có những tính năng chính nào?',
       },
     ],
   };
 }
 
 function buildExchangeRateResponse(): GeneratedResponse {
-  const content = `Tỷ giá ngoại tệ tại SHB được cập nhật liên tục trong ngày và phân biệt giữa giá mua vào và giá bán ra.
+  const content = `Tỷ giá ngoại tệ tại ngân hàng được cập nhật liên tục trong ngày và phân biệt giữa giá mua vào và giá bán ra.
 
-Thông tin do SH-AI cung cấp mang tính tham khảo và không thay thế bảng tỷ giá chính thức của SHB.`;
+Thông tin do Trợ lý AI cung cấp mang tính tham khảo và không thay thế bảng tỷ giá chính thức của ngân hàng.`;
 
   return {
     content,
@@ -670,7 +670,7 @@ Thông tin do SH-AI cung cấp mang tính tham khảo và không thay thế bả
     blocks: [
       {
         type: 'markdown',
-        content: `Tỷ giá ngoại tệ tại SHB được **cập nhật liên tục trong ngày** và phân biệt rõ giữa giá mua vào và giá bán ra.
+        content: `Tỷ giá ngoại tệ tại ngân hàng được **cập nhật liên tục trong ngày** và phân biệt rõ giữa giá mua vào và giá bán ra.
 
 ### Ba loại tỷ giá cần phân biệt
 
@@ -680,14 +680,14 @@ Thông tin do SH-AI cung cấp mang tính tham khảo và không thay thế bả
 
 ### Nơi tra cứu chính thức
 
-- Website chính thức của SHB.
-- Ứng dụng ngân hàng số **SHB SAHA**.
+- Website chính thức của ngân hàng.
+- Ứng dụng ngân hàng số **ứng dụng ngân hàng số**.
 - Quầy giao dịch tại chi nhánh và phòng giao dịch.`,
       },
       {
         type: 'disclaimer',
         content:
-          'Tỷ giá thay đổi liên tục theo thị trường. Vui lòng tham khảo bảng tỷ giá chính thức của SHB tại thời điểm giao dịch.',
+          'Tỷ giá thay đổi liên tục theo thị trường. Vui lòng tham khảo bảng tỷ giá chính thức của ngân hàng tại thời điểm giao dịch.',
       },
     ],
     sources: [
@@ -704,19 +704,19 @@ Thông tin do SH-AI cung cấp mang tính tham khảo và không thay thế bả
       {
         id: 'sug-fx-where',
         label: 'Tra cứu ở đâu?',
-        prompt: 'Tôi có thể tra cứu tỷ giá SHB ở những kênh nào?',
+        prompt: 'Tôi có thể tra cứu tỷ giá ngân hàng ở những kênh nào?',
       },
       {
         id: 'sug-fx-business',
         label: 'Ngoại hối cho doanh nghiệp',
-        prompt: 'SHB có giải pháp ngoại hối nào cho doanh nghiệp?',
+        prompt: 'ngân hàng có giải pháp ngoại hối nào cho doanh nghiệp?',
       },
     ],
   };
 }
 
 function buildBranchResponse(): GeneratedResponse {
-  const content = `Bạn có thể tìm ATM và chi nhánh SHB qua công cụ tìm điểm giao dịch trên website chính thức, ứng dụng SHB SAHA hoặc tổng đài hỗ trợ.`;
+  const content = `Bạn có thể tìm ATM và chi nhánh ngân hàng qua công cụ tìm điểm giao dịch trên website chính thức, ứng dụng ứng dụng ngân hàng số hoặc tổng đài hỗ trợ.`;
 
   return {
     content,
@@ -724,10 +724,10 @@ function buildBranchResponse(): GeneratedResponse {
     blocks: [
       {
         type: 'markdown',
-        content: `Bạn có thể tìm ATM và chi nhánh SHB gần nhất qua các kênh sau:
+        content: `Bạn có thể tìm ATM và chi nhánh ngân hàng gần nhất qua các kênh sau:
 
-1. **Website chính thức của SHB** — mục tìm điểm giao dịch, lọc theo tỉnh/thành và quận/huyện.
-2. **Ứng dụng SHB SAHA** — tìm điểm giao dịch gần bạn dựa trên vị trí hiện tại.
+1. **Website chính thức của ngân hàng** — mục tìm điểm giao dịch, lọc theo tỉnh/thành và quận/huyện.
+2. **Ứng dụng ứng dụng ngân hàng số** — tìm điểm giao dịch gần bạn dựa trên vị trí hiện tại.
 3. **Tổng đài hỗ trợ khách hàng** — hỗ trợ tra cứu địa chỉ chi nhánh.
 
 > Trước khi tới quầy, bạn nên kiểm tra giờ làm việc của chi nhánh, đặc biệt vào cuối tuần và ngày lễ.`,
@@ -739,7 +739,7 @@ function buildBranchResponse(): GeneratedResponse {
             id: 'cta-branch-doc',
             label: 'Cần mang theo giấy tờ gì?',
             primary: true,
-            prompt: 'Khi tới chi nhánh SHB giao dịch, tôi cần mang theo giấy tờ gì?',
+            prompt: 'Khi tới chi nhánh ngân hàng giao dịch, tôi cần mang theo giấy tờ gì?',
           },
         ],
       },
@@ -750,7 +750,7 @@ function buildBranchResponse(): GeneratedResponse {
         title: 'Mạng lưới chi nhánh và ATM',
         type: 'product',
         excerpt:
-          'Danh sách các điểm giao dịch, chi nhánh và máy ATM của SHB trên toàn quốc kèm địa chỉ và giờ làm việc.',
+          'Danh sách các điểm giao dịch, chi nhánh và máy ATM của ngân hàng trên toàn quốc kèm địa chỉ và giờ làm việc.',
         updatedAt: '2026-07-05T00:00:00.000Z',
       },
     ],
@@ -758,14 +758,14 @@ function buildBranchResponse(): GeneratedResponse {
       {
         id: 'sug-branch-hours',
         label: 'Giờ làm việc thế nào?',
-        prompt: 'Chi nhánh SHB làm việc trong khung giờ nào?',
+        prompt: 'Chi nhánh ngân hàng làm việc trong khung giờ nào?',
       },
     ],
   };
 }
 
 function buildBusinessResponse(): GeneratedResponse {
-  const content = `SHB cung cấp các giải pháp dành cho khách hàng doanh nghiệp gồm quản lý dòng tiền, tín dụng, bảo lãnh, thanh toán quốc tế, tài trợ thương mại và ngoại hối.`;
+  const content = `ngân hàng cung cấp các giải pháp dành cho khách hàng doanh nghiệp gồm quản lý dòng tiền, tín dụng, bảo lãnh, thanh toán quốc tế, tài trợ thương mại và ngoại hối.`;
 
   return {
     content,
@@ -773,7 +773,7 @@ function buildBusinessResponse(): GeneratedResponse {
     blocks: [
       {
         type: 'markdown',
-        content: `SHB cung cấp nhiều nhóm giải pháp dành cho **khách hàng doanh nghiệp**:
+        content: `ngân hàng cung cấp nhiều nhóm giải pháp dành cho **khách hàng doanh nghiệp**:
 
 ### Quản lý dòng tiền
 - Giải pháp tài khoản doanh nghiệp.
@@ -792,7 +792,7 @@ function buildBusinessResponse(): GeneratedResponse {
       {
         type: 'disclaimer',
         content:
-          'Điều kiện, hạn mức và quy trình cụ thể phụ thuộc vào hồ sơ doanh nghiệp và kết quả thẩm định của SHB.',
+          'Điều kiện, hạn mức và quy trình cụ thể phụ thuộc vào hồ sơ doanh nghiệp và kết quả thẩm định của ngân hàng.',
       },
     ],
     sources: [
@@ -801,7 +801,7 @@ function buildBusinessResponse(): GeneratedResponse {
         title: 'Giải pháp khách hàng doanh nghiệp',
         type: 'product',
         excerpt:
-          'Tổng quan các nhóm sản phẩm và dịch vụ dành cho khách hàng doanh nghiệp tại SHB.',
+          'Tổng quan các nhóm sản phẩm và dịch vụ dành cho khách hàng doanh nghiệp tại ngân hàng.',
         updatedAt: '2026-06-30T00:00:00.000Z',
       },
     ],
@@ -809,12 +809,12 @@ function buildBusinessResponse(): GeneratedResponse {
       {
         id: 'sug-biz-guarantee',
         label: 'Bảo lãnh ngân hàng',
-        prompt: 'Điều kiện phát hành thư bảo lãnh của SHB là gì?',
+        prompt: 'Điều kiện phát hành thư bảo lãnh của ngân hàng là gì?',
       },
       {
         id: 'sug-biz-intl',
         label: 'Thanh toán quốc tế',
-        prompt: 'Quy trình thanh toán quốc tế cho doanh nghiệp tại SHB thế nào?',
+        prompt: 'Quy trình thanh toán quốc tế cho doanh nghiệp tại ngân hàng thế nào?',
       },
     ],
   };
@@ -994,7 +994,7 @@ function buildLoanReviewResponse(normalized: string): GeneratedResponse {
 
 ${application.checks.length - failed.length}/${application.checks.length} chốt kiểm tra đạt. ${recommendation.replace(/\*\*/g, '')}
 
-Quyết định cuối cùng thuộc thẩm quyền của chuyên viên. SH-AI không tự phê duyệt khoản vay.`;
+Quyết định cuối cùng thuộc thẩm quyền của chuyên viên. Trợ lý AI không tự phê duyệt khoản vay.`;
 
   return {
     content,
@@ -1159,7 +1159,7 @@ Thông tin định danh được hiển thị ở dạng che theo nguyên tắc 
 }
 
 function buildGenericResponse(): GeneratedResponse {
-  const content = `Tôi là SH-AI, trợ lý tài chính của SHB. Tôi có thể hỗ trợ bạn tra cứu sản phẩm, lãi suất, tỷ giá, tư vấn thẻ và khoản vay, cũng như hướng dẫn sử dụng ngân hàng số SHB SAHA.`;
+  const content = `Tôi là Trợ lý AI, trợ lý tài chính của ngân hàng. Tôi có thể hỗ trợ bạn tra cứu sản phẩm, lãi suất, tỷ giá, tư vấn thẻ và khoản vay, cũng như hướng dẫn sử dụng ngân hàng số ứng dụng ngân hàng số.`;
 
   return {
     content,
@@ -1167,13 +1167,13 @@ function buildGenericResponse(): GeneratedResponse {
     blocks: [
       {
         type: 'markdown',
-        content: `Tôi là **SH-AI**, trợ lý tài chính của SHB. Tôi có thể đồng hành cùng bạn ở những nội dung sau:
+        content: `Tôi là **Trợ lý AI**, trợ lý tài chính của ngân hàng. Tôi có thể đồng hành cùng bạn ở những nội dung sau:
 
 ### Khách hàng cá nhân
 - Tra cứu lãi suất tiền gửi và tỷ giá.
 - Tư vấn lựa chọn thẻ.
 - Ước tính khoản vay mua nhà, mua ô tô, tiêu dùng.
-- Hướng dẫn sử dụng ngân hàng số **SHB SAHA**.
+- Hướng dẫn sử dụng ngân hàng số **ứng dụng ngân hàng số**.
 - Tìm ATM và chi nhánh.
 
 ### Khách hàng doanh nghiệp
@@ -1197,15 +1197,15 @@ Bạn có thể mô tả nhu cầu cụ thể, hoặc tải lên tài liệu đ�
       },
       {
         id: 'sug-generic-advisor',
-        label: 'Liên hệ chuyên viên SHB',
-        prompt: 'Tôi muốn được chuyên viên SHB hỗ trợ trực tiếp.',
+        label: 'Liên hệ chuyên viên ngân hàng',
+        prompt: 'Tôi muốn được chuyên viên ngân hàng hỗ trợ trực tiếp.',
       },
     ],
   };
 }
 
 function buildAdvisorResponse(): GeneratedResponse {
-  const content = `Tôi có thể kết nối bạn với chuyên viên SHB. Ở phiên bản demo, thao tác này chỉ mang tính minh hoạ và chưa gửi yêu cầu thật.`;
+  const content = `Tôi có thể kết nối bạn với chuyên viên ngân hàng. Ở phiên bản demo, thao tác này chỉ mang tính minh hoạ và chưa gửi yêu cầu thật.`;
 
   return {
     content,
@@ -1213,7 +1213,7 @@ function buildAdvisorResponse(): GeneratedResponse {
     blocks: [
       {
         type: 'markdown',
-        content: `Tôi có thể kết nối bạn với **chuyên viên SHB** để được tư vấn chi tiết hơn.
+        content: `Tôi có thể kết nối bạn với **chuyên viên ngân hàng** để được tư vấn chi tiết hơn.
 
 Khi chuyển tiếp, chuyên viên sẽ hỗ trợ bạn:
 
@@ -1226,14 +1226,14 @@ Khi chuyển tiếp, chuyên viên sẽ hỗ trợ bạn:
         variant: 'info',
         title: 'Phiên bản demo',
         content:
-          'Yêu cầu kết nối chuyên viên chưa được gửi đi trong bản demo này. Vui lòng liên hệ SHB qua kênh chính thức để được hỗ trợ.',
+          'Yêu cầu kết nối chuyên viên chưa được gửi đi trong bản demo này. Vui lòng liên hệ ngân hàng qua kênh chính thức để được hỗ trợ.',
       },
     ],
     suggestions: [
       {
         id: 'sug-advisor-back',
-        label: 'Quay lại tư vấn với SH-AI',
-        prompt: 'Tôi muốn tiếp tục trao đổi với SH-AI.',
+        label: 'Quay lại tư vấn với Trợ lý AI',
+        prompt: 'Tôi muốn tiếp tục trao đổi với Trợ lý AI.',
       },
     ],
   };
