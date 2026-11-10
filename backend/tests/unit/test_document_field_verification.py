@@ -17,6 +17,11 @@ class _Repository:
     def __init__(self) -> None:
         self.calls: list[dict[str, Any]] = []
 
+    current: dict[str, Any] | None = None
+
+    async def get_field(self, field_id):
+        return self.current
+
     async def update_field(self, field_id, **kwargs):
         self.calls.append({"field_id": field_id, **kwargs})
         return {"id": field_id, **kwargs}
@@ -121,3 +126,16 @@ async def test_missing_permission_rejected():
             corrected_value_text=None,
             verification_reason="ly do",
         )
+
+
+async def test_repeated_confirm_by_same_person_is_idempotent():
+    """X8: bấm đúp "xác nhận" không ghi thêm lần cập nhật nào."""
+    service, repository = _service()
+    who = _principal("document:verify")
+    repository.current = {
+        "id": uuid4(), "verification_status": "CONFIRMED", "corrected_value_text": None, "verified_by": who.employee_id,
+    }
+    await service.verify_field(
+        who, uuid4(), verification_status="CONFIRMED", corrected_value_text=None, verification_reason="Khop ban goc"
+    )
+    assert repository.calls == []

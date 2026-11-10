@@ -60,6 +60,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
     if (selected) regionRefs.current.get(selected.field_id)?.scrollIntoView?.({ block: 'nearest' });
   }, [selected?.field_id]);
 
+  const confirmLock = useRef(false);
   const confirm = useMutation({
     mutationFn: (f: ReconField) => confirmField(f.field_id, 'Đã đối chiếu với tài liệu gốc'),
     onSuccess: () => {
@@ -137,7 +138,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
           canConfirm={canConfirm}
           busy={confirm.isPending}
           error={confirm.isError ? getErrorMessage(confirm.error) : null}
-          onConfirm={() => confirm.mutate(selected)}
+          onConfirm={() => { if (!confirm.isPending && !confirmLock.current) { confirmLock.current = true; confirm.mutate(selected, { onSettled: () => { confirmLock.current = false; } }); } }}
         />
       ) : (
         <p>Chọn một trường hoặc một vùng tô để xem chi tiết.</p>

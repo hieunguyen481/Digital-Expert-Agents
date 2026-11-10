@@ -114,6 +114,17 @@ class DocumentService:
             raise ValueError("A corrected value can only be recorded with verification_status CONFIRMED")
         if not verification_reason.strip():
             raise ValueError("A verification reason is required")
+        current = await self._repository.get_field(field_id)
+        if (
+            current is not None
+            and verification_status == "CONFIRMED"
+            and corrected is None
+            and current["verification_status"] == "CONFIRMED"
+            and current["corrected_value_text"] is None
+            and current["verified_by"] == principal.employee_id
+        ):
+            # X8: bấm lặp lại cùng một xác nhận là idempotent, không ghi thêm dòng nhật ký.
+            return current
         row = await self._repository.update_field(
             field_id,
             verification_status=verification_status,

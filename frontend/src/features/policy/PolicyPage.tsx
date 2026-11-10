@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Empty, Input, Table, Tag } from 'antd';
 import { useState } from 'react';
+import { RequireRole } from '@/auth/RequireRole';
+import type { UiRole } from '@/auth/roleFromMe';
 import { PageHead } from '@/features/shell/PageHead';
 import apiClient from '@/services/apiClient';
 import styles from './policy.module.css';
@@ -9,7 +11,14 @@ interface Policy { id: string; policy_code: string; policy_name: string; policy_
 interface Clause { policy_version_id: string; clause_number: string; title: string | null; content: string; effective_from: string; effective_until: string | null }
 
 /** Tra cứu chính sách: danh sách chính sách và tìm điều khoản theo từ khóa. */
+const POLICY_ROLES: UiRole[] = ['qhkh', 'httd', 'tdinh', 'ruiro', 'pheduyet', 'kiemtoan'];
+
+/** Quản trị không có policy:read (ma trận phân quyền): báo "Không có quyền" như các trang khác. */
 export default function PolicyPage() {
+  return <RequireRole allow={POLICY_ROLES} pageName="Tra cứu chính sách"><PolicyContent /></RequireRole>;
+}
+
+function PolicyContent() {
   const [term, setTerm] = useState('');
   const [query, setQuery] = useState('');
   const list = useQuery<Policy[]>({ queryKey: ['policies'], queryFn: async () => (await apiClient.get<Policy[]>('/policies')).data });

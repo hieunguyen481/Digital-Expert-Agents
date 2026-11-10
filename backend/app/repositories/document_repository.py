@@ -497,6 +497,11 @@ class DocumentRepository:
             {"version_id": document_version_id},
         )
 
+    async def get_field(self, field_id: UUID) -> Record | None:
+        return await fetch_one(
+            self.session, "SELECT * FROM document.extracted_field WHERE id = :field_id", {"field_id": field_id}
+        )
+
     async def update_field(
         self,
         field_id: UUID,
