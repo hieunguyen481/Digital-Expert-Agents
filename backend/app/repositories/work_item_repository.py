@@ -42,7 +42,7 @@ MINE_STEP_PREDICATE = """
           AND NOT EXISTS (
               SELECT 1 FROM credit.risk_opinion AS op
               WHERE op.loan_application_id = loan.id AND op.kind = 'COMPLIANCE'
-                AND op.memo_revision = COALESCE(
+                AND op.memo_revision = COALESCE((
                     SELECT max(v.revision) FROM credit.appraisal_memo_version AS v
                     WHERE v.loan_application_id = loan.id), op.memo_revision)
           )

@@ -1050,12 +1050,8 @@ async def test_compliance_gets_task_and_notice_until_opinion_recorded(
     engine: AsyncEngine, mig: asyncpg.Connection, case: Case
 ) -> None:
     """L03: vào Ý kiến Rủi ro -> Tuân thủ có việc "của tôi" + thông báo; đóng khi đã ghi ý kiến Tuân thủ."""
-    from app.repositories.work_item_repository import WorkItemRepository
-
-    class _P:
-        employee_id = COMPLIANCE_HO
-        roles = frozenset({"compliance_officer"})
-        permissions = frozenset({"loan:read"})
+    from app.repositories.work_item_repository import MINE_STEP_PREDICATE
+    from app.repositories.base import fetch_one
 
     async def mine() -> bool:
         comp = await principal(mig, COMPLIANCE_HO)
@@ -1063,10 +1059,14 @@ async def test_compliance_gets_task_and_notice_until_opinion_recorded(
             AsyncSession(engine) as session,
             rls_transaction(session, comp.employee_id, comp.branch_id),
         ):
-            from app.services.work_item_service import WorkItemService
-
-            result = await WorkItemService(WorkItemRepository(session)).list(_P(), filter_="all")
-        return any(i.mine and i.loan_application_id == case.loan_id for i in result.items)
+            row = await fetch_one(
+                session,
+                "SELECT count(*) FROM credit.case_step AS step"
+                " JOIN credit.loan_application AS loan ON loan.id = step.loan_application_id"
+                " WHERE step.loan_application_id = :l AND " + MINE_STEP_PREDICATE,
+                {"employee_id": COMPLIANCE_HO, "l": case.loan_id},
+            )
+            return bool(row and row["count"] > 0)
 
     await case.create(status="APPRAISAL")
     assert not await mine()
@@ -1363,8 +1363,13 @@ async def test_email_worker_sends_outbox_row_to_fake_smtp_once(mig: asyncpg.Conn
 
     from app.workers.email_worker import EmailWorker, _SessionStore
 
-    await case.create(status="CHECKING")
-    await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    was = await mig.fetchval("SELECT enabled FROM integration.email_outbox_setting")
+    await mig.execute("UPDATE integration.email_outbox_setting SET enabled = true")  # V057: hàng thư mặc định tắt
+    try:
+        await case.create(status="CHECKING")
+        await case.add_step("CHECKING", DOCUMENT_REVIEWER)
+    finally:
+        await mig.execute("UPDATE integration.email_outbox_setting SET enabled = $1", was)
     smtp = FakeSmtp()
     port = await smtp.start()
     eng = create_async_engine(_dsn("TEST_WORKER_DSN").replace("postgresql://", "postgresql+asyncpg://", 1), pool_size=2)
