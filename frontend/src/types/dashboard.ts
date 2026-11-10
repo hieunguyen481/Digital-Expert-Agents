@@ -127,6 +127,8 @@ export interface BenchmarkRunMeta {
   llm_mode: string;
   runs_per_case: number;
   total_cost_usd: number | null;
+  /** Chế độ có số đo trong lượt (single, multi); lượt hai chế độ mới so sánh được. */
+  modes?: ('single' | 'multi')[];
 }
 
 export interface BenchmarkLatest {

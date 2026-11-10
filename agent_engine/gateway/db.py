@@ -354,12 +354,15 @@ async def list_benchmarks() -> list[dict]:
     async with tx() as con:
         rows = await con.fetch(
             "SELECT run_id, created_at, label, cases_version, grader_version, regrade_of, llm_mode,"
-            " runs_per_case, total_cost_usd FROM agent.benchmark_run"
+            " runs_per_case, total_cost_usd,"
+            " ARRAY(SELECT k FROM jsonb_object_keys(summary) k WHERE k IN ('single','multi')) AS modes"
+            " FROM agent.benchmark_run"
             " ORDER BY (regrade_of IS NULL) DESC, cases_version DESC, created_at DESC")
     out = []
     for r in rows:
         d = dict(r)
         d["created_at"] = d["created_at"].isoformat()
         d["total_cost_usd"] = float(d["total_cost_usd"]) if d["total_cost_usd"] is not None else None
+        d["modes"] = sorted(d["modes"] or [])
         out.append(d)
     return out

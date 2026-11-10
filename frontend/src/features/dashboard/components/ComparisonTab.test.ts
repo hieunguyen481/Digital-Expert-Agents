@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultRunId, isTestRun } from './ComparisonTab';
+import { buildRows, conclusion, defaultRunId, hasBothModes, isTestRun } from './ComparisonTab';
 import type { BenchmarkRunMeta } from '@/types/dashboard';
 
 const m = (run_id: string, cases_version: string, created_at: string, label: string, regrade_of: string | null = null) =>
@@ -15,5 +15,34 @@ describe('lượt đo mặc định', () => {
     ];
     expect(isTestRun(runs[2])).toBe(true);
     expect(defaultRunId(runs)).toBe('b');
+  });
+});
+
+describe('lượt đo mặc định là lượt hai chế độ chính thức (B3)', () => {
+  const mm = (run_id: string, created_at: string, label: string, modes: ('single' | 'multi')[]) =>
+    ({ run_id, cases_version: 'v7', created_at, label, regrade_of: null, modes }) as unknown as BenchmarkRunMeta;
+
+  it('ưu tiên lượt có cả single và multi dù lượt một chế độ mới hơn', () => {
+    const runs = [
+      mm('two', '2026-11-09T09:03:00Z', 'v7 mù single + multi', ['multi', 'single']),
+      mm('one', '2026-11-09T09:19:00Z', 'v7 mù multi', ['multi']),
+    ];
+    expect(hasBothModes(runs[0])).toBe(true);
+    expect(defaultRunId(runs)).toBe('two');
+  });
+
+  it('chưa có lượt hai chế độ thì dùng lượt chính thức mới nhất', () => {
+    const runs = [mm('one', '2026-11-09T09:19:00Z', 'v7 mù multi', ['multi'])];
+    expect(defaultRunId(runs)).toBe('one');
+  });
+});
+
+
+describe('kết luận khi lượt chỉ có một chế độ (B3)', () => {
+  it('không in "hơn ở 0 chỉ số"', () => {
+    const run = { summary: { multi: { finding_recall: { mean: 0.9 } } } } as unknown as Parameters<typeof buildRows>[0];
+    const text = conclusion(buildRows(run), run);
+    expect(text).toContain('chỉ chạy một chế độ');
+    expect(text).not.toContain('hơn ở 0');
   });
 });

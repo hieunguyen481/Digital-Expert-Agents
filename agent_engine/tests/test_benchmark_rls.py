@@ -49,6 +49,7 @@ async def test_list_and_get_benchmark_follow_rls(stored_run):
     identity.set_current(OFFICER)
     runs = await db.list_benchmarks()
     assert any(r["run_id"] == stored_run and r["grader_version"] == "v1" and r["regrade_of"] is None for r in runs)
+    assert all(set(r["modes"]) <= {"single", "multi"} for r in runs)
     one = await db.get_benchmark(stored_run)
     assert one and "conclusion_text" not in one["runs"][0]
     assert await db.get_benchmark("khong-co") is None

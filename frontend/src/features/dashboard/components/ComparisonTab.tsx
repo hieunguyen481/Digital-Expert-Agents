@@ -75,7 +75,7 @@ interface Row {
   winner: 'single' | 'multi' | 'tie';
 }
 
-function buildRows(run: BenchmarkRun): Row[] {
+export function buildRows(run: BenchmarkRun): Row[] {
   const { single, multi } = run.summary;
   return METRICS.map((def) => ({
     id: def.key,
@@ -88,7 +88,8 @@ function buildRows(run: BenchmarkRun): Row[] {
 }
 
 /** Kết luận sinh từ số đo thật: liệt kê chỉ số mỗi hệ hơn, không có câu cố định. */
-function conclusion(rows: Row[]): string {
+export function conclusion(rows: Row[], run: BenchmarkRun): string {
+  if (!run.summary.single || !run.summary.multi) return 'Lượt đo này chỉ chạy một chế độ nên chưa có kết luận so sánh.';
   const names = (w: 'single' | 'multi') => rows.filter((r) => r.winner === w).map((r) => r.label.toLowerCase());
   const s = names('single');
   const m = names('multi');
@@ -124,9 +125,15 @@ export function isTestRun(m: { label: string }): boolean {
   return /kiểm thoái lui|kiểm thử|\babl\b|smoke|\btest\b/i.test(m.label ?? '');
 }
 
-/** Mặc định: lượt đo mới (không phải chấm lại, không phải kiểm thử) của bộ ca mới nhất, mới nhất trong bộ đó. */
+export function hasBothModes(m: { modes?: string[] }): boolean {
+  return !!m.modes && m.modes.includes('single') && m.modes.includes('multi');
+}
+
+/** Mặc định: lượt hai chế độ chính thức (không chấm lại, không kiểm thử) mới nhất; chưa có thì lượt chính thức mới nhất. */
 export function defaultRunId(metas: BenchmarkRunMeta[]): string | null {
-  const ok = metas.filter((m) => !m.regrade_of && !isTestRun(m));
+  const official = metas.filter((m) => !m.regrade_of && !isTestRun(m));
+  const both = official.filter(hasBothModes);
+  const ok = both.length ? both : official;
   const set = ok.map((m) => m.cases_version).sort().pop();
   const pick = ok.filter((m) => m.cases_version === set).sort((a, b) => a.created_at.localeCompare(b.created_at)).pop();
   return pick?.run_id ?? null;
@@ -262,7 +269,7 @@ export function ComparisonTab() {
 
         <div className={styles.verdict}>
           <h4 className={styles.verdictTitle}>Kết luận</h4>
-          <p className={styles.verdictText} data-testid="cmp-conclusion">{conclusion(rows)}</p>
+          <p className={styles.verdictText} data-testid="cmp-conclusion">{conclusion(rows, run)}</p>
         </div>
       </Card>
 
