@@ -153,7 +153,7 @@ Ngữ nghĩa trạng thái hồ sơ: Nháp = trung tính; Đang xử lý (Kiểm
 
 ### 5.4 Bố cục
 
-Màn hình 1280×800, 1366×768, 1440×900 và 1920×1080. Chiều rộng tối đa của vùng nội dung (`.page`) theo loại trang: trang danh sách, bảng và dashboard `max-width: 1480px`; trang đọc và biểu mẫu (`.page.narrow`: Hồ sơ vay, Soạn đề xuất, Chính sách, Trạng thái) `1280px`; lề 32px. Lưới: Hồ sơ vay `minmax(0,1fr) | 360px`; hồ sơ có panel Trợ lý AI mở thành `mục lục 184px | nội dung | panel 380px`, **ẩn mục lục khi panel AI mở và màn hình < 1360px** (D5). Dưới 1100px: cột phụ xuống dưới, chỉ số 2×2.
+Màn hình 1280×800, 1366×768, 1440×900 và 1920×1080. Chiều rộng tối đa của vùng nội dung (`.page`) theo loại trang: trang danh sách, bảng và dashboard `max-width: 1480px`; trang đọc và biểu mẫu (`.page.narrow`: Hồ sơ vay, Soạn đề xuất, Chính sách, Trạng thái) `1280px`; lề 32px. **Từ 1480px trở lên khối nội dung căn giữa** (`margin-inline:auto`), không căn trái; ở 1920 hai lề cân nhau. Wizard Tạo đề xuất (`04` và `17`, `17a`, `17c`, `17d`, `17b`) dùng một bố cục: cột bước 200px + biểu mẫu. Lưới: Hồ sơ vay `minmax(0,1fr) | 360px`; hồ sơ có panel Trợ lý AI mở thành `mục lục 184px | nội dung | panel 380px`, **ẩn mục lục khi panel AI mở và màn hình < 1600px** (chặt hơn D5, vốn đòi ẩn từ < 1360px; nếu giữ mục lục, cột nội dung ở 1366 chỉ còn khoảng 470px và ở 1440 khoảng 548px, nên ngưỡng nâng lên 1600; không trái D5, vì D5 là mức tối thiểu). Dưới 1100px: cột phụ xuống dưới, chỉ số 2×2.
 
 ### 5.5 Biểu tượng
 
@@ -184,7 +184,7 @@ Chữ thường ≥ 4,5:1, thành phần giao diện ≥ 3:1. Bảng rút gọn 
 | danger-700 / danger-100 | 5,46 | info-700 / info-100 | 6,51 |
 | control / surface (viền, thành phần) | 4,57 | control / paper (viền, thành phần) | 4,21 |
 
-Cặp thấp nhất của chữ là 4,69:1. Đo thật trên trang: `mockups-v2/_gen/measure.js` (bản chạy trong worktree, báo cáo ở `/tmp/ds3/report.json`) tính tỉ lệ cho mọi nút chữ đang hiển thị (cả hover/active ép sẵn ở trang Thành phần), kết quả 0 cặp dưới 4,5:1 ở 39 trang × 4 cỡ = 156 lượt (lần đo ngày 2026-11-11).
+Cặp thấp nhất của chữ là 4,69:1. Đo thật trên trang: `mockups-v2/_gen/measure.js` (bản chạy trong worktree, báo cáo ở `/tmp/ds4/report.json`) tính tỉ lệ cho mọi nút chữ đang hiển thị (cả hover/active ép sẵn ở trang Thành phần), kết quả 0 cặp dưới 4,5:1 ở 39 trang × 4 cỡ = 156 lượt (lần đo ngày 2026-11-11).
 
 ## 6. Quy cách thành phần
 
@@ -222,7 +222,12 @@ Tất cả trạng thái: mặc định, hover, focus (`--focus`), active, disab
 | Radio, checkbox, select, phân trang | `.opt` (radio thẻ, `:has(input:checked)`), `.chk`, `.rad`, `.select`, `.pg`; mẫu ở `21-thanh-phan.html` |
 | `<mark>` | Nền warn-100, gạch chân đồng; chỉ cho cụm từ khóa trong kết quả tìm kiếm |
 | Khối đội agent | Khối AI chứa sơ đồ + kết luận + cờ cảnh báo + nút "Chạy lại đội agent"; bốn trạng thái: chưa chạy (nút Chạy đội agent), đang chạy (nút loading, thời gian đã chạy), lỗi hoặc quá giờ (agent lỗi viền danger, banner nêu nguyên nhân, nút Chạy lại), có kết quả. Xem trang `21-thanh-phan.html` |
-| Sơ đồ đội agent | Tỏa nhánh thật theo code: Planner → 4 agent song song (Credit, Compliance, Operations, Document) → Validation; đường nối cong SVG nét đứt ai-500. Node nét đứt, xong nét liền, đang chạy nền ai-50, quá giờ/lỗi viền danger kèm chữ. "Người quyết định" nằm NGOÀI khối AI, nối bằng mũi tên liền navy. Một danh sách agent duy nhất cho mọi trang (mục 11.3) |
+| Đội agent (MỘT thành phần `AgentTeam`, 3 biến thể) | Tham số `variant`: **`full`** (cây tỏa nhánh: Planner → 4 agent song song → Validation, đường nối nét đứt ai-500; dùng ở chi tiết hồ sơ 03, 07), **`compact`** (một dòng: tên 6 agent + tổng giây khi cả 6 xong; dùng trong khối kết luận 03, 25), **`strip`** (dải 3 cột Planner / 4 agent / Validation, mỗi ô tên + giây; dùng 06, 12, 14, 15). Mọi biến thể: thứ tự Planner → 4 agent → Validation → người quyết định NẰM NGOÀI khung nét đứt (`.at-hm`, nối bằng mũi tên). Trạng thái: chưa chạy, đang chạy (nền ai-50), xong (hiện giây), lỗi/quá giờ (viền danger kèm chữ). Tên agent không bị cắt ở 1366 (đo: 52 lượt, 0 phần tử `text-overflow`/`overflow` cắt chữ); nơi hẹp dải xuống 1 cột ở < 1100px. Thời gian là của từng hồ sơ (`CASES` trong `lib.js`), tổng = Planner + agent chậm nhất trong 4 + Validation |
+| Khối người: tờ trình đã chốt, ý kiến Rủi ro/Tuân thủ (Cấp phê duyệt `12`) | `.mineb`: viền liền navy, ghi tên người ký và giờ ("Phạm Quốc Bảo, 09/11/2026 10:42"). Đặt TRÊN khối AI: (1) "Tờ trình thẩm định, bản v2" = thẻ "Bản đã chốt", 7 mục tóm tắt, nút "Mở bản đầy đủ 7 mục" tới `35`; (2) "Ý kiến Quản lý rủi ro và Tuân thủ" = hai ý kiến con (Q-N) và kết luận cờ CIC của Tuân thủ (F8, 3 lựa chọn, đều có lý do) |
+| Tờ trình 7 mục (Thẩm định `14`) | Q-L, tiêu đề theo `backend/app/workflow/memo.py`: Thông tin khách hàng · Đề nghị cấp tín dụng · Pháp lý, UBO và người có liên quan · Tình hình hoạt động kinh doanh · Phân tích tài chính và khả năng trả nợ · Tài sản bảo đảm · Đánh giá rủi ro và đề xuất của Chuyên viên Thẩm định. Mỗi mục 1 đến 6: khối "AI đề xuất" (nét đứt, nút "Chèn vào ô bên phải" và "Bỏ đề xuất") + ô của người; mục 7 chỉ người viết (AI không chèn). **Không có nút đồng "Chốt tờ trình" trong nội dung** (D4, Q-L, quyết định của Mate): nội dung hiện "Bản nháp, sẽ chốt thành bản v1 khi trình"; việc chốt xảy ra khi bấm nút duy nhất ở header ("Trình Rủi ro và Tuân thủ", khóa kèm lý do); sau khi trình hiện "Bản vN đã chốt lúc …" (mẫu ở `35`) |
+| Danh sách có cấu trúc (điều kiện phê duyệt, việc cần sửa) | `.condlist`: mỗi dòng = ô nội dung + ô hạn/mục liên quan, nút "Thêm …". Phê duyệt có điều kiện: ô "Hạn mức phê duyệt (đồng)" (không vượt đề nghị) + danh sách điều kiện, sang hồ sơ thành "Điều kiện trước giải ngân" (`16`). Trả lại: ô chọn nơi nhận (Thẩm định hoặc QHKH) + danh sách việc cần sửa (bên nhận thấy từng việc) |
+| Quy tắc focus (drawer, modal) | Mở: focus vào tiêu đề hộp thoại (`tabindex=-1`) hoặc ô nhập đầu tiên. Giữ focus trong hộp thoại (bẫy Tab/Shift+Tab), `aria-modal="true"`. Esc đóng drawer/modal; modal ghi quyết định không đóng khi bấm nền. Đóng: trả focus về nút đã mở. Mẫu ở `21` |
+| Nhãn "Trả về QHKH" | Badge danger (`.badge.bad`: đỏ) theo 5.1, ở 03, 03b, 03c, 25, 25b, 26, 30; nghĩa "việc cần làm lại", không phải lỗi hệ thống |
 | Dòng thời gian | Đường dọc 2px; chấm 16px: người = viền navy liền, AI = viền ai-500 nét đứt, hiện tại = nền đồng; giờ Plex Mono 12px |
 | Chat | Tin người dùng nền navy bo trên-trái-phải; tin trợ lý khối AI (nét đứt) kèm thẻ nguồn Plex Mono; cuối tin có câu giới hạn trách nhiệm |
 | Skeleton | Thanh `--paper-2` ↔ `--surface-2` lướt 1,4s, hình dạng giống nội dung thật; kèm chữ "Đang tải…" cho trình đọc màn hình |
@@ -304,9 +309,9 @@ Chưa kiểm bằng trình đọc màn hình và axe-core thật (mockup tĩnh);
 
 ## 11. Bàn giao cho React và Ant Design (v2.1)
 
-### 11.1 Danh sách mockup (39 tệp trong `mockups-v2/`, mỗi tệp một trạng thái)
+### 11.1 Danh sách mockup (51 tệp trong `mockups-v2/`, mỗi tệp một trạng thái)
 
-`01` Đăng nhập · `02` Việc của tôi (QHKH) · `02b` Hồ sơ chờ phê duyệt (Cấp phê duyệt) · `03`/`03b`/`03c` Hồ sơ vay (có kết quả, đang chạy, lỗi chạy) · `04` Soạn đề xuất, bước 2 · `05` Đối chiếu một tài liệu · `06`/`07`/`08` Đội agent (Tổng quan, Dấu vết, So sánh; vai Quản lý rủi ro/Tuân thủ) · `09`/`09b`/`09c` Trợ lý (có trả lời, đang trả lời, lỗi) · `10` Nhật ký · `11` Trạng thái trang (rỗng sau lọc, 404, lỗi, tải, toast) · `11b` Không có quyền (403, khiên, 1 nút) · `12` Cấp phê duyệt, chưa chọn quyết định · `12b` đã chọn "Phê duyệt có điều kiện" + hộp xác nhận · `12c` đã chọn "Trả lại" (đích Thẩm định hoặc QHKH) + hộp xác nhận · `13` Hỗ trợ tín dụng · `14` Thẩm định · `15` Ý kiến Rủi ro và Tuân thủ · `16` Đề xuất hành động và điều kiện trước giải ngân · `17` Tạo đề xuất vay bước 2 · `17b` bước 5 Rà soát và gửi · `18` Khách hàng · `19` Đối chiếu danh sách · `20` Tra cứu chính sách có kết quả · `20b` không có kết quả · `21` Thành phần (thêm thẻ nhãn, radio, checkbox, select, ô tìm, phân trang) · `22`/`22b`/`22c` Keycloak đăng nhập, lỗi, hết phiên · `23` Chế độ demo đổi tài khoản · `24` Thanh bên theo vai · `25`/`25b` Hồ sơ có panel Trợ lý AI mở/đóng · `26` Chi tiết khách hàng. Sinh bằng `_gen/build.sh` (chạy `p1.js` … `p6.js` rồi `check.js`: ngày làm việc, mã hồ sơ thuộc bảng demo, badge, 15,4 giây) từ `_gen/lib.js`.
+`01` Đăng nhập · `02` Việc của tôi (QHKH) · `02b` Hồ sơ chờ phê duyệt (Cấp phê duyệt, gồm dòng "Chờ phiên Hội đồng – có ở đợt 2") · `03`/`03b`/`03c` Hồ sơ vay (có kết quả, đang chạy, lỗi chạy) · `04` Soạn đề xuất, bước 2 · `05` Đối chiếu một tài liệu · `06`/`07`/`08` Đội agent (Tổng quan, Dấu vết, So sánh) · `09`/`09b`/`09c` Trợ lý AI (có trả lời, đang trả lời, lỗi) · `10` Nhật ký · `11` Trạng thái trang · `11b` Không có quyền (403) · `12` Cấp phê duyệt chưa chọn · `12b` phê duyệt có điều kiện (hạn mức + điều kiện) + hộp xác nhận · `12c` trả lại + hộp xác nhận · `13` Hỗ trợ tín dụng · `14` Thẩm định (tờ trình 7 mục) · `15` Ý kiến Rủi ro và Tuân thủ · `16` Đề xuất hành động và điều kiện trước giải ngân · `17a`, `17`, `17c`, `17d`, `17b` Tạo đề xuất vay bước 1 đến 5 · `18` Khách hàng · `19` Đối chiếu danh sách · `20`/`20b` Tra cứu chính sách (có, không có kết quả) · `21` Thành phần · `22`/`22b`/`22c` Keycloak · `23` Chế độ demo (menu đổi vai mở trên trang thật `02b`) · `24` Thanh bên theo vai (bảng tài liệu) · `25`/`25b` Hồ sơ có panel Trợ lý AI mở/đóng · `26` Chi tiết khách hàng · `27` Việc của tôi (Hỗ trợ tín dụng) · `28` Việc của tôi (Thẩm định) · `29` Hồ sơ chờ ý kiến (Rủi ro/Tuân thủ) · `30` Hồ sơ vay chỉ đọc (Kiểm toán) · `31` Phiên Hội đồng tín dụng · `32` Đề xuất ngoại lệ (Q1/E1) · `33` Thông báo · `34` Quản trị (vai Quản trị hệ thống, Q-J) · `35` Tờ trình đã chốt (chỉ đọc). Sinh bằng `_gen/build.sh` (chạy `p1.js` … `p7.js` rồi `check.js`) từ `_gen/lib.js`. **Chưa có mockup**: `/foundation` (trang nền của dev, không phải màn nghiệp vụ; dev dùng trang `21` làm chuẩn).
 
 ### 11.2 Thành phần → Ant Design → component token → tệp thay trong `frontend/src`
 
@@ -335,37 +340,39 @@ Ghi chú: tên tệp lấy từ `frontend/src` hiện có; nơi ghi "nếu có" 
 
 ### 11.3 Danh sách agent dùng chung (khớp code)
 
-Planner (lập kế hoạch) → Credit, Compliance, Operations, Document (song song) → Validation (phản biện chéo). Mọi trang lấy từ cùng một mảng `AGENTS` trong `_gen/lib.js`; nhãn agent ở 03, 03b, 03c, 06, 07, 12, 14, 21 giống nhau. Phép tính kiểm tra tự động trong generator (ném lỗi nếu lệch): 06 cộng trạng thái = 762 = cộng 12 tuần, lỗi theo agent cộng = 14; 07 gọi công cụ 17, thời gian cộng 34,5 giây, thời gian thực 15,4 = 2,1 + 9,5 + 3,8.
+Planner (lập kế hoạch) → Credit, Compliance, Operations, Document (song song) → Validation (phản biện chéo). Mọi trang lấy từ cùng một mảng `AGENTS` trong `_gen/lib.js`; nhãn agent ở 03, 03b, 03c, 06, 07, 12, 14, 15, 21, 25 giống nhau vì cùng một thành phần `agentTeam()` (xem mục 6). Phép tính kiểm tra tự động trong generator (ném lỗi nếu lệch): 06 cộng trạng thái = 762 = cộng 12 tuần, lỗi theo agent cộng = 14; 07 gọi công cụ 17, thời gian cộng 34,5 giây, thời gian thực 15,4 = 2,1 + 9,5 + 3,8.
 
 ### 11.4 Điều hướng theo vai (`rules.md` C) và panel AI
 
 | Vai | Mục đầu (badge) | Mục khác theo vai | Mockup |
 | --- | --- | --- | --- |
 | Chuyên viên QHKH | Việc của tôi (**4**) | Tạo đề xuất vay, Khách hàng SME | `02` |
-| Hỗ trợ tín dụng | Việc của tôi (**3**) | Đối chiếu tài liệu, Khách hàng SME | `13`, `19` |
-| Chuyên viên Thẩm định | Việc của tôi (**3**) | Đối chiếu tài liệu, Khách hàng SME | `14` |
-| Quản lý rủi ro/Tuân thủ | Hồ sơ chờ ý kiến (**2**) | Khách hàng SME | `15`, `06`–`08` |
-| Cấp phê duyệt | Hồ sơ chờ phê duyệt (**3**) | Phiên Hội đồng tín dụng | `02b`, `12` |
-| Kiểm toán nội bộ | Hồ sơ vay – chỉ đọc (không badge) | Nhật ký kiểm toán, Phiên Hội đồng – chỉ đọc | `10`, `24` |
+| Hỗ trợ tín dụng | Việc của tôi (**3**) | Đối chiếu tài liệu, Khách hàng SME | `27`, `13`, `19`, `32` |
+| Chuyên viên Thẩm định | Việc của tôi (**3**) | Đối chiếu tài liệu, Khách hàng SME | `28`, `14` |
+| Quản lý rủi ro/Tuân thủ | Hồ sơ chờ ý kiến (**2**) | Khách hàng SME | `29`, `15`, `06`–`08` |
+| Cấp phê duyệt | Hồ sơ chờ phê duyệt (**3**) | Phiên Hội đồng tín dụng | `02b`, `12`, `31` |
+| Kiểm toán nội bộ | Hồ sơ vay – chỉ đọc (không badge) | Nhật ký kiểm toán, Phiên Hội đồng – chỉ đọc | `30`, `10`, `31` |
 
-Cả 6 vai có thêm 3 mục chung sau đường kẻ: Tra cứu chính sách, Trò chuyện, Trợ lý AI; QHKH và vai có mục "Bảng điều khiển agent" theo quyền. Tạo đề xuất vay chỉ có ở QHKH. Số badge ở thanh bên bằng số hàng của danh sách tương ứng (`02`: 4 việc cần QHKH; `02b`: 3 hồ sơ). Quản trị hệ thống không có mockup riêng (ngoài phạm vi, ghi ở báo cáo bàn giao).
+Cả 6 vai có thêm 3 mục chung sau đường kẻ: Tra cứu chính sách, Đội agent và Trợ lý AI (một tên duy nhất "Trợ lý AI" ở thanh bên, tiêu đề trang 09 và panel; không còn "Trò chuyện"); QHKH và vai có mục "Bảng điều khiển agent" theo quyền. Tạo đề xuất vay chỉ có ở QHKH. Số badge ở thanh bên bằng số hàng của danh sách tương ứng (`02`: 4 việc cần QHKH; `02b`: 3 hồ sơ). Quản trị hệ thống không có mockup riêng (ngoài phạm vi, ghi ở báo cáo bàn giao).
 
-**Panel Trợ lý AI (`25`, `25b`).** Khớp `rules.md` D5: panel mở thì mục lục trái ẩn khi màn hình < 1360px (đo 1280 và 1366: mục lục ẩn; 1440: hiện). Panel rộng 380px, nội dung `minmax(0,1fr)` không tràn ngang ở cả 4 cỡ.
+**Panel Trợ lý AI (`25`, `25b`).** Khớp và chặt hơn `rules.md` D5: panel mở thì mục lục trái **ẩn ở mọi cỡ dưới 1600px** (D5 đòi tối thiểu dưới 1360px). Đo lại 2026-11-11 bằng Playwright: mục lục `display:none` ở 1280, 1366, 1440; hiện ở 1920. Bề rộng cột nội dung khi panel mở (và khi đóng): 1280 → 616 (724); 1366 → 702 (810); 1440 → 776 (884); 1920 → 804 (1140). Panel rộng 360px, nội dung `minmax(0,1fr)`, không tràn ngang ở cả 4 cỡ. Mục thanh bên đang chọn ở 25 và 25b là "Việc của tôi" (đúng hồ sơ), không phải "Trợ lý AI". Nút mở khi panel đóng là nút 44×44 có chữ ngang "Trợ lý AI" (không chữ dọc). 25 và 25b dùng đúng khung của `03` (cùng tiêu đề, stepper, khối kết luận, thẻ Việc của bạn), chỉ thêm cột panel. **`24`** là bảng tài liệu của thanh bên, không phải màn ứng dụng; mọi đích trong bảng nay có mockup thật (`27`–`31`, `09`).
 
 ## 12. Đối chiếu `rules.md` D3, D4, D5 và quyết định mở
 
 | Điều | Nội dung `rules.md` mục D | Thiết kế đã áp | Chỗ |
 | --- | --- | --- | --- |
 | D3 (mục 3) | Không có quyền: h1 trung tính, không tên khách hàng, một biểu tượng khiên, đúng 1 nút có biểu tượng | Minh họa khiên, tiêu đề "Bạn chưa có quyền xem trang này", 1 nút "Về Việc của tôi", không nêu khách hàng | `11-trang-thai.html` |
-| D4 (mục 4) | Nút chính chuyển bước ở header phải, tối đa 1; trong nội dung chỉ lặp dạng dòng khóa hoặc link; trang chủ không có nút chuyển bước; wizard "Tiếp: <bước sau>"; bước 5 "Gửi Hỗ trợ tín dụng" khóa kèm lý do; HTTD "Chuyển Thẩm định" khóa kèm lý do | Đúng một nút đồng ở góc phải tiêu đề (đo: `.btn.gold` ≤ 1 trên mỗi trang, trừ trang Thành phần `21` là mẫu); `12` khóa "Ghi quyết định" kèm lý do tới khi chọn; `04`/`17` "Tiếp: Tài chính" khóa kèm lý do; `17b` "Gửi Hỗ trợ tín dụng" khóa; 02 không có nút đồng | `02`, `03`, `04`, `12` đến `17b` |
-| D5 (mục 5) | Kiểm bố cục ở 1280×800 và 1440×900, **panel AI mở và đóng**; ẩn mục lục khi panel AI mở và viewport < 1360px | Mọi trang đo ở 1280, 1366, 1440, 1920; panel AI mở/đóng ở `25`/`25b`, mục lục ẩn khi mở < 1360px (mục 11.4) | `/tmp/ds3/report.json` |
+| D4 (mục 4) | Nút chính chuyển bước ở header phải, tối đa 1; trong nội dung chỉ lặp dạng dòng khóa hoặc link; trang chủ không có nút chuyển bước; wizard "Tiếp: <bước sau>"; bước 5 "Gửi Hỗ trợ tín dụng" khóa kèm lý do; HTTD "Chuyển Thẩm định" khóa kèm lý do | Đúng một nút đồng ở góc phải tiêu đề (đo: `.btn.gold` ≤ 1 trên mỗi trang, trừ trang Thành phần `21` là mẫu); `12` khóa "Ghi quyết định" kèm lý do tới khi chọn; `04`/`17` "Tiếp: Tài chính" khóa kèm lý do; `17b` "Gửi Hỗ trợ tín dụng" khóa; 02 không có nút đồng | `02`, `03`, `04`, `12` đến `17d` |
+| D5 (mục 5) | Kiểm bố cục ở 1280×800 và 1440×900, **panel AI mở và đóng**; ẩn mục lục khi panel AI mở và viewport < 1360px | Mọi trang đo ở 1280, 1366, 1440, 1920; panel AI mở/đóng ở `25`/`25b`, mục lục ẩn khi mở ở < 1600px, chặt hơn D5 (mục 11.4) | `/tmp/ds3/report.json` |
 | Mục 6 (kèm) | Chữ dòng khóa dùng `--text-3` | Dòng lý do khóa dùng `--ink-3` (5,65:1 trên surface) | `.lockwhy` trong `app.css` |
 
 **Quyết định mở (Mate giao: theo `rules.md`, ghi rõ).** Báo cáo chấm việc 2 của trang 02 yêu cầu "giữ đồng ở khối trên" (khối Việc gấp có nút đồng ở thân trang). `rules.md` D4 cấm: nút chính chuyển bước chỉ ở header phải, trang chủ không có nút chuyển bước, nội dung chỉ lặp dạng khóa hoặc link. Thiết kế theo `rules.md`: ở `02` bỏ hẳn nút đồng, "Mở hồ sơ" là nút navy thường; ở 03 hộp Người quyết định dùng link. Lần chấm thứ hai không đòi lại điểm này. Phần này là cách đọc của crew theo chỉ dẫn của Mate ("theo `rules.md`, ghi rõ"), chưa có chữ của người dùng xác nhận.
 
+**Quyết định thứ hai (Mate giao: theo `rules.md` D4 và Q-L, ghi rõ).** Báo cáo chấm lần 3 (việc 4) đòi nút đồng "Chốt tờ trình vN" ở nội dung trang `14`. `rules.md` D4 cấm nút chuyển bước ở thân trang, và Q-L cho việc chốt phiên bản xảy ra khi trình. Thiết kế **không** thêm nút đồng đó: `14` chỉ có một nút đồng ở header ("Trình Rủi ro và Tuân thủ", khóa kèm lý do, bấm sẽ chốt thành bản vN), thân trang hiện trạng thái "Bản nháp, sẽ chốt thành bản v1 khi trình", sau khi trình hiện "Bản vN đã chốt lúc …" (`35`). **Đây là điểm khác báo cáo chấm có chủ đích, theo `rules.md`.**
+
 ## 13. Kiểm tra ở 4 cỡ màn hình
 
-Script `_gen/measure.js` (Playwright, `file://`) mở từng tệp ở 1280×800, 1366×768, 1440×900, 1920×1080 và đo: tràn ngang (`scrollWidth − innerWidth`), tương phản mọi phần tử chữ đang hiển thị (cả nút hover/active ép sẵn), nhãn của ô nhập, tên của nút/liên kết, tab ngoài `tablist`, `h1` và `main` đúng 1, `lang=vi`, skip link tới `#main`, cỡ chữ nhỏ nhất. Từ lần này script đo thêm: vùng bấm < 24px (WCAG 2.2 2.5.8), số `.btn.gold` hiện ở màn đầu và cả trang, số hàng bảng thấy ở màn đầu, khối kết luận AI có nằm trọn màn đầu không, `role=radio` thiếu `aria-checked`, nút/khối người nằm trong khung AI. Kết quả lần chạy cuối (2026-11-11): **39 trang × 4 cỡ = 156 lượt, 0 có vấn đề**; tràn ngang 0; cặp chữ dưới 4,5:1: 0; vùng bấm < 24px: 0; cỡ chữ nhỏ nhất 12px; không nút người trong khung AI. Ảnh chụp: `/tmp/ds3/after/` (156 tệp PNG, không commit). Script không bắt được lỗi nghĩa và nghiệp vụ; phần đó kiểm bằng `_gen/check.js` và đọc đối chiếu `rules.md`.
+Script `_gen/measure.js` (Playwright, `file://`) mở từng tệp ở 1280×800, 1366×768, 1440×900, 1920×1080 và đo: tràn ngang (`scrollWidth − innerWidth`), tương phản mọi phần tử chữ đang hiển thị (cả nút hover/active ép sẵn), nhãn của ô nhập, tên của nút/liên kết, tab ngoài `tablist`, `h1` và `main` đúng 1, `lang=vi`, skip link tới `#main`, cỡ chữ nhỏ nhất. Từ lần này script đo thêm: vùng bấm < 24px (WCAG 2.2 2.5.8), số `.btn.gold` hiện ở màn đầu và cả trang, số hàng bảng thấy ở màn đầu, khối kết luận AI có nằm trọn màn đầu không, `role=radio` thiếu `aria-checked`, nút/khối người nằm trong khung AI. Kết quả lần chạy cuối (2026-11-11, `node _gen/measure.js` từ `docs/design/mockups-v2/_gen`, chạy trên bản đã commit): **51 trang × 4 cỡ = 204 lượt, 0 có vấn đề**. Theo cỡ (1280, 1366, 1440, 1920): trang tràn ngang 0, 0, 0, 0; cặp chữ dưới 4,5:1: 0, 0, 0, 0; vùng bấm < 24px: 0, 0, 0, 0; ô nhập thiếu nhãn: 0; nút/liên kết thiếu tên: 0; cỡ chữ nhỏ nhất 12px; nút/khối người trong khung AI: 0. Nút đồng thấy ở màn đầu: tối đa 1 ở mọi trang, **trừ `21` Thành phần (5 nút mẫu, theo 6 trạng thái nút)**. Số hàng bảng thấy ở màn đầu ở 1366×768 (bằng nhau ở cả 4 cỡ): `02` 5, `02b` 4, `18` 7, `19` 4, `23` 4, `26` 3, `27` 3, `28` 3, `29` 2, `30` 4, `31` 1, `34` 7. Khối kết luận AI nằm trọn màn đầu ở `03`, `25`, `25b` ở cả 4 cỡ. Thành phần Đội agent: `_gen/trunc.js` đo 52 lượt (13 trang × 4 cỡ), **0 phần tử chữ bị cắt**. Ảnh chụp: `/tmp/ds4/after/` (204 tệp PNG, không commit). Script không bắt được lỗi nghĩa và nghiệp vụ; phần đó kiểm bằng `_gen/check.js` và đọc đối chiếu `rules.md`.
 
 ## 14. Quy tắc hiển thị khi chưa có số thật
 
@@ -377,72 +384,80 @@ Mọi mockup lấy từ bảng này; `_gen/check.js` báo lỗi nếu có ngày 
 
 | Hồ sơ | Khách hàng | Số tiền | Giai đoạn và mốc | Xuất hiện ở |
 | --- | --- | --- | --- | --- |
-| HSV-2026-00201 | Phúc Lâm | 15 tỷ | Cấp phê duyệt trả về QHKH 09/11 16:05; đội agent chạy lại 10/11 14:32:26–14:32:41 (15,4 giây) | `02`, `03`–`03c`, `04`, `05`, `06`, `07`, `09`–`09c`, `10`, `19`, `21`, `25`, `25b`, `26` |
-| HSV-2026-00209 | An Phát | 22 tỷ | Hỗ trợ tín dụng nhận 10/11 09:10, hạn 12/11 17:00 | `13`, `19` |
-| HSV-2026-00203 | Hải Đăng | 18 tỷ | Thẩm định nhận 06/11, hạn 13/11 | `14` |
-| HSV-2026-00192 | Đại Nam | 60 tỷ | Rủi ro/Tuân thủ nhận 09/11, hạn 12/11 | `15` |
-| HSV-2026-00194 | Sông Hậu | 24 tỷ (đề xuất 20 tỷ) | Chờ Cấp phê duyệt, hạn 11/11; DSCR 1,35, LTV 64,0% | `12`, `12b`, `12c`, `02b` |
+| HSV-2026-00201 | Phúc Lâm | 15 tỷ | Cấp phê duyệt trả về QHKH 09/11 16:05; đội agent chạy lại 10/11 14:32:26–14:32:41 (15,4 giây: 2,1 / 7,7 / 6,3 / 5,1 / 9,5 / 3,8) | `02`, `03`–`03c`, `04`, `05`, `06`, `07`, `09`–`09c`, `10`, `19`, `21`, `25`, `25b`, `26` |
+| HSV-2026-00209 | An Phát | 22 tỷ | Hỗ trợ tín dụng nhận 10/11 09:10, hạn 12/11 17:00 | `13`, `19`, `27`, `32` |
+| HSV-2026-00203 | Hải Đăng | 18 tỷ | Thẩm định nhận 06/11, hạn 13/11; thời gian agent riêng (1,8 / 6,4 / 8,2 / 4,7 / 5,9 / 3,1 giây, tổng 13,1) | `14`, `28` |
+| HSV-2026-00192 | Đại Nam | 60 tỷ | Rủi ro/Tuân thủ nhận 09/11, hạn 12/11; tổng agent 14,5 giây | `15`, `29` |
+| HSV-2026-00194 | Sông Hậu | 24 tỷ (đề xuất 20 tỷ) | Chờ Cấp phê duyệt, hạn 11/11; DSCR 1,35, LTV 64,0%; tờ trình v2 chốt 09/11 10:42 (Phạm Quốc Bảo); Rủi ro và Tuân thủ do Trần Đức Long ký 09/11 14:05 và 14:12; tổng agent 15,5 giây | `12`, `12b`, `12c`, `02b`, `30`, `35` |
 | HSV-2026-00189 | Gỗ Tây Nguyên | 40 tỷ | Chờ Cấp phê duyệt, hạn hôm nay 10/11 | `02b` |
 | HSV-2026-00186 | Nhựa An Khang | 18 tỷ | Chờ Cấp phê duyệt, hạn 12/11 | `02b` |
 | HSV-2026-00171 | Hải Đăng | 9 tỷ | Phê duyệt có điều kiện 06/11 11:20:45, hạn mức 8 tỷ | `16`, `10` |
 | HSV-2026-00196 | Phú Điền | 30 tỷ | Chờ bổ sung, hạn 13/11 | `02` |
-| HSV-2026-00176 | Đại Thành Global | 80 tỷ | Quá hạn 1 ngày (hạn 09/11), chờ Rủi ro/Tuân thủ | `02` |
-| DX-2026-00412 / DX-2026-00405 | Mekong Flex / Hưng Phát | 80 tỷ / 25 tỷ | Bản nháp lưu 06/11 / 05/11 | `02`, `17`, `17b` |
+| HSV-2026-00176 | Đại Thành Global | 80 tỷ | Quá hạn 1 ngày (hạn 09/11), chờ Rủi ro/Tuân thủ | `02`, `29` |
+| HSV-2026-00178 | Điện gió Bạc Liêu | 120 tỷ (> 100 tỷ) | "Chờ phiên Hội đồng – có ở đợt 2" (Q4, Q-P), họp 17/11 | `02b`, `30`, `31` |
+| HSV-2026-00198 / 00204 / 00205 / 00207 | Việt Cát / Bình An / Tiến Phát / Hoàng Gia | 35 / 9 / 22 / 27 tỷ | Dòng trong danh sách việc của Thẩm định (`28`) và Hỗ trợ tín dụng (`27`) cho đủ badge 3 và 3 | `27`, `28` |
+| DX-2026-00412 / DX-2026-00405 | Mekong Flex / Hưng Phát | 80 tỷ / 25 tỷ | Bản nháp lưu 06/11 / 05/11 | `02`, `17a`–`17d`, `17b`, `33` |
 
 Số tự khớp giữa trang: 06 có 703+21+14+21+3 = 762 lượt (tổng 12 tuần); 07 có tổng 15,4 giây của lượt gần nhất (2,1 + 9,5 + 3,8 = đường dài nhất Planner, Document, Validation); 08 có 37/40 = 92,5% và 31/40 = 77,5% (và 18/20 = 90,0%, 14/20 = 70,0%); 06 hiện 762 lượt, 92,3%. Số "lượt gần nhất" của từng agent (03, 25) khác trung vị 12 tuần ở 06 và được ghi rõ nhãn.
 
-## 15. Bảng "đã sửa" đối chiếu báo cáo chấm lần 2 (`cham-diem-v2-lan-2.md`)
 
-Số đo: `_gen/measure.js` (mục 13: **156 lượt, 0 có vấn đề**, ngày 2026-11-11), `_gen/check.js` (dữ liệu demo) và số đếm bằng `grep` trên HTML sinh ra. Giám khảo khác sẽ chấm lại; bảng này không phải điểm. Báo cáo lần 1 đã đóng ở bản v2.1; không giữ lại bảng cũ vì mọi dòng của nó đã được thay bằng bảng này.
+## 15. Bảng đối chiếu báo cáo chấm lần 3 (`cham-diem-v2-lan-3.md`)
+
+Số đo ngày 2026-11-11, trên bản đã commit: `_gen/measure.js` (**51 trang × 4 cỡ = 204 lượt, 0 có vấn đề**), `_gen/trunc.js` (chữ bị cắt trong Đội agent: 0 ở 52 lượt), `_gen/check.js` (dữ liệu demo, nay có thêm các phép kiểm ở việc 3), số đếm trên HTML sinh ra. Đây là bảng tự đối chiếu, **không phải điểm**; giám khảo khác chấm lại, và lần chấm tới là trên ứng dụng thật nên mục 6, 11 và 12 phải đủ để dev làm đúng. Báo cáo lần 1 và 2 đã đóng ở các bản trước; không giữ bảng cũ.
 
 ### 15.1 Mười ba việc phải sửa
 
 | # | Việc | Đã sửa ở đâu | Số đo sau sửa |
 | --- | --- | --- | --- |
-| 1 | Màn Cấp phê duyệt | `_gen/p4.js` `p12()`: `12` (4 radio thật, **0 chọn sẵn**, "Ghi quyết định" khóa kèm lý do), `12b` (chọn "Phê duyệt có điều kiện", hộp "Xác nhận phê duyệt có điều kiện?" đúng lựa chọn, một nút xác nhận), `12c` (chọn "Trả lại", ô "Trả lại cho" chọn Thẩm định hoặc QHKH theo rules Q-O, hộp "Xác nhận trả về QHKH?") | `checked`: 12 = 0, 12b = 1, 12c = 1; `.btn.gold` = 1 mỗi trang; 3 trang × 4 cỡ: 0 vấn đề |
-| 2 | "Người quyết định" dùng quá rộng | `lib.js` `tagMe()` và `.tag-me`/`.mineb`; `03`, `03b`, `03c`, `13`, `14`, `15`, `16` | `.tag-hm` ở 03, 13, 14, 15, 16 = 0; `tag-me`: 03 = 1, 13 = 1, 14 = 1, 15 = 2; "Người quyết định" chỉ còn ở `01` (chú giải), `02b`, `12*`, `21`, `23`, `24` |
-| 3 | Nút người trong khung AI nét đứt | `lib.js` `team()` chỉ còn 6 agent; `hwrap()`/`humanOut()` đưa nút người ra ngoài (`.hwrap`, `.hdown`); `teamLine()` thu gọn | script `hmIn` (`.aib .tag-hm` + `.hnode` trong khung AI) = 0 ở 156 lượt |
-| 4 | Câu chuyện demo xuyên trang | Mục 14.1 + `p1.js`…`p6.js` viết lại theo một bảng; `_gen/check.js` | `check.js`: 0 ngày cuối tuần, 0 mã ngoài bảng, badge 4 và 3 khớp, "15,4 giây" ở 03 và 07; 05 đọc báo cáo tài chính ngày 28/10 khớp dòng thời gian 03; 06 703+21+14+21+3 = 762 |
-| 5 | Thanh bên và badge theo vai | `lib.js` `navHtml()`, `NAVR`, `BADGE`; `24-thanh-ben-theo-vai.html`; `02b`; mục 11.4 | 6 vai, badge 4/3/3/2/3/không; "Tạo đề xuất vay" chỉ ở QHKH; 24 gồm bảng cả 6 vai |
-| 6 | Văn phong và thuật ngữ vai | mục 8 (điều 5 và 9); `p1`…`p6` | `check.js` chặn "Giám đốc", "cán bộ tín dụng", "ms", "Hỏi ca": 0 chỗ; "Bước x trên 5" ở 04 và 17/17b; thời gian bằng giây |
-| 7 | 02 và 03 màn đầu 1366 | `02`: `.strip` cao 64px; `03`: kết luận + cờ lên trên, `<details>` sơ đồ | 02 ở 1366×768: **5 hàng thấy** (tiêu chí ≥ 3); 03: kết luận AI trọn màn đầu (`ai1` = đủ ở 1280, 1366, 1440, 1920) |
-| 8 | 09 và 20 nhiều trạng thái | `09`/`09b`/`09c`, `20`/`20b` tách tệp; `11` bỏ 403 sang `11b` | mỗi tệp một trạng thái; `11b` có khiên (không dấu tích), 1 nút |
-| 9 | Ngữ nghĩa màu phụ | `05`, `06`, `07`, `08`, `11b`, `20`, `app.css` (`mark`, `.bars .last`) | thẻ AI trên số đo 06/07: 0; 08 khối "Nhận xét" kiểu info; cột cuối 06 màu navy (không đồng); `mark` nền warn-100 + gạch chân |
-| 10 | Bàn giao | mục 5.4 (max-width), 5.7 (`#F1F2EE`), 6, 11.1, 11.4, 12 (D5 đủ), `21` (radio, checkbox, select, phân trang, tìm kiếm) | Bảng thành phần mục 6 thêm 6 dòng; `21` thêm mục thẻ nhãn/badge, form và phân trang |
-| 11 | Ô tìm cao 22px | `app.css` `.search input{height:32px}` | script vùng bấm: 0 phần tử < 24px ở 156 lượt |
-| 12 | 22b | `p5.js`: banner chung, **cả hai ô** viền lỗi, `aria-describedby` tới `#kc-err` | `invalid` = 0; không còn ô nào tô riêng |
-| 13 | Trang còn thiếu | `24`, `25`, `25b`, `26`, `17b`, `02b` | 39 tệp; xem 15.2 |
+| 1 | `12` thiếu căn cứ của người | `_gen/p4.js` `memoView()`, `opinions()`, `p12()`; `app.css` `.doc7 .sgn .condlist`. `12`: khối "Tờ trình thẩm định, bản v2" (thẻ "Bản đã chốt", 7 mục, ký Phạm Quốc Bảo 09/11/2026 10:42, nút mở `35`) và khối "Ý kiến Quản lý rủi ro và Tuân thủ" (hai ý kiến con Q-N, kết luận cờ CIC của Tuân thủ theo F8) nằm TRÊN khối AI, viền liền. `12b`: ô "Hạn mức phê duyệt" 20.000.000.000 + danh sách 2 điều kiện có hạn; hộp xác nhận liệt kê lại hạn mức, 2 điều kiện, ngoại lệ, "Không hoàn tác được". `12c`: ô nơi nhận + danh sách việc cần sửa | `12` ở 1366: 4 radio, 0 chọn sẵn, "Ghi quyết định" khóa kèm lý do; 7 mục tờ trình + 2 ý kiến; `check.js` bắt thiếu "Bản đã chốt" hoặc khối ý kiến; 1 nút đồng ở header; 0 vùng bấm < 24px |
+| 2 | Một thành phần "Đội agent" | `lib.js` `agentTeam(states,{v:'full'|'compact'|'strip'})`; `app.css` khối v2.3 `.at*`; mục 6; `21`. Dùng ở `03`/`03b`/`03c` (compact + full), `25`/`25b` (compact), `06`, `07`, `12`, `14`, `15` (strip/full), `21` (đủ 3 biến thể + chưa chạy, đang chạy, lỗi) | `trunc.js`: 52 lượt (13 trang × 4 cỡ) 0 chữ bị cắt; `measure.js`: 0 nút/khối người trong khung AI; người quyết định luôn ngoài khung |
+| 3 | Số liệu demo đúc khuôn, mâu thuẫn | `lib.js` `CASES` (mỗi hồ sơ một bộ giây: 00201 15,4 / 00194 15,5 / 00203 13,1 / 00192 14,5); cờ riêng từng hồ sơ ở `p4.js`; `05` và `19` cùng "Hợp đồng thuê đất = Đã xác nhận" (`19` bỏ 00201 khỏi việc của HTTD, ghi "Đã xong, chỉ xem"); `09` ghi "số đang chờ xác nhận"; `17b` bước 4 "Còn thiếu"; `check.js` thêm phép kiểm | `check.js`: 0 lượt chạy trùng giây, 05 = 19, `17b` có "Còn thiếu", 0 ngày cuối tuần, 0 mã ngoài bảng; sửa thêm: `27` 22 tỷ và hạn 12/11 khớp `13`, `28` 00203 hạn 13/11 khớp 14.1 |
+| 4 | `14` tờ trình 7 mục | `_gen/p4.js` `memoCard()`: 7 mục có tiêu đề Q-L, mỗi mục 1 đến 6 có khối "AI đề xuất" (nút Chèn, Bỏ) + ô của người, mục 7 chỉ người viết. **Khác báo cáo chấm, theo `rules.md` D4/Q-L (quyết định của Mate): KHÔNG có nút đồng "Chốt tờ trình vN" trong nội dung**; thân trang ghi "Bản nháp, sẽ chốt thành bản v1 khi trình"; nút đồng duy nhất ở header "Trình Rủi ro và Tuân thủ" (khóa kèm lý do, bấm là chốt); `35` là mẫu "Bản v2 đã chốt lúc …". Xem mục 12 | `14`: 7 `<h3>` mục; 1 `.btn.gold` (header); `check.js` bắt nút đồng trong nội dung |
+| 5 | Lỗi lần 2 ở 05, 08, 09, 13 | `p2.js`: `05` (tên công ty chữ thường, không mono; thẻ AI), `08` ("Mô hình đơn lẻ: gpt-oss-120b, 1 lần gọi", nhận xét lên màn đầu, không thẻ AI trên số đo), `p3.js`: `09` (trả lời đúng câu hỏi, số kèm "đang chờ xác nhận"), `p4.js`: `13` (bỏ câu chống nạng, một thẻ "Việc của bạn", thêm "Đề xuất ngoại lệ" → `32`) | `grep` "Nút chuyển ở góc" ở 13 = 0; thẻ AI trên số đo 06/07/08 = 0; 0 vấn đề ở 204 lượt |
+| 6 | Ngữ nghĩa màu và nhãn | "Trả về QHKH" = `badge bad` (đúng 5.1, ghi ở mục 6); `20`: "Mục 4.2" là chữ trung tính, không badge; `16`: đề xuất agent nằm trong khối AI (`.aib`) | `20`: 0 `.badge` ở nhãn mục; `16`: 3 đề xuất trong `.aib` |
+| 7 | 25 và 25b ở 1366 | `app.css` ngưỡng ẩn mục lục khi panel mở: **< 1600px** (chặt hơn D5 < 1360px); bỏ `writing-mode` dọc, nút 44×44 chữ ngang; thanh bên chọn "Việc của tôi"; dùng khung của `03`; sửa lời khai ở 11.4 và 12 | Playwright: mục lục `none` ở 1280, 1366, 1440, hiện ở 1920; cột nội dung 616, 702, 776, 804 px khi panel mở (≥ 600) |
+| 8 | Văn phong | Một tên "Trợ lý AI" (thanh bên, h1 `09`, panel); `01` không còn "Cán bộ"; `16` nút "Về Khách hàng SME" khớp breadcrumb; `10` placeholder "ngày/tháng/năm" | `grep` "Trò chuyện" = 0, "Cán bộ" ở 01 = 0, "dd/mm/yyyy" ở 10 = 0; `check.js` chặn thuật ngữ cũ |
+| 9 | Thống nhất bố cục | Wizard `04`, `17`, `17a`, `17c`, `17d`, `17b` cùng bố cục (cột bước 200px + form); `25` dùng khung `03`; `06`, `07`, `08` cùng h1 "Đội agent" | h1 của 06, 07, 08 = "Đội agent"; 0 vấn đề |
+| 10 | Ô tìm kiếm thanh trên và focus | `app.css` `.search{border:1px solid var(--control)}` (4,57:1); quy tắc bẫy và trả focus ở mục 6 và `21` | `measure.js` 0 cặp < 4,5:1 (204 lượt) |
+| 11 | 20b một nút | `p5.js`: "Xóa từ khóa" và "Hỏi Trợ lý AI" | `20b`: 2 nút trong trạng thái rỗng (theo mục 6: một nút chính + một phụ) |
+| 12 | 1920 và nửa dưới cột trái ở 12 | mục 5.4: khối căn giữa; `12` cột trái có tờ trình + ý kiến + AI | `.page` có `margin-inline:auto`; không trang tràn ngang ở 1920 |
+| 13 | Trang còn thiếu | `p7.js` và `p6.js`: `27`, `28`, `29`, `30`, `31`, `32`, `33`, `34`, `35`, `17a`, `17c`, `17d`; `02b` thêm dòng "Chờ phiên Hội đồng – có ở đợt 2" (00178, 120 tỷ); `23` nay là menu đổi vai mở trên trang thật `02b`; `24` đích nay đều có trang; `21` có đội agent 3 biến thể, radio, checkbox, select, phân trang. **Chưa làm: `/foundation`** | 51 tệp (đã đếm bằng `ls mockups-v2/*.html \| wc -l`); `check.js` bắt thiếu dòng Hội đồng ở `02b` |
 
 ### 15.2 Từng trang
 
 | Trang | Đã sửa ở đâu | Số đo sau sửa |
 | --- | --- | --- |
-| 01 | chú giải: dải 3 bước + mẫu thẻ AI / Người quyết định | `main` = 1; 0 vấn đề |
-| 02, 02b | 7 hồ sơ theo bảng 14.1, `.strip`, bộ lọc, `.pg`, hạn theo ngày làm việc | 02: 5 hàng thấy ở 1366×768; 0 nút đồng; 02b: 3 hồ sơ, badge 3 |
-| 03, 03b, 03c | kết luận lên trên, `stepBack()`, thẻ "Việc của bạn", 03c banner lỗi đầu trang | 1 nút đồng; `ai1` = đủ; 0 vấn đề |
-| 04, 17, 17b | "Bước 2 trên 5", `toc` có ✓/●/○, nút "Tiếp: …" khóa kèm lý do; 17b là bước 5 + checkbox | 17b "Gửi Hỗ trợ tín dụng" khóa; 0 vấn đề |
-| 05 | role QHKH, mục "Việc của tôi" active, cột AI đọc có thẻ AI | tải 28/10; vùng bấm 0 lỗi; mục "Việc của tôi" active (QHKH không có "Đối chiếu tài liệu") |
-| 06, 07, 08 | role Quản lý rủi ro/Tuân thủ; bỏ node người và thẻ AI ở sơ đồ vận hành; giây | 762 = 762; 15,4 giây; 08: 37/40 |
-| 09, 09b, 09c | tách 3 trạng thái | `scrollHeight` = `innerHeight`: 800/800 ở 1280, 768/768 ở 1366, cả 3 tệp |
-| 10 | dữ liệu 00201 và 00171, nhãn "Người" trung tính, `.pg` | 0 vấn đề |
-| 11, 11b | 403 tách riêng; "rỗng sau lọc" là nhật ký lọc | `11b`: 1 khiên, 1 nút, h1 trung tính |
-| 12, 12b, 12c | xem việc 1 | xem việc 1 |
-| 13, 14, 15, 16 | `mineCard`, h1 = tên khách, meta có Nhận ngày / Hạn xử lý | 13: nút "Mở" 18×18 → 28×28; 0 vấn đề |
-| 18, 19, 26 | 18: 7 khách; 19: role HTTD; 26: chi tiết Phúc Lâm (00201, 00158, 00121) | 0 vấn đề |
-| 20, 20b | tách có và không có kết quả; `mark` | 0 vấn đề |
-| 21 | thêm thẻ nhãn, radio, checkbox, select, tìm, phân trang, `hwrap` | tràn ngang 11px ở 1440 đã sửa → 0 |
-| 22, 22b, 22c | 22b xem việc 12; 22c điều kiện "bản nháp đã lưu tự động" | `invalid` = 0 |
-| 23 | role Cấp phê duyệt | 0 vấn đề |
-| 24, 25, 25b | thanh bên 6 vai; panel Trợ lý AI mở/đóng | 25b tràn 178px ở 1280 đã sửa (thẻ đóng `</section>`) → 0; mục lục ẩn khi panel mở < 1360px |
+| 01 | bỏ "Cán bộ" | `main` = 1; 0 vấn đề |
+| 02, 02b | `02b` thêm dòng Hội đồng; `23` dùng lại thân của `02b` | 02: 5 hàng thấy; 02b: 4 hàng, badge 3; 0 nút đồng |
+| 03, 03b, 03c | thành phần Đội agent (compact + full); cờ riêng | `ai1` = đủ ở 4 cỡ; 1 nút đồng; 0 vấn đề |
+| 04, 17, 17a, 17c, 17d, 17b | cùng bố cục; 17b bước 4 "Còn thiếu" khớp banner lỗi; thêm bước 1, 3, 4 | 0 vấn đề; 17d "Tiếp: Rà soát và gửi" khóa kèm lý do |
+| 05 | bỏ mono, "Hợp đồng thuê đất" khớp 19 | `check.js` 05 = 19 |
+| 06, 07, 08 | Đội agent strip/full; 08 nhận xét lên đầu; số 37 và 31 cùng hàng | 0 vấn đề |
+| 09, 09b, 09c | một tên "Trợ lý AI"; câu trả lời đúng câu hỏi | 0 vấn đề; cao đúng màn hình |
+| 10 | placeholder dạng mẫu | 0 "dd/mm/yyyy" |
+| 11, 11b | không đổi | 0 vấn đề |
+| 12, 12b, 12c | xem việc 1 | 0 vấn đề; 1 nút đồng |
+| 13 | bỏ câu chống nạng, thẻ trùng; thêm "Đề xuất ngoại lệ" | 0 vấn đề |
+| 14 | tờ trình 7 mục (việc 4) | 1 nút đồng (header) |
+| 15 | Tuân thủ chọn kết luận cờ CIC (F8, 3 lựa chọn + lý do), ý kiến Rủi ro; banner "đang đọc tờ trình bản v1" | 0 vấn đề |
+| 16 | đề xuất trong khối AI; nút "Về Khách hàng SME" | 0 nút đồng |
+| 18 | cột "Hồ sơ" là liên kết có `aria-label` | 7 hàng thấy |
+| 19 | bỏ 00201 khỏi việc HTTD (ghi "Đã xong, chỉ xem") | 4 hàng; khớp 05 |
+| 20, 20b | nhãn "Mục 4.2" trung tính; 20b có 2 nút | 0 vấn đề |
+| 21 | Đội agent 3 biến thể + trạng thái; quy tắc focus | `21` là trang duy nhất > 1 nút đồng (5 mẫu) |
+| 22, 22b, 22c | không đổi (giữ tên đăng nhập, xóa mật khẩu khi sai: ghi ở mục 8) | 0 vấn đề |
+| 23 | menu đổi vai trên `02b` | 4 hàng; 0 vấn đề |
+| 24 | bảng tài liệu; đích nay đều có trang | 0 vấn đề |
+| 25, 25b | khung `03`, "Việc của tôi" chọn, nút mở có chữ ngang, ẩn mục lục < 1600px | cột nội dung ≥ 616px; `ai1` = đủ |
+| 26 | liên kết mã hồ sơ gạch chân | 3 hàng; 0 vấn đề |
+| 27 đến 35 | mới (việc 13) | mỗi trang 0 vấn đề ở 4 cỡ; `27` 3, `28` 3, `29` 2, `30` 4, `31` 1 hàng |
 
-### 15.3 Điều khai ở báo cáo lần 2 đã sửa lại cho đúng
+### 15.3 Điều khai ở báo cáo lần 3 đã sửa lại cho đúng
 
-| Chỗ tự khai sai | Sửa |
+| Chỗ lời khai lệch | Sửa |
 | --- | --- |
-| "Người quyết định ngoài khối AI" (§15 cũ, việc 2) | Nay đúng thật: script `hmIn` = 0 |
-| "Số liệu tự mâu thuẫn đã sửa" | Nay có bảng 14.1 + `check.js` bắt ngày cuối tuần và mã lệch |
-| "Một nhãn AI" | Thẻ AI không còn ở số đo 06/07; có ở mọi khối AI của 03, 05, 25 |
-| Tiêu chí ≥ 3 hàng ở 02 | Đo 5 hàng |
-| §12 D5 tóm thiếu | Đã chép đủ (panel AI mở/đóng, ẩn mục lục < 1360px) |
-| §5.7 logo `#F5F4EF` | `#F1F2EE` |
-| "0 vấn đề ở 108 lượt" | 156 lượt, thêm phép đo vùng bấm, nút đồng, hàng, `hmIn`; lỗi nghĩa vẫn cần người đọc |
+| "Đo 1280 và 1366: mục lục ẩn" (11.4, 12, 15.2) | Nay đúng thật và chặt hơn: ngưỡng 1600px, đo bằng Playwright ở cả 4 cỡ (mục 11.4) |
+| 05 và 08 "đã xong" | Sửa ở việc 5 và đo lại |
+| "Câu chuyện demo khớp nhờ `check.js`" | `check.js` nay kiểm thêm: không hai lượt chạy trùng giây, 05 = 19, `17b` "Còn thiếu", dòng Hội đồng ở `02b`, nút đồng ở thân `14`; hai mâu thuẫn mới tự bắt được khi viết `27`, `28` (số tiền, hạn) đã sửa |
+| Số tệp và số lượt | 51 tệp, 204 lượt (51 × 4), kiểm bằng `ls` và `measure.js` |
+| Việc 4 "Chốt tờ trình" | Không theo báo cáo mà theo `rules.md` D4/Q-L (mục 12), ghi rõ để lần chấm sau không trừ nhầm |

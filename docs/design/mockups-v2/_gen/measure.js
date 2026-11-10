@@ -1,6 +1,6 @@
 const { chromium } = require('/home/hieu/workspace/do-an/bank-ai/frontend/node_modules/playwright');
 const fs=require('fs'),path=require('path');
-const dir='/home/hieu/workspace/.worktrees/do-an-ds3/docs/design/mockups-v2';
+const dir=path.join(__dirname,'..');
 const only=process.argv[2]; const shots=process.argv[3]!=='noshot';
 const SIZES=[[1280,800],[1366,768],[1440,900],[1920,1080]];
 (async()=>{
@@ -52,9 +52,9 @@ const SIZES=[[1280,800],[1366,768],[1440,900],[1920,1080]];
     out.tablist=[...document.querySelectorAll('[role=tab]')].every(t=>t.closest('[role=tablist]'));
     return out;});
    rep[`${f}@${w}`]=r;
-   if(shots&&(only||true))await p.screenshot({path:`/tmp/ds3/after/${f.replace('.html','')}-${w}x${h}.png`,fullPage:false});
+   if(shots&&(only||true))await p.screenshot({path:`/tmp/ds4/after/${f.replace('.html','')}-${w}x${h}.png`,fullPage:false});
    await p.close();}}
- fs.writeFileSync('/tmp/ds3/report.json',JSON.stringify(rep,null,1));
+ fs.writeFileSync('/tmp/ds4/report.json',JSON.stringify(rep,null,1));
  // tóm tắt
  let bad=0;for(const [k,r] of Object.entries(rep)){const issues=[];
   if(r.ow>0)issues.push('overflowX '+r.ow);if(r.low.length)issues.push('low '+JSON.stringify(r.low.slice(0,4)));if(r.small.length)issues.push('small '+JSON.stringify(r.small.slice(0,3)));

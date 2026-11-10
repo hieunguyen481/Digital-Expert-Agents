@@ -284,7 +284,7 @@ abbr[title]{text-decoration:underline dotted;text-underline-offset:3px;cursor:he
 .dossier.closed{grid-template-columns:184px minmax(0,1fr) 44px}
 .dossier .toc{position:sticky;top:calc(var(--topbar-h) + var(--s4));display:grid;gap:2px;font-size:var(--fs-13)}
 .dossier .toc a{display:block;padding:7px var(--s3);border-radius:var(--r-md);color:var(--ink-2);min-height:32px} .dossier .toc a[aria-current=true]{background:var(--navy-50);box-shadow:inset 3px 0 0 var(--navy-700);color:var(--navy-900);font-weight:600} .dossier .toc a:hover{background:var(--paper-2);text-decoration:none}
-@media (max-width:1439px){.dossier:not(.closed){grid-template-columns:minmax(0,1fr) 360px}.dossier:not(.closed) .toc{display:none}}
+@media (max-width:1599px){.dossier:not(.closed){grid-template-columns:minmax(0,1fr) 360px}.dossier:not(.closed) .toc{display:none}}
 @media (max-width:1100px){.dossier,.dossier.closed{grid-template-columns:1fr}.dossier .toc{display:none}}
 .aipanel{border:1.5px dashed var(--ai-500);background:var(--ai-50);border-radius:var(--r-md);display:flex;flex-direction:column;position:sticky;top:calc(var(--topbar-h) + var(--s4));max-height:calc(100vh - var(--topbar-h) - var(--demo-h) - var(--s8));overflow:hidden}
 .aipanel .scroll{padding:var(--s4);overflow:auto;display:grid;gap:var(--s3);align-content:start}
@@ -332,8 +332,8 @@ abbr[title]{text-decoration:underline dotted;text-underline-offset:3px;cursor:he
 .condlist{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2)} .condlist li{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:var(--s2)}
 .condlist .input{min-height:32px}
 .memo7{display:grid;gap:var(--s4)} .memo7 .it{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:var(--s4);border-top:1px solid var(--rule);padding-top:var(--s3)} .memo7 .it h3{font:600 var(--fs-14) var(--font-body);margin-bottom:6px}
-.memo7 .ai{border:1.5px dashed var(--ai-500);background:var(--ai-50);border-radius:var(--r-md);padding:var(--s3);font-size:var(--fs-13)}
-.memo7 .ai .tag-ai{margin-bottom:6px}
+.memo7 .aiw{border:1.5px dashed var(--ai-500);background:var(--ai-50);border-radius:var(--r-md);padding:var(--s3);font-size:var(--fs-13)}
+.memo7 .aiw .tag-ai{margin-bottom:6px}
 .t-link{text-decoration:underline;text-underline-offset:2px}
 td a.id,td .id a,.tbl a{text-decoration:underline;text-underline-offset:2px}
 .tbl .name a{text-decoration:none} .tbl .name a:hover{text-decoration:underline}
