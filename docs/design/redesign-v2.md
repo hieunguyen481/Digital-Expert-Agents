@@ -14,6 +14,11 @@ Phạm vi: định hướng thiết kế và mockup cho toàn bộ ứng dụng.
 8. Văn phong UX
 9. Kế hoạch áp vào code
 10. Bảng tự chấm (design-critique, accessibility-review)
+11. Bàn giao cho React và Ant Design (v2.1)
+12. Đối chiếu `rules.md` D3, D4, D5 và quyết định mở
+13. Kiểm tra ở 4 cỡ màn hình
+14. Quy tắc hiển thị khi chưa có số thật
+15. Bảng "đã sửa" đối chiếu báo cáo chấm lần 1
 
 ## 1. Skill đã áp dụng
 
@@ -56,7 +61,7 @@ Quyết định của Mate (giữ nguyên lời): chọn A "Sổ cái ngân hàn
 
 Kiểm tra dấu tiếng Việt của Newsreader (đã chạy, ảnh `/tmp/ds1/vn.png`): hiển thị đủ `Ệ ặ ữ ỗ ả ề ợ ụ Đ đ` và toàn bộ chồng dấu ở 11, 14, 20, 34px và cả chữ nghiêng; gói phông có subset `vietnamese`. Kết luận: giữ Newsreader. Quy tắc: serif chỉ dùng từ 16px trở lên (tiêu đề), nội dung nhỏ dùng Be Vietnam Pro.
 
-Lý do tránh "mặc định kiểu AI": nền giấy của Sổ Tín Dụng là `#F5F4EF` kết hợp navy sâu và **đồng** (không phải đất nung/terracotta); bố cục không phải tờ báo (có sidebar, thẻ chỉ số, bảng); nhận diện là chữ "S" gạch chân đồng chứ không phải biểu tượng ngân hàng chung. Rủi ro còn lại: serif + giấy ấm vẫn có thể bị coi là quen; được giảm bằng navy đặc ở khung và tím mực làm màu thứ hai.
+Lý do tránh "mặc định kiểu AI": nền giấy của Sổ Tín Dụng là `#F1F2EE` (giấy xám lạnh, không còn kem ấm) kết hợp navy sâu và **đồng** (không phải đất nung/terracotta); bố cục không phải tờ báo (có sidebar, thẻ chỉ số, bảng); nhận diện là chữ "S" gạch chân đồng chứ không phải biểu tượng ngân hàng chung. Rủi ro còn lại: serif + giấy ấm vẫn có thể bị coi là quen; được giảm bằng navy đặc ở khung và tím mực làm màu thứ hai.
 
 ### B. "Bảng điều khiển phân tích" (phương án thay thế, không chọn)
 
@@ -82,23 +87,24 @@ Nguồn chân lý: `docs/design/mockups-v2/tokens.css` (68 biến CSS). Bảng d
 
 | Token | Giá trị | Vai trò |
 | --- | --- | --- |
-| `--paper` | `#F5F4EF` | nền trang |
-| `--paper-2` | `#ECEAE2` | nền hover, skeleton |
-| `--surface` | `#FDFCF9` | nền thẻ, ô nhập |
-| `--surface-2` | `#F8F7F2` | đầu bảng, chân bảng |
-| `--rule` | `#D9D5C8` | kẻ phân cách |
-| `--rule-strong` | `#B9B3A0` | kẻ đậm, gạch kép |
-| `--control` | `#7F7964` | viền ô nhập và nút (≥3:1) |
+| `--paper` | `#F1F2EE` | nền trang |
+| `--paper-2` | `#E4E7E0` | nền hover, skeleton |
+| `--surface` | `#FBFBF8` | nền thẻ, ô nhập |
+| `--surface-2` | `#F5F6F2` | đầu bảng, chân bảng |
+| `--rule` | `#D3D7CC` | kẻ phân cách |
+| `--rule-strong` | `#AEB3A1` | kẻ đậm, gạch kép |
+| `--control` | `#6F7660` | viền ô nhập và nút (4,57:1 trên surface, 4,21:1 trên paper; yêu cầu ≥3:1) |
 | `--ink` | `#1B2430` | chữ chính |
 | `--ink-2` | `#434C5A` | chữ phụ |
-| `--ink-3` | `#5E6573` | nhãn, ghi chú (≥4,8:1) |
-| `--ink-inv` | `#F5F4EF` | chữ trên nền tối |
+| `--ink-3` | `#5E6573` | nhãn, ghi chú (5,65:1 trên surface, 5,21:1 trên paper, 4,69:1 trên paper-2) |
+| `--ink-inv` | `#F1F2EE` | chữ trên nền tối |
 | `--navy-900` | `#0E1F3D` | nút chính khi hover, chữ nhấn |
 | `--navy-700` | `#14284B` | sidebar, nút chính, người quyết định |
 | `--navy-500` | `#2A4A80` | liên kết, focus |
 | `--navy-100` | `#DCE4F1` | nền nhẹ |
 | `--navy-50` | `#EDF1F8` | hàng đang chọn |
-| `--bronze-700` | `#7A5C22` | chữ đồng trên nền giấy |
+| `--bronze-800` | `#5A4210` | nút chốt khi active |
+| `--bronze-700` | `#7A5C22` | chữ đồng trên nền giấy; nút chốt khi hover (chữ trắng 6,21:1) |
 | `--bronze-500` | `#B08A3E` | nút chốt, vạch thẻ chính, mục đang chọn |
 | `--bronze-100` | `#F0E6CF` | dải demo, bước hiện tại |
 | `--ai-700` | `#4F3590` | chữ và nút AI |
@@ -109,7 +115,7 @@ Nguồn chân lý: `docs/design/mockups-v2/tokens.css` (68 biến CSS). Bảng d
 | `--warn-700` / `--warn-100` | `#8F5400` / `#F8E8C8` | cần chú ý, cờ vàng, sắp hạn |
 | `--danger-700` / `--danger-100` | `#A8281D` / `#F7DDD9` | lỗi, từ chối, cờ đỏ, quá hạn |
 | `--info-700` / `--info-100` | `#1D4F91` / `#DCE7F6` | thông tin, chờ |
-| `--neutral-100` | `#E7E5DC` | nháp, chưa có |
+| `--neutral-100` | `#E2E5DC` | nháp, chưa có |
 
 Ngữ nghĩa trạng thái hồ sơ: Nháp = trung tính; Đang xử lý (Kiểm tra, Thẩm định, Rủi ro) = info; Chờ bổ sung / sắp quá hạn = warn; Trả lại / từ chối / quá hạn = danger; Phê duyệt, hoàn tất = ok. Mức cờ: Xanh = ok (hình thoi), Vàng = warn (hình thoi), Đỏ = danger (hình tròn).
 
@@ -120,8 +126,7 @@ Ngữ nghĩa trạng thái hồ sơ: Nháp = trung tính; Đang xử lý (Kiểm
 | `--font-display` | Newsreader 600 (tối thiểu 16px), dự phòng Times New Roman | tiêu đề trang, tiêu đề thẻ |
 | `--font-body` | Be Vietnam Pro 400/500/600/700, dự phòng system-ui | chữ thường, nút, nhãn |
 | `--font-num` | IBM Plex Mono 400/500, tabular | số tiền, tỉ lệ, mã hồ sơ, thời gian, chỉ số |
-| `--fs-11` | 11px | chú thích nhỏ nhất, thẻ AI/người (chỉ Be Vietnam Pro) |
-| `--fs-12` | 12px | nhãn bảng, ghi chú |
+| `--fs-12` | 12px | cỡ nhỏ nhất của cả hệ thống: nhãn bảng, ghi chú, thẻ AI/người. Không có cỡ 11px |
 | `--fs-13` | 13px | bảng, nút, nhãn form |
 | `--fs-14` | 14px | chữ thân |
 | `--fs-16` | 16px | tiêu đề thẻ (h3, serif) |
@@ -166,29 +171,30 @@ Tên sản phẩm: **Sổ Tín Dụng**. Logo: ô vuông giấy `#F5F4EF` cạnh
 
 Chữ thường ≥ 4,5:1, thành phần giao diện ≥ 3:1. Bảng rút gọn (đủ trong mục 10):
 
-| Cặp | Tỉ lệ |
-| --- | --- |
-| ink / paper | 14,21 |
-| ink-3 / surface | 5,71 |
-| ink-3 / paper-2 | 4,86 |
-| trắng / navy-700 | 14,64 |
-| ink tối / bronze-500 | 5,70 |
-| trắng / ai-700 | 9,36 |
-| ai-700 / ai-50 | 8,31 |
-| ok-700 / ok-100 | 5,52 |
-| warn-700 / warn-100 | 5,05 |
-| danger-700 / danger-100 | 5,46 |
-| 9DB0D1 (nhãn nhóm nav) / navy-700 | 6,67 |
-| control / surface (viền ô nhập) | 3,96 |
+| Cặp | Tỉ lệ | Cặp | Tỉ lệ |
+| --- | --- | --- | --- |
+| ink / paper | 13,92 | ink-3 / paper-2 | 4,69 |
+| ink / surface | 15,10 | ink-3 / surface | 5,65 |
+| ink-2 / surface | 8,37 | ink-3 / paper | 5,21 |
+| trắng / navy-700 | 14,64 | ink-inv / navy-700 | 13,02 |
+| ink tối `#1B1405` / bronze-500 | 5,70 | trắng / bronze-700 (nút chốt hover) | 6,21 |
+| trắng / bronze-800 (nút chốt active) | 9,45 | bronze-700 / surface | 5,99 |
+| ai-700 / ai-100 | 7,48 | ai-700 / ai-50 | 8,31 |
+| ok-700 / ok-100 | 5,52 | warn-700 / warn-100 | 5,05 |
+| danger-700 / danger-100 | 5,46 | info-700 / info-100 | 6,51 |
+| control / surface (viền, thành phần) | 4,57 | control / paper (viền, thành phần) | 4,21 |
+
+Cặp thấp nhất của chữ là 4,69:1. Đo thật trên trang: `mockups-v2/_gen/measure.js` (bản chạy ở `/tmp/ds2/measure.js`) tính tỉ lệ cho mọi nút chữ đang hiển thị (cả hover/active ép sẵn ở trang Thành phần), kết quả 0 cặp dưới 4,5:1 ở 27 trang × 4 cỡ.
 
 ## 6. Quy cách thành phần
 
-Tất cả trạng thái: mặc định, hover, focus (`--focus`), active, disabled (giảm 50% độ đậm, `cursor: not-allowed`), loading (giữ nhãn, thêm spinner 14px trước nhãn). Vùng bấm tối thiểu 36px chiều cao (nút nhỏ 30px chỉ dùng trong bảng, có khoảng đệm quanh).
+Tất cả trạng thái: mặc định, hover, focus (`--focus`), active, disabled (đổi sang nền paper-2, chữ ink-3, vẫn đạt 4,5:1, `cursor: not-allowed`), loading (giữ nhãn, thêm spinner 14px trước nhãn). Vùng bấm tối thiểu 36px chiều cao (nút nhỏ 30px chỉ dùng trong bảng, có khoảng đệm quanh).
 
 | Thành phần | Quy cách |
 | --- | --- |
 | Nút chính | Nền navy-700, chữ trắng, cao 36, ngang 16px, bo 6; hover navy-900 |
-| Nút chốt (một nút trên mỗi màn đầu) | Nền bronze-500, chữ `#1B1405`, hover `#9C7830` chữ trắng |
+| Nút chốt (tối đa một nút mỗi màn, chỉ ở góc phải tiêu đề, là nút chuyển bước) | Nền bronze-500, chữ `#1B1405` (5,70:1); hover bronze-700 chữ trắng (6,21:1); active bronze-800 chữ trắng (9,45:1) |
+| Nút khóa kèm lý do | Nền paper-2, viền `--rule-strong`, chữ ink-3, biểu tượng ổ khóa, không giảm opacity; `aria-disabled="true"` và `aria-describedby` trỏ tới dòng lý do ngay dưới nút ("Còn 2 mục kiểm tra chưa xong"). Không dùng `disabled` thật khi cần giải thích, để vẫn focus và đọc được lý do |
 | Nút AI | Nền ai-700, chữ trắng; chỉ cho hành động chạy hoặc yêu cầu đội agent |
 | Nút phụ | Nền surface, viền `--control`, chữ ink |
 | Nút nguy hiểm | Viền và chữ danger-700; hộp xác nhận nêu hậu quả |
@@ -204,19 +210,21 @@ Tất cả trạng thái: mặc định, hover, focus (`--focus`), active, disab
 | Drawer | Rộng 440, nền surface, viền trái `--rule-strong`, `--sh-3`, scrim `rgba(14,31,61,.35)`, đóng bằng Esc, focus trap |
 | Toast | Góc phải dưới, nền navy-900, chữ trắng, `role=status`, tự tắt 5s; lỗi giữ đến khi tắt |
 | Banner | Nền màu `-100` của ngữ nghĩa, viền cùng tông, biểu tượng 18px, chữ 13px |
-| Dải chế độ demo | Cao 25, nền bronze-100, chữ `#5A4210` 12px, cố định trên cùng |
+| Dải chế độ demo | Cao 34, nền bronze-100, chữ bronze-800 12px, trên cùng; bên phải có nút "Đang xem với vai" mở menu 8 vai (`role=menu`, vai hiện tại `aria-current`), xem `23-che-do-demo.html` |
+| Skip link | `a.skip` "Bỏ qua điều hướng" là phần tử đầu tiên, chỉ hiện khi focus, trỏ `#main` (`main tabindex=-1`) |
+| Quy cách a11y bắt buộc | Mỗi trang đúng 1 `h1` và 1 `main`; mỗi ô nhập có `label for`; ô lỗi có `aria-invalid` + `aria-describedby` tới câu lỗi và có tóm tắt lỗi đầu form; tab dùng `role=tablist/tab` + `aria-selected`; biểu đồ `role=img` có mô tả; cỡ chữ tối thiểu 12px |
 | Khối AI | Viền nét đứt 1,5px ai-500, nền ai-50, đầu khối có biểu tượng lấp lánh + tên + thẻ "AI đề xuất" |
 | Khối người quyết định | Viền liền navy-700, thanh trái 5px, nền surface, thẻ navy "Người quyết định" |
-| Khối đội agent | Khối AI chứa sơ đồ + kết luận + cờ cảnh báo + nút "Chạy lại đội agent"; ba trạng thái: chưa chạy (nút Chạy đội agent), đang chạy (nút nhấp nháy, thời gian đã chạy), có kết quả |
-| Sơ đồ đội agent | Nút (node) nét đứt ai-500, nối bằng đường nét đứt; node đã xong nét liền; node đang chạy nền ai-50 + vòng nhấp nháy; node cuối "Người quyết định" viền navy liền, tách hẳn |
-| Dòng thời gian | Đường dọc 2px; chấm 16px: người = viền navy liền, AI = viền ai-500 nét đứt, hiện tại = nền đồng; giờ Plex Mono 11px |
+| Khối đội agent | Khối AI chứa sơ đồ + kết luận + cờ cảnh báo + nút "Chạy lại đội agent"; bốn trạng thái: chưa chạy (nút Chạy đội agent), đang chạy (nút loading, thời gian đã chạy), lỗi hoặc quá giờ (agent lỗi viền danger, banner nêu nguyên nhân, nút Chạy lại), có kết quả. Xem trang `21-thanh-phan.html` |
+| Sơ đồ đội agent | Tỏa nhánh thật theo code: Planner → 4 agent song song (Credit, Compliance, Operations, Document) → Validation; đường nối cong SVG nét đứt ai-500. Node nét đứt, xong nét liền, đang chạy nền ai-50, quá giờ/lỗi viền danger kèm chữ. "Người quyết định" nằm NGOÀI khối AI, nối bằng mũi tên liền navy. Một danh sách agent duy nhất cho mọi trang (mục 11.3) |
+| Dòng thời gian | Đường dọc 2px; chấm 16px: người = viền navy liền, AI = viền ai-500 nét đứt, hiện tại = nền đồng; giờ Plex Mono 12px |
 | Chat | Tin người dùng nền navy bo trên-trái-phải; tin trợ lý khối AI (nét đứt) kèm thẻ nguồn Plex Mono; cuối tin có câu giới hạn trách nhiệm |
 | Skeleton | Thanh `--paper-2` ↔ `--surface-2` lướt 1,4s, hình dạng giống nội dung thật; kèm chữ "Đang tải…" cho trình đọc màn hình |
 | Trạng thái rỗng | Minh họa mục 5.6 + tiêu đề h2 + một câu nói điều gì xảy ra + một nút hành động |
 
 ## 7. Quy cách từng trang và tiêu chí nghiệm thu
 
-Mỗi mockup: 1366×768 và 1920×1080 (ảnh `/tmp/ds1/after/<tên>-<rộng>.png`). Tiêu chí chung cho mọi trang (kiểm bằng axe-core trong Playwright và đo bằng DevTools): (C1) 0 lỗi axe mức serious/critical; (C2) không cuộn ngang ở 1366; (C3) mọi số tiền và tỉ lệ là Plex Mono, cột số căn phải; (C4) mọi nội dung do AI sinh nằm trong khối AI có thẻ "AI đề xuất" và không có khối người quyết định nào dùng màu tím; (C5) Tab đi hết trang theo thứ tự đọc và thấy focus; (C6) không còn chuỗi "SHB".
+Mỗi mockup kiểm ở 4 cỡ 1280×800, 1366×768, 1440×900, 1920×1080 (ảnh `/tmp/ds2/after/<tên>-<rộng>x<cao>.png`, không commit). Tiêu chí chung cho mọi trang (kiểm bằng axe-core trong Playwright và đo bằng DevTools): (C1) 0 lỗi axe mức serious/critical; (C2) không cuộn ngang ở 1366; (C3) mọi số tiền và tỉ lệ là Plex Mono, cột số căn phải; (C4) mọi nội dung do AI sinh nằm trong khối AI có thẻ "AI đề xuất" và không có khối người quyết định nào dùng màu tím; (C5) Tab đi hết trang theo thứ tự đọc và thấy focus; (C6) không còn chuỗi "SHB".
 
 | Trang (mockup) | Quy cách | Tiêu chí riêng, đo được |
 | --- | --- | --- |
@@ -231,7 +239,7 @@ Mỗi mockup: 1366×768 và 1920×1080 (ảnh `/tmp/ds1/after/<tên>-<rộng>.pn
 | Chat (`09`) | Cột lịch sử 260px; khung chat: tin người navy, tin trợ lý khối AI có thẻ nguồn; ô nhập cố định đáy | Mỗi tin trợ lý có thẻ "AI đề xuất"; khi thiếu dữ liệu nói rõ chưa có; ô nhập cao 38 |
 | Nhật ký kiểm toán (`10`) | Bộ lọc một hàng; bảng chỉ đọc, cột Nguồn phân biệt "AI đề xuất" và "Người"; chân bảng có số dòng và trang | Cột thời điểm Plex Mono; không có nút sửa/xóa; lọc 4 trường trong một hàng ở 1366 |
 | Trạng thái (`11`) | Rỗng, 403, 404, lỗi, đang tải, toast | Mỗi trạng thái có minh họa + tiêu đề + 1 câu + 1 hành động; lỗi nói dữ liệu không mất |
-| Khách hàng, Tạo đề xuất, Tra cứu chính sách (chưa có mockup riêng) | Dùng lại khung Việc của tôi (bảng) hoặc Soạn đề xuất (form); Chính sách dùng bảng + khối AI cho câu trả lời tra cứu | Đạt C1 đến C6 |
+| Mockup bổ sung `12` đến `23` | Xem mục 11.1 | Đạt C1 đến C6 |
 
 ## 8. Văn phong UX (skill ux-copy)
 
@@ -249,7 +257,7 @@ Mỗi mockup: 1366×768 và 1920×1080 (ảnh `/tmp/ds1/after/<tên>-<rộng>.pn
 
 Thứ tự bắt buộc, mỗi bước một nhánh và có kiểm tra đo được:
 
-1. **Token và theme Ant Design** (`frontend/src/theme`, `frontend/src/styles`). Tạo `tokens.css` từ mục 5; `ConfigProvider theme` map: `colorPrimary=#14284B`, `colorInfo=#1D4F91`, `colorSuccess=#1B6A3F`, `colorWarning=#8F5400`, `colorError=#A8281D`, `colorBgLayout=#F5F4EF`, `colorBgContainer=#FDFCF9`, `colorText=#1B2430`, `colorTextSecondary=#434C5A`, `colorBorder=#7F7964` (control), `colorBorderSecondary=#D9D5C8`, `borderRadius=6`, `fontFamily=Be Vietnam Pro…`, `fontSize=14`; component token cho Table (`headerBg=#F8F7F2`), Button, Tabs (`inkBarColor=#B08A3E`). Nạp phông từ Google Fonts (Newsreader 500/600, Be Vietnam Pro 400–700, IBM Plex Mono 400/500, subset vietnamese) hoặc tự lưu bản `woff2` (giấy phép OFL). **Nghiệm thu:** `npm run typecheck && npm run test` pass; `/foundation` hiện đủ token; axe 0 serious.
+1. **Token và theme Ant Design** (`frontend/src/theme`, `frontend/src/styles`). Tạo `tokens.css` từ mục 5; `ConfigProvider theme` map: `colorPrimary=#14284B`, `colorInfo=#1D4F91`, `colorSuccess=#1B6A3F`, `colorWarning=#8F5400`, `colorError=#A8281D`, `colorBgLayout=#F1F2EE`, `colorBgContainer=#FBFBF8`, `colorText=#1B2430`, `colorTextSecondary=#434C5A`, `colorBorder=#6F7660` (control), `colorBorderSecondary=#D3D7CC`, `borderRadius=6`, `fontFamily=Be Vietnam Pro…`, `fontSize=14`; component token cho Table (`headerBg=#F5F6F2`), Button, Tabs (`inkBarColor=#B08A3E`). Nạp phông từ Google Fonts (Newsreader 500/600, Be Vietnam Pro 400–700, IBM Plex Mono 400/500, subset vietnamese) hoặc tự lưu bản `woff2` (giấy phép OFL). **Nghiệm thu:** `npm run typecheck && npm run test` pass; `/foundation` hiện đủ token; axe 0 serious.
 2. **Khung ứng dụng và đăng nhập** (`app/`, `components/`, `LoginPage`, theme Keycloak): sidebar navy, topbar, dải demo, logo trung tính, thay `SHB`. **Nghiệm thu:** `grep -ri shb frontend/src frontend/public frontend/index.html` rỗng; đăng nhập e2e pass; C1–C6.
 3. **Thành phần dùng chung**: thẻ chỉ số, khối AI, khối người quyết định, badge, cờ, bảng sổ cái (`.tbl` gạch kép), sơ đồ đội agent, dòng thời gian, trạng thái rỗng. **Nghiệm thu:** từng thành phần có story/trang `/foundation`, snapshot test.
 4. **Từng trang theo thứ tự ưu tiên demo:** Việc của tôi → Hồ sơ vay → Soạn đề xuất → Đối chiếu → Dashboard (3 tab) → Chat → Nhật ký → Chính sách → Khách hàng → trạng thái 403/404/lỗi/rỗng. Mỗi trang đạt tiêu chí mục 7 và `npx playwright test` của trang đó pass, giữ nguyên `data-testid` và luồng nghiệp vụ.
@@ -277,8 +285,8 @@ Mức nặng còn lại: **không**. Còn nhẹ: chưa có mockup riêng cho Kh�
 
 | Tiêu chí | Kết quả | Bằng chứng |
 | --- | --- | --- |
-| 1.4.3 Tương phản chữ | Đạt | Mọi cặp mục 5.8 ≥ 4,86:1 (nhỏ nhất ink-3 / paper-2) |
-| 1.4.11 Tương phản thành phần | Đạt sau sửa | Viền ô nhập ban đầu `#B9B3A0` chỉ 2,04:1 → đổi `--control #7F7964` 3,96:1 |
+| 1.4.3 Tương phản chữ | Đạt (đo lại bằng script ở 27 trang × 4 cỡ, 0 cặp dưới 4,5:1) | Nhỏ nhất trong bảng 5.8 là ink-3 / paper-2 = 4,69:1. Hai lỗi đã sửa: nhãn "Người quyết định" trong sơ đồ (2,50:1 → 13,02:1) và nút chốt hover (4,08:1 → 6,21:1). Câu "mọi cặp ≥ 4,86" ở bản trước sai và đã bỏ. |
+| 1.4.11 Tương phản thành phần | Đạt sau sửa | Viền ô nhập ban đầu chỉ 2,04:1 → đổi `--control #6F7660`: 4,57:1 trên surface, 4,21:1 trên paper (đều ≥ 3:1) |
 | 1.4.1 Không chỉ dùng màu | Đạt | Badge có chấm + chữ, cờ có hình khác nhau, AI có nét đứt + nhãn chữ |
 | 2.4.7 Focus nhìn thấy | Đạt (thiết kế) | `--focus` 2px + 2px, tương phản 8,57:1; cần axe xác nhận khi áp code |
 | 2.5.5 Vùng bấm | Đạt có điều kiện | Nút chuẩn 36px; nút nhỏ 30px chỉ trong bảng; mục tiêu thực 44px không đạt ở nút nhỏ (ghi nhận, AA không bắt buộc) |
@@ -287,3 +295,96 @@ Mức nặng còn lại: **không**. Còn nhẹ: chưa có mockup riêng cho Kh�
 | Tiếng Việt | Đạt | `lang="vi"`, phông có subset vietnamese, kiểm ảnh `/tmp/ds1/vn.png` |
 
 Mức nặng còn lại: **không**. Chưa kiểm bằng trình đọc màn hình và axe-core thật (mockup tĩnh); đưa vào tiêu chí C1 khi áp code.
+
+## 11. Bàn giao cho React và Ant Design (v2.1)
+
+### 11.1 Danh sách mockup (27 tệp trong `mockups-v2/`)
+
+`01` Đăng nhập · `02` Việc của tôi · `03`/`03b`/`03c` Hồ sơ vay (đã có kết quả, đang chạy, lỗi chạy) · `04` Soạn đề xuất · `05` Đối chiếu một tài liệu · `06`/`07`/`08` Đội agent (Tổng quan, Dấu vết, So sánh) · `09` Trợ lý · `10` Nhật ký · `11` Trạng thái trang · `12` Hồ sơ vai Cấp phê duyệt (modal xác nhận mở bằng `#xacnhan`) · `13` vai Hỗ trợ tín dụng · `14` vai Thẩm định · `15` Ý kiến Rủi ro và Tuân thủ · `16` Đề xuất hành động và điều kiện trước giải ngân · `17` Tạo đề xuất vay (bước 2) · `18` Khách hàng · `19` Đối chiếu danh sách · `20` Tra cứu chính sách · `21` Thành phần đủ trạng thái · `22`/`22b`/`22c` Keycloak đăng nhập, lỗi đăng nhập, hết phiên · `23` Chế độ demo đổi tài khoản. Sinh bằng `node mockups-v2/_gen/p1.js … p5.js` từ `_gen/lib.js` (một nguồn dữ liệu mẫu).
+
+### 11.2 Thành phần → Ant Design → component token → tệp thay trong `frontend/src`
+
+| Thành phần thiết kế | Ant Design / tự dựng | Component token (ConfigProvider) | Tệp sẽ thay |
+| --- | --- | --- | --- |
+| Token màu, chữ, khoảng cách | `ConfigProvider theme.token` + CSS variable | `colorPrimary` `#14284B`, `colorBgLayout` `#F1F2EE`, `colorBorder` `#6F7660`, `fontSize` 14 | `theme/tokens.ts`, `theme/index.ts`, `styles/global.css` |
+| Nút (chính, phụ, chốt, nguy hiểm) | `Button`; nút chốt tự dựng biến thể `gold` | `Button.colorPrimary`, `defaultBorderColor`, `controlHeight` 36 | `theme/componentOverrides.ts`, `components/common` |
+| Nút khóa kèm lý do | Tự dựng quanh `Button` (không dùng `disabled`, dùng `aria-disabled` + `aria-describedby`) | không có, dùng class `locked` | `features/loan-detail/ActionsPanel.tsx`, `features/proposal/ProposalPage.tsx` |
+| Ô nhập, chọn, vùng văn bản | `Input`, `Select`, `Input.TextArea`, `Form.Item` | `Input.activeBorderColor` `#2A4A80`, `controlHeight` 38 | `features/proposal/*Section.tsx`, `features/audit/AuditLogPage.tsx`, `pages/ChatPage.tsx` |
+| Tab | `Tabs` (hoặc `Menu` mode ngang cho điều hướng route) | `Tabs.inkBarColor` `#B08A3E`, `itemSelectedColor` `#0E1F3D` | `pages/AgentDashboardPage.tsx` |
+| Bảng sổ cái | `Table` + ghi đè `.ant-table-thead > tr > th` (gạch kép) | `Table.headerBg` `#F5F6F2`, `borderColor` `#D3D7CC` | `features/my-work/QueueTable.tsx`, `components/tables` |
+| Drawer, Modal xác nhận | `Drawer` (440), `Modal.confirm` | `Modal.borderRadiusLG` 10 | `features/loan-detail/ActionsPanel.tsx`, `features/reconciliation/ConflictPanel.tsx` |
+| Khối AI, khối người quyết định, thẻ nhãn | Tự dựng (`AiBlock`, `HumanBlock`) | class `aib`, `hmb` trong `app.css` | `features/ai-panel/AiPanel.tsx`, `features/loan-detail/LoanApprovalCard` (nếu có) hoặc `ActionsPanel.tsx` |
+| Khối và sơ đồ đội agent | Tự dựng (SVG tỏa nhánh) | class `flow`, `fn`, `hnode` | `features/loan-detail/AgentTeamPanel.tsx`, `features/dashboard/agentTrace.ts` |
+| Đề xuất hành động, điều kiện giải ngân | `List` + `Button`, `Tag` | `Tag` màu theo trạng thái | `features/agent-actions/ActionProposals.tsx`, `features/loan-detail/PreDisbursementPanel.tsx` |
+| Dấu vết (bước mở rộng) | `Collapse` hoặc `<details>` | không có | `pages/AgentDashboardPage.tsx`, `features/dashboard/components` |
+| Stepper hồ sơ và wizard | `Steps` | `Steps.colorPrimary` | `features/loan-detail/LoanHeader.tsx`, `features/proposal/NewProposalPage.tsx` |
+| Thẻ chỉ số, biểu đồ cột | `Statistic` + SVG; chart theo `theme/chartTheme.ts` | `Statistic.contentFontSize` 26 | `features/my-work/Hero.tsx`, `components/charts` |
+| Trạng thái rỗng, 403, 404, lỗi | `Result`/`Empty` hoặc tự dựng | không có | `features/shell/NoAccess.tsx`, `pages/NotFoundPage.tsx` |
+| Dải demo, menu đổi vai | Tự dựng + `Dropdown` | không có | `features/shell/DemoSwitcher.tsx`, `AppLayout.tsx` |
+| Khung (sidebar, topbar, skip link) | `Layout`, `Menu` | `Menu.darkItemBg` `#14284B` | `features/shell/Rail.tsx`, `Topbar.tsx`, `styles/accessibility.css` |
+| Đăng nhập, theme Keycloak | Trang tự dựng; theme Keycloak (FTL + `app.css`) | không có | `pages/LoginPage.tsx`, `auth/keycloak.ts` (+ thư mục theme của hạ tầng) |
+| Toast, banner | `message`/`notification`, `Alert` | `Alert.colorInfoBg` `#DCE7F6` | `components/common` |
+
+Ghi chú: tên tệp lấy từ `frontend/src` hiện có; nơi ghi "nếu có" là tệp chưa xác nhận, dev kiểm tra khi làm.
+
+### 11.3 Danh sách agent dùng chung (khớp code)
+
+Planner (lập kế hoạch) → Credit, Compliance, Operations, Document (song song) → Validation (phản biện chéo). Mọi trang lấy từ cùng một mảng `AGENTS` trong `_gen/lib.js`; nhãn agent ở 03, 03b, 03c, 06, 07, 12, 14, 21 giống nhau. Phép tính kiểm tra tự động trong generator (ném lỗi nếu lệch): 06 cộng trạng thái = 762 = cộng 12 tuần, lỗi theo agent cộng = 14; 07 gọi công cụ 17, thời gian cộng 34,5 giây, thời gian thực 15,4 = 2,1 + 9,5 + 3,8.
+
+## 12. Đối chiếu `rules.md` D3, D4, D5 và quyết định mở
+
+| Điều | Nội dung `rules.md` mục D | Thiết kế đã áp | Chỗ |
+| --- | --- | --- | --- |
+| D3 (mục 3) | Không có quyền: h1 trung tính, không tên khách hàng, một biểu tượng khiên, đúng 1 nút có biểu tượng | Minh họa khiên, tiêu đề "Bạn chưa có quyền xem trang này", 1 nút "Về Việc của tôi", không nêu khách hàng | `11-trang-thai.html` |
+| D4 (mục 4) | Nút chính chuyển bước ở header phải, tối đa 1; trong nội dung chỉ lặp dạng dòng khóa hoặc link; trang chủ không có nút chuyển bước; wizard "Tiếp: <bước sau>"; bước 5 "Gửi Hỗ trợ tín dụng" khóa kèm lý do; HTTD "Chuyển Thẩm định" khóa kèm lý do | Đúng một nút đồng ở góc phải tiêu đề; khối "Người quyết định" ở 03 dùng link; 02 không có nút đồng | `02`, `03`, `04`, `12` đến `17` |
+| D5 (mục 5) | Kiểm bố cục ở 1280 | Mọi trang đo ở 1280×800, 1366×768, 1440×900, 1920×1080 (mục 13) | `/tmp/ds2/report.json` |
+| Mục 6 (kèm) | Chữ dòng khóa dùng `--text-3` | Dòng lý do khóa dùng `--ink-3` (5,65:1 trên surface) | `.lockwhy` trong `app.css` |
+
+**Quyết định mở (Mate giao: theo `rules.md`, ghi rõ).** Báo cáo chấm việc 2 của trang 02 yêu cầu "giữ đồng ở khối trên" (khối Việc gấp có nút đồng ở thân trang). `rules.md` D4 cấm: nút chính chuyển bước chỉ ở header phải, trang chủ không có nút chuyển bước, nội dung chỉ lặp dạng khóa hoặc link. Thiết kế theo `rules.md`: ở `02` bỏ hẳn nút đồng, "Mở hồ sơ" là nút navy thường; ở 03 hộp Người quyết định dùng link. Phần này là cách đọc của crew, chưa có chữ của người dùng xác nhận.
+
+## 13. Kiểm tra ở 4 cỡ màn hình
+
+Script `/tmp/ds2/measure.js` (Playwright, `file://`) mở từng tệp ở 1280×800, 1366×768, 1440×900, 1920×1080 và đo: tràn ngang (`scrollWidth − innerWidth`), tương phản mọi phần tử chữ đang hiển thị (cả nút hover/active ép sẵn), nhãn của ô nhập, tên của nút/liên kết, tab ngoài `tablist`, `h1` và `main` đúng 1, `lang=vi`, skip link tới `#main`, cỡ chữ nhỏ nhất. Kết quả lần chạy cuối: **27 trang × 4 cỡ = 108 lượt, 0 có vấn đề**; tràn ngang 0, cỡ chữ nhỏ nhất 12px. Ảnh chụp: `/tmp/ds2/after/` (108 tệp PNG, không commit).
+
+## 14. Quy tắc hiển thị khi chưa có số thật
+
+Không dựng số giả trên giao diện thật. Số trong mockup là mẫu và tự khớp. Khi áp code: nếu API chưa trả số, thẻ chỉ số hiện "Chưa có dữ liệu" (chữ ink-3, không có đơn vị); biểu đồ hiện trạng thái rỗng "Chưa có lượt chạy nào trong khoảng này"; trang So sánh hiện "Chưa có lượt đánh giá"; tỉ lệ chỉ hiện khi mẫu số > 0 (không chia cho 0, không hiện 0%); tổng luôn tính từ các thành phần đã nhận, không lấy riêng một trường tổng.
+
+## 15. Bảng "đã sửa" đối chiếu báo cáo chấm lần 1
+
+Số đo: script mục 13 (0 vấn đề ở 108 lượt) và các phép kiểm trong generator. Giám khảo khác sẽ chấm lại; bảng này không phải điểm.
+
+### 15.1 Mười ba việc phải sửa
+
+| # | Việc | Đã sửa ở đâu | Số đo sau sửa |
+| --- | --- | --- | --- |
+| 1 | Thiếu mockup cấp phê duyệt, HTTD, Thẩm định | `12`, `13`, `14`, `15`, `16` | 4 lựa chọn, lý do bắt buộc (`aria-invalid`), modal nêu hậu quả, 2 ngoại lệ có quyết định riêng; `13` nút khóa kèm lý do; `14` Yêu cầu bổ sung, Trả lại, Tờ trình; 5 trang × 4 cỡ: 0 vấn đề |
+| 2 | Sơ đồ đội agent gộp nút, số agent lệch | `_gen/lib.js` `team()`; dùng ở 03, 03b, 03c, 06, 07, 12, 14, 21 | 6 agent, Planner tỏa 4 nhánh, 1 danh sách `AGENTS`; Người quyết định ngoài khối AI |
+| 3 | Số liệu tự mâu thuẫn | `06`, `07`, `08`, `05`, `02` (generator có phép kiểm ném lỗi) | 06: 703+21+14+21+3 = 762 = tổng 12 tuần; 07: 17 lượt gọi, 2,1+9,5+3,8 = 15,4 giây; 08: 37/40 = 92,5%, 31/40 = 77,5% |
+| 4 | Lỗi CSS thẻ "Người quyết định" 2,50:1 và nút đồng hover 4,08:1 | `app.css` (`.tag-hm`, `.btn.gold:hover`) | 13,02:1 và 6,21:1; 0 cặp dưới 4,5:1 ở 108 lượt |
+| 5 | Mâu thuẫn `rules.md` D3, D4 | `04`, `02`, `03`, `11` | Mục 12; đúng 1 nút đồng mỗi trang; 403 có khiên, không tên khách |
+| 6 | Trạng thái thành phần còn thiếu | `21-thanh-phan.html`, `03b`, `03c`, `22`, `22b`, `22c`, `23` | Nút 4 loại × 6 trạng thái + khóa; ô nhập 5; tab 5; hàng 3; drawer; modal; đội agent 4 trạng thái |
+| 7 | Trang 03 nói ba điều khác nhau | `03` | Một câu, một nút "Sửa đề xuất"; stepper bước Soạn đề xuất có dấu trả lại |
+| 8 | A11y cấu trúc | tất cả trang; `app.css`; mục 6 | Ô chưa nhãn 0; tab ngoài tablist 0; `h1`=1 và `main`=1 ở 27 trang; skip link có ở 27 trang |
+| 9 | Nhãn AI không thống nhất | `05`, `06`, `08` | Một nhãn "AI đề xuất"; banner 05 là khối AI nét đứt; 06 bỏ thẻ AI ở bảng số vận hành; thẻ mô hình đơn lẻ viền liền xám |
+| 10 | Dấu hiệu "mặc định kiểu AI" | `tokens.css`, `lib.js` `meta()`, `app.css` | Nền xám lạnh thay kem; meta nhãn–giá trị; không còn tiêu đề cột mono; không có hai nút đồng |
+| 11 | Ngày thiếu năm, quá hạn tô danger, chênh lệch chỉ màu | `03`, `05`, `10`, `02`, `08` | Ngày đủ `dd/MM/yyyy HH:mm:ss`; sắp quá hạn = warn; 08 có chữ "Tốt hơn/Kém hơn" |
+| 12 | Bàn giao React + AntD | Mục 11, 12, 13; sửa 5.8 và 10.2 | Bảng 18 dòng; cặp thấp nhất 4,69:1; câu "mọi cặp ≥ 4,86" đã bỏ |
+| 13 | 1920 trải rộng; chat cuộn 31px ở 1366 | `02` (thêm cột Cờ, bảng không trải hết 1920), `09` | 09: `scrollHeight` 768 = `innerHeight` 768 ở 1366, 800 = 800 ở 1280 |
+
+### 15.2 Từng trang (mục 1 đến 3 của bảng từng trang)
+
+| Trang | Đã sửa ở đâu | Số đo sau sửa |
+| --- | --- | --- |
+| 01 | `main`, chú giải lên dưới mô tả, liên kết sang `22` | `main`=1, 0 vấn đề |
+| 02 | một nút đồng bỏ, quá hạn warn, 6 cột, phân trang | 0 vấn đề; 0 nút đồng ở thân trang |
+| 03 | tag-hm, sơ đồ tỏa nhánh, một nút | tag 13,02:1; 0 vấn đề |
+| 03b, 03c | hộp và dòng thời gian theo trạng thái; thêm lỗi, quá giờ 60 giây | 0 vấn đề |
+| 04 | "Gửi Hỗ trợ tín dụng" khóa kèm lý do, `aria-describedby`, tóm tắt lỗi | 0 vấn đề |
+| 05 | cặp nút trong từng hàng lệch, banner AI, ghi chú trường, ngày đủ năm | 2 hàng lệch, 2 cặp nút; 0 vấn đề |
+| 06 | số khớp, trục "Tuần 1…", bảng 6 agent, mini sơ đồ | 762 = 762; 0 vấn đề |
+| 07 | sơ đồ tỏa nhánh, bước mở rộng, `tablist`, hàng người | 6 bước mở được; 15,4 giây; 0 vấn đề |
+| 08 | số 37/40, cách đo, chữ tốt/kém, viền xám | 0 vấn đề |
+| 09 | nhãn ô nhập, `h1`, 100vh, trạng thái đang trả lời và lỗi, nguồn là liên kết | không cuộn trang ở 1280 và 1366; 0 vấn đề |
+| 10 | 4 nhãn `for/id`, ngày đủ năm, phân trang, hàng quyết định người | 0 vấn đề |
+| 11 | 403 khiên không tên khách, rỗng sau lọc, tải, toast không đè | 0 vấn đề |
