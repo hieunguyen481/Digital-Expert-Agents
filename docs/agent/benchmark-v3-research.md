@@ -331,3 +331,23 @@ Ca bỏ trước khi chạy vì `rules.md`/corpus không đủ làm đáp án ki
 - Không sửa đáp án, regex hay bộ chấm sau khi xem điểm. Lỗi regex phát hiện sau đo ghi thành chú thích cùng điểm gốc, thêm số "nếu tính khớp" tách riêng (như H4, §9.3).
 - Số v7/v5 cũ ghi rõ là bộ đã dùng để chỉnh; chỉ v8 là số mù.
 - Giả thuyết đăng ký: multi ≥ single về đúng cổng (single thiên về NEEDS_INFO khi thiếu trường phụ, như J1) và chính xác trích dẫn; recall hai chế độ gần nhau. Không đặt ngưỡng thắng/thua ngoài việc báo số thật.
+
+## 13. Kiểm thoái lui sau sửa lỗi QA4 (10/11/2026)
+
+Nhãn `kiểm thoái lui sửa QA4 (không phải kiểm tra mù)`. **Không phải kiểm tra mù**: cùng bộ ca v5 (F1–F6) và v7 (H1–H8) đã dùng để chỉnh engine. Chế độ multi, 1 lần/ca, `--max-cost 0.5`, engine riêng cổng 8051 (image dựng từ nhánh `mate/f4`, commit f45328c), bộ chấm v3, ca không đổi. Không chạy v8. Mục đích chỉ là bắt thoái lui lớn.
+
+Thay đổi được kiểm: cấp duyệt một nguồn theo tổng cấp tín dụng (B1); không cắt điều kiện giải ngân (B2); hồ sơ không khai TSĐB không tính LTV bằng tài sản khoản vay khác (CX1, ca có `has_collateral` theo yêu cầu không đổi); CIC hiệu lực đến ngày tra +29 (CX3); Planner không gọi khách có dư nợ là khách mới (CX4).
+
+| chỉ số | v5 trước (§11 lần 2) | v5 sau (QA4) | v7 trước (§11 lần 2) | v7 sau (QA4) |
+|---|---|---|---|---|
+| recall phát hiện | 0.925 | 0.925 | 0.944 | 0.969 |
+| trích nguồn | 1.000 | 1.000 | 1.000 | 1.000 |
+| chính xác trích dẫn | 1.000 | 1.000 | 1.000 | 1.000 |
+| phát hiện sai (tổng) | 0 | 0 | 0 | 0 |
+| đúng cổng | 1.00 | 1.00 | 1.00 | 1.00 |
+| trễ s | 34.4 | 33.6 | 37.8 | 35.8 |
+| $/ca | 0.00332 | 0.00323 | 0.00363 | 0.00336 |
+| lỗi | 0 | 0 | 0 | 0 |
+
+- Theo ca (sau): F5 4/5, F6 3/4, H4 3/4 giữ nguyên như §11; các ca còn lại đủ. Không có ca nào lệch cổng.
+- Kết luận: không thoái lui vượt dao động; mẫu nhỏ (1 lần/ca), chỉ bắt được thoái lui lớn. Tổng chi phí hai lượt $0,046. Tệp kết quả đã nạp `agent.benchmark_run`.
