@@ -153,3 +153,7 @@ body {
   --topbar-h: 56px;
   --font: 'Be Vietnam Pro', Inter, 'Segoe UI', system-ui, sans-serif;
 }
+
+/* UX-08: badge trạng thái dùng cặp màu chữ/nền đạt tương phản ≥ 4,5:1 */
+.ant-tag-success { color: var(--success); background: var(--success-bg); border-color: color-mix(in srgb, var(--success) 35%, transparent); }
+.ant-tag-warning { color: var(--warning); background: var(--warning-bg); border-color: color-mix(in srgb, var(--warning) 35%, transparent); }
