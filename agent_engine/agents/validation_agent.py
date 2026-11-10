@@ -182,14 +182,20 @@ async def handle_task(env: Envelope) -> Verdict:
         # Cổng xác định: dữ kiện công cụ + xung đột đã kiểm chứng; thiếu trường phụ chỉ thành điều kiện bổ sung
         rec_decision, rec, gate_why = gate.decide(verified, unresolved)
         trace.append(f"Cổng xác định: {rec_decision.value} ({'; '.join(gate_why) or 'không có căn cứ chặn'})")
+        verdicts, reconciled = gate.reconcile_experts(verdicts, rec_decision)
+        trace.extend(reconciled)
+        if reconciled:
+            report = merge_verdicts(verdicts, own_findings, own_conditions, demoted)
         if rec_decision == VerdictDecision.APPROVE:
             limit_txt = f" hạn mức {credit.proposed_limit:,.0f} VND" if credit and credit.proposed_limit else ""
             rec = f"ĐỀ XUẤT PHÊ DUYỆT{limit_txt}"
             # Tiêu đề không được trái ý kiến chuyên gia: cổng vẫn quyết, nhưng nêu rõ chuyên gia nào còn đề nghị bổ sung/lưu ý
             dissent = [f"{name}: {v.summary[:140]}" for name, v in verdicts.items()
-                       if v.decision in (VerdictDecision.NEED_MORE_INFO, VerdictDecision.FLAG)]
-            if dissent:
+                       if v.decision == VerdictDecision.NEED_MORE_INFO]
+            if dissent:  # không còn xảy ra sau reconcile_experts; giữ làm lưới an toàn
                 rec += " — lưu ý, chuyên gia còn ý kiến khác: " + " | ".join(dissent)
+            elif any(v.decision == VerdictDecision.FLAG for v in verdicts.values()):
+                rec += " kèm điều kiện"
         extra = [*gate_why]
         if verified["ancillary"]:
             extra.append("Bổ sung trước giải ngân (không chặn trình, rules.md Q7): " + "; ".join(verified["ancillary"]))

@@ -21,3 +21,25 @@ def decide(facts: dict, unresolved: dict | None = None) -> tuple[VerdictDecision
     if why:
         return VerdictDecision.NEED_MORE_INFO, "CẦN BỔ SUNG/ĐIỀU CHỈNH: " + "; ".join(why), why
     return VerdictDecision.APPROVE, "ĐỀ XUẤT PHÊ DUYỆT", []
+
+
+def reconcile_experts(verdicts: dict, rec_decision: VerdictDecision) -> tuple[dict, list[str]]:
+    """Kết luận cổng không được thuận lợi hơn chuyên gia mà không nêu lý do (L05).
+
+    Cổng chỉ chặn bằng dữ kiện công cụ (blockers/breaches/hard_stops, đã gồm các điều bắt buộc theo luật như AML, CIC, BCTC).
+    Khi cổng đề xuất phê duyệt mà chuyên gia vẫn "Cần thêm thông tin", điều chuyên gia còn thiếu không nằm trong dữ kiện
+    chặn, tức chỉ là điều kiện xử lý được sau quyết định (rules.md Q7): chuyển thành "Đồng ý có điều kiện" và ghi rõ lý do,
+    để kết luận từng chuyên gia khớp kết luận cổng."""
+    if rec_decision != VerdictDecision.APPROVE:
+        return verdicts, []
+    out, notes = dict(verdicts), []
+    for name, v in verdicts.items():
+        if v.decision == VerdictDecision.NEED_MORE_INFO:
+            reason = (v.summary or "").strip()
+            out[name] = v.model_copy(update={
+                "decision": VerdictDecision.FLAG,
+                "summary": "Đồng ý có điều kiện — phần còn thiếu không chặn việc áp dụng chính sách, xử lý như điều kiện "
+                           "trước giải ngân: " + reason,
+                "conditions": [*v.conditions, *([reason] if reason and reason not in v.conditions else [])]})
+            notes.append(f"{name}: từ 'Cần thêm thông tin' thành 'Đồng ý có điều kiện' vì dữ kiện công cụ không có thiếu hụt chặn")
+    return out, notes

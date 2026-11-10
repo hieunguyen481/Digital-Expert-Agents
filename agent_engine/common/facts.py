@@ -80,6 +80,9 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
         if d and (today - d).days > CIC_VALID_DAYS - 1:
             blockers.append(f"Bản CIC tra cứu ngày {d.isoformat()} đã quá {CIC_VALID_DAYS} ngày, hết hiệu lực — "
                             "phải tra lại trước khi trình (CS-TD-SME/2025 §6.3, §6.4)")
+    if bl and not bl.get("screened", True):
+        blockers.append("Chưa có kết quả sàng lọc AML/trừng phạt — phải hoàn tất trước khi trình (công cụ check_blacklist; "
+                        "compliance_policy Điều 6)")
     if not fin:
         blockers.append("Chưa có BCTC/số liệu tài chính — chưa tính được Nợ vay/EBITDA (CS-TD-SME/2025 §4.2, §6.1)")
     if biz and not biz.get("account_number"):
@@ -108,8 +111,6 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
         ancillary.append("người đại diện pháp luật chưa có trong hồ sơ")
     if latest.get("data_note"):
         ancillary.append(str(latest["data_note"]))
-    if bl and not bl.get("screened", True):
-        ancillary.append("chưa có kết quả tra cứu AML/trừng phạt")
     return {"amount": amount, "has_collateral_data": bool(cols), "collateral": col, "exposure": exp, "leverage": lev,
             "lines": recompute.describe(col, exp, lev, amount) + conflicts, "blockers": blockers, "breaches": breaches,
             "hard_stops": hard_stops, "ancillary": ancillary, "raw": raw}

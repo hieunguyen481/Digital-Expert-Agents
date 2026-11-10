@@ -116,3 +116,18 @@ def test_cx3_cic_valid_through_lookup_plus_29_days():
                             "cic": {"cic_group": 1, "report_date": report_date}}, REQ, TODAY)["blockers"]
     assert not blockers("2026-10-11")      # +29 ngày: còn hiệu lực
     assert blockers("2026-10-10")          # +30 ngày: hết hiệu lực
+
+
+def test_unscreened_aml_is_blocker():
+    assert _g(blacklist={"hit": False, "screened": False}) == D.NEED_MORE_INFO
+
+
+def test_gate_never_more_favourable_than_expert_without_reason():
+    from common.schemas import Verdict
+    v = {"credit": Verdict(agent="credit", task_id="t", decision=D.NEED_MORE_INFO, summary="thiếu lịch trả nợ"),
+         "compliance": Verdict(agent="compliance", task_id="t", decision=D.APPROVE, summary="ok")}
+    out, notes = gate.reconcile_experts(v, D.APPROVE)
+    assert out["credit"].decision == D.FLAG and out["credit"].summary.startswith("Đồng ý có điều kiện")
+    assert out["compliance"].decision == D.APPROVE and len(notes) == 1
+    same, none = gate.reconcile_experts(v, D.NEED_MORE_INFO)
+    assert same["credit"].decision == D.NEED_MORE_INFO and not none
