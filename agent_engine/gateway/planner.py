@@ -29,6 +29,11 @@ async def get_registry() -> dict[str, AgentCard]:
     return _registry_cache
 
 
+def existing_customer(biz: dict, loans: list) -> bool:
+    """CX4: khách có tài khoản HOẶC dư nợ hiện hữu tại ngân hàng là khách đã có quan hệ, không gọi là khách mới."""
+    return bool(biz.get("is_existing_customer")) or bool(loans)
+
+
 def _template_plan(case_id: str, payload: dict, context: dict, version: int) -> Plan:
     """Template có điều kiện — nhánh theo đặc điểm hồ sơ (baseline cho LLM)."""
     request = payload["request"]
@@ -78,7 +83,8 @@ def _template_plan(case_id: str, payload: dict, context: dict, version: int) -> 
         params={"request": request}))
 
     rationale = (
-        f"Hồ sơ {'có' if has_collateral else 'không có'} TSĐB, "
+        f"Khách {'đã có quan hệ/dư nợ' if context.get('is_existing_customer') else 'chưa có dư nợ'} tại ngân hàng, "
+        f"hồ sơ {'có' if has_collateral else 'không có'} TSĐB, "
         f"ngành rủi ro {industry_risk}, CIC nhóm {cic_group}, "
         f"{'kèm' if has_docs else 'không kèm'} tài liệu đính kèm "
         f"-> DAG {len(tasks)} task."
@@ -162,11 +168,18 @@ async def make_plan(case_id: str, payload: dict, version: int) -> tuple[Plan, st
                 "get_collateral", {"business_id": payload["request"]["business_id"]})
         except Exception:  # noqa: BLE001 - không tra được TSĐB thì dựa vào cờ trong request
             cols = []
+        try:
+            loans = await mcp_client.call_tool(
+                "get_existing_loans", {"business_id": payload["request"]["business_id"]})
+        except Exception:  # noqa: BLE001
+            loans = []
+        loans = loans if isinstance(loans, list) else []
         context = {"collateral_count": len(cols) if isinstance(cols, list) else 0,
+                   "existing_loan_count": len(loans),
                    "industry_risk": biz.get("industry_risk", "normal"),
                    "industry": biz.get("industry"),
                    "cic_group": cic.get("cic_group", 1),
-                   "is_existing_customer": bool(biz.get("is_existing_customer"))}
+                   "is_existing_customer": existing_customer(biz, loans)}
     except Exception:  # noqa: BLE001
         pass
 

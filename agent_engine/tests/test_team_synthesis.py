@@ -212,3 +212,12 @@ async def test_gate_approve_title_does_not_contradict_expert_opinion(monkeypatch
     out = await va.handle_task(env)
     assert out.decision == VerdictDecision.APPROVE
     assert out.summary.startswith("ĐỀ XUẤT PHÊ DUYỆT") and "dư nợ lệch 56 vs 98 tỷ" in out.summary
+
+
+def test_cx4_customer_with_outstanding_loans_is_not_new():
+    assert planner.existing_customer({"is_existing_customer": False}, [{"outstanding": 5e9}]) is True
+    assert planner.existing_customer({"is_existing_customer": True}, []) is True
+    assert planner.existing_customer({"is_existing_customer": False}, []) is False
+    payload = {"request": REQ, "documents": []}
+    plan = planner._template_plan("c", payload, {"is_existing_customer": True}, 1)
+    assert "đã có quan hệ" in plan.rationale and "mới" not in plan.rationale
