@@ -68,3 +68,34 @@ async def test_list_and_stats_follow_rls(seeded_case):
     other = await db.case_stats()
     assert seeded_case not in {c["case_id"] for c in await db.list_cases(200)}
     assert other["cases"] <= stats["cases"] - 1
+
+
+async def test_step_assignee_sees_case_of_loan_they_hold():
+    """Q-M: người được giao bước của hồ sơ đọc được lượt chạy agent của khách đó dù không đọc được khách."""
+    case_id = f"case_rlstest_{uuid.uuid4().hex[:8]}"
+    loan_id, now = uuid.uuid4(), time.time()
+    con = await asyncpg.connect(os.environ["TEST_ADMIN_DATABASE_URL"])
+    try:
+        product = await con.fetchval("SELECT id FROM credit.loan_product LIMIT 1")
+        await con.execute(
+            "INSERT INTO agent.case_run(case_id, customer_id, submitted_by, state, payload, created_at, updated_at)"
+            " VALUES ($1,$2,$3,'Pending Approval','{}'::jsonb,$4,$4)",
+            case_id, uuid.UUID(VINA), uuid.UUID(OFFICER.employee_id), now)
+        await con.execute(
+            "INSERT INTO credit.loan_application (id, application_number, primary_customer_id, product_id,"
+            " requested_amount, currency, requested_term_months, loan_purpose, status, created_at, created_by,"
+            " updated_at) VALUES ($1,$2,$3,$4,1000,'VND',12,'WORKING_CAPITAL','RISK_REVIEW',now(),$5,now())",
+            loan_id, f"RLS-{loan_id}", uuid.UUID(VINA), product, uuid.UUID(OFFICER.employee_id))
+        identity.set_current(OUTSIDER)
+        assert all(c["case_id"] != case_id for c in await db.list_cases(500))
+        await con.execute(
+            "INSERT INTO credit.case_step (id, loan_application_id, step_code, assignee_employee_id, received_at,"
+            " due_at, created_by, created_at) VALUES ($1,$2,'RISK_REVIEW',$3,now(),now() + interval '2 day',$4,now())",
+            uuid.uuid4(), loan_id, uuid.UUID(OUTSIDER.employee_id), uuid.UUID(OFFICER.employee_id))
+        assert any(c["case_id"] == case_id for c in await db.list_cases(500))
+    finally:
+        await con.execute("DELETE FROM agent.case_run WHERE case_id=$1", case_id)
+        await con.execute("DELETE FROM credit.case_step WHERE loan_application_id=$1", loan_id)
+        await con.execute("DELETE FROM credit.loan_application WHERE id=$1", loan_id)
+        await con.close()
+        await db.close()

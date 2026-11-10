@@ -76,6 +76,7 @@ def require_permissions(*codes: str) -> Callable[..., Any]:
             )
         return principal
 
+    dependency.required_permissions = required  # type: ignore[attr-defined]  # cho test ma trận phân quyền
     return dependency
 
 

@@ -11,6 +11,7 @@ services:
     working_dir: /src
     volumes:
       - ../backend:/src:ro
+      - ../docs:/docs:ro
     environment:
       PYTHONPATH: /src
       PYTHONDONTWRITEBYTECODE: "1"
