@@ -21,7 +21,7 @@ const withSd = (s: { mean: number; sd: number | null }, f: (v: number) => string
 
 async function expectRun(page: Page, stored: any) {
   await expect(page.getByTestId('cmp-meta')).toContainText(stored.run_id); // nằm trong <details>, vẫn có trong DOM
-  await expect(page.getByTestId('cmp-headline')).toContainText('điểm phần trăm');
+  await expect(page.getByTestId('cmp-headline')).toContainText(stored.summary.single && stored.summary.multi ? 'điểm phần trăm' : 'chỉ chạy một chế độ');
   await expect(page.getByTestId('cmp-meta')).toContainText(`bộ chấm ${stored.grader_version ?? 'v1'}`);
   for (const mode of ['single', 'multi'] as const) {
     const s = stored.summary[mode];
@@ -32,7 +32,7 @@ async function expectRun(page: Page, stored: any) {
     await expect(page.getByTestId(`cmp-finding_recall-${mode}`)).toHaveText(withSd(s.finding_recall, pct));
     await expect(page.getByTestId(`cmp-false_findings-${mode}`)).toHaveText(withSd(s.false_findings, (v) => nf(v, 2)));
     await expect(page.getByTestId(`cmp-gate_ok-${mode}`)).toHaveText(withSd(s.gate_ok, pct));
-    await expect(page.getByTestId(`cmp-latency_s-${mode}`)).toHaveText(withSd(s.latency_s, (v) => `${nf(v, 1)} giây`));
+    await expect(page.getByTestId(`cmp-latency_s-${mode}`)).toHaveText(withSd(s.latency_s, (v) => (v < 60 ? `${nf(v, 1)} giây` : `${nf(v / 60, 1)} phút`)));
     await expect(page.getByTestId(`cmp-cost_usd-${mode}`)).toHaveText(withSd(s.cost_usd, (v) => `${nf(v, 4)} USD`));
     for (const id of Object.keys(stored.per_case)) {
       await expect(page.getByTestId(`cmp-case-${id}-${mode}`)).toHaveText(withSd(stored.per_case[id][mode].finding_recall, pct));

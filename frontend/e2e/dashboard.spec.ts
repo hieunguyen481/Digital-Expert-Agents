@@ -78,7 +78,7 @@ test('tổng quan lấy số liệu thật từ trace', async ({ page }) => {
   await loginAs(page, 'tdinh');
   await page.getByRole('link', { name: 'Bảng điều khiển agent' }).click();
   const overview = page.getByTestId('overview');
-  await expect(overview).toContainText('Tổng case');
+  await expect(overview).toContainText('Tổng lượt phân tích');
   await expect(overview).toContainText('Công cụ MCP đã gọi');
 });
 
@@ -87,7 +87,7 @@ for (const role of NO_ACCESS) {
   test(`vai trò ${role} không thấy case của người khác`, async ({ page }) => {
     await loginAs(page, role);
     await openCases(page);
-    await expect(page.getByText(/Chưa có case nào trong phạm vi của bạn/)).toBeVisible();
+    await expect(page.getByText(/Chưa có lượt phân tích nào trong phạm vi của bạn/)).toBeVisible();
     await expect(page.locator('[data-testid^="case-row-"]')).toHaveCount(0);
   });
 }

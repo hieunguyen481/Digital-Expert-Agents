@@ -33,8 +33,8 @@ export function PageError({
         status={status}
         title={status === 403 ? 'Bạn không có quyền xem nội dung này' : 'Không tìm thấy nội dung'}
         subTitle={description ?? (status === 403
-          ? 'Hồ sơ nằm ngoài phạm vi vai trò hoặc đơn vị của bạn. Nếu cần xem, hãy nhờ người đang giữ hồ sơ.'
-          : 'Đường dẫn có thể đã cũ, hoặc hồ sơ không còn tồn tại.')}
+          ? 'Hồ sơ ngoài phạm vi được xem của vai trò hoặc đơn vị bạn. Nếu cần xem, hãy nhờ người đang giữ hồ sơ.'
+          : 'Đường dẫn có thể đã cũ, hồ sơ không còn tồn tại, hoặc hồ sơ ngoài phạm vi được xem của vai trò bạn.')}
         style={compact ? { padding: '24px 16px' } : undefined}
         extra={<Link to="/viec-cua-toi"><Button type="primary">Về Việc của tôi</Button></Link>}
       />
