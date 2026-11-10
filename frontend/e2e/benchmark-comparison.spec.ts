@@ -52,30 +52,34 @@ test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ
   await page.getByRole('tab', { name: /So sánh hiệu năng/ }).click();
 
   await expectRun(page, defaultRun); // mặc định
-  for (const stored of all) {
-    await page.getByTestId('cmp-select').click();
-    // Nhãn lựa chọn viết cho người đọc nghiệp vụ (runOptionLabel): giờ đo · bộ ca · so sánh/đa agent · số lượt mỗi ca.
-    const both = !!stored.summary.single && !!stored.summary.multi;
-    const kind = stored.regrade_of ? ' · chấm lại dữ liệu cũ' : '';
-    const expected = `${fmtDayTime(stored.created_at)} · Bộ ca ${stored.cases_version} · ${both ? 'So sánh single và multi' : 'Chỉ đa agent'} · ${stored.runs_per_case} lượt mỗi ca${kind}`;
-    const active = page.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-active');
-    // Vài lượt cùng giờ/bộ ca/số lượt có cùng nhãn: thử lần lượt từng mục khớp nhãn tới khi đúng mã lượt.
-    let chosen = false;
-    for (let skip = 0; skip < 6 && !chosen; skip++) {
-      if (skip > 0) await page.getByTestId('cmp-select').click();
+  // Nhãn lựa chọn viết cho người đọc nghiệp vụ (runOptionLabel): giờ đo · bộ ca · so sánh/đa agent · số lượt mỗi ca.
+  // Vài lượt cùng giờ/bộ ca/số lượt có cùng nhãn: gom theo nhãn, chọn lần lượt từng mục khớp và đối chiếu theo mã lượt hiện ở chú thích.
+  const labelOf = (r: any) => `${fmtDayTime(r.created_at)} · Bộ ca ${r.cases_version} · ${r.summary.single && r.summary.multi ? 'So sánh single và multi' : 'Chỉ đa agent'} · ${r.runs_per_case} lượt mỗi ca${r.regrade_of ? ' · chấm lại dữ liệu cũ' : ''}`;
+  const groups = new Map<string, any[]>();
+  for (const r of all) groups.set(labelOf(r), [...(groups.get(labelOf(r)) ?? []), r]);
+  for (const [expected, members] of groups) {
+    const covered = new Set<string>();
+    for (let k = 0; k < members.length; k++) {
+      await page.getByTestId('cmp-select').click();
+      const active = page.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-active');
       await page.keyboard.press('Home');
       let seen = 0;
       let found = false;
-      for (let i = 0; i < all.length + 5 && !found; i++) {
+      for (let i = 0; i < all.length * 2 + 20 && !found; i++) {
         const title = (await active.first().getAttribute('title').catch(() => null)) ?? '';
-        if (title.startsWith(expected) && seen++ === skip) found = true;
+        if (title.replace(' · [Kiểm thử]', '') === expected && seen++ === k) found = true;
         else await page.keyboard.press('ArrowDown');
       }
-      if (!found) break;
+      expect(found, `không thấy mục ${k + 1} của nhãn: ${expected}`).toBe(true);
       await page.keyboard.press('Enter');
-      chosen = await page.getByTestId('cmp-meta').innerText().then((t) => t.includes(stored.run_id));
+      await expect(page.getByTestId('cmp-meta')).toContainText(new RegExp(members.map((m) => m.run_id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')));
+      const meta = (await page.getByTestId('cmp-meta').textContent()) ?? '';
+      // mã lượt chấm lại chứa mã lượt gốc làm tiền tố: lấy mã khớp dài nhất.
+      const stored = [...members].sort((a, b) => b.run_id.length - a.run_id.length).find((m) => meta.includes(m.run_id));
+      expect(stored, `mục chọn không phải lượt nào trong nhóm: ${expected}`).toBeTruthy();
+      covered.add(stored.run_id);
+      await expectRun(page, stored);
     }
-    expect(chosen, `không thấy lượt ${stored.run_id} trong danh sách`).toBe(true);
-    await expectRun(page, stored);
+    expect(covered.size, `nhóm nhãn ${expected} chưa phủ hết lượt`).toBe(members.length);
   }
 });
