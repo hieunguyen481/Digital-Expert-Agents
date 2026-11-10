@@ -26,6 +26,14 @@ class TransitionResponse(APIModel):
     carried_flags: list[str]
 
 
+class ExtendDeadlineRequest(APIModel):
+    reason: str | None = Field(default=None, max_length=4000)
+
+
+class ExtendDeadlineResponse(APIModel):
+    due_at: datetime
+
+
 class CaseStepResponse(APIModel):
     model_config = ConfigDict(from_attributes=True, extra="ignore")
     id: UUID

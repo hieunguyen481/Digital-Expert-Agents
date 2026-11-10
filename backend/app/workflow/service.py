@@ -58,6 +58,9 @@ class WorkflowRepositoryLike(Protocol):
     async def finalize_memo(self, loan_id: UUID, employee_id: UUID) -> int: ...
     async def reopen_memo(self, loan_id: UUID, employee_id: UUID) -> int | None: ...
     async def open_steps(self, loan_id: UUID) -> Sequence[Mapping[str, Any]]: ...
+    async def extend_deadline(
+        self, loan_id: UUID, caller: UUID, reason: str, new_due_at: datetime
+    ) -> datetime: ...
     async def list_steps(self, loan_id: UUID) -> Sequence[Mapping[str, Any]]: ...
     async def last_step(
         self, loan_id: UUID, step_code: str, *, result: str | None = None
@@ -108,6 +111,15 @@ class WorkflowRepositoryLike(Protocol):
 
 
 _PENDING_STEPS = frozenset({"PENDING_INFO", "RISK_PENDING_INFO"})
+_SUPPLEMENT_STATUSES = frozenset({"RETURNED_TO_RM", "APPRAISAL_PENDING_INFO"})
+_SUPPLEMENT_STEPS = frozenset({"RM_REWORK", "PENDING_INFO"})
+
+
+def _supplement_step(steps: Sequence[Mapping[str, Any]]) -> Mapping[str, Any] | None:
+    for step in steps:
+        if step["step_code"] in _SUPPLEMENT_STEPS:
+            return step
+    return None
 
 
 @dataclass
@@ -131,6 +143,42 @@ class WorkflowService:
         if await self._repo.get_loan(loan_id) is None:
             raise LookupError("Loan application was not found or is outside the authorized scope")
         return await self._repo.list_steps(loan_id)
+
+    async def extend_deadline(
+        self, principal: PrincipalLike, loan_id: UUID, reason: str | None, *, request_id: UUID | None = None
+    ) -> datetime:
+        """Q11: QHKH gia han han bo sung 1 lan, co ly do, them SLA ``CUSTOMER_SUPPLEMENT`` ngay lam viec."""
+        if "credit_officer" not in set(getattr(principal, "roles", ())) or getattr(principal, "is_admin", False):
+            raise PermissionError("Action extend_deadline requires role credit_officer")
+        clean = (reason or "").strip()
+        if not clean:
+            raise ValueError("Action extend_deadline requires a reason")
+        loan = await self._repo.get_loan(loan_id)
+        if loan is None:
+            raise LookupError("Loan application was not found or is outside the authorized scope")
+        if str(loan["status"]) not in _SUPPLEMENT_STATUSES:
+            raise ConflictError(
+                "INVALID_STATE_TRANSITION",
+                f"Action extend_deadline is not allowed from status {loan['status']}.",
+                {"status": str(loan["status"]), "action": "extend_deadline"},
+            )
+        step = _supplement_step(await self._repo.open_steps(loan_id))
+        if step is None or step.get("due_at") is None:
+            raise ValueError("The case has no supplement deadline to extend")
+        now = await self._repo.db_now()
+        base = max(step["due_at"], now)
+        new_due = sla.add_workdays(
+            base, await self._repo.sla_workdays("CUSTOMER_SUPPLEMENT"), await self._repo.holidays()
+        )
+        result = await self._repo.extend_deadline(loan_id, principal.employee_id, clean, new_due)
+        if self._audit is not None:
+            await self._audit.record(
+                principal=principal, action="WORKFLOW_EXTEND_DEADLINE", resource_type="LOAN_APPLICATION",
+                resource_id=loan_id, loan_application_id=loan_id, result="SUCCESS",
+                request_id=request_id, correlation_id=request_id,
+                metadata={"previous_due_at": step["due_at"], "new_due_at": result, "reason": clean},
+            )
+        return result
 
     async def transition(
         self,
@@ -172,6 +220,15 @@ class WorkflowService:
         if transition.reason_required and clean_reason is None:
             raise ValueError(f"Action {action} requires a reason")
         plan = _validate_params(transition, params or {}, loan)
+        if plan.withdraw_kind == "OVERDUE":
+            step = _supplement_step(await self._repo.open_steps(loan_id))
+            due = None if step is None else step.get("due_at")
+            if due is None or due > await self._repo.db_now():
+                raise ValidationError(
+                    "WITHDRAW_NOT_OVERDUE",
+                    "Chỉ được rút hồ sơ loại \"Quá hạn\" khi hạn bổ sung đã qua.",
+                    {"due_at": None if due is None else due.isoformat()},
+                )
         # 4. Cong dieu kien.
         carried: tuple[str, ...] = ()
         if transition.gate is not None:

@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
 import { normalizeError } from '@/services/apiClient';
 import {
-  addOpinion, concludeFlag, earlyWarning, fetchActionState, handleFlag, runTransition, upgradeApproval,
+  addOpinion, concludeFlag, earlyWarning, extendDeadline, fetchActionState, handleFlag, runTransition, upgradeApproval,
 } from './loanDetailService';
 import type { Flag, LoanOverview } from './types';
 import styles from './loan-detail.module.css';
@@ -70,6 +70,20 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   const btn = (key: string, label: string, onClick: () => void, opts: { primary?: boolean; disabled?: string } = {}) =>
     buttons.push(<Button key={key} type={opts.primary ? 'primary' : 'default'} disabled={!!opts.disabled} title={opts.disabled} onClick={onClick}>{label}</Button>);
 
+  if ((status === 'RETURNED_TO_RM' || status === 'APPRAISAL_PENDING_INFO') && state.supplement) {
+    const sup = state.supplement;
+    const overdue = new Date(sup.due_at).getTime() < Date.now();
+    if (has('credit_officer')) {
+      btn('extend', sup.extended ? 'Đã gia hạn 1 lần' : 'Gia hạn hạn bổ sung (+5 ngày LV)',
+        () => reasonAction('Gia hạn hạn bổ sung', 'Lý do gia hạn', 'Gia hạn', (t) => extendDeadline(loanId, t)),
+        { disabled: sup.extended ? 'Hạn bổ sung chỉ được gia hạn 1 lần' : undefined });
+    }
+    if (has('credit_officer') || has('credit_manager')) {
+      btn('withdraw-customer', 'Khách rút hồ sơ', () => reasonAction('Rút hồ sơ (khách rút)', 'Lý do rút', 'Rút hồ sơ', transit('withdraw', { withdraw_kind: 'CUSTOMER' })));
+      btn('withdraw-overdue', 'Rút hồ sơ quá hạn', () => reasonAction('Rút hồ sơ (quá hạn bổ sung)', 'Lý do rút', 'Rút hồ sơ', transit('withdraw', { withdraw_kind: 'OVERDUE' })),
+        { disabled: overdue ? undefined : 'Chỉ rút loại "Quá hạn" khi hạn bổ sung đã qua' });
+    }
+  }
   if (status === 'APPRAISAL_PENDING_INFO' && has('document_reviewer')) {
     btn('accept-info', 'Ghi nhận đã bổ sung', () => void submit(() => runTransition(loanId, 'accept_info', state.version)), { primary: true });
   }

@@ -16,7 +16,13 @@ from app.api.dependencies import get_loan_agent_run_service, get_workflow_servic
 from app.api.v1._utils import request_uuid
 from app.auth.dependencies import require_permissions
 from app.auth.principal import CurrentPrincipal
-from app.schemas.workflow import CaseStepResponse, TransitionRequest, TransitionResponse
+from app.schemas.workflow import (
+    CaseStepResponse,
+    ExtendDeadlineRequest,
+    ExtendDeadlineResponse,
+    TransitionRequest,
+    TransitionResponse,
+)
 from app.services.loan_agent_run_service import LoanAgentRunService
 from app.workflow.service import WorkflowService
 from app.workflow.transitions import DECISION_STATUSES
@@ -56,6 +62,21 @@ async def transition_loan_application(
         due_at=result.due_at,
         carried_flags=list(result.carried_flags),
     )
+
+
+@router.post("/{loan_application_id}/extend-deadline", response_model=ExtendDeadlineResponse)
+async def extend_deadline(
+    loan_application_id: UUID,
+    body: ExtendDeadlineRequest,
+    request: Request,
+    principal: Annotated[CurrentPrincipal, Depends(require_permissions("loan:read"))],
+    service: Annotated[WorkflowService, Depends(get_workflow_service)],
+) -> ExtendDeadlineResponse:
+    """Q11: QHKH gia hạn hạn bổ sung đúng 1 lần, có lý do."""
+    due_at = await service.extend_deadline(
+        principal, loan_application_id, body.reason, request_id=request_uuid(request)
+    )
+    return ExtendDeadlineResponse(due_at=due_at)
 
 
 @router.get("/{loan_application_id}/steps", response_model=list[CaseStepResponse])

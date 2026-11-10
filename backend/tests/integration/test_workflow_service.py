@@ -34,7 +34,7 @@ from tests.integration.seed_ids import (
 
 from app.auth.principal import CurrentPrincipal
 from app.db.rls_context import rls_transaction
-from app.exceptions import ConflictError
+from app.exceptions import ConflictError, ValidationError
 from app.repositories.audit_repository import AuditRepository
 from app.repositories.loan_repository import LoanRepository
 from app.repositories.workflow_repository import WorkflowRepository
@@ -219,6 +219,7 @@ class Case:
             " AND scope_id = $1",
             self.loan_id,
         )
+        await m.execute("DELETE FROM credit.deadline_extension WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM credit.case_step WHERE loan_application_id = $1", self.loan_id)
         await m.execute("DELETE FROM banking.credit_report WHERE customer_id = $1", self.customer_id)
         await m.execute("DELETE FROM banking.cic_consent WHERE customer_id = $1", self.customer_id)
@@ -840,6 +841,10 @@ async def test_withdraw_closes_every_open_step(
 ) -> None:
     await case.create(status="RETURNED_TO_RM")
     await case.add_step("RM_REWORK", CREDIT_OFFICER)
+    await mig.execute(
+        "UPDATE credit.case_step SET due_at = now() - interval '1 hour' WHERE loan_application_id = $1",
+        case.loan_id,
+    )
     rm = await principal(mig, CREDIT_OFFICER)
     result = await transition(
         engine, rm, case.loan_id, "withdraw", 1,
@@ -910,3 +915,60 @@ async def test_rm_submit_checklist_exceptions_become_case_flags(
     ):
         gate = await evaluate("appraisal_submit", case.loan_id, WorkflowRepository(session))
     assert gate.blockers == ("REPORT_MISSING",)
+
+
+async def extend(
+    engine: AsyncEngine, who: CurrentPrincipal, loan_id: UUID, reason: str | None
+) -> datetime:
+    async with (
+        AsyncSession(engine) as session,
+        rls_transaction(session, who.employee_id, who.branch_id, who.is_admin),
+    ):
+        service = WorkflowService(WorkflowRepository(session), AuditService(AuditRepository(session)))
+        return await service.extend_deadline(who, loan_id, reason)
+
+
+async def test_extend_deadline_once_adds_five_workdays(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="RETURNED_TO_RM")
+    await case.add_step("RM_REWORK", CREDIT_OFFICER)
+    before = (await open_step(mig, case.loan_id, "RM_REWORK"))["due_at"]
+    rm = await principal(mig, CREDIT_OFFICER)
+    new_due = await extend(engine, rm, case.loan_id, "Khach can them thoi gian")
+    holidays = await holidays_of(mig)
+    assert new_due == sla.add_workdays(max(before, await mig.fetchval("SELECT now()")), 5, holidays)
+    assert (await open_step(mig, case.loan_id, "RM_REWORK"))["due_at"] == new_due
+    assert "WORKFLOW_EXTEND_DEADLINE" in await audit_actions(mig, case.loan_id)
+    with pytest.raises(ConflictError) as second:
+        await extend(engine, rm, case.loan_id, "Lan hai")
+    assert second.value.code == "DEADLINE_ALREADY_EXTENDED"
+
+
+async def test_extend_deadline_needs_reason_and_rm_role(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="RETURNED_TO_RM")
+    await case.add_step("RM_REWORK", CREDIT_OFFICER)
+    rm = await principal(mig, CREDIT_OFFICER)
+    with pytest.raises(ValueError):
+        await extend(engine, rm, case.loan_id, "  ")
+    with pytest.raises(PermissionError):
+        await extend(engine, await principal(mig, DOCUMENT_REVIEWER), case.loan_id, "Ly do")
+
+
+async def test_withdraw_overdue_rejected_before_deadline_customer_allowed(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await case.create(status="RETURNED_TO_RM")
+    await case.add_step("RM_REWORK", CREDIT_OFFICER)
+    rm = await principal(mig, CREDIT_OFFICER)
+    with pytest.raises(ValidationError) as blocked:
+        await transition(
+            engine, rm, case.loan_id, "withdraw", 1, reason="Som", params={"withdraw_kind": "OVERDUE"}
+        )
+    assert blocked.value.code == "WITHDRAW_NOT_OVERDUE"
+    result = await transition(
+        engine, rm, case.loan_id, "withdraw", 1, reason="Khach rut", params={"withdraw_kind": "CUSTOMER"}
+    )
+    assert result.status == "WITHDRAWN"

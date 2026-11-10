@@ -18,6 +18,21 @@ class CaseActionRepository:
             self.session, "SELECT id, status, version FROM credit.loan_application WHERE id = :id", {"id": loan_id}
         )
 
+    async def supplement_deadline(self, loan_id: UUID) -> Record | None:
+        """Han bo sung dang mo (Q11) va da gia han chua; doc buoc qua ham SQL vi bank_app khong doc case_step."""
+        return await fetch_one(
+            self.session,
+            """
+            SELECT step.due_at,
+                   EXISTS (SELECT 1 FROM credit.deadline_extension AS ext
+                           WHERE ext.loan_application_id = :id AND ext.case_step_id = step.id) AS extended
+            FROM credit.list_case_steps(:id) AS step
+            WHERE step.completed_at IS NULL AND step.step_code IN ('RM_REWORK', 'PENDING_INFO')
+            ORDER BY step.received_at DESC LIMIT 1
+            """,
+            {"id": loan_id},
+        )
+
     async def can_write(self, employee_id: UUID, loan_id: UUID) -> bool:
         row = await fetch_one(
             self.session, "SELECT identity.can_write_loan(:e, :l) AS ok", {"e": employee_id, "l": loan_id}

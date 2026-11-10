@@ -92,6 +92,38 @@ class WorkflowRepository:
             {"loan_id": loan_id},
         )
 
+    async def extend_deadline(
+        self, loan_id: UUID, caller: UUID, reason: str, new_due_at: datetime
+    ) -> datetime:
+        try:
+            row = await fetch_one(
+                self.session,
+                "SELECT credit.extend_case_deadline(:loan_id, :caller, :reason, :due) AS due_at",
+                {"loan_id": loan_id, "caller": caller, "reason": reason, "due": new_due_at},
+            )
+        except DBAPIError as error:
+            state = _sqlstate(error)
+            if state == "42501":
+                raise PermissionError("Only the relationship manager may extend the deadline") from error
+            if state == "23505":
+                raise ConflictError(
+                    "DEADLINE_ALREADY_EXTENDED", "Hạn bổ sung chỉ được gia hạn 1 lần.", {}
+                ) from error
+            if state in {"22023", "55000"}:
+                raise ValueError("The case has no supplement deadline to extend") from error
+            raise
+        if row is None:
+            raise RuntimeError("extend_case_deadline returned no row")
+        return row["due_at"]
+
+    async def extension_count(self, loan_id: UUID) -> int:
+        row = await fetch_one(
+            self.session,
+            "SELECT count(*) AS n FROM credit.deadline_extension WHERE loan_application_id = :loan_id",
+            {"loan_id": loan_id},
+        )
+        return int(row["n"]) if row else 0
+
     async def open_steps(self, loan_id: UUID) -> list[Record]:
         return [row for row in await self.list_steps(loan_id) if row["completed_at"] is None]
 

@@ -35,6 +35,10 @@ export async function fetchActionState(loanId: string): Promise<CaseActionState>
 export async function runTransition(loanId: string, action: string, version: number, reason?: string, params?: Record<string, unknown>) {
   return (await apiClient.post(`${base(loanId)}/transitions`, { action, expected_version: version, reason: reason || null, params: params ?? null })).data;
 }
+/** Q11: QHKH gia hạn hạn bổ sung đúng 1 lần, có lý do (+5 ngày làm việc). */
+export async function extendDeadline(loanId: string, reason: string) {
+  return (await apiClient.post<{ due_at: string }>(`${base(loanId)}/extend-deadline`, { reason })).data;
+}
 export async function handleFlag(loanId: string, flagId: string, note: string) {
   await apiClient.post(`${base(loanId)}/flags/${flagId}/handle`, { note });
 }
