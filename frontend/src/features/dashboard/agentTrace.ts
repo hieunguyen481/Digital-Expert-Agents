@@ -67,7 +67,7 @@ export interface TraceVerdict {
   agent: string;
   decision: string;
   summary: string;
-  evidence?: { source: string; quote: string }[];
+  evidence?: { source: string; quote: string; raw_quote?: string }[];
 }
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
