@@ -54,8 +54,8 @@ test('R-04: Kiểm toán lọc nhật ký theo hành động; Tra cứu chính s
   test.setTimeout(120_000);
   await as(page, 'kiemtoan');
   await page.goto('/nhat-ky-kiem-toan');
-  await page.getByLabel('Hành động').click();
-  await page.getByTitle('Gia hạn hạn bổ sung').click();
+  await page.getByLabel('Hành động').fill('Gia hạn');
+  await page.locator('.ant-select-item-option').filter({ hasText: 'Gia hạn hạn bổ sung' }).first().click();
   await page.getByRole('button', { name: 'Lọc' }).click();
   const table = page.getByRole('table', { name: 'Nhật ký kiểm toán' });
   await expect(table.getByText('Gia hạn hạn bổ sung').first()).toBeVisible({ timeout: 30_000 });
