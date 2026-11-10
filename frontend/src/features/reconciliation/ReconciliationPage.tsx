@@ -41,7 +41,15 @@ function Workspace({ loanId }: { loanId: string }) {
         crumbs={[{ label: 'Việc của tôi', to: '/viec-cua-toi' }, { label: view.application_number, to: `/ho-so-vay/${loanId}` }, { label: 'Đối chiếu tài liệu' }]}
       />
       <div className={styles.page}>
-        <Alert type="info" showIcon message={view.data_label} />
+        <Alert type="info" showIcon data-testid="recon-note"
+          message="Tài liệu mẫu là dữ liệu minh họa. Tài liệu tải lên được hệ thống đọc tự động: trường trích ra là đề xuất của AI, chỉ có hiệu lực sau khi người xác nhận." />
+        {view.documents.length === 0 && (
+          <Alert type="warning" showIcon data-testid="recon-next-line"
+            message="Hồ sơ chưa có tài liệu nào"
+            description={view.permissions.can_upload
+              ? 'Bước tiếp theo: tải PDF theo từng mục checklist ở khung "Tải tài liệu lên" bên dưới.'
+              : 'Bước tiếp theo: chờ QHKH tải tài liệu lên. Bạn sẽ đối chiếu khi có tài liệu.'} />
+        )}
         <div className={styles.cols}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <ChecklistPanel loanId={loanId} view={view} documentId={current} onOpenDocument={openDocument} />

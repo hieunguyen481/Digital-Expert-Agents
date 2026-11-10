@@ -60,7 +60,7 @@ function PdfButton({ loanId, revision }: { loanId: string; revision: number | nu
   return (
     <div>
       <Button data-testid="memo-pdf" disabled={locked} loading={busy} onClick={() => void click()}>
-        {locked ? 'Tải PDF' : "Tải PDF bản chốt mới nhất"}
+        {locked ? 'Tải PDF' : 'Tải PDF bản chốt mới nhất'}
       </Button>
       {locked && <span className={styles.note} data-testid="memo-pdf-reason"> Chưa xuất được: Tờ trình chưa được chốt khi trình.</span>}
       {error && <span role="alert" className={styles.note}> {error}</span>}
@@ -105,7 +105,7 @@ export function MemoPanel({ loanId }: { loanId: string }) {
       ) : view.finalized ? (
         <>
           <Alert type="info" showIcon
-            message={`Bản đã chốt lúc trình · lần ${view.finalized.revision}`}
+            message={"Bản đã chốt lúc trình"}
             description={`${view.finalized.finalized_by_name} chốt ngày ${fmtDate(view.finalized.finalized_at)}. Nội dung không sửa được; chỉ gồm phần người viết và phần AI đã được xác nhận.`} />
           <ReadSections titles={view.titles} sections={view.finalized.sections} />
         </>

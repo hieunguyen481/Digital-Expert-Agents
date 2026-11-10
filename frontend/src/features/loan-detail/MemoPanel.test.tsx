@@ -30,7 +30,7 @@ describe('MemoPanel – tải PDF', () => {
     render(<MemoPanel loanId="l" />);
     const btn = screen.getByTestId('memo-pdf');
     expect(btn).toBeEnabled();
-    expect(btn.textContent).toContain('lần 2');
+    expect(btn.textContent).toContain('bản chốt mới nhất');
     fireEvent.click(btn);
     await waitFor(() => expect(download).toHaveBeenCalledWith('l'));
   });

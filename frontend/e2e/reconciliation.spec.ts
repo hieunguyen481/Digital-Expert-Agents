@@ -17,7 +17,7 @@ test.afterAll(() => {
 test('tdinh: bấm trường tới đúng vùng tô và bấm vùng tô tới đúng trường (hai chiều)', async ({ page }) => {
   await loginAs(page, 'tdinh');
   await page.goto(VINANOVA);
-  await expect(page.getByText('dữ liệu seed', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('dữ liệu mẫu', { exact: false }).first()).toBeVisible();
   const frame = page.getByTestId('page-frame');
   await expect(frame).toBeVisible();
   const regions = frame.locator('[data-testid^="region-"]');

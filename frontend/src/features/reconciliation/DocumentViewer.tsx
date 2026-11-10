@@ -88,7 +88,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
       {doc.data_source === 'PIPELINE' && !doc.processing_error
         && !['READY', 'NEEDS_HUMAN_REVIEW'].includes(doc.processing_status ?? '') && (
         <Alert type="info" showIcon data-testid="processing-progress"
-          message={`Worker đang xử lý tài liệu (${doc.processing_progress ?? 0}%)…`} />
+          message={`Hệ thống đang đọc tài liệu (${doc.processing_progress ?? 0}%)…`} />
       )}
       {doc.page_count > 1 && (
         <Space size={4} style={{ marginBottom: 8 }}>
@@ -128,7 +128,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
       <p className={styles.note} data-testid="source-note">
         {doc.data_source === 'PIPELINE'
           ? 'Nguồn: tệp tải lên, trường do AI trích từ lớp chữ của PDF; vùng tô là vị trí dòng nguồn trên trang.'
-          : 'Nguồn: dữ liệu seed (chưa có ảnh trang thật); vùng tô là dữ liệu seed.'}
+          : 'Nguồn: dữ liệu mẫu (chưa có ảnh trang thật); vùng tô chỉ mang tính minh họa.'}
       </p>
 
       {selected ? (
