@@ -40,10 +40,10 @@ export const METRICS: MetricDef[] = [
   { key: 'invalid_citations', label: 'Trích dẫn không tồn tại', description: 'Số điều khoản § trích ngoài chính sách (mỗi lượt)', better: 'lower', format: num(2) },
   { key: 'tool_recall', label: 'Độ phủ công cụ', description: 'Tỷ lệ công cụ bắt buộc đã gọi', better: 'higher', format: pct },
   { key: 'gate_ok', label: 'Tới đúng bước chờ người xác nhận', description: 'Tỷ lệ lượt dừng đúng cổng kỳ vọng, không tự duyệt', better: 'higher', format: pct },
-  { key: 'tool_calls', label: 'Số lượt gọi công cụ MCP', description: 'Trung bình mỗi lượt (không xếp hơn/kém)', better: 'none', format: num(1) },
+  { key: 'tool_calls', label: 'Số lần tra cứu dữ liệu', description: 'Trung bình mỗi lượt (không xếp hơn/kém)', better: 'none', format: num(1) },
   { key: 'latency_s', label: 'Độ trễ', description: 'Giây từ lúc gửi đến kết luận', better: 'lower', format: fmtSec },
-  { key: 'total_tokens', label: 'Token', description: 'Tổng token LLM mỗi lượt', better: 'lower', format: (v) => fmtInt(v) },
-  { key: 'cost_usd', label: 'Chi phí LLM', description: 'USD mỗi lượt (OpenRouter usage.cost)', better: 'lower', format: (v) => fmtUsd(v) },
+  { key: 'total_tokens', label: 'Khối lượng xử lý AI (token)', description: 'Tổng token LLM mỗi lượt', better: 'lower', format: (v) => fmtInt(v) },
+  { key: 'cost_usd', label: 'Chi phí LLM', description: 'USD mỗi lượt gọi mô hình AI (số đo thật từ nhà cung cấp)', better: 'lower', format: (v) => fmtUsd(v) },
 ];
 
 export function statText(stat: BenchmarkStat | undefined, def: MetricDef): string {
@@ -140,9 +140,14 @@ export function defaultRunId(metas: BenchmarkRunMeta[]): string | null {
 }
 
 export function runOptionLabel(m: BenchmarkRunMeta): string {
-  const when = fmtDayTime(m.created_at);
-  const kind = m.regrade_of ? 'chấm lại dữ liệu cũ' : 'đo mới';
-  return `Bộ ca ${m.cases_version} · bộ chấm ${m.grader_version} · chế độ ${m.llm_mode} · ${kind} · ${when}${m.label ? ` · ${m.label}` : ''}${isTestRun(m) ? ' · [Kiểm thử]' : ''}`;
+  const kind = m.regrade_of ? ' · chấm lại dữ liệu cũ' : '';
+  const modes = hasBothModes(m) ? 'So sánh single và multi' : 'Chỉ đa agent';
+  return `${fmtDayTime(m.created_at)} · Bộ ca ${m.cases_version} · ${modes} · ${m.runs_per_case} lượt mỗi ca${kind}${isTestRun(m) ? ' · [Kiểm thử]' : ''}`;
+}
+
+/** Mã kỹ thuật của lượt đo (bộ chấm, chế độ LLM, nhãn dòng lệnh): chỉ là chú thích phụ cho người kiểm tra. */
+export function runTechnicalNote(m: Pick<BenchmarkRunMeta, 'grader_version' | 'llm_mode' | 'label'>): string {
+  return `Mã kỹ thuật: bộ chấm ${m.grader_version} · chế độ LLM ${m.llm_mode}${m.label ? ` · nhãn: ${m.label}` : ''}`;
 }
 
 /** Select có hai nhóm: lượt đo chính thức, và nhóm riêng cho ablation/kiểm thoái lui (không xóa lượt nào). */
@@ -199,18 +204,19 @@ export function ComparisonTab() {
           loading={runsQ.isLoading}
         />
         <Text type="secondary" style={{ display: 'block', marginTop: 6, fontSize: 12 }} data-testid="cmp-label">
-          {run.label || `Đo mới, bộ chấm ${run.grader_version}`}
+          {runOptionLabel(run)}
+          <span style={{ display: 'block', opacity: 0.7 }} data-testid="cmp-tech">{runTechnicalNote(run)}</span>
         </Text>
       </Card>
       <Alert type="info" showIcon style={{ marginBottom: 12 }} data-testid="cmp-headline" message={headline(run)} />
       <div className={styles.cmpHead} data-testid="cmp-meta">
         <ThunderboltOutlined />
         <span>
-          Bộ ca <strong>{run.cases_version}</strong> · bộ chấm <strong>{run.grader_version}</strong> · {cases.length} ca × {run.runs_per_case} lượt × {modeCount(run)} ·{' '}
+          Bộ ca đánh giá <strong>{run.cases_version}</strong> · {cases.length} ca × {run.runs_per_case} lượt × {modeCount(run)} ·{' '}
           Planner <strong>{modelName(run.planner_model)}</strong> · Chuyên gia/đơn agent <strong>{modelName(run.specialist_model)}</strong> ·{' '}
-          chế độ {run.llm_mode} · chi phí đo thật{' '}
+          chi phí đo thật{' '}
           <strong>{run.total_cost_usd === null ? '—' : fmtUsd(run.total_cost_usd)}</strong> · {fmtDay(run.created_at)}
-          <details style={{ display: 'inline', marginLeft: 6 }}><summary style={{ display: 'inline', cursor: 'pointer', color: 'var(--text-3)' }}>Mã kỹ thuật</summary> <code>{run.run_id}</code></details>
+          <details style={{ display: 'inline', marginLeft: 6 }}><summary style={{ display: 'inline', cursor: 'pointer', color: 'var(--text-3)' }}>Mã kỹ thuật</summary> <code>{run.run_id}</code> · bộ chấm {run.grader_version} · chế độ LLM {run.llm_mode}</details>
         </span>
       </div>
 
