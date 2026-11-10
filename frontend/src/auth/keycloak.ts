@@ -46,7 +46,7 @@ export async function login(returnTo = '/'): Promise<void> {
 /** Đưa người dùng về /login kèm đường quay lại (dùng khi phiên không làm mới được). */
 export function redirectToLogin(): void {
   const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-  window.location.assign(`/login?returnTo=${returnTo}`);
+  window.location.assign(`/login?returnTo=${returnTo}&reason=expired`);
 }
 
 /** Phiên demo (rules.md, ngoại lệ Q-J): token thật của tài khoản đang đóng vai, giữ theo tab; không có mật khẩu. */
