@@ -68,7 +68,8 @@ test('nhánh Phê duyệt có điều kiện: điều kiện được ghi và h�
   // R-03: khối điều kiện trước giải ngân liệt kê điều kiện từ quyết định và từ đội agent.
   const block = page.getByTestId('pre-disbursement');
   await expect(block.getByTestId('pre-disbursement-decision').first()).toContainText('Mở tài khoản thanh toán trước giải ngân');
-  await expect(block.getByTestId('pre-disbursement-agent').first()).toBeVisible();
+  // Khách mới chưa sàng lọc AML: đội agent ra Cần bổ sung (không có điều kiện trước giải ngân của gói trình), nên khối chỉ còn điều kiện từ quyết định.
+  await expect(block.getByTestId('pre-disbursement-agent')).toHaveCount(0);
   await shot(page, 'b2', 'da-quyet-dinh');
 });
 

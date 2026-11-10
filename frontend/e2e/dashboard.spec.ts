@@ -43,7 +43,7 @@ test('dashboard hiện đúng case vừa chạy ở /chat: DAG, task, luồng ph
   expect(await tasks.count()).toBeGreaterThanOrEqual(3);
   await expect(tasks.filter({ hasText: 'Xong' })).toHaveCount(await tasks.count());
   await expect(trace.getByTestId('trace-flow')).toContainText('Validation');
-  await expect(trace.getByTestId('trace-flow').getByText(/challenge|không phát challenge/).first()).toBeVisible();
+  await expect(trace.getByTestId('trace-flow').getByText(/challenge|phản biện/).first()).toBeVisible();
   await expect(trace.getByTestId('trace-tools')).toContainText('get_');
   if (pending) {
     await expect(trace.getByTestId('trace-decisions')).toContainText('Đang chờ người có thẩm quyền xác nhận');
