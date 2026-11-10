@@ -298,3 +298,36 @@ Thay đổi được kiểm: thiếu tài khoản thanh toán thành điều ki�
 - Còn lệch: F5 4/5, F6 3/4, H4 3/4 giữ nguyên như trước; H8 4/5 ở lần 2 (lần 1 5/5), dao động của 1 lần/ca. H1 lần 1 có 1 trích dẫn sai `§8` (cũng có ở lượt trước), lần 2 không.
 - Trễ và $/ca cao hơn mốc §10 (~34–38 s so với 26–31 s). Đo trên engine riêng, một lần/ca, thời điểm API khác nhau; không quy cho một thay đổi cụ thể. Cột token không đưa vào vì cách đếm của engine riêng khác mốc §10.
 - Kết luận: không thoái lui vượt dao động sau chỉnh; mẫu nhỏ (1 lần/ca), chỉ bắt được thoái lui lớn.
+
+## 12. Bench8: đăng ký trước bộ đo mù v8 (CHƯA đo)
+
+Lý do: từ v7 (§9), engine đổi nhiều (luật tài khoản Q-V, chuyên gia tự gọi công cụ §10, sửa lỗi QA §11, đề xuất hành động), nên số v7 không còn khớp bản nộp. Số đưa lên slide phải đo trên bản cuối, trên bộ ca chưa từng dùng để chỉnh. Mục này được commit TRƯỚC mọi lượt đo; không chạy engine hay LLM trên ca v8 trước commit đăng ký.
+
+### 12.1 Cơ cấu bộ ca (`cases_v8.json`, J1-J10, seed `R__seed_benchmark_v8_profiles.sql`, khách ...0071-0080)
+Đáp án viết từ `rules.md` (Q4, Q5/E5, Q10, Q-T, Q-V), CS-TD-SME/2025 §3.1, §4.1, §4.2, §6.1, §6.3, §7.1, `compliance_policy` Điều 7, `ops_procedures` Mục 3. 48 phát hiện bắt buộc, trung bình 4,8/ca (v7: 4,13). Regex số dùng lookbehind `(?<![\d.,])`, không dùng `\b` sau số thập phân.
+
+| ca | nội dung | gate chấp nhận | số phát hiện |
+|---|---|---|---|
+| J1 | không có tài khoản thanh toán (Q-V), mọi chỉ tiêu đạt: tổng 17 tỷ, LTV 40%, đòn bẩy 1,73 | PENDING_APPROVAL | 5 |
+| J2 | không có tài khoản (Q-V) và đòn bẩy sau cấp 3,68 vượt trần; tổng 24 tỷ cần kiểm toán | NEEDS_INFO hoặc REJECTED | 4 |
+| J3 | tổng 100,5 tỷ vừa vượt 100; hai TSĐB 100 tỷ, LTV 55%, trần 70 tỷ | PENDING_APPROVAL hoặc NEEDS_INFO | 5 |
+| J4 | CIC nhóm 5, tài chính và TSĐB tốt, tổng 30 tỷ | REJECTED | 5 |
+| J5 | CIC 55 tỷ cao hơn BCTC 30 tỷ, đòn bẩy 3,89 theo số cao hơn; tổng 27 tỷ | NEEDS_INFO hoặc REJECTED | 5 |
+| J6 | LTV 87,5% vượt 70% (35/40), trần có bảo đảm 28 tỷ; tổng 43 tỷ | PENDING_APPROVAL hoặc NEEDS_INFO | 5 |
+| J7 | khoản nhỏ 7 tỷ, ba khoản hiện hữu 15 tỷ: tổng 22 tỷ, kiểm toán bắt buộc, không TSĐB | PENDING_APPROVAL | 4 |
+| J8 | hồ sơ sạch nhỏ, tổng 9 tỷ ≤ 20, LTV 45%, trần 14 tỷ | PENDING_APPROVAL | 5 |
+| J9 | ba TSĐB 90 tỷ: tổng 50 tỷ, LTV 33,3%, trần 63 tỷ, đòn bẩy 2,38 | PENDING_APPROVAL | 5 |
+| J10 | CIC tra cứu cách 35 ngày (quá 30 ngày, §6.3); tổng 19 tỷ | NEEDS_INFO | 5 |
+
+Ca nhắm cổng: 3/10 (J1, J2 luật Q-V; J10 CIC quá hiệu lực; tối đa 3). Cổng không dồn: PENDING_APPROVAL (J1, J7, J8, J9; thêm J3, J6), REJECTED (J4; thêm J2, J5), NEEDS_INFO (J10; thêm J2, J3, J5, J6). Ca Q-V theo `rules.md` Q-V: thiếu tài khoản thanh toán là điều kiện bổ sung trước giải ngân, không chặn trình; J2 kiểm ngược lại (lỗi khác vẫn quyết định cổng).
+Ca bỏ trước khi chạy vì `rules.md`/corpus không đủ làm đáp án kiểm chứng: khai có TSĐB nhưng không có hồ sơ tài sản, vốn chủ sở hữu âm, doanh thu trên 1.000 tỷ (Q8; rules không quy định trạng thái cuối), ngành rủi ro cao (như §9.1).
+
+### 12.2 Cách đo (đăng ký)
+- Chỉ đo SAU KHI KHÓA CODE (không còn sửa engine, single-agent, bộ chấm). Ghi commit khóa trong nhãn và trong file kết quả.
+- 3 lần × 10 ca × 2 chế độ: single, multi cấu hình mặc định lúc khóa code (OPT_FLAGS mặc định, Planner theo mặc định). Không chọn cấu hình theo điểm v8. Bộ chấm v3 giữ nguyên, `--max-cost` đặt đủ rộng (≥ 1), chạy tuần tự, engine riêng không ai dùng cùng lúc, đã nạp `agent.benchmark_run`.
+- Đúng một lượt đo; nếu lượt đo lỗi hạ tầng (không phải kết quả) thì ghi rõ và chạy lại đúng phần lỗi, không chạy lại để chọn điểm.
+### 12.3 Quy tắc báo cáo
+- Báo cả hai chế độ với trung bình, độ lệch và sai số chuẩn; nêu ca nào multi không hơn single. Báo theo ca, không chỉ trung bình.
+- Không sửa đáp án, regex hay bộ chấm sau khi xem điểm. Lỗi regex phát hiện sau đo ghi thành chú thích cùng điểm gốc, thêm số "nếu tính khớp" tách riêng (như H4, §9.3).
+- Số v7/v5 cũ ghi rõ là bộ đã dùng để chỉnh; chỉ v8 là số mù.
+- Giả thuyết đăng ký: multi ≥ single về đúng cổng (single thiên về NEEDS_INFO khi thiếu trường phụ, như J1) và chính xác trích dẫn; recall hai chế độ gần nhau. Không đặt ngưỡng thắng/thua ngoài việc báo số thật.

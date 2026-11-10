@@ -21,7 +21,8 @@ for seed_file in \
     R__seed_benchmark_v4_profiles.sql \
     R__seed_benchmark_v5_profiles.sql \
     R__seed_benchmark_v6_profiles.sql \
-    R__seed_benchmark_v7_profiles.sql
+    R__seed_benchmark_v7_profiles.sql \
+    R__seed_benchmark_v8_profiles.sql
 do
     full_path="${seed_directory}/${seed_file}"
     if [ ! -r "${full_path}" ]; then
