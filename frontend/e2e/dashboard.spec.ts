@@ -7,6 +7,9 @@ const REQUEST =
 async function openCases(page: import('@playwright/test').Page) {
   await page.getByRole('link', { name: 'Bảng điều khiển agent' }).click();
   await page.getByRole('tab', { name: /Agent traces/ }).click();
+  // Ca trò chuyện không gắn hồ sơ là ca kiểm thử: mặc định ẩn, bật bộ lọc để thấy.
+  const showTest = page.getByTestId('trace-show-test');
+  if (await showTest.isVisible({ timeout: 5_000 }).catch(() => false)) await showTest.click();
 }
 
 test('dashboard hiện đúng case vừa chạy ở /chat: DAG, task, luồng phối hợp, công cụ, quyết định', async ({ page }) => {

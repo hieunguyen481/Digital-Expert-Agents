@@ -145,6 +145,17 @@ export function runOptionLabel(m: BenchmarkRunMeta): string {
   return `Bộ ca ${m.cases_version} · bộ chấm ${m.grader_version} · chế độ ${m.llm_mode} · ${kind} · ${when}${m.label ? ` · ${m.label}` : ''}${isTestRun(m) ? ' · [Kiểm thử]' : ''}`;
 }
 
+/** Select có hai nhóm: lượt đo chính thức, và nhóm riêng cho ablation/kiểm thoái lui (không xóa lượt nào). */
+export function runOptionGroups(metas: BenchmarkRunMeta[]) {
+  const opt = (m: BenchmarkRunMeta) => ({ value: m.run_id, label: runOptionLabel(m) });
+  const official = metas.filter((m) => !isTestRun(m)).map(opt);
+  const tests = metas.filter(isTestRun).map(opt);
+  return [
+    { label: `Lượt đo chính thức (${official.length})`, options: official },
+    ...(tests.length ? [{ label: `Ablation và kiểm thoái lui — không phải kết quả chính (${tests.length})`, options: tests }] : []),
+  ];
+}
+
 export function ComparisonTab() {
   const [selected, setSelected] = useState<string | null>(null);
   const runsQ = useQuery({ queryKey: ['agent-benchmark-runs'], queryFn: getBenchmarkRuns });
@@ -184,7 +195,7 @@ export function ComparisonTab() {
           style={{ minWidth: 560, maxWidth: '100%' }}
           value={effective ?? run.run_id}
           onChange={setSelected}
-          options={(runsQ.data ?? []).map((m) => ({ value: m.run_id, label: runOptionLabel(m) }))}
+          options={runOptionGroups(runsQ.data ?? [])}
           loading={runsQ.isLoading}
         />
         <Text type="secondary" style={{ display: 'block', marginTop: 6, fontSize: 12 }} data-testid="cmp-label">
