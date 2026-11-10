@@ -18,13 +18,15 @@ const IC={
 };
 const ic=(k,cls)=>cls?IC[k].replace('<svg ',`<svg class="${cls}" `):IC[k];
 // --- vai trò demo
+// Tên vai khớp UI_ROLE_LABEL trong frontend/src/auth/roleFromMe.ts (6 vai nghiệp vụ; Quản trị chỉ có trang Quản trị)
 const ROLES={
- rm:{n:'Nguyễn Minh Anh',t:'Cán bộ tín dụng',i:'NA'},htd:{n:'Lê Thu Hà',t:'Hỗ trợ tín dụng',i:'LH'},td:{n:'Phạm Quốc Bảo',t:'Thẩm định',i:'PB'},
- risk:{n:'Trần Đức Long',t:'Quản lý rủi ro',i:'TL'},comp:{n:'Vũ Hải Yến',t:'Tuân thủ',i:'VY'},app:{n:'Đỗ Thanh Tùng',t:'Cấp phê duyệt',i:'DT'},
- dir:{n:'Hoàng Gia Khánh',t:'Giám đốc',i:'HK'},aud:{n:'Ngô Bích Ngọc',t:'Kiểm toán',i:'NN'},
+ rm:{n:'Nguyễn Minh Anh',t:'Chuyên viên QHKH',i:'NA'},htd:{n:'Lê Thu Hà',t:'Hỗ trợ tín dụng',i:'LH'},td:{n:'Phạm Quốc Bảo',t:'Chuyên viên Thẩm định',i:'PB'},
+ risk:{n:'Trần Đức Long',t:'Quản lý rủi ro/Tuân thủ',i:'TL'},app:{n:'Đỗ Thanh Tùng',t:'Cấp phê duyệt',i:'DT'},aud:{n:'Ngô Bích Ngọc',t:'Kiểm toán nội bộ',i:'NN'},
 };
+const QH='<abbr title="Quan hệ khách hàng">QHKH</abbr>';
 // --- một danh sách agent dùng chung (khớp agent_engine và AgentTeamPanel)
 const AGENTS=[
+ // ms = lượt chạy gần nhất (HSV-2026-00201, 10/11/2026 14:32); bảng trung vị ở trang 06 là số khác, có ghi nhãn
  {k:'planner',n:'Planner',r:'Lập kế hoạch, giao việc',ms:2100,calls:1},
  {k:'credit',n:'Credit',r:'Tài chính: DSCR, DTI, LTV',ms:7700,calls:5},
  {k:'compliance',n:'Compliance',r:'Chính sách và tuân thủ',ms:6300,calls:4},
@@ -49,14 +51,42 @@ function team(states,opt={}){
  const flow=`<div class="flow ${opt.sm?'sm':''}"><div class="one">${fn('planner',s('planner'),note.planner)}</div><div class="cx">${fanOut}</div>
  <div class="col">${['credit','compliance','operations','document'].map(k=>`<div>${fn(k,s(k),note[k],1)}</div>`).join('')}</div><div class="cx">${fanIn}</div>
  <div class="one">${fn('validation',s('validation'),note.validation)}</div></div>`;
- const hum=opt.human===false?'':`<div class="hdown" aria-hidden="true"></div><div class="hnode ${opt.human==='wait'?'wait':''}"><span class="tag-hm">Người quyết định</span><b>Cấp phê duyệt</b><span class="rl">${opt.humanNote||'AI chỉ đề xuất, không tự phê duyệt'}</span></div>`;
- return `<div class="teamrow" role="group" aria-label="Sơ đồ đội agent: Planner giao việc cho Credit, Compliance, Operations và Document chạy song song, sau đó Validation kiểm chứng, rồi người quyết định"><div style="padding:var(--s1) 0">${flow}</div>${hum}</div>`;
+ return `<div class="teamrow" role="group" aria-label="Sơ đồ đội agent: Planner giao việc cho Credit, Compliance, Operations và Document chạy song song, sau đó Validation kiểm chứng"><div style="padding:var(--s1) 0">${flow}</div></div>`;
+}
+// Người quyết định luôn nằm NGOÀI khối AI: đặt ngay sau khối AI, trong .hwrap; mũi tên liền navy đi qua mép khung nét đứt
+function humanOut(opt={}){
+ return `<div class="hdown" aria-hidden="true"></div><div class="hnode ${opt.wait?'wait':''}"><span class="tag-hm">Người quyết định</span><b>${opt.who||'Cấp phê duyệt'}</b><span class="rl">${opt.note||'AI chỉ đề xuất, không tự phê duyệt'}</span></div>`;
+}
+const hwrap=(aiHtml,opt)=>`<div class="hwrap">${aiHtml}${humanOut(opt)}</div>`;
+// Sơ đồ gọn một dải (màn đầu của hồ sơ): Planner → 4 agent song song → Validation
+function teamLine(states,notes={}){
+ const s=k=>states[k]||'idle';
+ const p=(k)=>{const a=A[k],st=s(k);const cls=st==='to'?'err':st;const lbl={idle:'Chưa chạy',run:'Đang chạy',done:fmtS(a.ms),err:'Lỗi',to:'Quá giờ'}[st];
+  return `<div class="fn ${cls}"><b>${a.n}</b><span class="rl">${notes[k]||lbl}</span></div>`;};
+ return `<div class="tline" role="group" aria-label="Đội agent tóm tắt: Planner, bốn agent song song Credit, Compliance, Operations, Document, rồi Validation">${p('planner')}<span class="arr" aria-hidden="true">→</span><div class="grp4">${['credit','compliance','operations','document'].map(p).join('')}</div><span class="arr" aria-hidden="true">→</span>${p('validation')}</div>`;
 }
 const tagAI=`<span class="tag-ai">${ic('spark')}AI đề xuất</span>`;
 const tagHM='<span class="tag-hm">Người quyết định</span>';
-const NAV=[['Làm việc',[['viec','02-viec-cua-toi.html','inbox','Việc của tôi'],['tao','17-tao-de-xuat-vay.html','plus','Tạo đề xuất vay'],['kh','18-khach-hang.html','users','Khách hàng'],['dc','19-doi-chieu-danh-sach.html','cols','Đối chiếu tài liệu'],['chat','09-chat.html','chat','Trợ lý']]],
- ['Giám sát và tra cứu',[['ds','06-dashboard-tong-quan.html','chart','Đội agent'],['cs','20-tra-cuu-chinh-sach.html','book','Tra cứu chính sách'],['nk','10-nhat-ky.html','audit','Nhật ký kiểm toán']]]];
-const cnt={viec:4};
+const tagMe=(t='Việc của bạn')=>`<span class="tag-me">${t}</span>`;
+// Điều hướng theo vai: khớp RAIL_ITEMS trong frontend/src/features/shell/navigation.ts (nhãn thật của code). Badge theo rules.md mục C: qhkh 4 · httd 3 · tdinh 3 · ruiro 2 · pheduyet 3.
+const BADGE={rm:4,htd:3,td:3,risk:2,app:3,aud:0};
+const I_={viec:'inbox',tao:'plus',kh:'users',dc:'cols',cs:'book',chat:'chat',ds:'chart',nk:'audit',hd:'users'};
+const it=(k,l,h)=>({k,l,h,i:I_[k]});
+const COMMON=[it('cs','Tra cứu chính sách','20-tra-cuu-chinh-sach.html'),it('chat','Trò chuyện','09-chat.html'),it('ds','Bảng điều khiển agent','06-dashboard-tong-quan.html')];
+const NAVR={
+ rm:[it('viec','Việc của tôi','02-viec-cua-toi.html'),it('tao','Tạo đề xuất vay','17-tao-de-xuat-vay.html'),it('kh','Khách hàng SME','18-khach-hang.html'),...COMMON],
+ htd:[it('viec','Việc của tôi','24-thanh-ben-theo-vai.html#htd'),it('dc','Đối chiếu tài liệu','19-doi-chieu-danh-sach.html'),it('kh','Khách hàng SME','18-khach-hang.html'),...COMMON],
+ td:[it('viec','Việc của tôi','24-thanh-ben-theo-vai.html#td'),it('dc','Đối chiếu tài liệu','19-doi-chieu-danh-sach.html'),it('kh','Khách hàng SME','18-khach-hang.html'),...COMMON],
+ risk:[it('viec','Hồ sơ chờ ý kiến','24-thanh-ben-theo-vai.html#risk'),it('kh','Khách hàng SME','18-khach-hang.html'),...COMMON],
+ app:[it('viec','Hồ sơ chờ phê duyệt','02b-viec-cua-toi-phe-duyet.html'),it('hd','Phiên Hội đồng tín dụng','24-thanh-ben-theo-vai.html#hd'),...COMMON],
+ aud:[it('viec','Hồ sơ vay – chỉ đọc','24-thanh-ben-theo-vai.html#aud'),it('nk','Nhật ký kiểm toán','10-nhat-ky.html'),it('hd','Phiên Hội đồng tín dụng – chỉ đọc','24-thanh-ben-theo-vai.html#hd'),...COMMON],
+};
+function navHtml(role,active,ai){
+ const list=NAVR[role]||NAVR.rm;
+ const row=x=>`<a href="${x.h}" ${active===x.k?'aria-current="page"':''}>${ic(x.i)}<span>${x.l}</span>${x.k==='viec'&&BADGE[role]?`<span class="cnt" aria-label="${BADGE[role]} hồ sơ chờ bạn">${BADGE[role]}</span>`:''}</a>`;
+ const n=list.length;
+ return `<div class="role">${ROLES[role].t}</div>`+list.slice(0,n-3).map(row).join('')+`<div class="sep" role="separator"></div>`+list.slice(n-3).map(row).join('')+`<a href="25-panel-ai-mo.html" ${active==='ai'?'aria-current="page"':''}>${ic('spark')}<span>Trợ lý AI</span></a>`;
+}
 function demoStrip(role,open){
  const r=ROLES[role]||ROLES.rm;
  const items=Object.entries(ROLES).map(([k,v])=>`<a href="#" role="menuitem" ${k===role?'aria-current="true"':''}><span class="avatar" aria-hidden="true">${v.i}</span><span>${v.n}<small>${v.t}</small></span></a>`).join('');
@@ -64,12 +94,12 @@ function demoStrip(role,open){
 }
 function shell(o){
  const r=ROLES[o.role||'rm'];
- const nav=NAV.map(([g,it])=>`<div class="grp">${g}</div>`+it.map(([k,h,i,l])=>`<a href="${h}" ${o.active===k?'aria-current="page"':''}>${ic(i)}<span>${l}</span>${cnt[k]?`<span class="cnt">${cnt[k]}</span>`:''}</a>`).join('')).join('');
+ const nav=navHtml(o.role||'rm',o.active);
  const html=`<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${o.title} · Sổ Tín Dụng</title><link rel="stylesheet" href="app.css">${o.head||''}</head><body>
 <a class="skip" href="#main">Bỏ qua điều hướng</a>
 ${demoStrip(o.role||'rm',o.menu)}
-<div class="app"><aside class="side"><div class="brand"><div class="mark"><span>S</span></div><div><div class="name">Sổ Tín Dụng</div><div class="sub">Tín dụng doanh nghiệp</div></div></div><nav class="nav" aria-label="Điều hướng chính">${nav}</nav><div class="foot">Phiên bản demo 2.1</div></aside>
-<div class="main"><header class="top"><div class="search" role="search"><label class="sr" for="gs">Tìm hồ sơ, khách hàng, mã số thuế</label>${ic('search')}<input id="gs" class="sr-ph" placeholder="Tìm hồ sơ, khách hàng, mã số thuế" style="border:0;background:none;flex:1;font:inherit;color:var(--ink);outline:none;min-width:0"><kbd>/</kbd></div><div class="user"><button class="bell" aria-label="Thông báo, có 1 mục mới">${ic('bell')}<i></i></button><div class="avatar" aria-hidden="true">${r.i}</div><div class="who"><b>${r.n}</b><span>${r.t}</span></div></div></header>
+<div class="app"><aside class="side"><div class="brand"><div class="mark"><span>S</span></div><div><div class="name">Sổ Tín Dụng</div><div class="sub">Tín dụng doanh nghiệp</div></div></div><nav class="nav" aria-label="Điều hướng chính">${nav}</nav><div class="foot">Phiên bản demo 2.2</div></aside>
+<div class="main"><header class="top"><div class="search" role="search"><label class="sr" for="gs">Tìm hồ sơ, khách hàng, mã số thuế</label>${ic('search')}<input id="gs" class="sr-ph" placeholder="Tìm hồ sơ, khách hàng, mã số thuế" style="border:0;background:none;flex:1;font:inherit;color:var(--ink);outline:none;min-width:0;height:32px"><kbd>/</kbd></div><div class="user"><button class="bell" aria-label="Thông báo, có 1 mục mới">${ic('bell')}<i></i></button><div class="avatar" aria-hidden="true">${r.i}</div><div class="who"><b>${r.n}</b><span>${r.t}</span></div></div></header>
 <main id="main" tabindex="-1" class="page ${o.cls||''}">${o.crumbs?`<nav class="crumbs" aria-label="Vị trí">${o.crumbs}</nav>`:''}
 ${o.body}</main></div></div>${o.after||''}</body></html>`;
  fs.writeFileSync(path.join(OUT,o.file),html);
@@ -82,9 +112,9 @@ const stepper=(cur,back)=>{const S=['Soạn đề xuất','Kiểm tra','Thẩm �
 const kpi=(l,v,u,h,extra)=>`<div class="kpi ${h?'hero':''}"><div class="l">${l}</div><div class="v">${v}${u?`<small>${u}</small>`:''}</div>${extra||''}</div>`;
 const ill=(k)=>{const base='<rect x="26" y="12" width="80" height="72" rx="4" fill="#FBFBF8"/><path d="M26 30h80M44 44h44M44 54h44M44 64h28" stroke-width="1.5" stroke="#AEB3A1"/><path d="M34 12v72" stroke="#B08A3E" stroke-width="2"/>';
  const ex={search:'<circle cx="98" cy="66" r="14" fill="#F0E6CF" stroke="#7A5C22"/><path d="M108 76l10 10" stroke="#7A5C22" stroke-width="3"/>',
- shield:'<path d="M101 50l17 6v13c0 11-7.500 17-17 19-9.500-2-17-8-17-19V56z" fill="#14284B" stroke="#14284B"/><path d="M94 68l5 5 9-10" stroke="#FBFBF8" stroke-width="3"/>',
+ shield:'<path d="M101 50l17 6v13c0 11-7.500 17-17 19-9.500-2-17-8-17-19V56z" fill="#14284B" stroke="#14284B"/><path d="M93 70h16" stroke="#FBFBF8" stroke-width="3"/>',
  bad:'<circle cx="100" cy="68" r="17" fill="#F7DDD9" stroke="#A8281D"/><path d="M100 60v10M100 75v.1" stroke="#A8281D" stroke-width="3"/>',
  clock:'<circle cx="100" cy="68" r="17" fill="#DCE7F6" stroke="#1D4F91"/><path d="M100 58v10l7 4" stroke="#1D4F91" stroke-width="3"/>'}[k];
  return `<svg class="ill" viewBox="0 0 132 96" fill="none" stroke="#14284B" stroke-width="2" stroke-linecap="round" role="img" aria-label="Minh họa">${base}${ex}</svg>`;};
 const page=(f,t)=>fs.writeFileSync(path.join(OUT,f),t);
-module.exports={fs,OUT,IC,ic,ROLES,AGENTS,A,fmtS,team,fn,tagAI,tagHM,shell,ph,meta,btn,locked,stepper,kpi,ill,page,demoStrip};
+module.exports={fs,OUT,IC,ic,QH,tagMe,humanOut,hwrap,teamLine,BADGE,NAVR,ROLES,AGENTS,A,fmtS,team,fn,tagAI,tagHM,shell,ph,meta,btn,locked,stepper,kpi,ill,page,demoStrip};
