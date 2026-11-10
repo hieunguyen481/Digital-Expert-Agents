@@ -122,7 +122,7 @@ function chartData(run: BenchmarkRun) {
 
 /** Lượt đo kiểm thử/thoái lui/bỏ từng phần (ablation): có nhãn riêng, không làm mặc định. */
 export function isTestRun(m: { label: string }): boolean {
-  return /kiểm thoái lui|kiểm thử|\babl\b|smoke|\btest\b/i.test(m.label ?? '');
+  return /kiểm thoái lui|bỏ cờ|kiểm thử|\babl\b|smoke|\btest\b/i.test(m.label ?? '');
 }
 
 export function hasBothModes(m: { modes?: string[] }): boolean {

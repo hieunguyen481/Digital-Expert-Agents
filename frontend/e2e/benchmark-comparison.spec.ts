@@ -42,7 +42,7 @@ async function expectRun(page: Page, stored: any) {
 
 test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ ca mới nhất và chọn được mọi lượt đã lưu', async ({ page }) => {
   test.setTimeout(240_000); // duyệt từng lượt qua danh sách ảo: càng nhiều lượt càng lâu
-  const measured = all.filter((r) => !r.regrade_of && !/kiểm thoái lui|kiểm thử|\babl\b|smoke|\btest\b/i.test(r.label ?? ''));
+  const measured = all.filter((r) => !r.regrade_of && !/kiểm thoái lui|bỏ cờ|kiểm thử|\babl\b|smoke|\btest\b/i.test(r.label ?? ''));
   const newestSet = measured.map((r) => r.cases_version).sort().pop();
   const defaultRun = measured.filter((r) => r.cases_version === newestSet).sort((a, b) => a.created_at.localeCompare(b.created_at)).pop();
   test.skip(!defaultRun, 'Chưa có file kết quả benchmark đo thật');
