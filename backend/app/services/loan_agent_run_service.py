@@ -36,6 +36,8 @@ _STATUS_VI = {
     "APPRAISAL_PENDING_INFO": "Thẩm định – chờ bổ sung", "RISK_REVIEW": "Đang cho ý kiến rủi ro",
     "COMPLIANCE_REVIEW": "Đang cho ý kiến tuân thủ", "APPROVAL": "Chờ phê duyệt", "APPROVED": "Đã phê duyệt",
     "APPROVED_WITH_CONDITIONS": "Phê duyệt có điều kiện", "REJECTED": "Từ chối", "COMMITTEE": "Chờ Hội đồng",
+    "COUNCIL_SESSION": "Chờ Hội đồng", "WITHDRAWN": "Đã rút", "RISK_PENDING_INFO": "Rủi ro – chờ giải trình",
+    "RISK_HOLD_FRAUD": "Tạm giữ do nghi gian lận",
 }
 
 
