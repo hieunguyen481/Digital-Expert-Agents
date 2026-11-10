@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Dat lai demo mot buoc: don ca agent + thong bao phat sinh, nap lai seed (dua ho so mau ve dung buoc,
+# Dat lai demo mot buoc: don ca agent + thong bao phat sinh cua ho so demo va LA- (khong dung ho so khac), nap lai seed (dua ho so mau ve dung buoc,
 # ho so LA- tao khi demo/e2e bi go nguoi vay chinh nen khong con hien trong danh sach viec).
 # Khong dung agent.benchmark_run. Chay nhieu lan cho cung ket qua. Khi chay e2e: boc trong flock /tmp/do-an-e2e.lock.
 # Bien: DEMO_PROJECT (mac dinh bank-ai-workbench). Can stack dang chay; khong down, khong xoa volume.
@@ -12,8 +12,9 @@ dc() {
     -f docker-compose.infra.yml -f docker-compose.tools.yml -f ../backend/docker-compose.backend.yml \
     -f ../agent_engine/docker-compose.engine.yml "$@"
 }
+started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 dc exec -T postgres psql -U postgres -d bank_ai -v ON_ERROR_STOP=1 -q < database/demo/reset-demo-cleanup.sql
 dc --profile setup run --rm --no-deps db-seed > /tmp/reset-demo-seed.log 2>&1 || { tail -20 /tmp/reset-demo-seed.log >&2; exit 1; }
-# Seed sinh lai thong bao (trigger) kem dong outbox PENDING: danh dau khong gui de worker email khong gui don len hop thu that.
-dc exec -T postgres psql -U postgres -d bank_ai -q -c "UPDATE integration.notification_delivery SET status = 'FAILED', attempt_count = 5, locked_at = NULL, locked_by = NULL, last_error = 'demo-reset: khong gui' WHERE status IN ('PENDING', 'PROCESSING')"
+# Seed sinh lai thong bao (trigger) kem dong outbox PENDING (chi dong tao tu luc bat dau lenh nay): danh dau khong gui de worker email khong gui don len hop thu that.
+dc exec -T postgres psql -U postgres -d bank_ai -q -c "UPDATE integration.notification_delivery SET status = 'FAILED', attempt_count = 5, locked_at = NULL, locked_by = NULL, last_error = 'demo-reset: khong gui' WHERE status IN ('PENDING', 'PROCESSING') AND created_at >= '$started'"
 dc exec -T postgres psql -U postgres -d bank_ai -Atq -c "SELECT 'ho so khong LA-: ' || count(*) FILTER (WHERE application_number NOT LIKE 'LA-%') || ', ho so LA- con nguoi vay: ' || (SELECT count(*) FROM credit.loan_party lp JOIN credit.loan_application a ON a.id = lp.loan_application_id WHERE a.application_number LIKE 'LA-%') || ', ca agent gan ho so: ' || (SELECT count(*) FROM credit.loan_agent_run) || ', thong bao: ' || (SELECT count(*) FROM integration.notification) || ', outbox cho gui: ' || (SELECT count(*) FROM integration.notification_delivery WHERE status IN ('PENDING','PROCESSING')) || ', benchmark_run: ' || (SELECT count(*) FROM agent.benchmark_run) FROM credit.loan_application"

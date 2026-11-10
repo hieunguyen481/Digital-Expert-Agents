@@ -1,13 +1,13 @@
 # Dữ liệu demo web
 
-Đặt lại một bước (nạp lại seed, dọn ca agent và thông báo phát sinh, không đụng `agent.benchmark_run`; chạy lại nhiều lần cho cùng kết quả):
+Đặt lại một bước (nạp lại seed; dọn ca agent và thông báo của đúng các hồ sơ demo trong bảng dưới và hồ sơ `LA-`, không đụng ca/thông báo của hồ sơ khác và không đụng `agent.benchmark_run`; chạy lại nhiều lần cho cùng kết quả):
 
 ```bash
 infra/scripts/reset-demo.sh      # DEMO_PROJECT=<tên compose> nếu stack không phải bank-ai-workbench
 ```
 
 Khi chạy e2e, bọc trong `flock /tmp/do-an-e2e.lock`. Đừng chạy lúc có ca agent đang chạy (đang ghi sự kiện vào ca bị dọn).
-Seed phát sinh lại thông báo bằng trigger, kèm dòng outbox email `PENDING`; lệnh đặt lại đánh dấu chúng `FAILED` (`last_error = 'demo-reset: khong gui'`) để worker email không gửi dồn ra hộp thư thật.
+Seed phát sinh lại thông báo bằng trigger, kèm dòng outbox email `PENDING`; lệnh đặt lại đánh dấu các dòng sinh từ lúc chạy lệnh là `FAILED` (`last_error = 'demo-reset: khong gui'`) để worker email không gửi dồn ra hộp thư thật.
 Hồ sơ `LA-` do demo/e2e tạo không xóa được (quyết định là bảng chỉ thêm); seed gỡ người vay chính và bước mở nên chúng không còn hiện trong danh sách việc, còn dashboard ẩn ca của chúng sau bộ lọc "Hiện ca kiểm thử".
 
 ## Các cảnh
