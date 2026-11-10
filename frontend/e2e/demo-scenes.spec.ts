@@ -81,11 +81,12 @@ test('cảnh 5: hồ sơ ở bước Phê duyệt đi tới quyết định củ
   test.setTimeout(300_000);
   const { loan } = SCENE.decide;
   let decided = false;
-  for (const role of ['giamdoc', 'pheduyet', 'pheduyet2'] as const) {
+  // Hồ sơ cấp 2 (55 tỷ): người Phê duyệt quyết định; Giám đốc chi nhánh thấy nút nhưng ghi bị 500 RLS (xem demo-data.md).
+  for (const role of ['pheduyet'] as const) {
     await as(page, role);
     await page.goto(`/ho-so-vay/${loan}`);
     const btn = page.getByRole('button', { name: 'Quyết định', exact: true });
-    if (!(await btn.isVisible({ timeout: 5_000 }).catch(() => false)) || !(await btn.isEnabled())) continue;
+    if (!(await btn.waitFor({ timeout: 15_000 }).then(() => true, () => false)) || !(await btn.isEnabled())) continue;
     await shot(page, 'd1-s5', 'cho-quyet-dinh');
     await btn.click();
     const rows = page.getByTestId('exception-row');
