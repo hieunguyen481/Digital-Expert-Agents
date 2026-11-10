@@ -11,7 +11,7 @@ from datetime import date, datetime
 
 from . import mcp_client, recompute
 
-CIC_VALID_DAYS = 30  # CS-TD-SME/2025 §6.3
+CIC_VALID_DAYS = 30  # CS-TD-SME/2025 §6.3; rules.md Q10: hiệu lực đến hết ngày tra cứu + 29
 
 
 def _as_date(x) -> date | None:
@@ -36,7 +36,9 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
     today = today or date.today()
     amount = float(request.get("amount") or 0)
     biz, fin, loans = raw.get("business") or {}, raw.get("financials") or [], raw.get("loans") or []
-    cic, bl, cols = raw.get("cic") or {}, raw.get("blacklist") or {}, raw.get("collateral") or []
+    cic, bl = raw.get("cic") or {}, raw.get("blacklist") or {}
+    # CX1: hồ sơ không khai TSĐB thì không tính LTV bằng tài sản của khoản vay khác của khách
+    cols = (raw.get("collateral") or []) if request.get("has_collateral") else []
     col = recompute.collateral_check(cols, amount) if cols else None
     exp = recompute.exposure_check(loans, amount)
     # Nợ vay lấy số CAO HƠN giữa BCTC và dư nợ hệ thống (CIC); lệch nhau là một phát hiện (đối chiếu số liệu).
@@ -75,7 +77,7 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
         if group >= 3:
             hard_stops.append(f"CIC nhóm {group}: không đủ điều kiện cấp tín dụng")
         d = _as_date(cic.get("report_date"))
-        if d and (today - d).days > CIC_VALID_DAYS:
+        if d and (today - d).days > CIC_VALID_DAYS - 1:
             blockers.append(f"Bản CIC tra cứu ngày {d.isoformat()} đã quá {CIC_VALID_DAYS} ngày, hết hiệu lực — "
                             "phải tra lại trước khi trình (CS-TD-SME/2025 §6.3, §6.4)")
     if not fin:

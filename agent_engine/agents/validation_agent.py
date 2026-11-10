@@ -50,6 +50,8 @@ async def _independent_checks(request: dict) -> dict:
 
     cols, loans, fin = await asyncio.gather(
         call("get_collateral"), call("get_existing_loans"), call("get_financials"))
+    if not request.get("has_collateral"):
+        cols = []  # CX1: không lấy TSĐB của khoản vay khác của khách
     col = recompute.collateral_check(cols, amount) if cols else None
     exp = recompute.exposure_check(loans, amount)
     lev = recompute.leverage_check(fin, loans, amount)

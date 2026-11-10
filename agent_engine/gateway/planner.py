@@ -34,8 +34,8 @@ def _template_plan(case_id: str, payload: dict, context: dict, version: int) -> 
     request = payload["request"]
     documents = payload.get("documents", [])
     has_docs = bool(documents)
-    # TSĐB theo DỮ LIỆU thật trong core banking, không chỉ cờ khai trong request
-    has_collateral = bool(request.get("has_collateral")) or context.get("collateral_count", 0) > 0
+    # CX1: chỉ tài sản gắn hồ sơ/khai trong yêu cầu; TSĐB của khoản vay khác của khách không tính
+    has_collateral = bool(request.get("has_collateral"))
     industry_risk = context.get("industry_risk", "normal")
     cic_group = context.get("cic_group") or 1  # CIC chưa tra cứu: cic_group = null
 
@@ -95,9 +95,9 @@ def parallelize_ops(plan: Plan) -> None:
 
 
 def ensure_collateral_check(plan: Plan, payload: dict, context: dict) -> None:
-    """Planner LLM có thể quên bật kiểm TSĐB: nếu hồ sơ khai có TSĐB hoặc core banking có TSĐB của
-    khách thì mọi task compliance đều phải kiểm pháp lý TSĐB và LTV."""
-    if not (payload["request"].get("has_collateral") or context.get("collateral_count", 0) > 0):
+    """Planner LLM có thể quên bật kiểm TSĐB: nếu hồ sơ khai có TSĐB (CX1: không lấy TSĐB của khoản vay khác)
+    thì mọi task compliance đều phải kiểm pháp lý TSĐB và LTV."""
+    if not payload["request"].get("has_collateral"):
         return
     for t in plan.tasks:
         if t.agent == "compliance":

@@ -96,3 +96,23 @@ def test_technical_field_names_are_filtered_from_displayed_reasons():
     v = Verdict.from_llm("compliance", "t", {"decision": "flag", "summary": "has_collateral=false",
                                              "findings": ["business_id không khớp"]})
     assert "has_collateral" not in v.summary and "business_id" not in v.findings[0]
+
+
+COL = [{"collateral_id": "c1", "legal_status": "clear", "valuation": 20e9}]
+
+
+def test_cx1_no_declared_collateral_ignores_customer_assets():
+    f = facts.build({"business": BIZ, "financials": FIN, "loans": LOANS, "cic": CIC, "blacklist": BL,
+                     "collateral": COL}, {**REQ, "amount": 15e9, "has_collateral": False}, TODAY)
+    assert f["collateral"] is None and not f["has_collateral_data"]
+    g = facts.build({"business": BIZ, "financials": FIN, "loans": LOANS, "cic": CIC, "blacklist": BL,
+                     "collateral": COL}, {**REQ, "amount": 15e9, "has_collateral": True}, TODAY)
+    assert g["collateral"]["ltv"] == 0.75
+
+
+def test_cx3_cic_valid_through_lookup_plus_29_days():
+    def blockers(report_date):
+        return facts.build({"business": BIZ, "financials": FIN, "loans": LOANS, "blacklist": BL, "collateral": [],
+                            "cic": {"cic_group": 1, "report_date": report_date}}, REQ, TODAY)["blockers"]
+    assert not blockers("2026-10-11")      # +29 ngày: còn hiệu lực
+    assert blockers("2026-10-10")          # +30 ngày: hết hiệu lực

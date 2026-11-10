@@ -138,20 +138,19 @@ async def test_package_and_stop_reason_carry_every_verdict_finding(monkeypatch):
     assert {c["source"] for c in pkg["citations"]} == {c["source"] for c in stop["citations"]}
 
 
-def test_planner_enables_collateral_from_data_not_only_flag():
-    req = {**REQ, "has_collateral": False}
-    payload = {"request": req, "documents": []}
+def test_planner_ignores_collateral_of_other_loans_cx1():
+    """CX1: hồ sơ không khai TSĐB thì không bật kiểm LTV chỉ vì khách có TSĐB ở khoản vay khác."""
+    payload = {"request": {**REQ, "has_collateral": False}, "documents": []}
     plan = planner._template_plan("c", payload, {"collateral_count": 2}, 1)
     comp = next(t for t in plan.tasks if t.agent == "compliance")
-    assert comp.params["check_collateral"] is True
+    assert comp.params["check_collateral"] is False
     llm_plan = Plan(case_id="c", version=1, rationale="", tasks=[
         PlanTask(task_id="a", agent="compliance", objective="KYB", params={"check_collateral": False})])
     planner.ensure_collateral_check(llm_plan, payload, {"collateral_count": 2})
+    assert llm_plan.tasks[0].params["check_collateral"] is False
+    declared = {"request": {**REQ, "has_collateral": True}, "documents": []}
+    planner.ensure_collateral_check(llm_plan, declared, {"collateral_count": 0})
     assert llm_plan.tasks[0].params["check_collateral"] is True
-    none = Plan(case_id="c", version=1, rationale="", tasks=[
-        PlanTask(task_id="a", agent="compliance", objective="KYB", params={"check_collateral": False})])
-    planner.ensure_collateral_check(none, payload, {"collateral_count": 0})
-    assert none.tasks[0].params["check_collateral"] is False
 
 
 def test_ops_dry_run_runs_in_parallel_with_specialists():
