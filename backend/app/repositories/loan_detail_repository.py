@@ -62,7 +62,15 @@ class LoanDetailRepository:
                LEFT JOIN credit.loan_party AS borrower
                  ON borrower.loan_application_id = la.id AND borrower.party_role = 'PRIMARY_BORROWER'
                LEFT JOIN customer.party AS party ON party.id = borrower.party_id
-               LEFT JOIN identity.employee AS assignee ON assignee.id = la.assigned_employee_id
+               LEFT JOIN LATERAL (
+                 -- L10: người giữ = người của bước chính đang mở; hồ sơ đã kết thúc thì không có.
+                 SELECT st.assignee_employee_id FROM credit.case_step AS st
+                 WHERE st.loan_application_id = la.id AND st.completed_at IS NULL
+                   AND st.step_code NOT IN ('PENDING_INFO', 'RISK_PENDING_INFO')
+                   AND la.status NOT IN ('APPROVED', 'APPROVED_WITH_CONDITIONS', 'REJECTED', 'WITHDRAWN')
+                 ORDER BY st.received_at DESC LIMIT 1
+               ) AS cur ON TRUE
+               LEFT JOIN identity.employee AS assignee ON assignee.id = cur.assignee_employee_id
                WHERE la.id = :loan_id""",
             {"loan_id": loan_id},
         )
