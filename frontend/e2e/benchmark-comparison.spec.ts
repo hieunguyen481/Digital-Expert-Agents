@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { loginAs } from './helpers';
+import { fmtDayTime } from '../src/utils/format';
 
 /**
  * Đối chiếu số hiện trên tab "So sánh hiệu năng" với MỌI file kết quả đã lưu
@@ -53,16 +54,16 @@ test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ
   await expectRun(page, defaultRun); // mặc định
   for (const stored of all) {
     await page.getByTestId('cmp-select').click();
-    const kind = stored.regrade_of ? 'chấm lại dữ liệu cũ' : 'đo mới';
-    const re = new RegExp(`Bộ ca ${stored.cases_version} · bộ chấm ${stored.grader_version ?? 'v1'} · chế độ ${stored.llm_mode} · ${kind}`);
-    // Nhiều lượt có thể cùng bộ ca/bộ chấm/chế độ: chọn đúng lượt theo nhãn riêng của nó.
-    // Danh sách ảo của antd chỉ dựng mục đang hiện: duyệt bằng bàn phím từ mục đầu tới khi mục đang chọn khớp.
+    // Nhãn lựa chọn viết cho người đọc nghiệp vụ (runOptionLabel): giờ đo · bộ ca · so sánh/đa agent · số lượt mỗi ca.
+    const both = !!stored.summary.single && !!stored.summary.multi;
+    const kind = stored.regrade_of ? ' · chấm lại dữ liệu cũ' : '';
+    const expected = `${fmtDayTime(stored.created_at)} · Bộ ca ${stored.cases_version} · ${both ? 'So sánh single và multi' : 'Chỉ đa agent'} · ${stored.runs_per_case} lượt mỗi ca${kind}`;
     const active = page.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option-active');
     await page.keyboard.press('Home');
     let found = false;
     for (let i = 0; i < all.length + 5 && !found; i++) {
       const title = (await active.first().getAttribute('title').catch(() => null)) ?? '';
-      if (re.test(title) && title.includes(stored.label)) found = true;
+      if (title.startsWith(expected)) found = true;
       else await page.keyboard.press('ArrowDown');
     }
     expect(found, `không thấy lượt ${stored.run_id} trong danh sách`).toBe(true);

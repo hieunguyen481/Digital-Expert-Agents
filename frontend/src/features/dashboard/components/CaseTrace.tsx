@@ -308,7 +308,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
           </div>
         ))}
         <ProposalChain events={events} />
-        {state === 'Pending Approval' && decided.length === 0 && (
+        {state === 'Pending Approval' && !decided.some((d) => d.label !== 'Nhắc/chuyển cấp do quá hạn') && (
           <Text type="secondary" style={{ fontSize: 13 }}>Đang chờ người có thẩm quyền xác nhận; agent không tự phê duyệt.</Text>
         )}
         {!pkg && !stopReason && verdicts.length === 0 && decided.length === 0 && state !== 'Pending Approval' && (
