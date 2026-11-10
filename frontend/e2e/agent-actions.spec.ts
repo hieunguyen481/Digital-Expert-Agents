@@ -54,7 +54,8 @@ test('người không đúng vai trò (rủi ro) bị từ chối xác nhận, �
   const auth = page.waitForRequest((r) => r.url().includes('/api/v1/') && !!r.headers().authorization);
   await loginAs(page, 'ruiro');
   const token = (await auth).headers().authorization;
-  for (const [n, verb] of [[2, 'confirm'], [1, 'dismiss']] as const) {
+  // Đề xuất 1 là add_risk_flag: Rủi ro được phép xử lý loại này; chỉ dùng loại 2 và 3 (không có risk_officer).
+  for (const [n, verb] of [[2, 'confirm'], [3, 'dismiss']] as const) {
     const res = await page.request.post(`http://localhost:8000/api/v1/agent-cases/proposals/a1000000-0000-4000-8000-00000000000${n}/${verb}`, {
       headers: { authorization: token }, data: { reason: 'Thử không đúng vai trò', loan_application_id: LOAN },
     });
