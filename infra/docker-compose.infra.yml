@@ -292,6 +292,7 @@ services:
     volumes:
       - keycloak_data:/opt/keycloak/data
       - ./keycloak/realm-bank-ai.json:/opt/keycloak/data/import/realm-bank-ai.json:ro
+      - ./keycloak/theme/so-tin-dung:/opt/keycloak/themes/so-tin-dung:ro
     networks:
       - bank-application
       - bank-data
