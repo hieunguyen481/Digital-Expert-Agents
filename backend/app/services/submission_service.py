@@ -9,7 +9,6 @@ from __future__ import annotations
 from typing import Any, Protocol
 from uuid import UUID
 
-from app.config import get_settings
 from app.exceptions import ConflictError
 from app.services.cic_service import CicService
 from app.services.proposal_service import ProposalService
@@ -35,8 +34,9 @@ class _FixedFacts:
 class SubmissionService:
     def __init__(
         self, proposals: ProposalService, repository: Any, facts_source: GateFactsSource,
-        workflow: WorkflowService, cic: CicService,
+        workflow: WorkflowService, cic: CicService, amount_warn_billion: int = 500,
     ) -> None:
+        self._warn_billion = amount_warn_billion
         self._proposals = proposals
         self._repo = repository
         self._facts = facts_source
@@ -110,7 +110,7 @@ class SubmissionService:
         elif not result.ok:
             unmet = [r["label"] for r in rows if r["kind"] == "BLOCKER" and not r["met"]]
             lock = "Chưa đủ điều kiện: " + "; ".join(unmet)
-        warn_billion = get_settings().amount_warn_billion
+        warn_billion = self._warn_billion
         amount = loan["requested_amount"]
         warning = (
             f"Số tiền đề xuất từ {warn_billion:,} tỷ đồng trở lên là bất thường, vui lòng kiểm tra lại đơn vị và số liệu."

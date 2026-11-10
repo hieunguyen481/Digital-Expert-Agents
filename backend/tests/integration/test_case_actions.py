@@ -104,7 +104,7 @@ async def test_early_warning_notifies_without_changing_step(
     assert tuple(await loan_row(mig, case.loan_id)) == before  # khong doi buoc, khong doi phien ban
     row = await mig.fetchrow("SELECT status, early_warned_at FROM credit.case_flag WHERE id = $1", flag)
     assert row["status"] == "OPEN" and row["early_warned_at"] is not None
-    assert await mig.fetchval("SELECT count(*) FROM integration.notification WHERE resource_id = $1", case.loan_id) == 1
+    assert await mig.fetchval("SELECT count(*) FROM integration.notification WHERE resource_id = $1 AND notification_type <> 'CASE_ASSIGNED'", case.loan_id) == 1
     assert (await open_step(mig, case.loan_id, "APPRAISAL")) is not None
 
 

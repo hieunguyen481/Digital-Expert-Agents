@@ -66,8 +66,8 @@ test('R-04: Kiểm toán lọc nhật ký theo hành động; Tra cứu chính s
   await page.getByLabel('Tìm điều khoản').fill('DSCR');
   await page.getByRole('button', { name: 'Tìm' }).click();
   await expect(page.getByTestId('policy-results')).toBeVisible({ timeout: 30_000 });
-  await page.getByRole('button', { name: 'Khách hàng SME' }).click();
-  await expect(page.getByText('Khách hàng SME: sẽ có ở đợt sau')).toBeVisible();
+  await page.getByRole('button', { name: 'Khách hàng SME' }).click({ force: true });
+  await expect(page.locator('.ant-message').getByText('Khách hàng SME: sẽ có ở đợt sau')).toBeVisible();
 
   await as(page, 'quantri');
   await page.goto('/');

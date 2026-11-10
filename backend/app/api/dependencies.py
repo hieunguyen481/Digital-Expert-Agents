@@ -276,6 +276,7 @@ def get_submission_service(request: Request, session: CommitFirstSessionDep) -> 
         WorkflowRepository(session, cic_outage=settings.cic_system_outage),
         get_workflow_service(request, session),
         CicService(proposals, CicRepository(session)),
+        amount_warn_billion=settings.amount_warn_billion,
     )
 
 
