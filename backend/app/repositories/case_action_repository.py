@@ -109,7 +109,7 @@ class CaseActionRepository:
             self.session,
             """SELECT exc.id, exc.checklist_code, exc.kind, exc.reason, exc.proposed_at, proposer.full_name AS proposed_by_name
                FROM credit.case_exception AS exc JOIN identity.employee AS proposer ON proposer.id = exc.proposed_by
-               WHERE exc.loan_application_id = :l AND exc.decision IS NULL ORDER BY exc.proposed_at, exc.id""",
+               WHERE exc.loan_application_id = :l AND exc.decision IS NULL AND exc.withdrawn_at IS NULL ORDER BY exc.proposed_at, exc.id""",
             {"l": loan_id},
         )
 

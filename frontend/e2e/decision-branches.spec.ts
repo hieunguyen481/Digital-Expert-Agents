@@ -33,7 +33,7 @@ async function openDecision(page: Page, id: string) {
   await page.getByRole('button', { name: 'Quyết định', exact: true }).click();
   const rows = page.getByTestId('exception-row');
   await expect(rows.first()).toBeVisible();
-  for (let i = 0; i < (await rows.count()); i++) await rows.nth(i).getByText('Chấp thuận').click();
+  for (let i = 0; i < (await rows.count()); i++) { await rows.nth(i).getByText('Chấp thuận').click(); await rows.nth(i).getByRole('textbox').fill('Chấp thuận ngoại lệ theo đề xuất'); }
 }
 
 async function pickDecision(page: Page, label: string) {

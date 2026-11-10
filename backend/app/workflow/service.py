@@ -72,7 +72,7 @@ class WorkflowRepositoryLike(Protocol):
     async def required_tier(self, loan_id: UUID) -> int: ...
     async def pending_exceptions(self, loan_id: UUID) -> Sequence[Mapping[str, Any]]: ...
     async def decide_exceptions(
-        self, loan_id: UUID, decisions: Mapping[UUID, str], decided_by: UUID
+        self, loan_id: UUID, decisions: Mapping[UUID, tuple[str, str]], decided_by: UUID
     ) -> None: ...
     async def record_submit_tier(self, loan_id: UUID, tier: int, created_by: UUID) -> None: ...
     async def gate_facts(self, loan_id: UUID) -> GateFacts: ...
@@ -241,7 +241,7 @@ class WorkflowService:
             principal.employee_id, loan_id
         ):
             raise PermissionError("Employee is excluded from deciding this case (E8)")
-        exception_decisions: dict[UUID, str] = {}
+        exception_decisions: dict[UUID, tuple[str, str]] = {}
         if action in {"decide", "return_for_supplement"}:
             exception_decisions = await self._exception_decisions(loan_id, plan, params or {})
         # 6. Han va nguoi nhan.
@@ -392,16 +392,23 @@ class WorkflowService:
 
     async def _exception_decisions(
         self, loan_id: UUID, plan: _Plan, params: Mapping[str, Any]
-    ) -> dict[UUID, str]:
+    ) -> dict[UUID, tuple[str, str]]:
         """Moi de xuat ngoai le dang cho phai duoc chap thuan hoac tu choi cung luc voi quyet dinh;
         tu choi thi chi duoc Tra lai bo sung (rules.md muc Ngoai le)."""
         pending = {UUID(str(row["id"])) for row in await self._repo.pending_exceptions(loan_id)}
-        given: dict[UUID, str] = {}
+        given: dict[UUID, tuple[str, str]] = {}
         for item in params.get("exceptions") or []:
             decision = item.get("decision")
             if decision not in {"ACCEPTED", "REJECTED"}:
                 raise ValueError("Each exception decision must be ACCEPTED or REJECTED")
-            given[UUID(str(item.get("id")))] = decision
+            reason = str(item.get("reason") or "").strip()
+            if not reason:
+                raise ValidationError(
+                    "EXCEPTION_REASON_REQUIRED",
+                    "Mỗi ngoại lệ được chấp thuận hoặc từ chối phải kèm lý do.",
+                    {"exception_id": str(item.get("id"))},
+                )
+            given[UUID(str(item.get("id")))] = (decision, reason)
         if not set(given) <= pending:
             raise ValueError("Unknown exception in the decision")
         missing = pending - set(given)
@@ -411,7 +418,7 @@ class WorkflowService:
                 "Every proposed exception must be accepted or rejected together with the decision.",
                 {"exception_ids": sorted(str(i) for i in missing)},
             )
-        if plan.to_status.startswith("APPROVED") and "REJECTED" in given.values():
+        if plan.to_status.startswith("APPROVED") and any(d == "REJECTED" for d, _ in given.values()):
             raise ValidationError(
                 "EXCEPTION_REJECTED_REQUIRES_RETURN",
                 "A rejected exception means the case must be returned for supplement.",

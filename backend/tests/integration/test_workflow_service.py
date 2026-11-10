@@ -1030,3 +1030,74 @@ async def test_audit_list_filters_by_loan_number_actor_and_date(
         assert await repo.list(loan_number=number, actor_name=rows[0]["actor_name"][:4])
         assert not await repo.list(loan_number=number, actor_name="khong-ton-tai-xyz")
         assert not await repo.list(loan_number=number, date_to=date(2000, 1, 1))
+
+
+async def exception_row(mig: asyncpg.Connection, loan_id: UUID) -> asyncpg.Record:
+    return await mig.fetchrow(
+        "SELECT id, decision, decision_reason, decided_by FROM credit.case_exception"
+        " WHERE loan_application_id = $1",
+        loan_id,
+    )
+
+
+async def approval_case(case: Case) -> None:
+    await case.create(status="APPROVAL")
+    await case.add_step("APPRAISAL", CREDIT_APPRAISER, completed=True, result="SUBMITTED")
+    await case.add_step("APPROVAL", APPROVER_HO)
+    await case.add_exception("DKKD")
+
+
+APPROVE = {"decision_type": "APPROVED", "approved_amount": 1, "approved_term_months": 12}
+
+
+async def test_exception_decision_needs_reason_and_rejected_blocks_approval(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await approval_case(case)
+    approver = await principal(mig, APPROVER_HO)
+    exc_id = (await exception_row(mig, case.loan_id))["id"]
+    with pytest.raises(ValidationError) as missing_reason:
+        await transition(
+            engine, approver, case.loan_id, "decide", 1, reason="Dong y",
+            params={**APPROVE, "exceptions": [{"id": str(exc_id), "decision": "ACCEPTED"}]},
+        )
+    assert missing_reason.value.code == "EXCEPTION_REASON_REQUIRED"
+    with pytest.raises(ValidationError) as rejected:
+        await transition(
+            engine, approver, case.loan_id, "decide", 1, reason="Dong y",
+            params={**APPROVE, "exceptions": [{"id": str(exc_id), "decision": "REJECTED", "reason": "Thieu"}]},
+        )
+    assert rejected.value.code == "EXCEPTION_REJECTED_REQUIRES_RETURN"
+    assert (await exception_row(mig, case.loan_id))["decision"] is None
+
+
+async def test_exception_rejected_returns_for_supplement_with_reason(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await approval_case(case)
+    approver = await principal(mig, APPROVER_HO)
+    exc_id = (await exception_row(mig, case.loan_id))["id"]
+    result = await transition(
+        engine, approver, case.loan_id, "return_for_supplement", 1, reason="Bo sung",
+        params={"target": "APPRAISAL",
+                "exceptions": [{"id": str(exc_id), "decision": "REJECTED", "reason": "Khong du can cu"}]},
+    )
+    row = await exception_row(mig, case.loan_id)
+    assert result.status == "APPRAISAL"
+    assert (row["decision"], row["decision_reason"], row["decided_by"]) == (
+        "REJECTED", "Khong du can cu", APPROVER_HO,
+    )
+
+
+async def test_exception_accepted_with_reason_allows_approval(
+    engine: AsyncEngine, mig: asyncpg.Connection, case: Case
+) -> None:
+    await approval_case(case)
+    approver = await principal(mig, APPROVER_HO)
+    exc_id = (await exception_row(mig, case.loan_id))["id"]
+    result = await transition(
+        engine, approver, case.loan_id, "decide", 1, reason="Dong y",
+        params={**APPROVE, "exceptions": [{"id": str(exc_id), "decision": "ACCEPTED", "reason": "Co ban sao cong chung"}]},
+    )
+    assert result.status == "APPROVED"
+    assert (await exception_row(mig, case.loan_id))["decision_reason"] == "Co ban sao cong chung"

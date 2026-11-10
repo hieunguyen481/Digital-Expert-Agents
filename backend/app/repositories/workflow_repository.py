@@ -201,19 +201,21 @@ class WorkflowRepository:
         return await fetch_all(
             self.session,
             "SELECT id, checklist_code, kind, reason FROM credit.case_exception "
-            "WHERE loan_application_id = :loan_id AND decision IS NULL ORDER BY proposed_at, id",
+            "WHERE loan_application_id = :loan_id AND decision IS NULL AND withdrawn_at IS NULL "
+            "ORDER BY proposed_at, id",
             {"loan_id": loan_id},
         )
 
     async def decide_exceptions(
-        self, loan_id: UUID, decisions: Mapping[UUID, str], decided_by: UUID
+        self, loan_id: UUID, decisions: Mapping[UUID, tuple[str, str]], decided_by: UUID
     ) -> None:
-        for exception_id, decision in decisions.items():
+        for exception_id, (decision, reason) in decisions.items():
             await fetch_one(
                 self.session,
-                "UPDATE credit.case_exception SET decision = :decision, decided_by = :by, decided_at = CURRENT_TIMESTAMP "
+                "UPDATE credit.case_exception SET decision = :decision, decision_reason = :reason, decided_by = :by, "
+                "decided_at = CURRENT_TIMESTAMP "
                 "WHERE id = :id AND loan_application_id = :loan_id AND decision IS NULL RETURNING id",
-                {"id": exception_id, "loan_id": loan_id, "decision": decision, "by": decided_by},
+                {"id": exception_id, "loan_id": loan_id, "decision": decision, "reason": reason, "by": decided_by},
             )
 
     async def record_submit_tier(self, loan_id: UUID, tier: int, created_by: UUID) -> None:

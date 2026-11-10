@@ -47,6 +47,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   const [conclusion, setConclusion] = useState<string>('');
   const [decision, setDecision] = useState({ type: 'APPROVED', amount: Number(overview.loan.requested_amount), term: overview.loan.requested_term_months ?? 12, conditions: '', target: 'APPRAISAL' });
   const [exceptionChoice, setExceptionChoice] = useState<Record<string, 'ACCEPTED' | 'REJECTED'>>({});
+  const [exceptionReason, setExceptionReason] = useState<Record<string, string>>({});
   const st = useQuery({ queryKey: ['loan-actions', loanId], queryFn: () => fetchActionState(loanId) });
   const roles = new Set(me?.roles ?? []);
   const state = st.data;
@@ -126,12 +127,12 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   const approving = decision.type !== 'REJECTED';
   const amountInvalid = approving && !(decision.amount > 0);
   const termInvalid = approving && !(decision.term > 0);
-  const exceptionsDecided = state.pending_exceptions.every((e) => exceptionChoice[e.id]);
+  const exceptionsDecided = state.pending_exceptions.every((e) => exceptionChoice[e.id] && exceptionReason[e.id]?.trim());
   const decideBody = () => {
     const params = {
       decision_type: decision.type, approved_amount: decision.amount, approved_term_months: decision.term,
       conditions: decision.conditions.split('\n').map((c) => c.trim()).filter(Boolean),
-      exceptions: state.pending_exceptions.map((e) => ({ id: e.id, decision: exceptionChoice[e.id] })),
+      exceptions: state.pending_exceptions.map((e) => ({ id: e.id, decision: exceptionChoice[e.id], reason: exceptionReason[e.id]?.trim() })),
     };
     return params;
   };
@@ -201,6 +202,8 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
               <Radio.Group value={exceptionChoice[e.id]} onChange={(ev) => setExceptionChoice({ ...exceptionChoice, [e.id]: ev.target.value })}>
                 <Radio value="ACCEPTED">Chấp thuận</Radio><Radio value="REJECTED">Từ chối (phải trả lại bổ sung)</Radio>
               </Radio.Group>
+              <Input aria-label={`Lý do ngoại lệ ${e.checklist_code}`} placeholder="Lý do chấp thuận / từ chối (bắt buộc)" value={exceptionReason[e.id] ?? ''}
+                onChange={(ev) => setExceptionReason({ ...exceptionReason, [e.id]: ev.target.value })} />
             </div>
           ))}
           <label htmlFor="action-text">Lý do quyết định (bắt buộc)</label>

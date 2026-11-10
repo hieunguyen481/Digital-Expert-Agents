@@ -83,7 +83,7 @@ test('luồng 1: người có thẩm quyền quyết định; ca agent đóng, h
   // Cấp phê duyệt phải chấp thuận hoặc từ chối từng ngoại lệ tài liệu (E1) mới ghi được quyết định.
   const rows = page.getByTestId('exception-row');
   await expect(rows.first()).toBeVisible();
-  for (let i = 0; i < (await rows.count()); i++) await rows.nth(i).getByText('Chấp thuận').click();
+  for (let i = 0; i < (await rows.count()); i++) { await rows.nth(i).getByText('Chấp thuận').click(); await rows.nth(i).getByRole('textbox').fill('Chấp thuận ngoại lệ theo đề xuất'); }
   await page.locator('#action-text').fill('Phê duyệt theo đề xuất của Thẩm định, kèm theo dõi dòng tiền hằng quý.');
   await shot(page, 'f1', '12-quyet-dinh');
   await page.getByRole('button', { name: 'Ghi quyết định' }).click();
