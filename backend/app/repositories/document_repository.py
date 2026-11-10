@@ -91,6 +91,9 @@ _VERSION_COLUMNS = frozenset(
 )
 
 
+AUDITED_FS_CODE = "SME-08-AUDITED-FS"
+
+
 class DocumentRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
@@ -117,7 +120,7 @@ class DocumentRepository:
     async def checklist_item(self, loan_id: UUID, code: str) -> Record | None:
         return await fetch_one(
             self.session,
-            "SELECT id, document_type, requirement_status FROM credit.loan_checklist_item "
+            "SELECT id, document_type, requirement_status, requirement_code::text AS requirement_code FROM credit.loan_checklist_item "
             "WHERE loan_application_id = :loan_id AND requirement_code::text = :code",
             {"loan_id": loan_id, "code": code},
         )
@@ -154,6 +157,12 @@ class DocumentRepository:
             await self.session.execute(
                 text("UPDATE document.document SET document_type = :doc_type WHERE id = :document_id"),
                 {"doc_type": item["document_type"], "document_id": document_id},
+            )
+        if item["requirement_code"] == AUDITED_FS_CODE:
+            # E5 (QA3-05): tài liệu ở mục BCTC kiểm toán là BCTC đã kiểm toán; cổng trình đọc cột này.
+            await self.session.execute(
+                text("UPDATE document.document SET document_subtype = 'AUDITED' WHERE id = :document_id"),
+                {"document_id": document_id},
             )
 
     async def get_upload(self, upload_id: UUID, actor_id: UUID | None = None) -> Record | None:
