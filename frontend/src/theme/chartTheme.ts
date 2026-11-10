@@ -1,21 +1,16 @@
 import { shbColors, shbTypography } from './tokens';
 
 /**
- * Palette cho Ant Design Charts.
- *
- * Nguyên tắc:
- * - Xen kẽ cam ↔ indigo để hai chuỗi cạnh nhau luôn khác biệt cả về tông màu
- *   lẫn độ sáng (phân biệt được khi in đen trắng và với người mù màu).
- * - Không rainbow, không neon.
- * - Không dùng đỏ cho dữ liệu bình thường (đỏ chỉ dành cho trạng thái lỗi).
+ * Palette cho Ant Design Charts: navy làm chuỗi chính, đồng làm điểm nhấn (cột
+ * cuối, chuỗi nổi bật), tím mực chỉ cho số liệu do AI sinh. Không rainbow.
  */
 export const shbChartPalette = [
-  shbColors.orange[500], // #F37021
-  shbColors.navy[700], // #2F2E79
-  shbColors.orange[300],
-  shbColors.navy[400],
-  shbColors.orange[200],
-  shbColors.navy[200],
+  shbColors.navy[700],
+  shbColors.orange[500],
+  shbColors.navy[500],
+  shbColors.orange[700],
+  shbColors.navy[100],
+  shbColors.neutral.borderStrong,
 ];
 
 /**

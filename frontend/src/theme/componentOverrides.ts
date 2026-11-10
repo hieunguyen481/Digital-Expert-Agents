@@ -1,206 +1,177 @@
 import type { ThemeConfig } from 'antd';
-import { shbColors, shbRadius, shbShadow, shbTypography } from './tokens';
+import { colors, fonts, radius, shadow } from './tokens';
 
 /**
- * Component-level overrides cho Ant Design ConfigProvider.
- *
- * Thứ tự ưu tiên khi tạo style:
- *   1. Ant Design props
- *   2. ConfigProvider token (file này)
- *   3. CSS Modules
- *
- * Mục tiêu: loại bỏ cảm giác "template Ant Design mặc định" mà vẫn giữ
- * khả năng bảo trì của Ant Design.
+ * Component token cho Ant Design theo `docs/design/redesign-v2.md` §6 và §11.2.
+ * Thứ tự ưu tiên: props AntD → token ở đây → CSS module. Phần AntD không biểu
+ * diễn được (gạch kép đầu bảng, nút đồng, nút khóa) nằm ở `styles/ledger.css`.
  */
-export const shbComponentOverrides: ThemeConfig['components'] = {
+export const componentOverrides: ThemeConfig['components'] = {
   Button: {
-    borderRadius: shbRadius.medium,
-    borderRadiusLG: shbRadius.medium + 2,
-    borderRadiusSM: shbRadius.small,
-    controlHeight: 40,
-    controlHeightLG: 46,
-    controlHeightSM: 32,
+    borderRadius: radius.md,
+    borderRadiusLG: radius.md,
+    borderRadiusSM: radius.md,
+    controlHeight: 36,
+    controlHeightLG: 44,
+    controlHeightSM: 30,
     fontWeight: 500,
+    fontSize: 13,
+    contentFontSize: 13,
     primaryShadow: 'none',
     defaultShadow: 'none',
     dangerShadow: 'none',
-    paddingInline: 18,
+    paddingInline: 16,
+    colorPrimary: colors.navy700,
+    colorPrimaryHover: colors.navy900,
+    colorPrimaryActive: '#08152B',
+    defaultBorderColor: colors.control,
+    defaultColor: colors.ink,
+    defaultBg: colors.surface,
+    defaultHoverBg: colors.paper2,
+    defaultHoverBorderColor: colors.control,
+    defaultHoverColor: colors.ink,
+    defaultActiveBg: colors.navy100,
+    defaultActiveBorderColor: colors.control,
+    defaultActiveColor: colors.ink,
+    dangerColor: colors.danger700,
+    colorBgContainerDisabled: colors.paper2,
+    colorTextDisabled: colors.ink3,
+    borderColorDisabled: colors.ruleStrong,
   },
-
   Input: {
-    borderRadius: shbRadius.medium,
-    controlHeight: 40,
-    colorBorder: shbColors.neutral.border,
-    activeBorderColor: shbColors.orange[500],
-    hoverBorderColor: shbColors.orange[300],
-    activeShadow: shbShadow.orangeGlow,
-    colorTextPlaceholder: shbColors.neutral.textMuted,
-    paddingInline: 14,
+    borderRadius: radius.md,
+    controlHeight: 38,
+    colorBorder: colors.control,
+    hoverBorderColor: colors.navy500,
+    activeBorderColor: colors.navy500,
+    activeShadow: '0 0 0 3px rgba(42,74,128,.18)',
+    colorTextPlaceholder: colors.ink3,
+    colorBgContainer: colors.surface,
+    paddingInline: 12,
   },
-
+  InputNumber: { controlHeight: 38, colorBorder: colors.control, activeBorderColor: colors.navy500 },
   Select: {
-    borderRadius: shbRadius.medium,
-    controlHeight: 40,
-    optionSelectedBg: shbColors.orange[50],
-    optionSelectedColor: shbColors.navy[700],
+    borderRadius: radius.md,
+    controlHeight: 38,
+    colorBorder: colors.control,
+    activeBorderColor: colors.navy500,
+    hoverBorderColor: colors.navy500,
+    optionSelectedBg: colors.navy50,
+    optionSelectedColor: colors.navy900,
     optionSelectedFontWeight: 600,
-    colorBorder: shbColors.neutral.border,
+    optionActiveBg: colors.paper2,
   },
-
-  Layout: {
-    bodyBg: shbColors.neutral.canvas,
-    headerBg: 'transparent',
-    siderBg: shbColors.neutral.warmWhite,
-    headerHeight: 64,
-    headerPadding: '0 20px',
-  },
-
+  Layout: { bodyBg: colors.paper, headerBg: 'transparent', siderBg: colors.navy700, headerHeight: 52, headerPadding: '0 32px' },
   Menu: {
-    itemBorderRadius: shbRadius.medium,
-    itemHeight: 40,
-    itemSelectedBg: shbColors.orange[50],
-    itemSelectedColor: shbColors.navy[700],
-    itemActiveBg: shbColors.orange[50],
-    itemHoverBg: 'rgba(243, 112, 33, 0.06)',
-    itemColor: shbColors.neutral.textSecondary,
+    itemBorderRadius: radius.md,
+    itemHeight: 36,
+    darkItemBg: colors.navy700,
+    darkItemColor: colors.navy100,
+    darkItemSelectedBg: colors.paper,
+    darkItemSelectedColor: colors.navy900,
+    darkItemHoverBg: 'rgba(255,255,255,.07)',
+    darkSubMenuItemBg: colors.navy700,
+    itemSelectedBg: colors.navy50,
+    itemSelectedColor: colors.navy900,
+    itemHoverBg: colors.paper2,
+    itemColor: colors.ink2,
     activeBarWidth: 0,
-    iconMarginInlineEnd: 10,
-    subMenuItemBg: 'transparent',
+    iconMarginInlineEnd: 12,
   },
-
-  Drawer: {
-    paddingLG: 20,
-    colorBgElevated: shbColors.neutral.warmWhite,
-  },
-
-  Dropdown: {
-    borderRadiusLG: shbRadius.large,
-    controlItemBgHover: shbColors.orange[50],
-    controlItemBgActive: shbColors.orange[50],
-    boxShadowSecondary: shbShadow.large,
-  },
-
+  Drawer: { paddingLG: 20, colorBgElevated: colors.surface, colorBgMask: 'rgba(14,31,61,.35)' },
+  Dropdown: { borderRadiusLG: radius.md, controlItemBgHover: colors.paper2, controlItemBgActive: colors.navy50, boxShadowSecondary: shadow.s2 },
   Card: {
-    borderRadiusLG: shbRadius.card,
-    colorBorderSecondary: shbColors.neutral.border,
+    borderRadiusLG: radius.md,
+    colorBorderSecondary: colors.rule,
     paddingLG: 20,
-    boxShadowTertiary: shbShadow.small,
+    boxShadowTertiary: shadow.s1,
     headerFontSize: 16,
+    headerHeight: 52,
   },
-
-  Tag: {
-    borderRadiusSM: shbRadius.pill,
-    defaultBg: shbColors.orange[50],
-    defaultColor: shbColors.orange[700],
-    fontSizeSM: 12,
-    lineHeightSM: 1.6,
-  },
-
+  Tag: { borderRadiusSM: radius.pill, defaultBg: colors.neutral100, defaultColor: colors.ink2, fontSizeSM: 12, lineHeightSM: 1.7 },
+  Badge: { colorError: colors.danger700, fontSizeSM: 12, textFontSizeSM: 12 },
   Modal: {
-    borderRadiusLG: shbRadius.card,
+    borderRadiusLG: radius.lg,
     paddingContentHorizontalLG: 24,
-    titleFontSize: 18,
-    titleColor: shbColors.navy[700],
+    titleFontSize: 20,
+    titleColor: colors.navy900,
+    boxShadow: shadow.s3,
+    contentBg: colors.surface,
+    headerBg: colors.surface,
   },
-
-  Upload: {
-    colorBorder: shbColors.neutral.border,
-    borderRadiusLG: shbRadius.large,
-  },
-
-  Tooltip: {
-    borderRadius: shbRadius.small,
-    colorBgSpotlight: shbColors.navy[800],
-    colorTextLightSolid: '#FFFFFF',
-    fontSize: 13,
-  },
-
-  Skeleton: {
-    // Skeleton beige/cam rất nhạt thay vì xám lạnh mặc định.
-    gradientFromColor: 'rgba(234, 227, 218, 0.55)',
-    gradientToColor: 'rgba(255, 247, 240, 0.9)',
-    borderRadiusSM: shbRadius.small,
-  },
-
-  Notification: {
-    borderRadiusLG: shbRadius.large,
-    boxShadow: shbShadow.large,
-    paddingContentHorizontal: 18,
-  },
-
+  Upload: { colorBorder: colors.control, borderRadiusLG: radius.md },
+  Tooltip: { borderRadius: radius.md, colorBgSpotlight: colors.navy900, colorTextLightSolid: '#FFFFFF', fontSize: 13 },
+  Skeleton: { gradientFromColor: colors.paper2, gradientToColor: colors.surface2, borderRadiusSM: radius.sm },
+  Notification: { borderRadiusLG: radius.md, boxShadow: shadow.s3, paddingContentHorizontal: 18 },
+  Message: { contentBg: colors.navy900, colorText: '#FFFFFF', contentPadding: '10px 16px', borderRadiusLG: radius.md, boxShadow: shadow.s3 },
   Alert: {
-    borderRadiusLG: shbRadius.medium,
-    colorInfoBg: shbColors.semantic.infoBg,
-    colorInfoBorder: '#CBE6F2',
-    colorWarningBg: shbColors.semantic.warningBg,
-    colorWarningBorder: '#FBE3B8',
-    colorErrorBg: shbColors.semantic.errorBg,
-    colorErrorBorder: '#F6CFCB',
-    colorSuccessBg: shbColors.semantic.successBg,
-    colorSuccessBorder: '#BFE6D6',
-    fontSize: 14,
+    borderRadiusLG: radius.md,
+    colorInfoBg: colors.info100,
+    colorInfoBorder: '#B5C9E6',
+    colorWarningBg: colors.warn100,
+    colorWarningBorder: '#E5CB93',
+    colorErrorBg: colors.danger100,
+    colorErrorBorder: '#E5B3AD',
+    colorSuccessBg: colors.ok100,
+    colorSuccessBorder: '#A9D4BA',
+    fontSize: 13,
+    defaultPadding: '10px 14px',
     withDescriptionPadding: '14px 16px',
   },
-
   Table: {
-    borderRadiusLG: shbRadius.large,
-    headerBg: shbColors.orange[50],
-    headerColor: shbColors.navy[700],
+    borderRadiusLG: radius.md,
+    headerBg: colors.surface2,
+    headerColor: colors.ink,
     headerSplitColor: 'transparent',
-    rowHoverBg: shbColors.neutral.surfaceSoft,
+    borderColor: colors.rule,
+    rowHoverBg: colors.surface2,
+    rowSelectedBg: colors.navy50,
+    rowSelectedHoverBg: colors.navy50,
     cellPaddingBlock: 12,
     cellPaddingInline: 14,
-    fontSize: 14,
+    cellFontSize: 13,
+    fontSize: 13,
+    footerBg: colors.surface2,
   },
-
   Tabs: {
-    inkBarColor: shbColors.orange[500],
-    itemSelectedColor: shbColors.navy[700],
-    itemHoverColor: shbColors.orange[600],
-    itemColor: shbColors.neutral.textSecondary,
-    titleFontSize: 15,
+    inkBarColor: colors.bronze500,
+    itemSelectedColor: colors.navy900,
+    itemHoverColor: colors.navy900,
+    itemActiveColor: colors.navy900,
+    itemColor: colors.ink2,
+    titleFontSize: 13,
     horizontalItemPadding: '10px 4px',
+    cardBg: colors.surface2,
   },
-
-  Avatar: {
-    borderRadius: shbRadius.pill,
-    colorTextPlaceholder: shbColors.navy[700],
+  Steps: {
+    colorPrimary: colors.navy700,
+    iconSize: 24,
+    dotSize: 24,
+    titleLineHeight: 1.4,
+    colorText: colors.ink,
+    colorTextDescription: colors.ink3,
+    colorSplit: colors.rule,
   },
-
-  Badge: {
-    colorError: shbColors.orange[500],
-  },
-
-  Divider: {
-    colorSplit: shbColors.neutral.border,
-  },
-
-  Empty: {
-    colorTextDescription: shbColors.neutral.textMuted,
-  },
-
-  Result: {
-    titleFontSize: 22,
-  },
-
-  Popconfirm: {
-    borderRadiusLG: shbRadius.large,
-  },
-
-  Typography: {
-    titleMarginBottom: '0.5em',
-    titleMarginTop: '1.2em',
-    fontFamilyCode: shbTypography.fontFamilyCode,
-  },
-
-  Spin: {
-    colorPrimary: shbColors.orange[500],
-  },
-
   Segmented: {
-    itemSelectedBg: shbColors.neutral.white,
-    itemSelectedColor: shbColors.navy[700],
-    trackBg: shbColors.orange[50],
-    borderRadius: shbRadius.medium,
+    itemSelectedBg: colors.navy700,
+    itemSelectedColor: '#FFFFFF',
+    itemHoverBg: colors.paper2,
+    itemColor: colors.ink,
+    trackBg: colors.surface,
+    trackPadding: 2,
+    borderRadius: radius.md,
+    borderRadiusSM: radius.sm,
+    controlHeight: 34,
   },
+  Avatar: { borderRadius: radius.pill, colorTextPlaceholder: colors.navy700 },
+  Divider: { colorSplit: colors.rule },
+  Empty: { colorTextDescription: colors.ink3 },
+  Result: { titleFontSize: 20 },
+  Popconfirm: { borderRadiusLG: radius.md },
+  Typography: { titleMarginBottom: '0.5em', titleMarginTop: '1.2em', fontFamilyCode: fonts.num },
+  Spin: { colorPrimary: colors.navy700 },
+  Statistic: { contentFontSize: 26, titleFontSize: 12, fontFamily: fonts.num },
+  Radio: { buttonSolidCheckedBg: colors.navy700, buttonCheckedBg: colors.navy50, colorBorder: colors.control },
+  Checkbox: { colorBorder: colors.control },
+  Pagination: { itemActiveBg: colors.navy700, itemSize: 32 },
 };

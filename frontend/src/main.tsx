@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import App from './app/App';
 import { initializeAuthentication } from './auth/keycloak';
 
+import './styles/fonts.css';
+import './styles/tokens.css';
 import './styles/reset.css';
 import './styles/global.css';
 import './styles/accessibility.css';

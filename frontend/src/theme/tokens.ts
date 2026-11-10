@@ -1,137 +1,142 @@
 /**
- * SHB Design Tokens
+ * Sổ Tín Dụng — token (bản TypeScript cho Ant Design và SVG).
  * ------------------------------------------------------------------
- * Nguồn màu thương hiệu: trích xuất trực tiếp từ logo SVG chính thức
- * (`public/brand/shb-logo.svg`, tải từ https://new.shb.com.vn/vi).
- *
- *   Orange  #F37021  — màu nhấn / CTA
- *   Indigo  #2F2E79  — màu heading / thương hiệu
- *
- * Đây là hai giá trị chuẩn, KHÔNG phải giá trị phỏng đoán. Các bậc còn lại
- * của thang màu được dựng quanh hai giá trị này.
- *
- * Toàn bộ component phải đọc màu từ đây (qua theme token hoặc CSS variable),
- * không hard-code mã màu trực tiếp.
+ * Nguồn duy nhất là `src/styles/tokens.css` (bản sao của
+ * `docs/design/mockups-v2/tokens.css`). Ant Design cần giá trị cụ thể nên các hằng
+ * dưới đây lặp lại giá trị đó; `theme.test.ts` so khớp từng giá trị với tokens.css,
+ * nên lệch là test đỏ. Component phải đọc màu qua CSS variable hoặc theme token,
+ * không hard-code mã màu.
  */
 
+export const colors = {
+  paper: '#F1F2EE',
+  paper2: '#E4E7E0',
+  surface: '#FBFBF8',
+  surface2: '#F5F6F2',
+  rule: '#D3D7CC',
+  ruleStrong: '#AEB3A1',
+  control: '#6F7660',
+  ink: '#1B2430',
+  ink2: '#434C5A',
+  ink3: '#5E6573',
+  inkInv: '#F1F2EE',
+  navy900: '#0E1F3D',
+  navy700: '#14284B',
+  navy500: '#2A4A80',
+  navy100: '#DCE4F1',
+  navy50: '#EDF1F8',
+  bronze800: '#5A4210',
+  bronze700: '#7A5C22',
+  bronze500: '#B08A3E',
+  bronze100: '#F0E6CF',
+  ai700: '#4F3590',
+  ai500: '#6B4FB8',
+  ai100: '#E9E3F6',
+  ai50: '#F3F0FA',
+  ok700: '#1B6A3F',
+  ok100: '#DDEFE4',
+  warn700: '#8F5400',
+  warn100: '#F8E8C8',
+  danger700: '#A8281D',
+  danger100: '#F7DDD9',
+  info700: '#1D4F91',
+  info100: '#DCE7F6',
+  neutral100: '#E2E5DC',
+} as const;
+
+/** Tên biến CSS tương ứng từng màu (dùng cho test đối chiếu và tài liệu). */
+export const colorVars: Record<keyof typeof colors, string> = {
+  paper: '--paper',
+  paper2: '--paper-2',
+  surface: '--surface',
+  surface2: '--surface-2',
+  rule: '--rule',
+  ruleStrong: '--rule-strong',
+  control: '--control',
+  ink: '--ink',
+  ink2: '--ink-2',
+  ink3: '--ink-3',
+  inkInv: '--ink-inv',
+  navy900: '--navy-900',
+  navy700: '--navy-700',
+  navy500: '--navy-500',
+  navy100: '--navy-100',
+  navy50: '--navy-50',
+  bronze800: '--bronze-800',
+  bronze700: '--bronze-700',
+  bronze500: '--bronze-500',
+  bronze100: '--bronze-100',
+  ai700: '--ai-700',
+  ai500: '--ai-500',
+  ai100: '--ai-100',
+  ai50: '--ai-50',
+  ok700: '--ok-700',
+  ok100: '--ok-100',
+  warn700: '--warn-700',
+  warn100: '--warn-100',
+  danger700: '--danger-700',
+  danger100: '--danger-100',
+  info700: '--info-700',
+  info100: '--info-100',
+  neutral100: '--neutral-100',
+};
+
+export const fonts = {
+  display: "'Newsreader', 'Times New Roman', serif",
+  body: "'Be Vietnam Pro', system-ui, 'Segoe UI', sans-serif",
+  num: "'IBM Plex Mono', ui-monospace, Consolas, monospace",
+} as const;
+
+export const radius = { sm: 3, md: 6, lg: 10, pill: 999 } as const;
+
+export const shadow = {
+  s1: '0 1px 0 rgba(27,36,48,.06)',
+  s2: '0 4px 14px rgba(27,36,48,.10)',
+  s3: '0 12px 32px rgba(14,31,61,.18)',
+} as const;
+
+export const layout = { sidebarWidth: 216, topbarHeight: 52, demoHeight: 34 } as const;
+
+/**
+ * Tên cũ (`shbColors`) còn được vài trang chưa làm lại import. Giữ đúng hình dạng
+ * nhưng trỏ về màu mới; sẽ bỏ khi các trang đó được làm lại.
+ */
 export const shbColors = {
-  /** Cam SHB — màu nhấn, CTA. Bậc 500 là màu thương hiệu chính thức. */
-  orange: {
-    50: '#FFF7F0',
-    100: '#FEEBDD',
-    200: '#FDD3B5',
-    300: '#FCB37F',
-    400: '#F88C46',
-    500: '#F37021', // Official SHB orange
-    600: '#DD5A12',
-    700: '#B9450C',
-    800: '#93370D',
-    900: '#762F0F',
-  },
-
-  /** Indigo SHB — heading, text thương hiệu. Bậc 700 là màu chính thức. */
-  navy: {
-    50: '#F3F3FA',
-    100: '#E1E1F3',
-    200: '#C0BFE7',
-    300: '#9795D6',
-    400: '#6F6DC4',
-    500: '#4F4DB0',
-    600: '#3C3A96',
-    700: '#2F2E79', // Official SHB indigo
-    800: '#23224F',
-    900: '#1B1A46',
-  },
-
-  /** Trung tính ấm — nền, viền, chữ. */
+  orange: { 50: colors.bronze100, 100: colors.bronze100, 200: '#DCCB9F', 300: colors.bronze500, 400: colors.bronze500, 500: colors.bronze500, 600: colors.bronze700, 700: colors.bronze700, 800: colors.bronze800, 900: colors.bronze800 },
+  navy: { 50: colors.navy50, 100: colors.navy100, 200: colors.navy100, 300: colors.navy500, 400: colors.navy500, 500: colors.navy500, 600: colors.navy500, 700: colors.navy700, 800: colors.navy900, 900: colors.navy900 },
   neutral: {
     white: '#FFFFFF',
-    warmWhite: '#FFFDF9',
-    canvas: '#F7F5F1',
-    surface: '#FFFFFF',
-    surfaceSoft: '#FFF9F4',
-    border: '#EAE3DA',
-    borderStrong: '#D9D0C5',
-    textPrimary: '#18212B',
-    textSecondary: '#667085',
-    textMuted: '#98A2B3',
+    warmWhite: colors.surface,
+    canvas: colors.paper,
+    surface: colors.surface,
+    surfaceSoft: colors.surface2,
+    border: colors.rule,
+    borderStrong: colors.ruleStrong,
+    textPrimary: colors.ink,
+    textSecondary: colors.ink2,
+    textMuted: colors.ink3,
   },
-
-  /** Ngữ nghĩa — trạng thái. */
   semantic: {
-    success: '#15805D',
-    successBg: '#ECFAF4',
-    warning: '#D97706',
-    warningBg: '#FFF8EB',
-    error: '#C9362B',
-    errorBg: '#FEF3F2',
-    info: '#276A92',
-    infoBg: '#EFF8FC',
+    success: colors.ok700,
+    successBg: colors.ok100,
+    warning: colors.warn700,
+    warningBg: colors.warn100,
+    error: colors.danger700,
+    errorBg: colors.danger100,
+    info: colors.info700,
+    infoBg: colors.info100,
   },
 } as const;
 
-/** Bo góc. */
-export const shbRadius = {
-  small: 8,
-  medium: 12,
-  large: 18,
-  card: 20,
-  composer: 26,
-  pill: 999,
-} as const;
-
-/** Shadow nhẹ, tự nhiên — không dùng shadow đen mạnh. */
-export const shbShadow = {
-  small: '0 2px 8px rgba(35, 34, 79, 0.06)',
-  medium: '0 8px 30px rgba(35, 34, 79, 0.08)',
-  large: '0 16px 48px rgba(35, 34, 79, 0.12)',
-  orangeGlow: '0 0 0 4px rgba(243, 112, 33, 0.10)',
-} as const;
-
-/** Typography. */
+export const shbRadius = { small: 6, medium: 6, large: 10, card: 10, composer: 10, pill: 999 } as const;
+export const shbShadow = { small: shadow.s1, medium: shadow.s2, large: shadow.s3, orangeGlow: '0 0 0 3px rgba(42,74,128,.18)' } as const;
 export const shbTypography = {
-  fontFamily:
-    '"Be Vietnam Pro", Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
-  fontFamilyCode:
-    'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
-  size: {
-    caption: 12,
-    small: 13,
-    supporting: 14,
-    body: 15,
-    bodyLarge: 16,
-    sectionHeading: 22,
-    heroMobile: 30,
-    heroDesktop: 40,
-  },
-  lineHeight: {
-    heading: 1.22,
-    body: 1.7,
-    caption: 1.45,
-  },
+  fontFamily: fonts.body,
+  fontFamilyCode: fonts.num,
+  size: { caption: 12, small: 13, supporting: 14, body: 14, bodyLarge: 16, sectionHeading: 20, heroMobile: 26, heroDesktop: 34 },
+  lineHeight: { heading: 1.3, body: 1.5, caption: 1.5 },
 } as const;
-
-/** Kích thước layout. */
-export const shbLayout = {
-  sidebarWidth: 288,
-  sidebarCollapsedWidth: 76,
-  headerHeight: 64,
-  /** Độ rộng đọc tối ưu cho nội dung AI. */
-  contentMaxWidth: 820,
-  /** Độ rộng vùng chat / composer. */
-  chatMaxWidth: 880,
-  mobileBreakpoint: 768,
-  tabletBreakpoint: 1200,
-} as const;
-
-/** Thời lượng chuyển động (ms). */
-export const shbMotion = {
-  micro: 0.18,
-  message: 0.22,
-  panel: 0.28,
-  page: 0.24,
-  /** easing chuẩn — mềm, không nảy. */
-  ease: [0.22, 1, 0.36, 1] as const,
-} as const;
+export const shbLayout = { sidebarWidth: 216, sidebarCollapsedWidth: 216, headerHeight: 52, contentMaxWidth: 820, chatMaxWidth: 880, mobileBreakpoint: 768, tabletBreakpoint: 1100 } as const;
+export const shbMotion = { micro: 0.12, message: 0.2, panel: 0.2, page: 0.2, ease: [0.2, 0.7, 0.2, 1] as const } as const;
 
 export type ShbColors = typeof shbColors;

@@ -1,0 +1,31 @@
+/* Sổ Tín Dụng — token dùng chung cho mockup v2 (nguồn chân lý: docs/design/redesign-v2.md §2) */
+:root{
+  /* Nền & mực (giấy sổ cái) */
+  --paper:#F1F2EE; --paper-2:#E4E7E0; --surface:#FBFBF8; --surface-2:#F5F6F2;
+  --rule:#D3D7CC; --rule-strong:#AEB3A1; --control:#6F7660; --ink:#1B2430; --ink-2:#434C5A; --ink-3:#5E6573; --ink-inv:#F1F2EE;
+  /* Người quyết định = navy đặc */
+  --navy-900:#0E1F3D; --navy-700:#14284B; --navy-500:#2A4A80; --navy-100:#DCE4F1; --navy-50:#EDF1F8;
+  /* Nhấn đồng (điểm nhấn thương hiệu, không dùng cho trạng thái) */
+  --bronze-800:#5A4210; --bronze-700:#7A5C22; --bronze-500:#B08A3E; --bronze-100:#F0E6CF;
+  /* AI đề xuất = tím mực (chỉ dành cho nội dung do AI sinh) */
+  --ai-700:#4F3590; --ai-500:#6B4FB8; --ai-100:#E9E3F6; --ai-50:#F3F0FA;
+  /* Ngữ nghĩa trạng thái */
+  --ok-700:#1B6A3F; --ok-100:#DDEFE4; --warn-700:#8F5400; --warn-100:#F8E8C8;
+  --danger-700:#A8281D; --danger-100:#F7DDD9; --info-700:#1D4F91; --info-100:#DCE7F6;
+  --neutral-100:#E2E5DC;
+  /* Chữ */
+  --font-display:'Newsreader','Times New Roman',serif;
+  --font-body:'Be Vietnam Pro',system-ui,'Segoe UI',sans-serif;
+  --font-num:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --fs-12:12px; --fs-13:13px; --fs-14:14px; --fs-16:16px; --fs-20:20px; --fs-26:26px; --fs-34:34px;
+  --lh-tight:1.25; --lh-body:1.5; --lh-serif:1.3;
+  /* Khoảng cách (lưới 4) */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px; --s10:40px; --s12:48px;
+  /* Bo góc, đổ bóng, chuyển động */
+  --r-sm:3px; --r-md:6px; --r-lg:10px; --r-pill:999px;
+  --sh-1:0 1px 0 rgba(27,36,48,.06); --sh-2:0 4px 14px rgba(27,36,48,.10); --sh-3:0 12px 32px rgba(14,31,61,.18);
+  --focus:0 0 0 2px var(--surface),0 0 0 4px var(--navy-500);
+  --t-fast:120ms; --t-base:200ms; --ease:cubic-bezier(.2,.7,.2,1);
+  --sidebar-w:216px; --topbar-h:52px; --demo-h:34px;
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

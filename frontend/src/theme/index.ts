@@ -1,87 +1,88 @@
 import type { ThemeConfig } from 'antd';
-import { shbColors, shbRadius, shbTypography } from './tokens';
-import { shbComponentOverrides } from './componentOverrides';
+import { componentOverrides } from './componentOverrides';
+import { colors, fonts, radius } from './tokens';
 
 /**
- * Theme SHB tập trung cho Ant Design ConfigProvider.
- * Được nạp một lần duy nhất tại `src/app/AppProviders.tsx`.
+ * Theme "Sổ Tín Dụng" cho Ant Design ConfigProvider, nạp một lần ở
+ * `src/app/AppProviders.tsx`. Giá trị lấy từ `./tokens` (khớp tokens.css).
  */
-export const shbTheme: ThemeConfig = {
+export const appTheme: ThemeConfig = {
   token: {
-    // Thương hiệu
-    colorPrimary: '#C44D0E',
-    colorPrimaryHover: '#A9410B',
-    colorPrimaryActive: shbColors.orange[600],
-    colorPrimaryBg: shbColors.orange[50],
-    colorPrimaryBgHover: shbColors.orange[100],
-    colorPrimaryBorder: shbColors.orange[200],
+    colorPrimary: colors.navy700,
+    colorPrimaryHover: colors.navy900,
+    colorPrimaryActive: colors.navy900,
+    colorPrimaryBg: colors.navy50,
+    colorPrimaryBgHover: colors.navy100,
+    colorPrimaryBorder: colors.navy100,
 
-    colorLink: '#2F2E79',
-    colorLinkHover: shbColors.orange[500],
-    colorLinkActive: shbColors.orange[700],
+    colorLink: colors.navy500,
+    colorLinkHover: colors.navy900,
+    colorLinkActive: colors.navy900,
 
-    // Chữ
-    colorText: shbColors.neutral.textPrimary,
-    colorTextSecondary: shbColors.neutral.textSecondary,
-    colorTextTertiary: shbColors.neutral.textMuted,
-    colorTextHeading: shbColors.navy[700],
-    colorTextDescription: shbColors.neutral.textSecondary,
+    colorText: colors.ink,
+    colorTextSecondary: colors.ink2,
+    colorTextTertiary: colors.ink3,
+    colorTextQuaternary: colors.ink3,
+    colorTextPlaceholder: colors.ink3,
+    colorTextDescription: colors.ink3,
+    colorTextHeading: colors.ink,
+    colorTextDisabled: colors.ink3,
 
-    // Nền
-    colorBgLayout: '#F6F4F0',
-    colorBgContainer: shbColors.neutral.surface,
-    colorBgElevated: shbColors.neutral.white,
-    colorBgSpotlight: shbColors.navy[800],
+    colorBgLayout: colors.paper,
+    colorBgContainer: colors.surface,
+    colorBgElevated: colors.surface,
+    colorBgSpotlight: colors.navy900,
+    colorBgContainerDisabled: colors.paper2,
+    colorFillSecondary: colors.paper2,
+    colorFillTertiary: colors.surface2,
 
-    // Viền
-    colorBorder: shbColors.neutral.border,
-    colorBorderSecondary: '#F0EBE4',
+    colorBorder: colors.control,
+    colorBorderSecondary: colors.rule,
+    colorSplit: colors.rule,
 
-    // Ngữ nghĩa
-    colorSuccess: shbColors.semantic.success,
-    colorWarning: shbColors.semantic.warning,
-    colorError: shbColors.semantic.error,
-    colorInfo: shbColors.semantic.info,
+    colorSuccess: colors.ok700,
+    colorSuccessBg: colors.ok100,
+    colorWarning: colors.warn700,
+    colorWarningBg: colors.warn100,
+    colorError: colors.danger700,
+    colorErrorBg: colors.danger100,
+    colorInfo: colors.info700,
+    colorInfoBg: colors.info100,
 
-    // Hình dạng
-    borderRadius: 8,
-    borderRadiusLG: shbRadius.large,
-    borderRadiusSM: shbRadius.small,
-    borderRadiusXS: 6,
+    borderRadius: radius.md,
+    borderRadiusLG: radius.lg,
+    borderRadiusSM: radius.sm,
+    borderRadiusXS: radius.sm,
 
-    // Typography
-    fontFamily: shbTypography.fontFamily,
-    fontFamilyCode: shbTypography.fontFamilyCode,
+    fontFamily: fonts.body,
+    fontFamilyCode: fonts.num,
     fontSize: 14,
-    fontSizeLG: shbTypography.size.bodyLarge,
-    fontSizeSM: shbTypography.size.supporting,
+    fontSizeSM: 12,
+    fontSizeLG: 16,
     fontSizeHeading1: 34,
     fontSizeHeading2: 26,
     fontSizeHeading3: 20,
-    fontSizeHeading4: 20,
-    fontSizeHeading5: 16,
-    lineHeight: shbTypography.lineHeight.body,
+    fontSizeHeading4: 16,
+    fontSizeHeading5: 14,
+    lineHeight: 1.5,
 
-    // Control
     controlHeight: 36,
-    controlHeightLG: 46,
+    controlHeightLG: 44,
     controlHeightSM: 30,
 
-    // Motion — micro-interaction do CSS/Motion đảm nhiệm, giữ AntD nhanh & nhẹ.
     motionDurationFast: '0.12s',
-    motionDurationMid: '0.18s',
-    motionDurationSlow: '0.24s',
+    motionDurationMid: '0.2s',
+    motionDurationSlow: '0.2s',
+    motionEaseOut: 'cubic-bezier(.2,.7,.2,1)',
 
-    // Focus ring rõ ràng (accessibility)
-    lineWidthFocus: 3,
-    controlOutline: 'rgba(243, 112, 33, 0.16)',
-    controlOutlineWidth: 3,
+    lineWidthFocus: 2,
+    controlOutline: 'rgba(42, 74, 128, 0.35)',
+    controlOutlineWidth: 2,
 
     wireframe: false,
   },
-
-  components: shbComponentOverrides,
+  components: componentOverrides,
 };
 
-export { shbColors, shbRadius, shbShadow, shbTypography, shbLayout, shbMotion } from './tokens';
+export { colors, fonts, radius, shadow, layout, colorVars } from './tokens';
 export { shbChartTheme, shbChartPalette } from './chartTheme';
