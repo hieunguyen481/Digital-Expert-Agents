@@ -6,6 +6,14 @@
 infra/scripts/reset-demo.sh      # DEMO_PROJECT=<tên compose> nếu stack không phải bank-ai-workbench
 ```
 
+Muốn hồ sơ cảnh 1 có sẵn kết luận AI, cờ và Validation ngay khi mở (không phải bấm chạy), thêm `--warm`:
+
+```bash
+infra/scripts/reset-demo.sh --warm      # WARM_TIMEOUT=<giây> (mặc định 420); cần engine và LLM đang chạy
+```
+
+`--warm` sau khi nạp seed đăng nhập `appraiser@example.local`, gọi API `POST /loan-applications/{id}/agent-runs` của HSV-2026-00187 (VinaNova, cảnh 1) rồi chờ ca vào trạng thái kết thúc. Đây là một lượt chạy đội agent thật (tốn token LLM, 1–3 phút), không chèn dữ liệu agent giả vào seed; lệnh thoát khác 0 nếu ca không kết thúc kịp. Cảnh 1 ở bảng dưới sau đó đã có lượt chạy: e2e `demo-scenes` bấm chạy thêm sẽ tạo lượt thứ hai (API giữ lượt cũ).
+
 Khi chạy e2e, bọc trong `flock /tmp/do-an-e2e.lock`. Đừng chạy lúc có ca agent đang chạy (đang ghi sự kiện vào ca bị dọn).
 Seed phát sinh lại thông báo bằng trigger, kèm dòng outbox email `PENDING`; lệnh đặt lại đánh dấu các dòng sinh từ lúc chạy lệnh là `FAILED` (`last_error = 'demo-reset: khong gui'`) để worker email không gửi dồn ra hộp thư thật.
 Hồ sơ `LA-` do demo/e2e tạo không xóa được (quyết định là bảng chỉ thêm); seed gỡ người vay chính và bước mở nên chúng không còn hiện trong danh sách việc, còn dashboard ẩn ca của chúng sau bộ lọc "Hiện ca kiểm thử".

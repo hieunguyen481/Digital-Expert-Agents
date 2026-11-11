@@ -3,7 +3,11 @@
 # ho so LA- tao khi demo/e2e bi go nguoi vay chinh nen khong con hien trong danh sach viec).
 # Khong dung agent.benchmark_run. Chay nhieu lan cho cung ket qua. Khi chay e2e: boc trong flock /tmp/do-an-e2e.lock.
 # Bien: DEMO_PROJECT (mac dinh bank-ai-workbench). Can stack dang chay; khong down, khong xoa volume.
+# Tuy chon --warm: sau khi nap seed, chay doi agent THAT (LLM) cho ho so canh 1 (HSV-2026-00187, VinaNova) va cho xong,
+# de khoi AI o chi tiet ho so co ket luan, co, Validation ngay khi mo. Khong chen du lieu agent gia vao seed. Bien: WARM_TIMEOUT (giay, mac dinh 420).
 set -euo pipefail
+warm=0
+for arg in "$@"; do case "$arg" in --warm) warm=1 ;; *) echo "Tham so khong biet: $arg (chi co --warm)" >&2; exit 2 ;; esac; done
 infra_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 project="${DEMO_PROJECT:-bank-ai-workbench}"
 cd "$infra_dir"
@@ -17,6 +21,44 @@ started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 dc exec -T postgres psql -U postgres -d bank_ai -q -c "UPDATE integration.email_outbox_setting SET enabled = FALSE, updated_at = now()"
 dc exec -T postgres psql -U postgres -d bank_ai -v ON_ERROR_STOP=1 -q < database/demo/reset-demo-cleanup.sql
 dc --profile setup run --rm --no-deps db-seed > /tmp/reset-demo-seed.log 2>&1 || { tail -20 /tmp/reset-demo-seed.log >&2; exit 1; }
+if [ "$warm" = 1 ]; then
+  # Dang nhap bang tai khoan Tham dinh (appraiser@example.local), goi API chay doi agent cua ho so canh 1, doi ca vao trang thai ket thuc.
+  ENV_FILE="$infra_dir/.env.local" python3 - <<'PY'
+import json, os, sys, time, urllib.parse, urllib.request
+env = {}
+for line in open(os.environ["ENV_FILE"], encoding="utf-8"):
+    line = line.strip()
+    if line and not line.startswith("#") and "=" in line:
+        k, v = line.split("=", 1); env[k] = v.strip().strip('"').strip("'")
+kc = os.environ.get("KEYCLOAK_URL", "http://localhost:8080"); api = os.environ.get("API_URL", "http://localhost:8000/api/v1")
+loan = "75000000-0000-4000-8000-000000000001"
+terminal = {"Pending Approval", "Needs Info", "Escalated", "Executing", "Completed", "Rejected"}
+def call(method, url, form=None, token=None, body=None):
+    data = urllib.parse.urlencode(form).encode() if form else (json.dumps(body).encode() if body is not None else None)
+    req = urllib.request.Request(url, data=data, method=method)
+    if form: req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    elif data is not None: req.add_header("Content-Type", "application/json")
+    if token: req.add_header("Authorization", "Bearer " + token)
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.loads(r.read() or b"null")
+try:
+    tok = call("POST", f"{kc}/realms/bank-ai/protocol/openid-connect/token", form={
+        "grant_type": "password", "client_id": "bank-ai-backend", "client_secret": env["KEYCLOAK_BACKEND_CLIENT_SECRET"],
+        "username": "appraiser@example.local", "password": env["SEED_USER_PASSWORD"]})["access_token"]
+    ov = call("POST", f"{api}/loan-applications/{loan}/agent-runs", token=tok)
+    case_id = ov["latest"]["case_id"]
+    deadline = time.time() + int(os.environ.get("WARM_TIMEOUT", "420"))
+    state = None
+    while time.time() < deadline:
+        state = call("GET", f"{api}/agent-cases/{case_id}", token=tok).get("state")
+        if state in terminal: break
+        time.sleep(5)
+    print(f"warm: ca {case_id} trang thai {state}")
+    sys.exit(0 if state in terminal else 1)
+except Exception as e:  # khong in token/mat khau
+    print(f"warm that bai: {type(e).__name__}: {e}", file=sys.stderr); sys.exit(1)
+PY
+fi
 # Seed chay lai sinh them ban sao thong bao giao viec cua ho so mau khac: giu ban som nhat cua moi (nguoi nhan, loai, noi dung, ho so) de so thong bao khong tang qua moi lan dat lai.
 dc exec -T postgres psql -U postgres -d bank_ai -q -c "DELETE FROM integration.notification n USING integration.notification o WHERE n.resource_type = 'LOAN_APPLICATION' AND o.resource_type = n.resource_type AND o.resource_id = n.resource_id AND o.employee_id = n.employee_id AND o.notification_type = n.notification_type AND o.message = n.message AND o.title = n.title AND (o.created_at, o.id) < (n.created_at, n.id)"
 # Seed sinh lai thong bao (trigger) kem dong outbox PENDING (chi dong tao tu luc bat dau lenh nay): danh dau khong gui de worker email khong gui don len hop thu that.
