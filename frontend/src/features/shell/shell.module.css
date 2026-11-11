@@ -147,8 +147,10 @@
 .searchWrap { position: relative; flex: 1; max-width: 460px; }
 .searchWrap .search { width: 100%; }
 .searchPanel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 20; max-height: 360px; overflow: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); box-shadow: var(--shadow-2, 0 8px 24px rgba(0, 0, 0, 0.12)); padding: 4px 0; }
-.searchGroup { padding: 6px 12px 2px; font-size: 12px; color: var(--ink-3); text-transform: uppercase; }
+.searchGroup { padding: 6px 12px 2px; font-size: 12px; color: var(--ink-2); }
 .searchItem { display: flex; gap: 8px; align-items: baseline; padding: 8px 12px; color: var(--ink); text-decoration: none; }
-.searchItem:hover, .searchItem:focus { background: rgba(0, 0, 0, 0.05); }
+.searchItem:hover, .searchItem:focus, .searchItem[aria-selected='true'] { background: rgba(0, 0, 0, 0.07); }
+.searchItem[aria-selected='true'] { box-shadow: inset 3px 0 0 var(--navy-700); }
+.searchCode { font-family: var(--font-num); font-weight: 500; font-variant-numeric: tabular-nums; font-size: 13px; }
 .searchItem span { color: var(--ink-3); font-size: 13px; }
 .searchNote { padding: 10px 12px; color: var(--ink-3); font-size: 13px; }
