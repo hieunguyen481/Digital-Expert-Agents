@@ -12,11 +12,13 @@ interface PageHeadProps {
   actions?: ReactNode;
   /** "Hỏi AI" luôn đứng đầu cụm; bỏ khi vai trò không có AI. */
   onAskAi?: () => void;
+  /** Nhãn nút trợ lý; mặc định "Hỏi AI". */
+  askLabel?: string;
   /** Đường dẫn quay lại (UX-10): mục cuối là trang hiện tại, không có `to`. */
   crumbs?: Array<{ label: string; to?: string }>;
 }
 
-export function PageHead({ title, facts = [], actions, onAskAi, crumbs }: PageHeadProps) {
+export function PageHead({ title, facts = [], actions, onAskAi, askLabel = 'Hỏi AI', crumbs }: PageHeadProps) {
   const text = facts.filter(Boolean).join(' · ');
   return (
     <>
@@ -40,7 +42,7 @@ export function PageHead({ title, facts = [], actions, onAskAi, crumbs }: PageHe
       <div className={styles.pageActions}>
         {onAskAi && (
           <Button icon={<ThunderboltOutlined />} onClick={onAskAi}>
-            Hỏi AI
+            {askLabel}
           </Button>
         )}
         {actions}

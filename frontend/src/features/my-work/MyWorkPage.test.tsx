@@ -21,11 +21,11 @@ import { AppLayout } from '@/features/shell/AppLayout';
 import MyWorkPage from './MyWorkPage';
 
 const ROLE_CASES = [
-  ['credit_officer', 'Hồ sơ của tôi'],
-  ['document_reviewer', 'Hồ sơ chờ kiểm tra'],
+  ['credit_officer', 'Việc của tôi'],
+  ['document_reviewer', 'Việc của tôi'],
   ['credit_appraiser', 'Việc của tôi'],
-  ['risk_officer', 'Hồ sơ chờ ý kiến'],
-  ['loan_approver', 'Hồ sơ chờ phê duyệt'],
+  ['risk_officer', 'Việc của tôi'],
+  ['loan_approver', 'Việc của tôi'],
   ['auditor', 'Hồ sơ vay (chỉ đọc)'],
 ] as const;
 
@@ -98,7 +98,7 @@ describe('MyWorkPage', () => {
 
   it('đổi bộ lọc ghi hash và gọi đúng filter', async () => {
     setup('credit_appraiser', ok(data([item({})])));
-    await userEvent.click(screen.getByText('Quá hạn'));
+    await userEvent.click(screen.getByText(/^Quá hạn/));
     expect(useWorkItems.mock.calls.some((c) => c[0] === 'over')).toBe(true);
   });
 

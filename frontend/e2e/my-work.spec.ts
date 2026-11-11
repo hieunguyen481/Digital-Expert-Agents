@@ -2,11 +2,11 @@ import { expect, test } from '@playwright/test';
 import { loginAs, type RoleKey } from './helpers';
 
 const CASES: Array<{ role: RoleKey; title: string; badge: number | null }> = [
-  { role: 'qhkh', title: 'Hồ sơ của tôi', badge: 1 },
-  { role: 'httd', title: 'Hồ sơ chờ kiểm tra', badge: 1 },
+  { role: 'qhkh', title: 'Việc của tôi', badge: 1 },
+  { role: 'httd', title: 'Việc của tôi', badge: 1 },
   { role: 'tdinh', title: 'Việc của tôi', badge: 1 },
-  { role: 'ruiro', title: 'Hồ sơ chờ ý kiến', badge: 1 },
-  { role: 'pheduyet', title: 'Hồ sơ chờ phê duyệt', badge: 1 },
+  { role: 'ruiro', title: 'Việc của tôi', badge: 1 },
+  { role: 'pheduyet', title: 'Việc của tôi', badge: 1 },
   { role: 'kiemtoan', title: 'Hồ sơ vay (chỉ đọc)', badge: null },
 ];
 
@@ -27,7 +27,7 @@ for (const c of CASES) {
 
 test('qhkh: lọc "Chờ bổ sung" chỉ còn HSV-2026-00196', async ({ page }) => {
   await loginAs(page, 'qhkh');
-  await page.getByText('Chờ bổ sung', { exact: true }).click();
+  await page.getByText(/^Chờ bổ sung \d+$/).click();
   await expect(page).toHaveURL(/#filter=bosung/);
   const rows = page.locator('.ant-table-tbody tr.ant-table-row');
   await expect(rows).toHaveCount(1);

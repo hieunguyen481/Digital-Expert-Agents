@@ -5,14 +5,13 @@ import { uiRoleFromRoles } from '@/auth/roleFromMe';
 import { RequireRole } from '@/auth/RequireRole';
 import { useMe } from '@/auth/session';
 import { EmptyState } from '@/components/common/EmptyState';
-import { KpiCard } from '@/components/ui';
 import { PageError } from '@/components/common/PageError';
 import { useAiPanel } from '@/features/ai-panel/AiPanelContext';
 import { PageHead } from '@/features/shell/PageHead';
 import { QueueTable } from './QueueTable';
 import { SideBlock } from './SideBlock';
 import styles from './my-work.module.css';
-import { PAGE_TITLE, QUEUE_TITLE, WORK_ROLES } from './roleCopy';
+import { EMPTY_COPY, PAGE_TITLE, QUEUE_TITLE, WORK_ROLES } from './roleCopy';
 import { QUEUE_FILTERS, type QueueFilter } from './types';
 import { useWorkItems } from './useWorkItems';
 
@@ -64,6 +63,7 @@ function Content() {
       title={PAGE_TITLE[role]}
       facts={facts}
       actions={actions}
+      askLabel="Hỏi trợ lý"
       onAskAi={() => openWith({ type: 'session', id: 'my-work', label: PAGE_TITLE[role] })}
     />
   );
@@ -88,6 +88,13 @@ function Content() {
   }
 
   const mine = all.data.items.filter((i) => i.mine);
+  const counts: Record<QueueFilter, number> = {
+    all: all.data.items.length,
+    over: all.data.items.filter((i) => i.tags.includes('over')).length,
+    ret: all.data.items.filter((i) => i.tags.includes('ret')).length,
+    bosung: all.data.items.filter((i) => i.tags.includes('bosung')).length,
+    new: all.data.items.filter((i) => i.tags.includes('new')).length,
+  };
   const strip = [
     { label: readOnly ? 'Hồ sơ đang theo dõi' : 'Cần bạn xử lý', value: readOnly ? all.data.items.length : mine.length },
     { label: 'Hạn hôm nay', value: all.data.items.filter((i) => i.sla_level === 'today').length },
@@ -104,13 +111,16 @@ function Content() {
         {all.data.items.length === 0 ? (
           <EmptyState
             title="Không có việc đang chờ bạn"
-            description="0 hồ sơ đang chờ bạn. Khi có hồ sơ chuyển tới bước của bạn, hồ sơ sẽ hiện ở đây và tăng số trên thanh trái."
+            description={EMPTY_COPY[role]}
           />
         ) : (
           <>
             <div className={styles.strip} role="group" aria-label="Tóm tắt">
-              {strip.map((k) => (
-                <KpiCard key={k.label} label={k.label} value={k.value} />
+              {strip.map((k, i) => (
+                <div key={k.label} className={styles.kpi} data-primary={i === 0 && !readOnly ? '' : undefined}>
+                  <span className={styles.kpiValue}>{k.value}</span>
+                  <span className={styles.kpiLabel}>{k.label}</span>
+                </div>
               ))}
             </div>
             {mine.length === 0 && !readOnly && (
@@ -120,6 +130,7 @@ function Content() {
               <QueueTable
                 title={QUEUE_TITLE[role]}
                 items={filtered.data?.items ?? []}
+                counts={counts}
                 filter={filter}
                 onFilter={setFilter}
                 loading={filtered.isLoading}

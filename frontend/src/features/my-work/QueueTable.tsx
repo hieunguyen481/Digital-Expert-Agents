@@ -2,7 +2,7 @@ import { ThunderboltOutlined } from '@ant-design/icons';
 import { Button, Segmented, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { Link, useNavigate } from 'react-router-dom';
-import { Flag, StatusPill, ledgerNum, ledgerTable, type PillTone } from '@/components/ui';
+import { Flag, StateBlock, StatusPill, ledgerNum, ledgerTable, type PillTone } from '@/components/ui';
 import { useAiPanel } from '@/features/ai-panel/AiPanelContext';
 import { formatBillion, slaText, statusLabel, stepLabel } from './format';
 import styles from './my-work.module.css';
@@ -14,6 +14,8 @@ interface QueueTableProps {
   filter: QueueFilter;
   onFilter: (filter: QueueFilter) => void;
   loading?: boolean;
+  /** Số hồ sơ theo từng bộ lọc, tính từ danh sách đầy đủ. */
+  counts?: Record<QueueFilter, number>;
   hasAi: boolean;
 }
 
@@ -29,10 +31,12 @@ function rowAction(r: WorkItem): { label: string; to: string } {
   return { label: r.mine ? 'Mở hồ sơ' : 'Xem hồ sơ', to: `/ho-so-vay/${r.loan_application_id}` };
 }
 
-export function QueueTable({ title, items, filter, onFilter, loading, hasAi }: QueueTableProps) {
+export function QueueTable({ title, items, filter, onFilter, loading, counts, hasAi }: QueueTableProps) {
   const { openWith } = useAiPanel();
   const navigate = useNavigate();
   const today = new Date();
+  // Chỉ việc kế tiếp (hàng đầu thuộc về bạn) được nhấn mạnh; còn lại cùng một kiểu viền.
+  const firstMine = items.find((i) => i.mine)?.loan_application_id;
   const columns: ColumnsType<WorkItem> = [
     {
       title: 'Khách hàng và mã hồ sơ',
@@ -91,7 +95,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, hasAi }: Q
         const a = rowAction(r);
         return (
           <div className={styles.rowAct}>
-            <Button size="small" type={r.mine ? 'primary' : 'default'} onClick={() => navigate(a.to)} aria-label={`${a.label} ${r.application_number}`}>
+            <Button size="small" type={r.loan_application_id === firstMine ? 'primary' : 'default'} onClick={() => navigate(a.to)} aria-label={`${a.label} ${r.application_number}`}>
               {a.label}
             </Button>
             {hasAi && (
@@ -99,8 +103,8 @@ export function QueueTable({ title, items, filter, onFilter, loading, hasAi }: Q
                 size="small"
                 type="text"
                 icon={<ThunderboltOutlined />}
-                aria-label={`Hỏi AI về ${r.application_number}`}
-                title="Hỏi AI"
+                aria-label={`Hỏi trợ lý về ${r.application_number}`}
+                title="Hỏi trợ lý"
                 onClick={() =>
                   openWith({ type: 'case', id: r.loan_application_id, label: `${r.application_number} · ${r.customer_name}` })
                 }
@@ -118,7 +122,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, hasAi }: Q
         <Segmented
           value={filter}
           onChange={(v) => onFilter(v as QueueFilter)}
-          options={QUEUE_FILTERS.map((f) => ({ value: f.key, label: f.label }))}
+          options={QUEUE_FILTERS.map((f) => ({ value: f.key, label: counts ? `${f.label} ${counts[f.key]}` : f.label }))}
           aria-label="Lọc danh sách"
         />
       </div>
@@ -131,7 +135,17 @@ export function QueueTable({ title, items, filter, onFilter, loading, hasAi }: Q
         loading={loading}
         pagination={false}
         rowClassName={(r) => (r.mine ? '' : styles.dim)}
-        locale={{ emptyText: 'Không có hồ sơ khớp bộ lọc này' }}
+        locale={{
+          emptyText: (
+            <StateBlock
+              kind="empty"
+              compact
+              title="Không có hồ sơ khớp bộ lọc này"
+              description="Thử bỏ bộ lọc để xem toàn bộ hồ sơ của bạn."
+              action={filter !== 'all' ? <Button onClick={() => onFilter('all')}>Bỏ lọc</Button> : undefined}
+            />
+          ),
+        }}
       />
     </section>
   );
