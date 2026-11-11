@@ -47,7 +47,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, hasAi }: Q
         </div>
       ),
     },
-    { title: 'Số tiền', key: 'amount', className: ledgerNum, render: (_, r) => formatBillion(r.requested_amount) },
+    { title: 'Số tiền', key: 'amount', align: 'right', className: ledgerNum, render: (_, r) => formatBillion(r.requested_amount) },
     {
       title: 'Bước hiện tại',
       key: 'step',
