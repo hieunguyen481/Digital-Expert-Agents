@@ -213,7 +213,7 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
           {pkg?.proposed_limit != null && <span>Hạn mức đề xuất: <b className={styles.num}>{fmtMoney(String(pkg.proposed_limit), currency)}</b></span>}
           {pkg?.required_approver_level && <span className={styles.note}>Cấp phê duyệt đề xuất: {approverLevelLabel(pkg.required_approver_level)}</span>}
           {!!pkg?.conditions?.length && (
-            <div><b className={styles.sub}>Điều kiện đội agent đề xuất</b>
+            <div><b className={styles.sub}>Yêu cầu bổ sung và điều kiện đội agent đề xuất</b>
               <ul className={styles.condOl}>{pkg.conditions.map((x) => <li key={x}>{x.replace(/^Điều kiện:\s*/i, '')}</li>)}</ul></div>
           )}
           <span className={styles.note}>Đề xuất của đội agent chưa có hiệu lực.</span>
