@@ -35,7 +35,7 @@ class _Engine:
 
     cases: list = []
 
-    async def list_cases(self, limit=50, jwt=None):
+    async def list_cases(self, limit=50, jwt=None, customer_id=None):
         return self.cases
 
     async def get_events(self, case_id, after=0, jwt=None):
@@ -159,3 +159,20 @@ async def test_personal_data_request_is_refused_without_running_analysis() -> No
 def test_reply_has_no_blank_limit_or_internal_labels() -> None:
     text = mod.compose_engine_reply({"state": "Needs Info", "package": {"recommendation": "Cần bổ sung", "proposed_limit": None}})
     assert "VND" not in text and "hội đồng agent" not in text.lower() and "rules.md" not in text
+
+
+def test_engine_reply_card_vietnamese_without_blank_limit():
+    from app.services.engine_conversation_responder import compose_engine_reply
+    text = compose_engine_reply({"state": "Pending Approval", "package": {
+        "recommendation": "ĐỀ XUẤT PHÊ DUYỆT", "proposed_limit": None,
+        "verdicts": [{"agent": "credit", "decision": "flag", "summary": "ổn"}]}})
+    assert "Hạn mức đề xuất" not in text and "VND" not in text
+    assert "Pending Approval" not in text and "flag" not in text.lower().replace("flagged", "")
+    assert "Chờ người có thẩm quyền xác nhận" in text and "ĐỒNG Ý CÓ ĐIỀU KIỆN" in text
+    withlimit = compose_engine_reply({"state": "Needs Info", "package": {"proposed_limit": 80e9}})
+    assert "80.000.000.000 VND" in withlimit and "Cần bổ sung hồ sơ" in withlimit
+
+
+def test_scrub_raw_names():
+    from app.services.llm_conversation_responder import scrub_raw_names
+    assert scrub_raw_names("DSCR 1,34 [nguồn: existing_obligations]") == "DSCR 1,34 [nguồn: dư nợ hiện hữu]"

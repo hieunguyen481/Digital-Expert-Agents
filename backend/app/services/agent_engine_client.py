@@ -61,8 +61,15 @@ class AgentEngineClient:
     async def run(self, case_id: str, jwt: str | None = None) -> None:
         await self._call("POST", f"/cases/{case_id}/run", jwt=jwt)
 
-    async def list_cases(self, limit: int = 50, jwt: str | None = None) -> list[dict[str, Any]]:
-        return await self._call("GET", "/cases", jwt=jwt, params={"limit": limit})
+    async def list_cases(self, limit: int = 50, jwt: str | None = None,
+                         customer_id: str | None = None) -> list[dict[str, Any]]:
+        params: dict[str, Any] = {"limit": limit}
+        if customer_id:
+            params["customer_id"] = customer_id
+        return await self._call("GET", "/cases", jwt=jwt, params=params)
+
+    async def policy_search(self, query: str, k: int = 3, jwt: str | None = None) -> list[dict[str, Any]]:
+        return await self._call("GET", "/policy/search", jwt=jwt, params={"q": query, "k": k})
 
     async def case_stats(self, jwt: str | None = None) -> dict[str, Any]:
         return await self._call("GET", "/cases/stats", jwt=jwt)

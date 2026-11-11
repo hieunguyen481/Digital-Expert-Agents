@@ -102,8 +102,17 @@ async def create_case(body: CaseCreate, user: Principal = USER) -> dict:
 
 
 @app.get("/cases")
-async def list_cases(limit: int = 50, user: Principal = USER) -> list[dict]:
-    return await db.list_cases(limit)
+async def list_cases(limit: int = 50, customer_id: str | None = None, user: Principal = USER) -> list[dict]:
+    return await db.list_cases(limit, customer_id)
+
+
+@app.get("/policy/search")
+async def policy_search(q: str, k: int = 3, user: Principal = USER) -> list[dict]:
+    """Điều khoản chính sách CS-TD-SME/2025 liên quan câu hỏi (BM25 trên corpus, không LLM) để chat trả lời có căn cứ."""
+    from common import rag
+
+    hits = [h for h in rag.search("credit", q[:500], k=200) if not h["source"].endswith(".md")][:max(1, min(k, 5))]
+    return [{"source": h["source"], "text": h["text"][:900]} for h in hits]
 
 
 @app.get("/cases/stats")

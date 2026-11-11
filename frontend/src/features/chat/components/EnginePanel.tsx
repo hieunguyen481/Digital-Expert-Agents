@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Card, Input, Space, Tag, Typography } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
-import { approverLevelLabel, sourceLabel } from '@/features/dashboard/agentTrace';
+import { DECISION_LABEL, agentName, approverLevelLabel, sourceLabel, stateLabel } from '@/features/dashboard/agentTrace';
 import {
   TERMINAL_STATES,
   type AgentVerdict,
@@ -12,16 +12,7 @@ import {
   streamAgentCase,
 } from '@/services/agentCaseService';
 
-const AGENT_NAME: Record<string, string> = {
-  planner: 'Planner',
-  credit: 'Credit',
-  compliance: 'Compliance',
-  operations: 'Operations',
-  validation: 'Validation',
-  orchestrator: 'Điều phối',
-  gateway: 'Cổng',
-};
-const DECISION: Record<string, string> = { approve: 'Đồng ý', reject: 'Từ chối', pass: 'Đạt', fail: 'Không đạt', need_more_info: 'Cần thêm thông tin' };
+const VND = (v: number) => `${v.toLocaleString('vi-VN')} VND`;
 
 export interface EnginePanelProps {
   caseId: string;
@@ -97,18 +88,18 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
   };
 
   return (
-    <Card size="small" data-testid="engine-panel" style={{ marginTop: 12 }} title={`Đội agent · ${c.state}`}>
+    <Card size="small" data-testid="engine-panel" style={{ marginTop: 12 }} title={`Đội agent · ${stateLabel(c.state)}`}>
       <Space size={[4, 4]} wrap data-testid="engine-flow">
         {flow.map((e) => (
           <Tag key={e.id} color={e.type === 'plan_created' ? 'blue' : 'green'}>
-            {AGENT_NAME[e.agent] ?? e.agent}
+            {agentName(e.agent)}
           </Tag>
         ))}
       </Space>
       <div data-testid="engine-verdicts" style={{ marginTop: 8 }}>
         {verdicts.map((v) => (
           <div key={v.agent + v.summary}>
-            <b>{AGENT_NAME[v.agent] ?? v.agent}</b>: {DECISION[v.decision] ?? v.decision} — {v.summary}
+            <b>{agentName(v.agent)}</b>: {DECISION_LABEL[v.decision] ?? v.decision} — {v.summary}
           </div>
         ))}
       </div>
@@ -118,10 +109,16 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
           <ul>
             {sources.map((s, i) => (
               <li key={i}>
-                <Typography.Text code>{sourceLabel(s.source)}</Typography.Text> {s.quote}
+                <Typography.Text strong>{sourceLabel(s.source)}</Typography.Text> {s.quote}
               </li>
             ))}
           </ul>
+          <details>
+            <summary>Chi tiết kỹ thuật (kiểm toán)</summary>
+            {sources.map((s, i) => (
+              <div key={i}>{s.source}: {s.raw_quote ?? s.quote}</div>
+            ))}
+          </details>
         </details>
       )}
       {(c.state === 'Needs Info' || c.state === 'Rejected') && (
@@ -155,7 +152,8 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
           description={
             <div>
               <div>
-                Hạn mức đề xuất: {pkg.proposed_limit?.toLocaleString('vi-VN')} VND · Cấp phê duyệt: {approverLevelLabel(pkg.required_approver_level ?? '')}
+                {pkg.proposed_limit ? `Hạn mức đề xuất: ${VND(pkg.proposed_limit)}` : 'Chưa có hạn mức đề xuất'}
+                {pkg.required_approver_level ? ` · Cấp phê duyệt: ${approverLevelLabel(pkg.required_approver_level)}` : ''}
               </div>
               {(pkg.conditions ?? []).map((cond) => (
                 <div key={cond}>• {cond}</div>

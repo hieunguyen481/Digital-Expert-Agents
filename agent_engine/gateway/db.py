@@ -107,7 +107,7 @@ async def update_case(case_id: str, **fields: Any) -> None:
                           *vals)
 
 
-async def list_cases(limit: int = 50) -> list[dict]:
+async def list_cases(limit: int = 50, customer_id: str | None = None) -> list[dict]:
     """Danh sách hồ sơ dưới RLS của người gọi, kèm tóm tắt số liệu tính từ trace thật."""
     async with tx() as con:
         rows = await con.fetch(
@@ -116,8 +116,12 @@ async def list_cases(limit: int = 50) -> list[dict]:
             " COUNT(*) FILTER (WHERE e.type='tool_call') AS tool_calls,"
             " COUNT(*) FILTER (WHERE e.type='llm_usage') AS llm_calls,"
             " SUM((e.payload->>'cost_usd')::float8) FILTER (WHERE e.type='llm_usage') AS cost_usd"
-            " FROM agent.case_run r LEFT JOIN agent.case_event e ON e.case_id=r.case_id"
-            " GROUP BY r.case_id ORDER BY r.created_at DESC LIMIT $1", max(1, min(limit, 200)))
+            " FROM (SELECT * FROM agent.case_run WHERE ($2::text IS NULL OR customer_id::text=$2)"
+            "       ORDER BY created_at DESC LIMIT $1) r"  # giới hạn trước khi nối sự kiện: không quét mọi sự kiện
+            " LEFT JOIN agent.case_event e ON e.case_id=r.case_id"
+            " GROUP BY r.case_id, r.customer_id, r.submitted_by, r.approver, r.state, r.created_at,"
+            " r.updated_at, r.replan_count, r.payload ORDER BY r.created_at DESC",
+            max(1, min(limit, 200)), customer_id)
     out = []
     for r in rows:
         d = _case(dict(r))
