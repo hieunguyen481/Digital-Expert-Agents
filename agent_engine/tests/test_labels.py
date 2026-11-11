@@ -42,3 +42,16 @@ def test_approval_tier_keys_are_translated():
     out = humanize("cấp phê duyệt: head_office (CS-TD-SME/2025 §3.1); head_office_l2, branch_director, council")
     assert "head_office" not in out and "branch_director" not in out and "council" not in out
     assert "Cấp 2 Hội sở" in out and "Hội đồng tín dụng" in out
+
+
+def test_sources_use_business_names_and_keep_raw():
+    from common.labels import humanize_source
+    for raw in ["customer.kyc_assessment", "so_tinh_lai", "compliance_policy", "compliance_policy.md",
+                "credit.loan_account + credit.customer_exposure", "core-banking:get_collateral", "banking.something"]:
+        out = humanize_source(raw)
+        assert not re.search(r"[a-z]+_[a-z]+|\.|core-banking", out) or out.startswith("Dữ liệu"), (raw, out)
+    assert humanize_source("CS-TD-SME/2025 §3.1") == "CS-TD-SME/2025 §3.1"
+    out = humanize_payload({"evidence": [{"source": "customer.kyc_assessment", "quote": 'collateral: "[]"'}]})["evidence"][0]
+    assert out["source_label"] == "Đánh giá KYC của khách hàng" and out["source"] == "customer.kyc_assessment"
+    assert out["quote"] == "tài sản bảo đảm: không có" and out["raw_quote"] == 'collateral: "[]"'
+    assert "customer.kyc_assessment" not in humanize("theo bảng customer.kyc_assessment")

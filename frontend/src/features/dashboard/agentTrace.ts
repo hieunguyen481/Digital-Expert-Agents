@@ -188,10 +188,33 @@ export const TOOL_LABEL: Record<string, string> = {
   create_loan_draft: 'Tạo bản nháp hồ sơ vay',
 };
 export const toolLabel = (t: string) => TOOL_LABEL[t] ?? t;
-/** Nguồn trích dẫn: "core-banking:create_loan_draft" -> nhãn tiếng Việt; tên tài liệu/điều khoản giữ nguyên. */
-export const sourceLabel = (s: string) => {
-  const name = s.replace(/^core-banking:/, '');
-  return name !== s || TOOL_LABEL[name] ? (TOOL_LABEL[name] ?? name) : s;
+/** Tên nguồn nghiệp vụ cho bảng dữ liệu/tệp corpus/khóa nội bộ (khớp agent_engine/common/labels.py SOURCE). */
+const SOURCE_LABEL: Record<string, string> = {
+  'customer.kyc_assessment': 'Đánh giá KYC của khách hàng', 'customer.customer': 'Hồ sơ khách hàng',
+  'customer.organization_profile': 'Hồ sơ doanh nghiệp', 'customer.person_profile': 'Hồ sơ cá nhân',
+  'credit.loan_account': 'Khoản vay hiện hữu', 'credit.customer_exposure': 'Tổng dư nợ của khách',
+  'credit.collateral': 'Hồ sơ tài sản bảo đảm', 'credit.existing_obligation': 'Nghĩa vụ nợ hiện hữu',
+  'credit.sme_financial_year': 'Báo cáo tài chính các năm', 'banking.credit_report': 'Báo cáo CIC',
+  'banking.credit_facility': 'Hạn mức tín dụng hiện hữu', 'banking.account_holder': 'Chủ tài khoản',
+  'banking.account_monthly_summary': 'Tiền về tài khoản theo tháng', 'banking.account': 'Tài khoản thanh toán',
+  'document.extracted_field': 'Trường trích xuất từ tài liệu', 'document.document': 'Tài liệu hồ sơ',
+  'document.document_version': 'Tài liệu hồ sơ', so_tinh_lai: 'Số tính lại từ công cụ',
+  validation: 'Kiểm chứng của Validation', llm: 'Phân tích của chuyên gia',
+  compliance_policy: 'Quy định tuân thủ nội bộ', ops_procedures: 'Quy trình vận hành nội bộ',
+  shared_cs_td_sme_2025: 'Chính sách tín dụng SME 2025 (CS-TD-SME/2025)',
+};
+/** Nguồn trích dẫn -> tên nghiệp vụ; điều khoản chính sách (có §/Điều) giữ nguyên. Mã thô chỉ ở phần chi tiết kỹ thuật. */
+export const sourceLabel = (s: string): string => {
+  if (!s) return s;
+  const parts = s.includes('+') && !s.includes('§') ? s.split('+').map((p) => p.trim()) : [s.trim()];
+  const one = (p: string) => {
+    const name = p.replace(/^core-banking:/, '').replace(/\.md$/, '');
+    if (SOURCE_LABEL[name]) return SOURCE_LABEL[name];
+    if (TOOL_LABEL[name]) return TOOL_LABEL[name].charAt(0).toUpperCase() + TOOL_LABEL[name].slice(1);
+    if (/^(customer|credit|banking|document|agent|audit)\.[a-z_]+$/.test(name)) return 'Dữ liệu core banking';
+    return p;
+  };
+  return Array.from(new Set(parts.map(one))).join(' + ');
 };
 /** Khóa trên bảng chung -> nhãn hiển thị (cùng nguồn với công cụ tương ứng). */
 export const BOARD_LABEL: Record<string, string> = {

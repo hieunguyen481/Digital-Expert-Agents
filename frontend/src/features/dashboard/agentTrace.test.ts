@@ -49,3 +49,14 @@ describe('scrubInternal', () => {
     expect(out).toBe('Xét rủi ro ngành và tài sản bảo đảm của hồ sơ; mã (mã nội bộ)');
   });
 });
+
+describe('sourceLabel (L07)', () => {
+  it('hiện tên nguồn nghiệp vụ, không lộ tên bảng/tệp', async () => {
+    const { sourceLabel } = await import('./agentTrace');
+    for (const raw of ['customer.kyc_assessment', 'so_tinh_lai', 'compliance_policy', 'compliance_policy.md',
+      'credit.loan_account + credit.customer_exposure', 'core-banking:get_collateral', 'banking.unknown_table']) {
+      expect(sourceLabel(raw)).not.toMatch(/[a-z]+_[a-z]+|\.md|core-banking|^[a-z]+\.[a-z_]+$/);
+    }
+    expect(sourceLabel('CS-TD-SME/2025 §3.1')).toBe('CS-TD-SME/2025 §3.1');
+  });
+});
