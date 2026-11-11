@@ -1,21 +1,13 @@
 import { useState } from 'react';
 import { Tabs } from 'antd';
-import {
-  DeploymentUnitOutlined,
-  RiseOutlined,
-  ThunderboltOutlined,
-} from '@ant-design/icons';
 import { useSearchParams } from 'react-router-dom';
 import { PageHead } from '@/features/shell/PageHead';
 import { OverviewTab, TracesTab, ComparisonTab } from '@/features/dashboard/components';
 import styles from './AgentDashboardPage.module.css';
 
 /**
- * Dashboard giám sát hệ chuyên gia số.
- *
- * Đáp ứng 2 deliverable của đề bài:
- * 1. "A dashboard showing agent traces, task status, decisions, collaboration flows"
- * 2. "A performance comparison between a single-agent chatbot and the multi-agent system"
+ * Đội agent: giám sát các lượt chạy (Tổng quan, Dấu vết) và so sánh đội agent với mô hình đơn lẻ.
+ * Đáp ứng 2 deliverable của đề bài: dashboard (trace, trạng thái, quyết định, luồng cộng tác) và so sánh single/multi.
  */
 export default function AgentDashboardPage() {
   const caseParam = useSearchParams()[0].get('case');
@@ -23,43 +15,16 @@ export default function AgentDashboardPage() {
 
   return (
     <div className={styles.page}>
-      <PageHead title="Giám sát đội agent"
-        facts={['Theo dõi tiến trình, quyết định và luồng cộng tác giữa các agent chuyên môn']} />
-      <div className={styles.container}>
-        <Tabs
-          activeKey={tab}
-          onChange={setTab}
-          items={[
-            {
-              key: 'overview',
-              label: (
-                <span>
-                  <RiseOutlined /> Tổng quan
-                </span>
-              ),
-              children: <OverviewTab />,
-            },
-            {
-              key: 'traces',
-              label: (
-                <span>
-                  <DeploymentUnitOutlined /> Agent traces
-                </span>
-              ),
-              children: <TracesTab initialCaseId={caseParam} />,
-            },
-            {
-              key: 'comparison',
-              label: (
-                <span>
-                  <ThunderboltOutlined /> So sánh hiệu năng
-                </span>
-              ),
-              children: <ComparisonTab />,
-            },
-          ]}
-        />
-      </div>
+      <PageHead title="Đội agent" facts={['Giám sát các lượt chạy của đội agent. AI chỉ đề xuất, người quyết định.']} />
+      <Tabs
+        activeKey={tab}
+        onChange={setTab}
+        items={[
+          { key: 'overview', label: 'Tổng quan', children: <OverviewTab /> },
+          { key: 'traces', label: 'Dấu vết', children: <TracesTab initialCaseId={caseParam} /> },
+          { key: 'comparison', label: 'So sánh', children: <ComparisonTab /> },
+        ]}
+      />
     </div>
   );
 }

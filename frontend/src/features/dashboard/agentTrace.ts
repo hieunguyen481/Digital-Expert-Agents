@@ -36,6 +36,17 @@ export function isTestCase(c: { application_number?: string | null }): boolean {
 }
 export const purposeLabel = (p: string) => PURPOSE_LABEL[p] ?? p;
 export const stateLabel = (s: string) => STATE_LABEL[s] ?? s;
+/** Tông StatusPill theo trạng thái lượt: ok = đã có kết luận, warn = đang chờ người, bad = dừng/từ chối, ai = máy đang chạy. */
+export const STATE_TONE: Record<string, 'neutral' | 'ok' | 'warn' | 'bad' | 'info' | 'ai'> = {
+  Draft: 'neutral',
+  'In Analysis': 'ai',
+  'Pending Approval': 'warn',
+  'Needs Info': 'warn',
+  Escalated: 'bad',
+  Executing: 'info',
+  Completed: 'ok',
+  Rejected: 'bad',
+};
 export const STATE_COLOR: Record<string, string> = {
   Draft: 'default',
   'In Analysis': 'processing',
