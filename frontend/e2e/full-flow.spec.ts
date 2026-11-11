@@ -87,6 +87,7 @@ test('luồng 1: người có thẩm quyền quyết định; ca agent đóng, h
   await page.locator('#action-text').fill('Phê duyệt theo đề xuất của Thẩm định, kèm theo dõi dòng tiền hằng quý.');
   await shot(page, 'f1', '12-quyet-dinh');
   await page.getByRole('button', { name: 'Ghi quyết định' }).click();
+  await page.getByRole('button', { name: /^Xác nhận/ }).click();
   await expect(page.getByText(/Đã phê duyệt|Phê duyệt có điều kiện/).first()).toBeVisible({ timeout: 30_000 });
   await shot(page, 'f1', '13-da-quyet-dinh');
 

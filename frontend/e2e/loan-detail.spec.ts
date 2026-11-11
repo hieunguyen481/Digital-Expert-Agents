@@ -53,7 +53,7 @@ test('tdinh: Tờ trình tự lưu và còn nguyên sau khi tải lại', async 
   await page.reload();
   await expect(page.locator('#memo-4')).toHaveValue(text);
   await expect(page.getByTestId('memo-pdf')).toBeVisible(); // khóa/mở theo bản chốt: xem MemoPanel.test.tsx
-  await expect(page.getByTestId('actions-panel').getByRole('button', { name: 'Trình Rủi ro', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Trình Rủi ro', exact: true })).toBeVisible();
 });
 
 test('ruiro: hồ sơ còn ở Thẩm định nên ngoài phạm vi, không thấy chỉ số lẫn bản nháp Tờ trình', async ({ page }) => {
@@ -122,7 +122,7 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await dialog(page).getByRole('button', { name: 'Gửi báo sớm' }).click();
   await expect(page.getByRole('button', { name: 'Đã báo sớm' })).toBeVisible();
   await expect(page.getByText('Đang thẩm định').first()).toBeVisible(); // Báo sớm không đổi bước
-  await page.getByTestId('actions-panel').getByRole('button', { name: 'Trình Rủi ro', exact: true }).click();
+  await page.getByRole('button', { name: 'Trình Rủi ro', exact: true }).click();
   await expect(page.getByText('Đang cho ý kiến rủi ro').first()).toBeVisible();
   await expect(page.getByText('Bản đã chốt lúc trình')).toBeVisible();
   const [pdf] = await Promise.all([page.waitForEvent('download'), page.getByTestId('memo-pdf').click()]);
@@ -173,5 +173,6 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await expect(dialog(page).getByRole('button', { name: 'Ghi quyết định' })).toBeDisabled();
   await dialog(page).locator('#action-text').fill('Đủ điều kiện, phê duyệt theo đề nghị');
   await dialog(page).getByRole('button', { name: 'Ghi quyết định' }).click();
+  await page.getByRole('button', { name: /^Xác nhận/ }).click();
   await expect(page.getByText('Đã phê duyệt').first()).toBeVisible();
 });

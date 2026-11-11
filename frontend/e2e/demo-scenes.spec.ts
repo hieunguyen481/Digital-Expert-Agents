@@ -106,6 +106,7 @@ test('cảnh 5: hồ sơ ở bước Phê duyệt đi tới quyết định củ
     for (let i = 0; i < (await rows.count()); i++) { await rows.nth(i).getByText('Chấp thuận').click(); await rows.nth(i).getByRole('textbox').fill('Chấp thuận ngoại lệ theo đề xuất'); }
     await page.locator('#action-text').fill('Phê duyệt theo đề xuất của Thẩm định, kèm điều kiện trước giải ngân.');
     await page.getByRole('button', { name: 'Ghi quyết định' }).click();
+    await page.getByRole('button', { name: /^Xác nhận/ }).click();
     await expect(page.getByText(/Đã phê duyệt|Phê duyệt có điều kiện/).first()).toBeVisible({ timeout: 30_000 });
     await shot(page, 'd1-s5', 'da-quyet-dinh');
     decided = true;
