@@ -143,7 +143,10 @@ def get_conversation_service(request: Request, session: SessionDep) -> Conversat
             lease_ttl_seconds=settings.customer_assignment_lease_ttl_seconds,
         )
         loan = LoanService(LoanRepository(session), audit, assignment)
-        processing_guard = ConversationProcessingGuard(assignment, loan)
+        run_guard = LoanAgentRunService(
+            LoanAgentRunRepository(session), getattr(request.app.state, "agent_engine", None)
+        )
+        processing_guard = ConversationProcessingGuard(assignment, loan, run_guard)
     return ConversationService(
         ConversationRepository(session),
         require_state_adapter(request, "context_router"),

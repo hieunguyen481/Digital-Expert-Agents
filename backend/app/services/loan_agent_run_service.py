@@ -111,11 +111,16 @@ class LoanAgentRunService:
         updated = case.get("updated_at")
         return not (isinstance(updated, (int, float)) and time.time() - updated > STALE_AFTER_SECONDS)
 
-    async def start(self, principal: PrincipalLike, loan_id: UUID) -> dict[str, Any]:
+    async def assert_can_run(self, principal: PrincipalLike, loan_id: UUID) -> Any:
+        """Luật chạy đội agent duy nhất (trang hồ sơ và chat dùng chung): vai theo bước + người giữ bước."""
         loan = await self._loan(loan_id)
         reason = denial_reason(principal, str(loan["status"]), await self._repo.holds(loan_id))
         if reason is not None:
             raise AuthorizationError("AGENT_RUN_NOT_ALLOWED", reason, {"status": str(loan["status"])})
+        return loan
+
+    async def start(self, principal: PrincipalLike, loan_id: UUID) -> dict[str, Any]:
+        loan = await self.assert_can_run(principal, loan_id)
         if self._engine is None:
             raise DependencyUnavailableError("AGENT_ENGINE_UNAVAILABLE", "Agent engine chưa được cấu hình.")
         await self._repo.lock(loan_id)

@@ -200,3 +200,16 @@ def test_risk_compliance_manager_can_run_on_their_steps() -> None:
     assert denial_reason(P(("credit_manager",)), "APPRAISAL", False) is None  # không cần giữ bước
     assert denial_reason(P(("risk_officer",)), "APPRAISAL", True) is not None
     assert denial_reason(P(("risk_officer",)), "RISK_REVIEW", False) is not None
+
+
+@pytest.mark.asyncio
+async def test_assert_can_run_is_the_single_rule_for_page_and_chat() -> None:
+    risk = P(roles=("risk_officer",))
+    ok = LoanAgentRunService(FakeRepo(status="RISK_REVIEW", holds=True), None)
+    assert (await ok.assert_can_run(risk, LOAN))["id"] == LOAN
+    not_holder = LoanAgentRunService(FakeRepo(status="RISK_REVIEW", holds=False), None)
+    with pytest.raises(AuthorizationError, match="không phải người đang giữ"):
+        await not_holder.assert_can_run(risk, LOAN)
+    wrong_step = LoanAgentRunService(FakeRepo(status="APPRAISAL", holds=True), None)
+    with pytest.raises(AuthorizationError, match="không được chạy đội agent ở bước này"):
+        await wrong_step.assert_can_run(risk, LOAN)
