@@ -1,7 +1,7 @@
 /* Theme đăng nhập "Sổ Tín Dụng" (mockup 22): nền giấy, thẻ phẳng viền mảnh, nút navy, chữ Be Vietnam Pro.
    Phủ lên keycloak.v2 (PatternFly v5). Màu lấy từ docs/design/mockups-v2/tokens.css. */
 :root {
-  --sk-paper: #F1F2EE; --sk-surface: #FBFBF8; --sk-navy: #1E3A6E; --sk-navy-900: #14284B;
+  --sk-paper: #F1F2EE; --sk-surface: #FBFBF8; --sk-navy: #14284B; --sk-navy-900: #14284B;
   --sk-ink: #1B2430; --sk-ink-3: #5E6573; --sk-rule: #D3D7CC; --sk-control: #6F7660; --sk-danger: #A8281D;
   --pf-v5-global--primary-color--100: var(--sk-navy);
   --pf-v5-global--primary-color--200: var(--sk-navy-900);
@@ -16,6 +16,7 @@
 .login-pf body { background: var(--sk-paper) !important; color: var(--sk-ink); font-family: var(--pf-v5-global--FontFamily--text); }
 .pf-v5-c-login__container { max-width: 440px; }
 .pf-v5-c-login__header { text-align: left; }
+.pf-v5-c-login__container > header, #kc-header, #kc-header-wrapper { text-align: left !important; justify-content: flex-start; }
 .pf-v5-c-login__header::before {
   content: ''; display: block; width: 36px; height: 36px; margin-bottom: 12px;
   background: url('../img/so-tin-dung-mark.svg') no-repeat center / contain;
@@ -34,3 +35,18 @@
 .pf-v5-c-button:focus-visible, a:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--sk-navy); }
 .pf-v5-c-alert.pf-m-danger, .pf-v5-c-alert.pf-m-warning, .pf-v5-c-alert.pf-m-info { border-radius: 6px; }
 .pf-v5-c-helper-text__item.pf-m-error, .kc-feedback-text { color: var(--sk-danger); }
+
+/* Một tiêu đề duy nhất: tên sản phẩm ở đầu thẻ, "Đăng nhập" là h1; logo và tên cùng trục trái. */
+#kc-header-wrapper::after { content: 'Tín dụng doanh nghiệp'; display: block; margin-top: 2px; font: 400 13px 'Be Vietnam Pro', system-ui, sans-serif; color: var(--sk-ink-3); }
+#kc-page-title::after { content: 'Dùng tài khoản nội bộ.'; display: block; margin: 8px 0 4px; font: 400 14px 'Be Vietnam Pro', system-ui, sans-serif; color: var(--sk-ink-3); }
+/* Ghi rõ trường bắt buộc bằng chữ, không chỉ dấu sao. */
+.pf-v5-c-form__label-required { font-size: 0; }
+.pf-v5-c-form__label-required::before { content: ' (bắt buộc)'; font-size: 12px; font-weight: 400; color: var(--sk-ink-3); }
+/* Hai ô nhập cùng một kiểu viền đủ bốn cạnh, nút hiện mật khẩu nằm trong ô. */
+.pf-v5-c-form-control, .pf-v5-c-input-group .pf-v5-c-form-control { border: 1px solid var(--sk-control); border-radius: 6px; }
+.pf-v5-c-form-control::before, .pf-v5-c-form-control::after { display: none !important; }
+.pf-v5-c-input-group { border: 1px solid var(--sk-control); border-radius: 6px; background: #fff; align-items: stretch; }
+.pf-v5-c-input-group .pf-v5-c-form-control { border: 0; }
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control { border: 0; background: transparent; border-radius: 0 6px 6px 0; }
+.pf-v5-c-input-group:focus-within { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--sk-navy); }
+.pf-v5-c-form-control.pf-m-error, .pf-v5-c-form-control[aria-invalid='true'] { border-color: var(--sk-danger); }
