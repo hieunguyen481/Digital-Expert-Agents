@@ -318,7 +318,7 @@ export function AssistantMessage({
                             borderRadius: 9,
                             background: '#F37021',
                             color: '#fff',
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: 700,
                             display: 'inline-flex',
                             alignItems: 'center',

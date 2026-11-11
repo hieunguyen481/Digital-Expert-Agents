@@ -258,6 +258,7 @@ export function ChatComposer({
             loading={isStreaming}
             disabled={disabled}
             placeholder={placeholder}
+            aria-label="Câu hỏi cho trợ lý"
             autoSize={{ minRows: 1, maxRows: 8 }}
             /*
              * Trả về `false` để huỷ hành vi Enter-gửi mặc định của Sender khi
