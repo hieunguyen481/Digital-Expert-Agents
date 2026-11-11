@@ -39,6 +39,38 @@ def _evidence(v: Verdict, n: int = 4) -> list[dict]:
     return [{"source": e.source, "quote": e.quote[:300]} for e in v.evidence[:n]]
 
 
+def _texts(it: dict) -> list[str]:
+    """Các nội dung độc lập của một đề xuất: từng tài liệu (request_documents), điều kiện, hoặc tiêu đề."""
+    pr = it.get("params") or {}
+    if isinstance(pr, str):
+        import json
+        pr = json.loads(pr)
+    return list(pr.get("documents") or []) or [pr.get("text") or it.get("title", "")]
+
+
+def _strip(text: str) -> str:
+    return re.sub(r"^[^:]{0,40}:\s*", "", text)  # bỏ tiền tố "Tín dụng:", "Điều kiện trước giải ngân:"
+
+
+def dedupe_items(items: list[dict], have: list[dict] | None = None) -> list[dict]:
+    """Mỗi nội dung một thẻ: bỏ nội dung trùng (khác chữ, khác loại) với thẻ đứng trước trong cùng lượt và với
+    đề xuất đã có (`have`: dict kind/title/params/status). Thứ tự ưu tiên: yêu cầu bổ sung > điều kiện > cờ rủi ro."""
+    rank = {"request_documents": 0, "add_disbursement_condition": 1, "add_risk_flag": 2}
+    seen = [_strip(t) for h in (have or []) for t in _texts(h)]
+    out: list[dict] = []
+    for it in sorted(items, key=lambda x: rank.get(x["kind"], 3)):
+        texts = _texts(it)
+        fresh = [t for t in texts if not any(similar(_strip(t), k, 0.6) for k in seen)]
+        if not fresh:
+            continue
+        if it["kind"] == "request_documents" and len(fresh) != len(texts):
+            it = {**it, "params": {**it["params"], "documents": fresh},
+                  "title": f"Yêu cầu khách bổ sung {len(fresh)} mục"}
+        seen += [_strip(t) for t in fresh]
+        out.append(it)
+    return out
+
+
 def derive(validation: Verdict, final_verdicts: list[Verdict], report: dict) -> list[dict]:
     """Danh sách đề xuất (dict) từ kết luận cuối; rỗng nếu không có căn cứ."""
     out: list[dict] = []
@@ -72,7 +104,7 @@ def derive(validation: Verdict, final_verdicts: list[Verdict], report: dict) -> 
         for c in dict.fromkeys(report.get("conditions") or []):
             if not any(similar(c, k) for k in conds):
                 conds.append(c)
-        pre = [c for c in conds if is_pre_decision(c)]
+        pre = [c for c in conds if is_pre_decision(c)]  # chưa gộp với yêu cầu bổ sung của chuyên gia: dedupe_items lo
         if pre:  # việc phải làm trước quyết định: yêu cầu bổ sung (người dùng xác nhận gửi khách), không phải điều kiện giải ngân
             out.append({"kind": "request_documents", "source_agent": "validation", "evidence": _evidence(validation, 3),
                         "title": f"Yêu cầu khách bổ sung {len(pre[:MAX_DOCUMENTS])} mục",
@@ -84,4 +116,4 @@ def derive(validation: Verdict, final_verdicts: list[Verdict], report: dict) -> 
                         "title": f"Điều kiện trước giải ngân: {cond[:140]}",
                         "rationale": "Điều kiện nêu trong báo cáo cuối của đội agent khi đề xuất phê duyệt.",
                         "params": {"text": cond}})
-    return out
+    return dedupe_items(out)

@@ -277,14 +277,12 @@ async def add_proposals(case_id: str, items: list[dict]) -> list[dict]:
     items = labels.humanize_payload(items)
     out = []
     async with tx() as con:
-        have = [(r["kind"], r["title"], r["params"]) for r in await con.fetch(
+        have = [dict(r) for r in await con.fetch(
             "SELECT kind, title, params FROM agent.action_proposal WHERE case_id=$1", case_id)]
+        # chạy lại/phân tích lại không nhân đôi đề xuất: trùng tiêu đề, hoặc cùng việc diễn đạt khác chữ/khác loại
+        items = [it for it in proposals.dedupe_items(items, have)
+                 if not any(h["kind"] == it["kind"] and h["title"] == it["title"] for h in have)]
         for it in items:
-            # chạy lại/phân tích lại không nhân đôi đề xuất: trùng tiêu đề, hoặc cùng việc diễn đạt khác chữ
-            if any(k == it["kind"] and (t == it["title"] or proposals.similar(_prop_text(it), _prop_text({"params": pr, "title": t})))
-                   for k, t, pr in have):
-                continue
-            have.append((it["kind"], it["title"], it["params"]))
             pid = uuid.uuid4()
             await con.execute(
                 "INSERT INTO agent.action_proposal(id, case_id, kind, title, rationale, evidence, params,"

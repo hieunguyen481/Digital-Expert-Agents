@@ -124,3 +124,18 @@ def test_derive_keeps_every_condition_including_q_v_account():
     out = proposals.derive(verdict("validation", VerdictDecision.APPROVE, evidence=[Evidence(source="g", quote="q")]),
                            [], {"conditions": conds})
     assert [p["params"]["text"] for p in out] == conds
+
+
+def test_dedupe_items_one_card_per_content():
+    from gateway.proposals import dedupe_items
+    mk = lambda kind, text, **p: {"kind": kind, "title": text, "params": p or {"text": text}}
+    items = [mk("add_disbursement_condition", "BCTC kiểm toán năm 2025 ý kiến chấp nhận toàn phần"),
+             mk("request_documents", "Yêu cầu bổ sung 2", documents=["BCTC kiểm toán năm 2025 ý kiến chấp nhận toàn phần", "Giấy phép kinh doanh"]),
+             mk("add_risk_flag", "Tín dụng: BCTC kiểm toán năm 2025 ý kiến chấp nhận toàn phần")]
+    out = dedupe_items(items)
+    assert [i["kind"] for i in out] == ["request_documents"]
+    # đề xuất đang chờ: chạy lại không thêm bản trùng, chỉ giữ phần mới
+    have = [{"kind": "request_documents", "title": "x", "params": {"documents": ["Giấy phép kinh doanh"]}}]
+    out = dedupe_items([mk("request_documents", "t", documents=["Giấy phép kinh doanh", "Hợp đồng thuê"])], have)
+    assert out[0]["params"]["documents"] == ["Hợp đồng thuê"]
+    assert dedupe_items([mk("request_documents", "t", documents=["Giấy phép kinh doanh"])], have) == []
