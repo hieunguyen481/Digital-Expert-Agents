@@ -16,7 +16,7 @@ import { appTheme } from '@/theme';
 export function AppProviders() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ConfigProvider theme={appTheme} locale={viVN}>
+      <ConfigProvider theme={appTheme} locale={viVN} modal={{ closable: { 'aria-label': 'Đóng' } }} drawer={{ closable: { 'aria-label': 'Đóng' } }}>
         <AntdApp
           notification={{ placement: 'topRight', duration: 4 }}
           message={{ duration: 2.5, maxCount: 3 }}

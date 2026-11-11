@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Button, Input, InputNumber, Modal, Radio, Typography } from 'antd';
 import { fmtNum } from './format';
 import { runTransition } from './loanDetailService';
@@ -28,7 +28,7 @@ interface Props {
   onSubmit: (fn: () => Promise<unknown>) => void;
 }
 
-/** Modal quyết định của cấp phê duyệt (mockup 12b, 12c): 4 thẻ lựa chọn, nút cam kết vàng, bước xác nhận không hoàn tác. */
+/** Modal quyết định của cấp phê duyệt (mockup 12b, 12c): 4 thẻ lựa chọn, nút cam kết vàng chỉ cho phê duyệt (từ chối: đỏ, trả lại: navy), bước xác nhận không hoàn tác. */
 export function DecisionModal({ open, loanId, applicationNumber, requestedAmount, requestedTerm, state, busy, error, onCancel, onSubmit }: Props) {
   const [type, setType] = useState<DecisionType>('APPROVED');
   const [amount, setAmount] = useState(requestedAmount);
@@ -39,6 +39,9 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
   const [choice, setChoice] = useState<Record<string, 'ACCEPTED' | 'REJECTED'>>({});
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [confirming, setConfirming] = useState(false);
+  const backRef = useRef<HTMLButtonElement>(null);
+  // Bước xác nhận không hoàn tác: focus mặc định ở "Quay lại", không ở nút cam kết.
+  useEffect(() => { if (confirming) backRef.current?.focus(); }, [confirming]);
 
   const approving = type === 'APPROVED' || type === 'APPROVED_WITH_CONDITIONS';
   const amountInvalid = approving && !(amount > 0);
@@ -62,8 +65,8 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
 
   const footer = confirming ? (
     <>
-      <Button onClick={() => setConfirming(false)} disabled={busy}>Quay lại</Button>
-      <Button type="primary" className={styles.goldBtn} loading={busy} onClick={run}>{confirmText}</Button>
+      <Button ref={backRef} onClick={() => setConfirming(false)} disabled={busy}>Quay lại</Button>
+      <Button type="primary" danger={type === 'REJECTED'} className={approving ? styles.goldBtn : undefined} loading={busy} onClick={run}>{confirmText}</Button>
     </>
   ) : (
     <>
@@ -80,7 +83,7 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
           {type === 'RETURN' ? (
             <p>Hồ sơ {applicationNumber} quay lại bước {targetLabel === 'QHKH' ? 'Soạn đề xuất, người nhận là QHKH phụ trách' : 'Thẩm định'}. Lý do được gửi kèm và ghi vào nhật ký kiểm toán. Hồ sơ chưa bị từ chối.</p>
           ) : type === 'REJECTED' ? (
-            <p>Hồ sơ {applicationNumber} bị từ chối và kết thúc. Không hoàn tác được. Quyết định ghi tên bạn vào nhật ký kiểm toán.</p>
+            <p>Hồ sơ {applicationNumber} bị từ chối và kết thúc. <b>Không hoàn tác được.</b> Quyết định ghi tên bạn vào nhật ký kiểm toán.</p>
           ) : (
             <>
               <p>Hồ sơ {applicationNumber} chuyển sang bước Hoàn tất với hạn mức <b className={styles.num}>{vnd(amount)}</b> đồng (đề nghị {fmtNum(requestedAmount / 1e9)} tỷ đồng), kỳ hạn {term} tháng.</p>
@@ -95,7 +98,7 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
         <div className={styles.stackTight}>
           <div role="radiogroup" aria-label="Loại quyết định" className={styles.opts}>
             {OPTIONS.map((o, i) => (
-              <label key={o.value} className={styles.opt}>
+              <label key={o.value} className={styles.opt} data-focus-ring>
                 <input type="radio" name="decision-type" value={o.value} checked={type === o.value} autoFocus={i === 0} onChange={() => setType(o.value)} />
                 <span><b>{o.title}</b><small>{o.hint}</small></span>
               </label>
