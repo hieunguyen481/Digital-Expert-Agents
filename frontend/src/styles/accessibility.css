@@ -37,16 +37,25 @@
  * Dùng :focus-visible để không hiện ring khi click chuột.
  */
 :focus-visible {
-  outline: 3px solid var(--shb-orange-500);
+  outline: 3px solid var(--navy-500);
   outline-offset: 2px;
   border-radius: var(--shb-radius-sm);
 }
 
-/* Ant Design đã có style focus riêng cho một số control — giữ nhất quán màu cam. */
-.ant-btn:focus-visible,
-.ant-input:focus-visible,
-.ant-select-selector:focus-visible {
-  outline: 3px solid var(--shb-orange-500);
+/*
+ * Ant Design có :focus-visible riêng (viền colorPrimaryBorder). Ép lại một vòng
+ * duy nhất, đủ tương phản (≥3:1 trên nền giấy), thắng kiểu mặc định của Antd.
+ */
+.ant-btn.ant-btn:focus-visible,
+.ant-input.ant-input:focus-visible,
+.ant-pagination .ant-pagination-item:focus-visible,
+.ant-pagination .ant-pagination-prev:focus-visible,
+.ant-pagination .ant-pagination-next:focus-visible,
+.ant-tabs .ant-tabs-tab-btn:focus-visible,
+.ant-segmented .ant-segmented-item-focused,
+.ant-select-focused,
+.ant-picker-focused {
+  outline: 3px solid var(--navy-500);
   outline-offset: 2px;
 }
 
@@ -71,3 +80,13 @@
     -webkit-text-size-adjust: 100%;
   }
 }
+
+/*
+ * Thẻ Antd màu mặc định (blue/green/red/orange/gold...) có chữ sáng, tương phản
+ * dưới 4,5:1. Quy về bảng màu ngữ nghĩa "Sổ Tín Dụng": nền nhạt, chữ đậm.
+ */
+.ant-tag.ant-tag-blue, .ant-tag.ant-tag-geekblue, .ant-tag.ant-tag-processing { background: var(--info-100); color: var(--info-700); border-color: var(--info-700); }
+.ant-tag.ant-tag-green, .ant-tag.ant-tag-success, .ant-tag.ant-tag-cyan { background: var(--ok-100); color: var(--ok-700); border-color: var(--ok-700); }
+.ant-tag.ant-tag-red, .ant-tag.ant-tag-error, .ant-tag.ant-tag-magenta { background: var(--danger-100); color: var(--danger-700); border-color: var(--danger-700); }
+.ant-tag.ant-tag-orange, .ant-tag.ant-tag-gold, .ant-tag.ant-tag-warning, .ant-tag.ant-tag-yellow, .ant-tag.ant-tag-volcano, .ant-tag.ant-tag-lime { background: var(--warn-100); color: var(--warn-700); border-color: var(--warn-700); }
+.ant-tag.ant-tag-purple { background: var(--ai-100); color: var(--ai-700); border-color: var(--ai-700); }

@@ -13,7 +13,7 @@ export const appTheme: ThemeConfig = {
     colorPrimaryActive: colors.navy900,
     colorPrimaryBg: colors.navy50,
     colorPrimaryBgHover: colors.navy100,
-    colorPrimaryBorder: colors.navy100,
+    colorPrimaryBorder: colors.navy500, // vòng focus của Antd: ≥3:1 trên nền giấy
 
     colorLink: colors.navy500,
     colorLinkHover: colors.navy900,
@@ -76,7 +76,7 @@ export const appTheme: ThemeConfig = {
     motionEaseOut: 'cubic-bezier(.2,.7,.2,1)',
 
     lineWidthFocus: 2,
-    controlOutline: 'rgba(42, 74, 128, 0.35)',
+    controlOutline: 'rgba(42, 74, 128, 0.6)',
     controlOutlineWidth: 2,
 
     wireframe: false,

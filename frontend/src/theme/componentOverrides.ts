@@ -173,5 +173,5 @@ export const componentOverrides: ThemeConfig['components'] = {
   Statistic: { contentFontSize: 26, titleFontSize: 12, fontFamily: fonts.num },
   Radio: { buttonSolidCheckedBg: colors.navy700, buttonCheckedBg: colors.navy50, colorBorder: colors.control },
   Checkbox: { colorBorder: colors.control },
-  Pagination: { itemActiveBg: colors.navy700, itemSize: 32 },
+  Pagination: { itemActiveBg: colors.navy700, itemActiveColor: '#FFFFFF', itemActiveColorHover: '#FFFFFF', itemSize: 32 },
 };

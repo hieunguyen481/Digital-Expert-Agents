@@ -31,7 +31,7 @@
 }
 
 .card:focus-visible {
-  outline: 3px solid var(--bronze-500);
+  outline: 3px solid var(--navy-500);
   outline-offset: 2px;
 }
 
@@ -52,7 +52,7 @@
   height: 22px;
   padding: 0 7px;
   border-radius: var(--r-pill);
-  background: var(--bronze-500);
+  background: var(--bronze-700);
   color: #ffffff;
   font-size: 12px;
   font-weight: 650;
