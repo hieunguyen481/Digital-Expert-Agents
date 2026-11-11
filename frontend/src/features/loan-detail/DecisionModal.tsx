@@ -132,12 +132,12 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
           )}
           {state.pending_exceptions.map((e) => (
             <fieldset key={e.id} className={styles.fieldset} data-testid="exception-row">
-              <legend>Ngoại lệ {e.checklist_code}</legend>
+              <legend>Ngoại lệ {e.checklist_label ?? e.checklist_code}</legend>
               <p className={styles.note}>{e.reason}</p>
-              <Radio.Group aria-label={`Quyết định cho ngoại lệ ${e.checklist_code}`} value={choice[e.id]} onChange={(ev) => setChoice({ ...choice, [e.id]: ev.target.value })}>
+              <Radio.Group aria-label={`Quyết định cho ngoại lệ ${e.checklist_label ?? e.checklist_code}`} value={choice[e.id]} onChange={(ev) => setChoice({ ...choice, [e.id]: ev.target.value })}>
                 <Radio value="ACCEPTED">Chấp thuận</Radio><Radio value="REJECTED">Từ chối (phải trả lại bổ sung)</Radio>
               </Radio.Group>
-              <Input aria-label={`Lý do ngoại lệ ${e.checklist_code}`} placeholder="Lý do chấp thuận / từ chối (bắt buộc)" value={reasons[e.id] ?? ''}
+              <Input aria-label={`Lý do ngoại lệ ${e.checklist_label ?? e.checklist_code}`} placeholder="Lý do chấp thuận / từ chối (bắt buộc)" value={reasons[e.id] ?? ''}
                 onChange={(ev) => setReasons({ ...reasons, [e.id]: ev.target.value })} />
             </fieldset>
           ))}

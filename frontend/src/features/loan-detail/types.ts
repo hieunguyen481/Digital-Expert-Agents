@@ -80,7 +80,7 @@ export interface CaseActionState {
   status: string;
   memo_revision: number | null;
   opinions: { kind: 'RISK' | 'COMPLIANCE'; content: string; author_name: string; created_at: string }[];
-  pending_exceptions: { id: string; checklist_code: string; kind: string; reason: string; proposed_by_name?: string }[];
+  pending_exceptions: { id: string; checklist_code: string; checklist_label?: string | null; kind: string; reason: string; proposed_by_name?: string }[];
   tier: { submitted: number | null; required: number | null; upgrade_due: boolean };
   excluded: boolean;
   can_write?: boolean;

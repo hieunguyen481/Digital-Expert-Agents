@@ -16,7 +16,9 @@
 .region { position: absolute; border: 2px dashed var(--ai-500); background: rgba(107, 79, 184, 0.10); cursor: pointer; padding: 0; }
 .region:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .region[aria-pressed='true'] { border: 2px solid var(--bronze-700); background: rgba(176, 138, 62, 0.22); }
-.regionText { position: absolute; left: -2px; bottom: 100%; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-12); line-height: 16px; padding: 0 4px; border-radius: 3px 3px 0 0; color: #fff; background: var(--ai-700); text-align: left; }
+.regionText { position: absolute; left: -2px; bottom: 100%; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-12); line-height: 16px; padding: 0 4px; border-radius: 3px 3px 0 0; color: #fff; background: var(--ai-700); text-align: left; pointer-events: none; display: none; z-index: 3; }
+.region:hover, .region:focus-visible, .region[aria-pressed='true'] { z-index: 2; }
+.region:hover .regionText, .region:focus-visible .regionText, .region[aria-pressed='true'] .regionText { display: block; }
 .region[aria-pressed='true'] .regionText { background: var(--bronze-800); }
 .note { font-size: var(--fs-12); color: var(--ink-3); line-height: 1.45; }
 .fieldRow { display: flex; justify-content: space-between; gap: var(--s2); width: 100%; background: none; border: 0; border-bottom: 1px solid var(--rule); padding: var(--s2) 0; text-align: left; cursor: pointer; font: inherit; color: var(--ink); }
