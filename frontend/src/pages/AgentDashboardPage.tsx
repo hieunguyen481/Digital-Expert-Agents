@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { EllipsisOutlined } from '@ant-design/icons';
 import { Tabs } from 'antd';
 import { useSearchParams } from 'react-router-dom';
 import { PageHead } from '@/features/shell/PageHead';
@@ -20,7 +21,7 @@ export default function AgentDashboardPage() {
       <Tabs
         activeKey={tab}
         onChange={setTab}
-        more={{ 'aria-label': 'Thêm tab' }}
+        more={{ icon: <EllipsisOutlined aria-label="Thêm tab" /> }}
         items={[
           { key: 'overview', label: 'Tổng quan', children: <OverviewTab /> },
           { key: 'traces', label: 'Dấu vết', children: <TracesTab initialCaseId={caseParam} /> },
