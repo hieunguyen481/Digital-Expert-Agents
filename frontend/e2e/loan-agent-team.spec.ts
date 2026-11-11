@@ -83,6 +83,18 @@ test('ruiro đang giữ bước Rủi ro: có nút chạy, không có khóa', as
   await expect(panel.getByTestId('agent-team-lock')).toHaveCount(0);
 });
 
+// N01 (V063): Trưởng phòng chạy được trên hồ sơ của phòng dù không giữ bước (Thẩm định và Phê duyệt). Không bấm chạy để khỏi tốn LLM;
+// lượt chạy thật của Trưởng phòng trên HSV-2026-00163 do `reset-demo.sh --warm` thực hiện.
+for (const loan of [LOAN, '75000000-0000-4000-8000-000000000013']) {
+  test(`truongphong: có nút chạy đội agent trên hồ sơ của phòng ${loan.slice(-2)} dù không giữ bước`, async ({ page }) => {
+    await loginAs(page, 'truongphong');
+    await page.goto(`/ho-so-vay/${loan}`);
+    const panel = page.getByTestId('agent-team');
+    await expect(panel.getByTestId('run-agent-team')).toBeEnabled({ timeout: 30_000 });
+    await expect(panel.getByTestId('agent-team-lock')).toHaveCount(0);
+  });
+}
+
 // Vai không có quyền ở bước hiện tại xem được nhưng không có nút; POST bị 403 có lý do.
 const DENIED = [
   { role: 'qhkh', loan: '75000000-0000-4000-8000-000000000004' }, // QHKH nhưng hồ sơ đang ở bước Thẩm định

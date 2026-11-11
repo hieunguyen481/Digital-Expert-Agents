@@ -37,4 +37,4 @@ Ghi chú:
 - Hồ sơ `HSV-2026-09xxx` là mẫu benchmark, không dùng để demo.
 
 
-Hồ sơ cảnh 5 (HSV-2026-00163, bước Phê duyệt) KHÔNG warm được: vai được chạy ở bước Phê duyệt theo `ROLE_STATUSES` là Trưởng phòng, nhưng RLS `loan_agent_run_insert_policy` (`can_write_loan`) chỉ cho người đang giữ bước ghi lượt chạy, nên API trả 403 "Chỉ người đang giữ bước xử lý…". Vì vậy khối AI của hồ sơ này ghi rõ "Hồ sơ này trình trước khi có đội agent".
+Hồ sơ cảnh 5 (HSV-2026-00163, bước Phê duyệt) cũng được `--warm` chạy đội agent thật, bằng tài khoản Trưởng phòng (`credit.manager@example.local`): từ V063 Trưởng phòng chạy được trên hồ sơ của phòng dù không giữ bước (RLS `loan_agent_run_insert_policy` thêm `identity.loan_in_manager_department`). `WARM_ONLY=00163` chỉ warm hồ sơ đó (mỗi hồ sơ một lượt LLM). Câu "Hồ sơ này trình trước khi có đội agent…" trong `AgentTeamPanel` giữ làm dự phòng khi chưa warm.
