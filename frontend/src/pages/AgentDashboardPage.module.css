@@ -1,5 +1,5 @@
 /* Đội agent (06 Tổng quan, 07 Dấu vết, 08 So sánh): token Sổ Tín Dụng. */
-.page { display: grid; gap: var(--s5); min-width: 0; }
+.page { display: grid; gap: var(--s2); min-width: 0; }
 .body { padding: 0 var(--s8); min-width: 0; }
 .stack { display: grid; gap: var(--s5); min-width: 0; }
 

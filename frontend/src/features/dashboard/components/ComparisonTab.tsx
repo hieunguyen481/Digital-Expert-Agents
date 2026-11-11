@@ -232,8 +232,8 @@ export function ComparisonTab() {
             />
           </div>
           <span className={styles.tech} data-testid="cmp-label">
-            {runOptionLabel(run)}
-            <span style={{ display: 'block' }} data-testid="cmp-desc">{runDescription(run)}</span>
+            {runOptionLabel({ ...run, modes: (['single', 'multi'] as const).filter((k) => !!run.summary[k]) })}
+            <span style={{ display: 'block' }} data-testid="cmp-desc">{runDescription({ ...run, modes: (['single', 'multi'] as const).filter((k) => !!run.summary[k]) })}</span>
           </span>
           <details className={styles.techDet}>
             <summary>Chi tiết kỹ thuật (kiểm toán)</summary>
