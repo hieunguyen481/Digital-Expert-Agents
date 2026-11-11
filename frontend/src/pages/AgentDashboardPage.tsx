@@ -16,6 +16,7 @@ export default function AgentDashboardPage() {
   return (
     <div className={styles.page}>
       <PageHead title="Đội agent" facts={['Giám sát các lượt chạy của đội agent. AI chỉ đề xuất, người quyết định.']} />
+      <div className={styles.body}>
       <Tabs
         activeKey={tab}
         onChange={setTab}
@@ -25,6 +26,7 @@ export default function AgentDashboardPage() {
           { key: 'comparison', label: 'So sánh', children: <ComparisonTab /> },
         ]}
       />
+      </div>
     </div>
   );
 }
