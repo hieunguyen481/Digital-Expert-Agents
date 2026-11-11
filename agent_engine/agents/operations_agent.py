@@ -7,6 +7,7 @@ COMMIT  (sau phê duyệt):   xác minh approval token + RE-CHECK preconditions
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -45,12 +46,13 @@ async def _dry_run(env: Envelope) -> Verdict:
     account = biz.get("account_number")
     note = ("" if account else ". Điều kiện bổ sung trước giải ngân: doanh nghiệp chưa có tài khoản "
             "thanh toán — cần mở tài khoản (không chặn trình)")
+    account_txt = "chưa có" if not account else re.sub(r"^[A-Z_]+-(?=\*)", "", str(account))
     return Verdict(
         agent=CARD.agent_id, task_id=env.task_id or "",
         decision=VerdictDecision.PASS_,
-        summary=f"Điều kiện vận hành đạt. Đã tạo bản nháp {draft['draft_id']} (chưa hiệu lực){note}",
+        summary=f"Điều kiện vận hành đạt. Đã soạn nội dung bản nháp khoản vay để người có thẩm quyền xem; chưa ghi vào hệ thống{note}",
         evidence=[Evidence(source="core-banking:create_loan_draft",
-                           quote=f"draft_id={draft['draft_id']}, TK nhận vốn {account or 'chưa có'}")],
+                           quote=f"Bản nháp chỉ soạn nội dung, chưa ghi vào hệ thống; tài khoản nhận vốn {account_txt}")],
         data={"draft_id": draft["draft_id"]},
     )
 
