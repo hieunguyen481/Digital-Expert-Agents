@@ -69,7 +69,7 @@ Phạm vi của Trưởng phòng (Q-D2): `loan:read` chỉ áp dụng cho hồ s
 
 Hành động ngoài bảng (Trưởng phòng chuyển người xử lý, gia hạn bổ sung của QHKH, báo sớm Tuân thủ) không đổi trạng thái: xem mục 4.
 
-## 3. Route API của backend (113 route, quyền khai báo ở dependency)
+## 3. Route API của backend (118 route, quyền khai báo ở dependency)
 
 Dấu `-` nghĩa là route không đòi quyền chức năng ở lớp route: chỉ cần đăng nhập, phạm vi đọc do RLS (Q-M), hoặc kiểm
 quyền ở service (ví dụ `loan:analyze` trong chạy đội agent, `document:*`). Nhóm `-`: `/health/*`, `/me`, `/notifications` (chỉ thông báo của chính người đó), `/conversations` (chat Trợ lý AI, Q-K; chỉ chủ phiên),
@@ -156,6 +156,10 @@ quyền ở service (ví dụ `loan:analyze` trong chạy đội agent, `documen
 | POST /loan-applications/{loan_application_id}/memo/ai-blocks | loan:read | Q-M |
 | POST /loan-applications/{loan_application_id}/memo/ai-blocks/{block_id}/decision | loan:read | Q-M |
 | GET /loan-applications/{loan_application_id}/memo/pdf | loan:read | Q-M |
+| GET /admin/ai-config | admin:manage | Q-J; M01 (chỉ đọc, không trả khóa/URL) |
+| GET /admin/permissions | admin:manage | Q-J; M01 |
+| GET /admin/thresholds | admin:manage | Q-J; Q4; M01 |
+| GET /admin/users | admin:manage | Q-J; M01 |
 | GET /notifications | - | Q-M |
 | PATCH /notifications/{notification_id}/read | - | Q-M |
 | GET /policies | policy:read | Q-R (chính sách chuẩn) |
@@ -187,6 +191,7 @@ quyền ở service (ví dụ `loan:analyze` trong chạy đội agent, `documen
 | GET /reports/{report_id}/claims | report:read | Q-L, Q-M |
 | GET /reports/{report_id}/download-url | report:export | Q-L (xuất PDF là bước cuối), Q-M |
 | PATCH /reports/{report_id}/review | report:review | Q-L (Rủi ro và cấp phê duyệt đọc đúng bản đã chốt) |
+| GET /search | - | Q-M; Q-D2 (chỉ hồ sơ/khách trong phạm vi đọc, tối đa 20) |
 | GET /work-items | - | Q-M |
 | POST /loan-applications/{loan_application_id}/transitions | loan:read | Q-M |
 | GET /loan-applications/{loan_application_id}/reassign-candidates | loan:read | Q-M |

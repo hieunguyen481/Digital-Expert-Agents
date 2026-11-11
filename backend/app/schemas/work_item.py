@@ -30,6 +30,7 @@ class WorkItem(APIModel):
     open_flags: int
     high_flags: int
     fields_to_confirm: int
+    holder_name: str | None = None
 
 
 class WorkItemFacts(APIModel):

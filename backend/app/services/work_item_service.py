@@ -18,6 +18,8 @@ class WorkItemRepositoryLike(Protocol):
 
     async def queue(self, employee_id: Any) -> Sequence[Mapping[str, Any]]: ...
 
+    async def department_open(self) -> Sequence[Mapping[str, Any]]: ...
+
     async def audit_recent(self) -> Sequence[Mapping[str, Any]]: ...
 
 
@@ -86,6 +88,7 @@ def to_item(row: Mapping[str, Any], now: datetime, mine: bool) -> WorkItem:
         open_flags=int(row["open_flags"]),
         high_flags=int(row["high_flags"]),
         fields_to_confirm=int(row["fields_to_confirm"]),
+        holder_name=row.get("holder_name"),
     )
 
 
@@ -140,6 +143,22 @@ class WorkItemService:
                 ),
                 items=items,
             )
+        if "credit_manager" in principal.roles:
+            rows = await self._repository.department_open()
+            items = sorted(
+                (to_item(r, r["now"], False) for r in rows), key=_sort_key
+            )
+            facts = WorkItemFacts(
+                overdue=sum(1 for i in items if i.sla_level == "over"),
+                due_within_1_workday=sum(
+                    1 for i in items if i.sla_level in ("today", "soon")
+                ),
+                returned=sum(1 for i in items if "ret" in i.tags),
+                waiting_supplement=sum(1 for i in items if "bosung" in i.tags),
+            )
+            if filter_ != "all":
+                items = [i for i in items if filter_ in i.tags]
+            return WorkItemsResponse(badge=0, facts=facts, items=items)
         rows = await self._repository.queue(principal.employee_id)
         badge = await self._repository.badge(principal.employee_id)
         items = sorted(

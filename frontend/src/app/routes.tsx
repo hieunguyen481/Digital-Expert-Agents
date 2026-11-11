@@ -4,6 +4,8 @@ import { LoadingScreen } from '@/components/common/LoadingScreen';
 import { RequireAuth } from '@/auth/RequireAuth';
 import { Navigate } from 'react-router-dom';
 import ChatPage from '@/pages/ChatPage';
+import { uiRoleFromRoles } from '@/auth/roleFromMe';
+import { useMe } from '@/auth/session';
 import { AppLayout } from '@/features/shell/AppLayout';
 
 /**
@@ -38,7 +40,14 @@ const AuditLogPage = lazy(() => import('@/features/audit/AuditLogPage'));
 const PolicyPage = lazy(() => import('@/features/policy/PolicyPage'));
 const CustomerListPage = lazy(() => import('@/features/customers/CustomerListPage'));
 const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage'));
+const AdminPage = lazy(() => import('@/features/admin/AdminPage'));
 const CustomerDetailPage = lazy(() => import('@/features/customers/CustomerDetailPage'));
+
+function HomeRedirect() {
+  const me = useMe();
+  if (!me.data) return <LoadingScreen message="Đang tải" />;
+  return <Navigate to={uiRoleFromRoles(me.data.roles) === 'quantri' ? '/quan-tri' : '/viec-cua-toi'} replace />;
+}
 
 function withSuspense(node: React.ReactNode) {
   return <Suspense fallback={<LoadingScreen message="Đang tải trang" />}>{node}</Suspense>;
@@ -56,8 +65,9 @@ export const routeObjects: RouteObject[] = [
   {
     element: protectedPage(<AppLayout />),
     children: [
-      { path: '/', element: <Navigate to="/viec-cua-toi" replace /> },
+      { path: '/', element: <HomeRedirect /> },
       { path: '/viec-cua-toi', element: withSuspense(<MyWorkPage />) },
+      { path: '/quan-tri', element: withSuspense(<AdminPage />) },
       { path: '/de-xuat-vay', element: withSuspense(<NewProposalPage />) },
       { path: '/de-xuat-vay/:loanId', element: withSuspense(<ProposalPage />) },
       { path: '/ho-so-vay/:loanId', element: withSuspense(<LoanDetailPage />) },

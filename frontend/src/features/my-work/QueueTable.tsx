@@ -17,6 +17,7 @@ interface QueueTableProps {
   /** Số hồ sơ theo từng bộ lọc, tính từ danh sách đầy đủ. */
   counts?: Record<QueueFilter, number>;
   hasAi: boolean;
+  showHolder?: boolean;
 }
 
 const SLA_TONE: Record<SlaLevel, PillTone> = { over: 'bad', today: 'warn', soon: 'info', ok: 'info', pause: 'neutral', none: 'neutral' };
@@ -31,7 +32,7 @@ function rowAction(r: WorkItem): { label: string; to: string } {
   return { label: r.mine ? 'Mở hồ sơ' : 'Xem hồ sơ', to: `/ho-so-vay/${r.loan_application_id}` };
 }
 
-export function QueueTable({ title, items, filter, onFilter, loading, counts, hasAi }: QueueTableProps) {
+export function QueueTable({ title, items, filter, onFilter, loading, counts, hasAi, showHolder }: QueueTableProps) {
   const { openWith } = useAiPanel();
   const navigate = useNavigate();
   const today = new Date();
@@ -45,7 +46,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
         <div>
           <div className={styles.name}>
             <Link to={`/ho-so-vay/${r.loan_application_id}`}>{r.customer_name}</Link>
-            {!r.mine && <StatusPill>Theo dõi</StatusPill>}
+            {!r.mine && !showHolder && <StatusPill>Theo dõi</StatusPill>}
           </div>
           <div className={styles.id}>{r.application_number}</div>
         </div>
@@ -65,6 +66,15 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
         </div>
       ),
     },
+    ...(showHolder
+      ? [
+          {
+            title: 'Người giữ',
+            key: 'holder',
+            render: (_: unknown, r: WorkItem) => r.holder_name ?? <span className={styles.none}>Chưa giao</span>,
+          },
+        ]
+      : []),
     {
       title: 'Cờ',
       key: 'flags',

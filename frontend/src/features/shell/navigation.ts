@@ -81,7 +81,7 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
     ...KEPT,
     AI,
   ],
-  quantri: [item(9, 'Quản trị', 'gear'), item(13, 'Thông báo', 'bell', '/thong-bao')],
+  quantri: [item(9, 'Quản trị', 'gear', '/quan-tri'), item(13, 'Thông báo', 'bell', '/thong-bao')],
 };
 
 /** Vai trò có Trợ lý AI (quantri không có). */

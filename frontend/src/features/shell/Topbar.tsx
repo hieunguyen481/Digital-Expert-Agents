@@ -1,8 +1,9 @@
-import { LogoutOutlined, SearchOutlined } from '@ant-design/icons';
+import { LogoutOutlined } from '@ant-design/icons';
 import { Avatar, Dropdown } from 'antd';
 import { UI_ROLE_LABEL, type UiRole } from '@/auth/roleFromMe';
 import { logout } from '@/auth/keycloak';
 import type { Me } from '@/types/me';
+import { SearchBox } from './SearchBox';
 import { NotificationBell } from './NotificationBell';
 import styles from './shell.module.css';
 
@@ -16,15 +17,7 @@ export function Topbar({ me, role }: { me: Me; role: UiRole }) {
 
   return (
     <div className={styles.topbar}>
-      <label className={styles.search} role="search" title="Tìm kiếm sẽ có ở đợt sau">
-        <SearchOutlined aria-hidden />
-        <input
-          disabled
-          aria-label="Tìm kiếm"
-          placeholder="Tìm hồ sơ, khách hàng, mã số thuế"
-          title="Tìm kiếm sẽ có ở đợt sau"
-        />
-      </label>
+      <SearchBox />
       <span className={styles.spacer} />
       <NotificationBell />
       <Dropdown

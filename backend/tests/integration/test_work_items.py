@@ -15,6 +15,7 @@ from tests.integration.seed_ids import (
     BRANCH_HO,
     COMPLIANCE_HO,
     CREDIT_APPRAISER,
+    CREDIT_MANAGER,
     CREDIT_OFFICER,
     DOCUMENT_REVIEWER,
     RISK_HO,
@@ -33,6 +34,7 @@ ROLES = {
     COMPLIANCE_HO: ({"compliance_officer"}, BRANCH_HO),
     AUDITOR_HO: ({"auditor"}, BRANCH_HO),
     ADMIN_HO: ({"admin"}, BRANCH_HO),
+    CREDIT_MANAGER: ({"credit_manager"}, BRANCH_HN),
 }
 
 
@@ -109,3 +111,32 @@ async def test_admin_forbidden() -> None:
         pytest.skip("TEST_APP_DSN chua dat")
     with pytest.raises(PermissionError):
         await WorkItemService(None).list(_P(ADMIN_HO, set()))  # type: ignore[arg-type]
+
+
+async def test_manager_sees_all_open_cases_of_department_with_holder() -> None:
+    """M02: Trưởng phòng có danh sách mọi hồ sơ đang mở trong phòng (Q-D2), kèm người giữ."""
+    result = await _run(CREDIT_MANAGER)
+    assert len(result.items) > 0
+    assert not any(i.status in ("APPROVED", "REJECTED", "WITHDRAWN") for i in result.items)
+    assert any(i.holder_name for i in result.items)
+    # Hồ sơ của QHKH cùng phòng phải nằm trong danh sách dù trưởng phòng không giữ bước nào.
+    officer = await _run(CREDIT_OFFICER)
+    mine = {i.application_number for i in officer.items if i.mine}
+    assert mine <= {i.application_number for i in result.items}
+
+
+async def test_manager_reads_department_customers() -> None:
+    dsn = os.environ.get("TEST_APP_DSN")
+    if not dsn:
+        pytest.skip("TEST_APP_DSN chua dat")
+    engine = create_async_engine(dsn.replace("postgresql://", "postgresql+asyncpg://"))
+    try:
+        async with AsyncSession(engine) as session, rls_transaction(
+            session, employee_id=CREDIT_MANAGER, branch_id=BRANCH_HN, is_admin=False
+        ):
+            from sqlalchemy import text
+
+            seen = (await session.execute(text("SELECT count(*) FROM customer.customer"))).scalar_one()
+            assert seen > 0
+    finally:
+        await engine.dispose()

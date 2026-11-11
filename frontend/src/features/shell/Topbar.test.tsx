@@ -32,7 +32,7 @@ describe('Topbar', () => {
     expect(screen.getByText('Nguyễn Văn An')).toBeInTheDocument();
     expect(screen.getByText('Chuyên viên QHKH')).toBeInTheDocument();
     expect(await screen.findByTestId('bell-dot')).toBeInTheDocument();
-    expect(screen.getByLabelText('Tìm kiếm')).toBeDisabled();
+    expect(screen.getByLabelText('Tìm kiếm')).toBeEnabled();
   });
 
   it('đăng xuất', async () => {

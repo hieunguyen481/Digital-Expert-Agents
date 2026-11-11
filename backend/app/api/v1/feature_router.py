@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from app.api.v1 import (
     agent_cases,
     agent_simulations,
+    admin,
     analyses,
     audit,
     case_actions,
@@ -23,11 +24,14 @@ from app.api.v1 import (
     memo,
     reconciliation,
     reports,
+    search,
     work_items,
     workflow,
 )
 
 router = APIRouter()
+router.include_router(admin.router)
+router.include_router(search.router)
 router.include_router(agent_simulations.router)
 router.include_router(customers.router)
 router.include_router(demo_switch.router)

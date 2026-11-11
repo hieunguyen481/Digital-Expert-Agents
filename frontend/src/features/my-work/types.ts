@@ -20,6 +20,8 @@ export interface WorkItem {
   open_flags: number;
   high_flags: number;
   fields_to_confirm: number;
+  /** Người đang giữ bước chính (danh sách của Trưởng phòng). */
+  holder_name?: string | null;
 }
 
 export interface WorkItemFacts {

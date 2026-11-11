@@ -96,10 +96,12 @@ function Content() {
     new: all.data.items.filter((i) => i.tags.includes('new')).length,
   };
   const strip = [
-    { label: readOnly ? 'Hồ sơ đang theo dõi' : 'Cần bạn xử lý', value: readOnly ? all.data.items.length : mine.length },
+    { label: readOnly || role === 'truongphong' ? 'Hồ sơ đang mở' : 'Cần bạn xử lý', value: readOnly || role === 'truongphong' ? all.data.items.length : mine.length },
     { label: 'Hạn hôm nay', value: all.data.items.filter((i) => i.sla_level === 'today').length },
     { label: 'Đã quá hạn', value: all.data.facts.overdue },
-    { label: 'Đang chờ người khác', value: all.data.items.filter((i) => !i.mine).length },
+    role === 'truongphong'
+      ? { label: 'Chưa giao người', value: all.data.items.filter((i) => !i.holder_name).length }
+      : { label: 'Đang chờ người khác', value: all.data.items.filter((i) => !i.mine).length },
   ];
   return (
     <>
@@ -123,7 +125,7 @@ function Content() {
                 </div>
               ))}
             </div>
-            {mine.length === 0 && !readOnly && (
+            {mine.length === 0 && !readOnly && role !== 'truongphong' && (
               <EmptyState title="Không có việc đang chờ bạn" description="Các hồ sơ bên dưới chỉ để theo dõi." compact />
             )}
             <div className={styles.cols}>
@@ -135,6 +137,7 @@ function Content() {
                 onFilter={setFilter}
                 loading={filtered.isLoading}
                 hasAi
+                showHolder={role === 'truongphong'}
               />
               <SideBlock role={role} me={me} items={all.data.items} />
             </div>

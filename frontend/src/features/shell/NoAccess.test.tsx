@@ -18,10 +18,10 @@ describe('NoAccess', () => {
     expect(screen.getByRole('alert').textContent).not.toMatch(/Công ty|TNHH|Cổ phần/i);
   });
 
-  it('quản trị: nút Mở Quản trị bị khóa', () => {
+  it('quản trị: nút Mở Quản trị mở trang Quản trị', () => {
     renderIt('quantri');
     const buttons = screen.getAllByRole('button');
     expect(buttons).toHaveLength(1);
-    expect(buttons[0]).toBeDisabled();
+    expect(buttons[0]).toBeEnabled();
   });
 });

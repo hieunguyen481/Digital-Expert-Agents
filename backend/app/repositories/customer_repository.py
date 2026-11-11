@@ -142,7 +142,8 @@ class CustomerRepository:
             FROM customer.customer AS c
             JOIN customer.party AS p ON p.id = c.party_id
             LEFT JOIN customer.person_profile AS pp ON pp.party_id = p.id
-            WHERE (CAST(:term AS TEXT) IS NULL
+            WHERE p.display_name NOT ILIKE '%benchmark%'
+              AND (CAST(:term AS TEXT) IS NULL
                    OR c.customer_number ILIKE CAST(:pattern AS TEXT)
                    OR p.display_name ILIKE CAST(:pattern AS TEXT)
                    OR pp.full_name ILIKE CAST(:pattern AS TEXT))

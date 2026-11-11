@@ -211,6 +211,28 @@ CROSS JOIN ctx
 ORDER BY recent.last_at DESC NULLS LAST
 """  # noqa: S608 - chỉ nối hằng số cột, không có dữ liệu người dùng
 
+# Trưởng phòng (M02, Q-D2): mọi hồ sơ đang mở trong phòng; RLS (can_read_loan) giới hạn phạm vi.
+DEPARTMENT_SQL = f"""
+WITH {_CTX}
+{_ITEM_SELECT},
+       holder.full_name AS holder_name, loan.created_at AS created_at
+FROM credit.loan_application AS loan
+JOIN credit.case_step AS step ON step.id = (
+    SELECT s.id FROM credit.case_step AS s
+    WHERE s.loan_application_id = loan.id AND s.completed_at IS NULL
+      AND s.step_code NOT IN ('PENDING_INFO', 'RISK_PENDING_INFO')
+    ORDER BY s.received_at DESC LIMIT 1
+)
+JOIN credit.loan_party AS lp
+  ON lp.loan_application_id = loan.id AND lp.party_role = 'PRIMARY_BORROWER'
+JOIN customer.party AS party ON party.id = lp.party_id
+LEFT JOIN identity.employee AS holder ON holder.id = step.assignee_employee_id
+CROSS JOIN ctx
+WHERE loan.status NOT IN {_TERMINAL}
+ORDER BY step.due_at NULLS LAST, step.received_at DESC
+LIMIT 500
+"""  # noqa: S608 - chỉ nối hằng số cột, không có dữ liệu người dùng
+
 
 class WorkItemRepository:
     def __init__(self, session: AsyncSession) -> None:
@@ -224,6 +246,9 @@ class WorkItemRepository:
 
     async def queue(self, employee_id: UUID) -> list[Record]:
         return await fetch_all(self.session, QUEUE_SQL, {"employee_id": employee_id})
+
+    async def department_open(self) -> list[Record]:
+        return await fetch_all(self.session, DEPARTMENT_SQL)
 
     async def audit_recent(self) -> list[Record]:
         return await fetch_all(self.session, AUDIT_SQL)
