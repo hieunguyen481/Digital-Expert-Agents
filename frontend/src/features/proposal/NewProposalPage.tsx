@@ -67,7 +67,6 @@ function Content() {
           checks={checks}
           footer={
             <>
-              {!ready && missing && <span className={styles.footNote}>{missing}</span>}
               <ActionButton variant="primary" loading={busy} lockedReason={ready ? undefined : (missing ?? 'Điền đủ thông tin khoản vay.')} onClick={() => void create()}>
                 Tạo bản nháp
               </ActionButton>
