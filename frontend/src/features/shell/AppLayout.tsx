@@ -50,11 +50,11 @@ export function AppLayout() {
     // Khung ứng dụng và logo hiện ngay lúc tải đầu, nội dung là khung chờ.
     return (
       <div className={styles.layout} aria-busy>
-        <nav className={styles.side} aria-label="Điều hướng chính">
+        <div className={styles.side}>
           <div className={styles.brand}>
             <SHBLogo variant="white" showProductName />
           </div>
-        </nav>
+        </div>
         <div className={styles.mainCol}>
           <div className={styles.topbar} />
           <main id="main-content" className={styles.content}>
