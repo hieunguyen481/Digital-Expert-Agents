@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100%;
-  padding: 48px 24px 32px;
+  padding: 24px 24px 120px;
 }
 
 .inner {
@@ -20,13 +20,13 @@
 }
 
 .logoBlock {
-  margin-bottom: 26px;
+  margin-bottom: 14px;
 }
 
 /* h1 duy nhất của màn hình chat. */
 .heading {
   margin: 0 0 12px;
-  font-size: 40px;
+  font-size: 36px;
   font-weight: 680;
   line-height: 1.18;
   letter-spacing: -0.025em;
@@ -39,7 +39,7 @@
 }
 
 .description {
-  margin: 0 auto 34px;
+  margin: 0 auto 20px;
   max-width: 560px;
   font-size: 16px;
   line-height: 1.65;
@@ -48,8 +48,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
   width: 100%;
   margin-bottom: 8px;
 }
@@ -87,4 +87,12 @@
   .logoBlock {
     margin-bottom: 18px;
   }
+}
+
+.hint {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
 }

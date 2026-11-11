@@ -20,6 +20,7 @@ import { ThinkingIndicator } from './ThinkingIndicator';
 import { AgentTrace } from './AgentTrace';
 import { scrubAnswer } from '@/features/chat/utils/humanizeCodes';
 import { EnginePanel } from './EnginePanel';
+import { AiTag } from '@/components/ui';
 import type { ChatMessage, MessageFeedback } from '@/types/chat';
 import type { LoanApplication, LoanApplicationStatus } from '@/types/customer';
 import styles from './AssistantMessage.module.css';
@@ -100,7 +101,10 @@ export function AssistantMessage({
       </span>
 
       <div className={styles.body}>
-        <span className={styles.name}>Trợ lý AI</span>
+        <span className={styles.name}>
+          Trợ lý AI
+          <AiTag>AI đề xuất</AiTag>
+        </span>
 
         {/*
           Agent trace đứng TRƯỚC nội dung: chuyên viên thấy hệ chuyên gia số đã
@@ -124,7 +128,7 @@ export function AssistantMessage({
             type="error"
             showIcon
             message="Không tạo được câu trả lời"
-            description={message.errorMessage ?? 'Vui lòng thử lại sau ít phút.'}
+            description={`${message.errorMessage ?? 'Hệ thống chưa phản hồi.'} Câu hỏi của bạn vẫn được giữ; bấm Thử lại hoặc hỏi lại sau ít phút.`}
             action={
               onRegenerate && (
                 <Button size="small" icon={<ReloadOutlined />} onClick={onRegenerate}>
@@ -166,6 +170,7 @@ export function AssistantMessage({
           <EnginePanel caseId={message.engine.caseId} loanApplicationId={message.engine.loanApplicationId} />
         )}
 
+        {isComplete && <p className={styles.limit}>Chỉ để tham khảo. Quyết định thuộc người có thẩm quyền.</p>}
         {(isComplete || isStopped) && (
           <div className={styles.actions}>
             <Tooltip title="Sao chép">

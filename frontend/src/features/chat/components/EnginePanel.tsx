@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Card, Input, Space, Tag, Typography } from 'antd';
+import { Alert, Button, Input, Space } from 'antd';
+import { AiTag, HumanTag, StatusPill, type PillTone } from '@/components/ui';
+import styles from './EnginePanel.module.css';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
 import { DECISION_LABEL, agentName, approverLevelLabel, sourceLabel, stateLabel } from '@/features/dashboard/agentTrace';
@@ -87,36 +89,49 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
     }
   };
 
+  const toneOf = (d: string): PillTone => (d === 'reject' || d === 'fail' ? 'bad' : d === 'need_more_info' || d === 'flag' ? 'warn' : 'ok');
   return (
-    <Card size="small" data-testid="engine-panel" style={{ marginTop: 12 }} title={`Đội agent · ${stateLabel(c.state)}`}>
-      <Space size={[4, 4]} wrap data-testid="engine-flow">
-        {flow.map((e) => (
-          <Tag key={e.id} color={e.type === 'plan_created' ? 'blue' : 'green'}>
-            {agentName(e.agent)}
-          </Tag>
-        ))}
-      </Space>
-      <div data-testid="engine-verdicts" style={{ marginTop: 8 }}>
-        {verdicts.map((v) => (
-          <div key={v.agent + v.summary}>
-            <b>{agentName(v.agent)}</b>: {DECISION_LABEL[v.decision] ?? v.decision} — {v.summary}
-          </div>
+    <section className={styles.panel} data-testid="engine-panel" aria-label="Kết quả đội agent">
+      <header className={styles.head}>
+        <AiTag>AI đề xuất</AiTag>
+        <strong>Kết quả đội agent</strong>
+        <StatusPill tone={c.state === 'Rejected' ? 'bad' : c.state === 'Needs Info' ? 'warn' : c.state === 'Pending Approval' ? 'human' : 'ai'}>
+          {stateLabel(c.state)}
+        </StatusPill>
+      </header>
+      <div className={styles.flow} data-testid="engine-flow" aria-label="Thứ tự agent đã chạy">
+        {flow.map((e, i) => (
+          <span key={e.id} className={styles.step}>
+            {i > 0 && <span aria-hidden="true" className={styles.arrow}>›</span>}
+            <span className={e.type === 'plan_created' ? styles.planner : styles.agent}>{agentName(e.agent)}</span>
+          </span>
         ))}
       </div>
+      <ul className={styles.verdicts} data-testid="engine-verdicts">
+        {verdicts.map((v) => (
+          <li key={v.agent + v.summary}>
+            <span className={styles.vhead}>
+              <b>{agentName(v.agent)}</b>
+              <StatusPill tone={toneOf(String(v.decision))}>{DECISION_LABEL[v.decision] ?? v.decision}</StatusPill>
+            </span>
+            <span className={styles.vtext}>{v.summary}</span>
+          </li>
+        ))}
+      </ul>
       {sources.length > 0 && (
-        <details data-testid="engine-sources" style={{ marginTop: 8 }}>
+        <details className={styles.sources} data-testid="engine-sources">
           <summary>Nguồn trích dẫn ({sources.length})</summary>
           <ul>
             {sources.map((s, i) => (
               <li key={i}>
-                <Typography.Text strong>{sourceLabel(s.source)}</Typography.Text> {s.quote}
+                <span className={styles.srcTag}>{sourceLabel(s.source)}</span> {s.quote}
               </li>
             ))}
           </ul>
           <details>
             <summary>Chi tiết kỹ thuật (kiểm toán)</summary>
             {sources.map((s, i) => (
-              <div key={i}>{s.source}: {s.raw_quote ?? s.quote}</div>
+              <div key={i} className={styles.raw}>{s.source}: {s.raw_quote ?? s.quote}</div>
             ))}
           </details>
         </details>
@@ -143,41 +158,34 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
         />
       )}
       {c.state === 'Pending Approval' && (
-        <Alert
-          style={{ marginTop: 12 }}
-          type="warning"
-          showIcon
-          data-testid="confirm-card"
-          message="Đang chờ người có thẩm quyền xác nhận — agent không tự phê duyệt"
-          description={
-            <div>
-              <div>
-                {pkg.proposed_limit ? `Hạn mức đề xuất: ${VND(pkg.proposed_limit)}` : 'Chưa có hạn mức đề xuất'}
-                {pkg.required_approver_level ? ` · Cấp phê duyệt: ${approverLevelLabel(pkg.required_approver_level)}` : ''}
-              </div>
-              {(pkg.conditions ?? []).map((cond) => (
-                <div key={cond}>• {cond}</div>
-              ))}
-              {canDecide && loanApplicationId && !done ? (
-                <Space direction="vertical" style={{ width: '100%', marginTop: 8 }}>
-                  <Input.TextArea rows={2} value={reason} onChange={(ev) => setReason(ev.target.value)} placeholder="Lý do quyết định (bắt buộc)" />
-                  <Space>
-                    <Button type="primary" disabled={!reason.trim() || busy} loading={busy} onClick={() => void decide('APPROVED')}>
-                      Xác nhận phê duyệt
-                    </Button>
-                    <Button danger disabled={!reason.trim() || busy} onClick={() => void decide('REJECTED')}>
-                      Từ chối
-                    </Button>
-                  </Space>
-                </Space>
-              ) : (
-                <div style={{ marginTop: 8 }}>Bạn không có thẩm quyền phê duyệt; chuyển hồ sơ cho người duyệt.</div>
-              )}
-              {error && <Alert style={{ marginTop: 8 }} type="error" message={error} />}
-            </div>
-          }
-        />
+        <div className={styles.confirm} data-testid="confirm-card">
+          <HumanTag>Chờ người quyết định</HumanTag>
+          <p className={styles.confirmLead}>Đang chờ người có thẩm quyền xác nhận — agent không tự phê duyệt.</p>
+          <div>
+            {pkg.proposed_limit ? `Hạn mức đề xuất: ${VND(pkg.proposed_limit)}` : 'Chưa có hạn mức đề xuất'}
+            {pkg.required_approver_level ? ` · Cấp phê duyệt: ${approverLevelLabel(pkg.required_approver_level)}` : ''}
+          </div>
+          {(pkg.conditions ?? []).map((cond) => (
+            <div key={cond}>• {cond}</div>
+          ))}
+          {canDecide && loanApplicationId && !done ? (
+            <Space direction="vertical" style={{ width: '100%', marginTop: 8 }}>
+              <Input.TextArea rows={2} value={reason} onChange={(ev) => setReason(ev.target.value)} placeholder="Lý do quyết định (bắt buộc)" aria-label="Lý do quyết định" />
+              <Space>
+                <Button type="primary" disabled={!reason.trim() || busy} loading={busy} onClick={() => void decide('APPROVED')}>
+                  Xác nhận phê duyệt
+                </Button>
+                <Button danger disabled={!reason.trim() || busy} onClick={() => void decide('REJECTED')}>
+                  Từ chối
+                </Button>
+              </Space>
+            </Space>
+          ) : (
+            <div style={{ marginTop: 8 }}>Bạn không có thẩm quyền phê duyệt; chuyển hồ sơ cho người duyệt.</div>
+          )}
+          {error && <Alert style={{ marginTop: 8 }} type="error" message={error} />}
+        </div>
       )}
-    </Card>
+    </section>
   );
 }

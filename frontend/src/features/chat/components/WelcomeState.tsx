@@ -2,7 +2,8 @@ import { motion, useReducedMotion } from 'motion/react';
 import { AnimatedBrandLogo } from '@/components/common/AnimatedBrandLogo';
 import { QuickActionCard } from '@/components/common/QuickActionCard';
 import { AmbientBackground } from './AmbientBackground';
-import { QUICK_PROMPTS } from '@/features/chat/constants/quickPrompts';
+import { quickPromptsFor } from '@/features/chat/constants/quickPrompts';
+import { useUiRole } from '@/auth/session';
 import styles from './WelcomeState.module.css';
 
 export interface WelcomeStateProps {
@@ -18,6 +19,7 @@ export interface WelcomeStateProps {
  */
 export function WelcomeState({ onSelectPrompt, staffName }: WelcomeStateProps) {
   const prefersReducedMotion = useReducedMotion();
+  const prompts = quickPromptsFor(useUiRole());
 
   const fadeUp = (delay: number) =>
     prefersReducedMotion
@@ -56,7 +58,7 @@ export function WelcomeState({ onSelectPrompt, staffName }: WelcomeStateProps) {
         </motion.p>
 
         <div className={styles.grid}>
-          {QUICK_PROMPTS.map((item, index) => (
+          {prompts.map((item, index) => (
             <motion.div
               key={item.id}
               {...(prefersReducedMotion
@@ -76,12 +78,12 @@ export function WelcomeState({ onSelectPrompt, staffName }: WelcomeStateProps) {
                 title={item.title}
                 description={item.description}
                 icon={item.icon}
-                badge={item.badge}
                 onClick={() => onSelectPrompt(item.prompt)}
               />
             </motion.div>
           ))}
         </div>
+        <p className={styles.hint}>Câu hỏi về một hồ sơ cần chọn khách hàng trước: gõ / rồi tên khách. Trợ lý chỉ đề xuất, không quyết định.</p>
       </div>
     </div>
   );

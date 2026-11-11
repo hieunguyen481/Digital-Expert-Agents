@@ -146,14 +146,6 @@
   align-items: center;
   gap: 2px;
   margin-top: 2px;
-  /* Action chỉ nổi rõ khi hover/focus, tránh gây nhiễu khi đọc. */
-  opacity: 0;
-  transition: opacity 160ms ease;
-}
-
-.row:hover .actions,
-.row:focus-within .actions {
-  opacity: 1;
 }
 
 .stoppedNote {
@@ -175,4 +167,11 @@
   .chartBlock {
     padding: 12px;
   }
+}
+
+.limit {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-3);
 }
