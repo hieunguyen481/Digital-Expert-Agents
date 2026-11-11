@@ -5,10 +5,10 @@ import { uiRoleFromRoles } from '@/auth/roleFromMe';
 import { RequireRole } from '@/auth/RequireRole';
 import { useMe } from '@/auth/session';
 import { EmptyState } from '@/components/common/EmptyState';
+import { KpiCard } from '@/components/ui';
 import { PageError } from '@/components/common/PageError';
 import { useAiPanel } from '@/features/ai-panel/AiPanelContext';
 import { PageHead } from '@/features/shell/PageHead';
-import { Hero } from './Hero';
 import { QueueTable } from './QueueTable';
 import { SideBlock } from './SideBlock';
 import styles from './my-work.module.css';
@@ -87,7 +87,13 @@ function Content() {
     );
   }
 
-  const firstMine = all.data.items[0]?.mine ? all.data.items[0] : null;
+  const mine = all.data.items.filter((i) => i.mine);
+  const strip = [
+    { label: readOnly ? 'Hồ sơ đang theo dõi' : 'Cần bạn xử lý', value: readOnly ? all.data.items.length : mine.length },
+    { label: 'Hạn hôm nay', value: all.data.items.filter((i) => i.sla_level === 'today').length },
+    { label: 'Đã quá hạn', value: all.data.facts.overdue },
+    { label: 'Đang chờ người khác', value: all.data.items.filter((i) => !i.mine).length },
+  ];
   return (
     <>
       {head}
@@ -102,8 +108,12 @@ function Content() {
           />
         ) : (
           <>
-            {firstMine && !readOnly && <Hero item={firstMine} />}
-            {!firstMine && !readOnly && (
+            <div className={styles.strip} role="group" aria-label="Tóm tắt">
+              {strip.map((k) => (
+                <KpiCard key={k.label} label={k.label} value={k.value} />
+              ))}
+            </div>
+            {mine.length === 0 && !readOnly && (
               <EmptyState title="Không có việc đang chờ bạn" description="Các hồ sơ bên dưới chỉ để theo dõi." compact />
             )}
             <div className={styles.cols}>

@@ -88,12 +88,12 @@ describe('MyWorkPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: title })).toBeInTheDocument();
   });
 
-  it('badge bằng giá trị backend trả về; hero là việc đầu', () => {
+  it('badge bằng giá trị backend trả về; bước hiện tại nêu số liệu cần xác nhận', () => {
     setup('credit_appraiser', ok(data([item({ application_number: 'HSV-2026-00100', customer_name: 'Khách Đầu Tiên', fields_to_confirm: 3 }), item({ application_number: 'HSV-2', customer_name: 'Khách Hai' })], 3)));
     expect(screen.getByTestId('rail-badge')).toHaveTextContent('3');
-    const hero = screen.getByLabelText('Việc khẩn nhất');
-    expect(hero).toHaveTextContent('Khách Đầu Tiên');
-    expect(hero).toHaveTextContent('Xác nhận 3 số liệu');
+    expect(screen.getByText('Khách Đầu Tiên')).toBeInTheDocument();
+    expect(screen.getByText(/Xác nhận 3 số liệu/)).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Tóm tắt' })).toHaveTextContent('Cần bạn xử lý');
   });
 
   it('đổi bộ lọc ghi hash và gọi đúng filter', async () => {
@@ -112,10 +112,10 @@ describe('MyWorkPage', () => {
     expect(screen.getByText('Theo dõi')).toBeInTheDocument();
   });
 
-  it('empty: câu chữ rõ, không hero', () => {
+  it('empty: câu chữ rõ, không có dải tóm tắt', () => {
     setup('credit_appraiser', ok(data([], 0)));
     expect(screen.getByText('Không có việc đang chờ bạn')).toBeInTheDocument();
-    expect(screen.queryByLabelText('Việc khẩn nhất')).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Tóm tắt' })).toBeNull();
   });
 
   it('error: có nút thử lại và rail vẫn hiện', () => {
