@@ -45,7 +45,7 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
         onClick={() => onOpenDocument(id)}>{titles.get(id) ?? id}</button>
       {failedIds.has(id) && <StatusPill tone="bad">Lỗi xử lý</StatusPill>}
       {failedIds.has(id) && canRemove && (
-        <Popconfirm title="Gỡ tài liệu lỗi khỏi hồ sơ?" description="Bản gốc vẫn được lưu; tài liệu không còn tính vào checklist."
+        <Popconfirm title="Gỡ tài liệu lỗi khỏi hồ sơ?" description="Bản gốc vẫn được lưu; tài liệu không còn tính vào danh mục."
           okText="Gỡ" cancelText="Hủy" onConfirm={() => remove.mutate(id)}>
           <Button size="small" danger loading={remove.isPending} data-testid={`remove-${id}`}>Gỡ tài liệu lỗi</Button>
         </Popconfirm>
@@ -53,8 +53,8 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
     </span>
   );
   return (
-    <section className={styles.panel} aria-label="Checklist tài liệu">
-      <h2>Checklist tài liệu</h2>
+    <section className={styles.panel} aria-label="Danh mục tài liệu">
+      <h2>Danh mục tài liệu</h2>
       {check.isError && <Alert type="error" showIcon message={getErrorMessage(check.error)} />}
       {remove.isError && <Alert type="error" showIcon message={getErrorMessage(remove.error)} />}
       {view.items.map((it) => (
@@ -88,7 +88,7 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
       ))}
       {view.extra_document_ids.length > 0 && (
         <div className={styles.item}>
-          <b>Tài liệu ngoài checklist</b>
+          <b>Tài liệu ngoài danh mục</b>
           {view.extra_document_ids.map(docRow)}
         </div>
       )}

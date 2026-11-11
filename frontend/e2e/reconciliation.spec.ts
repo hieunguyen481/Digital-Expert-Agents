@@ -69,7 +69,7 @@ test('tdinh: mâu thuẫn DSCR hiện cả hai nguồn, chốt nguồn có lý d
   await expect(page.getByRole('table', { name: 'Nhật ký chốt nguồn' })).toContainText(reason);
 });
 
-test('httd: chuyển Thẩm định khóa đến khi checklist đủ, rồi đi qua workflow', async ({ page }) => {
+test('httd: chuyển Thẩm định khóa đến khi danh mục đủ, rồi đi qua workflow', async ({ page }) => {
   await loginAs(page, 'httd');
   await page.goto(CHECKING);
   const bar = page.getByTestId('transfer-bar');
@@ -91,7 +91,7 @@ test('httd: chuyển Thẩm định khóa đến khi checklist đủ, rồi đi 
     await expect(pass).toHaveCount(left - 1);
   }
   await expect(go).toBeEnabled();
-  await expect(page.getByRole('table', { name: 'Nhật ký hậu kiểm checklist' })).toBeVisible();
+  await expect(page.getByRole('table', { name: 'Nhật ký hậu kiểm danh mục' })).toBeVisible();
 
   await go.click();
   await expect(page.getByText('Đang thẩm định')).toBeVisible();

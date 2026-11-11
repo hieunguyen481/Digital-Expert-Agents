@@ -12,3 +12,15 @@ const FIELD_LABEL: Record<string, string> = {
 };
 
 export const fieldLabel = (name: string): string => FIELD_LABEL[name] ?? 'Trường dữ liệu';
+
+/** Nhãn của khóa trường nếu biết; không biết thì giữ nguyên chữ gốc (mã xung đột có thể đã là chữ đọc được). */
+export const fieldLabelOr = (name: string): string => FIELD_LABEL[name.toLowerCase()] ?? name;
+
+const SOURCE_TYPE: Record<string, string> = {
+  AI_OCR: 'AI trích xuất', SYSTEM_CIC: 'Hệ thống CIC', SYSTEM_CORE: 'Hệ thống lõi ngân hàng', SYSTEM: 'Hệ thống',
+  MANUAL: 'Người nhập tay', CUSTOMER: 'Khách hàng khai báo', DOCUMENT: 'Tài liệu', SEED: 'Dữ liệu mẫu',
+};
+
+/** Nguồn của giá trị theo tiếng Việt; mã không biết được đổi sang dạng đọc được thay vì lộ mã thô. */
+export const sourceTypeLabel = (t: string): string =>
+  SOURCE_TYPE[t] ?? (/^[A-Z0-9_]+$/.test(t) ? t.toLowerCase().replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase()) : t);

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { getErrorMessage } from '@/services/apiClient';
 import { resolveConflict } from './reconciliationService';
 import type { ReconConflict } from './types';
-import { fieldLabel } from './fieldLabels';
+import { fieldLabel, fieldLabelOr, sourceTypeLabel } from './fieldLabels';
 import styles from './reconciliation.module.css';
 
 interface Props {
@@ -46,7 +46,7 @@ function ConflictCard({ loanId, conflict, canResolve, onOpenField }: Omit<Props,
   return (
     <div className={styles.item} data-testid={`conflict-${conflict.code}`}>
       <Space>
-        <Typography.Text strong>{conflict.code}</Typography.Text>
+        <Typography.Text strong>{fieldLabelOr(conflict.code)}</Typography.Text>
         <StatusPill tone={done ? 'ok' : 'warn'}>{done ? 'Đã chốt nguồn' : 'Chưa chốt'}</StatusPill>
       </Space>
       <Radio.Group
@@ -61,7 +61,7 @@ function ConflictCard({ loanId, conflict, canResolve, onOpenField }: Omit<Props,
               <b>{s.value ?? '—'}</b> · {fieldLabel(s.field_name)}
             </Radio>
             <span className={styles.note}>
-              {s.document_title ?? ''} {s.page_number ? `· trang ${s.page_number}` : ''} · {s.source_type === 'AI_OCR' ? 'AI trích xuất' : s.source_type}
+              {s.document_title ?? ''} {s.page_number ? `· trang ${s.page_number}` : ''} · {sourceTypeLabel(s.source_type)}
             </span>
             <Button type="link" size="small" style={{ padding: 0, width: 'fit-content' }}
               onClick={() => onOpenField(s.document_id, s.field_id)}>Xem vùng tô trong tài liệu</Button>

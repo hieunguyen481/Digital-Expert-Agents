@@ -30,7 +30,7 @@ export function LogPanel({ loanId }: { loanId: string }) {
       )}
       {checks.length > 0 && (
         <Table
-          size="small" pagination={false} rowKey="log_id" dataSource={checks} aria-label="Nhật ký hậu kiểm checklist"
+          size="small" pagination={false} rowKey="log_id" dataSource={checks} aria-label="Nhật ký hậu kiểm danh mục"
           style={{ marginTop: 8 }}
           columns={[
             { title: 'Lúc', render: (_, r) => fmt(r.at) },
