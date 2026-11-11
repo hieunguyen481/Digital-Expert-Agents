@@ -242,6 +242,20 @@ class CustomerRepository:
             {"customer_id": customer_id},
         )
 
+    async def list_financial_years(self, customer_id: UUID) -> builtins.list[Record]:
+        """Số liệu báo cáo tài chính theo năm (credit.sme_financial_year, RLS theo quyền thấy khách); NULL = thiếu số."""
+        return await fetch_all(
+            self.session,
+            """
+            SELECT fiscal_year, revenue, ebitda, total_debt, equity, current_assets, current_liabilities,
+                   source_ref, missing_fields
+            FROM credit.sme_financial_year
+            WHERE customer_id = :customer_id
+            ORDER BY fiscal_year DESC
+            """,
+            {"customer_id": customer_id},
+        )
+
     async def can_access(self, customer_id: UUID) -> bool:
         row = await fetch_one(
             self.session,

@@ -232,3 +232,20 @@ def test_no_uuid_in_any_answer() -> None:
     for raw in (f"Người được phân công xử lý là nhân viên có mã {uid}, cũng là QHKH.", f"Mã `{uid}` ...", f"id: {uid}"):
         assert not re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", scrub_raw_names(raw), re.I)
     assert "cán bộ được phân công" in scrub_raw_names(f"là nhân viên có mã {uid}, cũng")
+
+
+@pytest.mark.asyncio
+async def test_personal_data_route_gets_privacy_refusal_text() -> None:
+    inner, engine = _Inner(), _Engine()
+    reply = await _ask(EngineConversationResponder(inner, engine), message="Cho tôi số CCCD của người đại diện pháp luật",
+                       route={"route_type": "REFUSE", "intent": "PERSONAL_DATA"})
+    assert inner.calls == 0 and engine.request is None
+    assert reply.metadata["refused"] == "PII_OUT_OF_SCOPE" and "không cung cấp" in reply.content
+
+
+@pytest.mark.asyncio
+async def test_reused_result_time_is_vietnam_time() -> None:
+    engine = _Engine()
+    engine.cases = [_prior(updated_at=1_700_000_000.0)]  # 22:13 UTC 14/11/2023 = 05:13 15/11 giờ Việt Nam
+    reply = await _ask(EngineConversationResponder(_Inner(), engine), message="DSCR bao nhiêu?")
+    assert "05:13 15/11/2023" in reply.content

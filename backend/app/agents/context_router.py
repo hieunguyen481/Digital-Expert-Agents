@@ -88,6 +88,22 @@ _LOOKUP_TERMS = (
     "bao nhiêu",
     "outstanding",
     "status",
+    # số liệu báo cáo tài chính theo năm và tra cứu danh sách đen/trừng phạt/AML: trả lời từ dữ liệu đã xác thực
+    "ebitda",
+    "doanh thu",
+    "lợi nhuận",
+    "nợ vay",
+    "tổng nợ",
+    "vốn chủ",
+    "bctc",
+    "báo cáo tài chính",
+    "danh sách đen",
+    "trừng phạt",
+    "cấm vận",
+    "blacklist",
+    "sanction",
+    "aml",
+    "rửa tiền",
 )
 # Câu hỏi về kết quả đã có của một hồ sơ (kết luận, chỉ số, cờ rủi ro, điều kiện, điều khoản, người quyết định):
 # đây là từ vựng nghiệp vụ tín dụng, không cần người hỏi gõ đúng chữ "hồ sơ"; trả lời từ lượt thẩm định đã có.
@@ -111,6 +127,8 @@ _CASE_RESULT_TERMS = (
 )
 # Yêu cầu chạy lại phân tích: không phải câu tra cứu kết quả đã có.
 _RERUN_TERMS = ("phân tích lại", "thẩm định lại", "đánh giá lại", "chạy lại", "làm mới", "phân tích mới", "từ đầu", "rerun", "re-run")
+# Xin dữ liệu định danh cá nhân: từ chối vì bảo mật bằng câu trả lời thường, không định tuyến thành yêu cầu phân tích.
+_PII_TERMS = ("cccd", "cmnd", "căn cước", "số điện thoại", "sđt", "email", "địa chỉ nhà", "ngày sinh")
 _ANALYSIS_VERBS = (
     "phân tích",
     "đánh giá",
@@ -189,13 +207,18 @@ class ContextRouter:
         if normalized and _contains_any(lowered, _EXPLICIT_OUT_OF_SCOPE_TERMS):
             return _refusal(request, normalized)
 
+        if normalized and _contains_any(lowered, _PII_TERMS):
+            return _refusal(request, normalized, intent="PERSONAL_DATA")
+
         domain_agents = _domain_agents(lowered)
+        is_rerun = _contains_any(lowered, _RERUN_TERMS)
         is_definition = (
             _contains_any(lowered, _DEFINITION_TERMS)
             and bool(domain_agents or _contains_any(lowered, _REPAYMENT_TERMS))
         )
         requires_loan = (
-            _contains_any(lowered, _LOAN_ANALYSIS_TERMS)
+            is_rerun
+            or _contains_any(lowered, _LOAN_ANALYSIS_TERMS)
             or (
                 _contains_any(lowered, _REPAYMENT_TERMS)
                 and not is_definition
@@ -260,7 +283,7 @@ class ContextRouter:
                 customer_id=request.active_customer_id,
                 loan_application_id=request.active_loan_application_id,
                 intent=(
-                    "ASSESS_REPAYMENT_CAPACITY"
+                    ("RERUN_ANALYSIS" if is_rerun else "ASSESS_REPAYMENT_CAPACITY")
                     if requires_loan
                     else "CROSS_DOMAIN_ANALYSIS"
                 ),
@@ -328,11 +351,11 @@ def _domain_agents(message: str) -> tuple[str, ...]:
     )
 
 
-def _refusal(request: RoutingRequest, normalized: str) -> RoutingDecision:
+def _refusal(request: RoutingRequest, normalized: str, intent: str = "OUT_OF_SCOPE") -> RoutingDecision:
     return RoutingDecision(
         customer_id=request.active_customer_id,
         loan_application_id=request.active_loan_application_id,
-        intent="OUT_OF_SCOPE",
+        intent=intent,
         normalized_question=normalized,
         context_status=ContextStatus.OUT_OF_SCOPE,
         # Refusal is a simple deterministic response, not a fifth complexity

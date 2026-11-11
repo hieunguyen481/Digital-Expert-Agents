@@ -156,3 +156,8 @@ async def test_successful_reply_carries_model_metadata() -> None:
     assert "stub" == reply.metadata["provider"]
     assert reply.complexity_level == 1
     assert "[nguồn:" in reply.content
+
+
+def test_scrub_removes_stray_non_vietnamese_letters() -> None:
+    from app.services.llm_conversation_responder import scrub_raw_names
+    assert scrub_raw_names("Theo hồ sơç, DSCR đạt") == "Theo hồ sơ, DSCR đạt"
