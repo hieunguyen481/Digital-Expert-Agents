@@ -54,9 +54,20 @@
 .ant-tabs .ant-tabs-tab-btn:focus-visible,
 .ant-segmented .ant-segmented-item-focused,
 .ant-select-focused,
-.ant-picker-focused {
+.ant-picker-focused,
+.ant-select.ant-select:focus-within,
+.ant-picker.ant-picker:focus-within {
+  outline: 3px solid var(--navy-500) !important; /* Antd đặt outline 1px bằng CSS-in-JS, đặc hiệu cao hơn */
+  outline-offset: 2px !important;
+  transition: none !important; /* vòng hiện ngay, không chạy từ 0px */
+}
+
+/* Đoạn đang chọn của bộ lọc nền navy: vòng trắng trong tách vòng navy khỏi nền đoạn (như thanh bên). */
+.ant-segmented .ant-segmented-item-selected.ant-segmented-item-focused,
+.ant-segmented .ant-segmented-item-selected:focus-within {
   outline: 3px solid var(--navy-500);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff;
 }
 
 /*
