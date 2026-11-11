@@ -25,4 +25,17 @@ describe('LoanHeader – L04/L10', () => {
     mount({ assignee_name: null });
     expect(screen.getByTestId('loan-header').textContent).not.toContain('Đang giữ');
   });
+  it('không còn liên kết cuộn "Tới phần hành động"; việc còn lại là viên trung tính', () => {
+    render(<MemoryRouter><LoanHeader overview={overview({ status: 'APPROVAL' })} todoCount={2} /></MemoryRouter>);
+    const h = screen.getByTestId('loan-header').textContent ?? '';
+    expect(h).not.toContain('Tới phần hành động');
+    expect(h).toContain('Còn 2 việc');
+  });
+  it('hồ sơ trả về giữ lịch sử: các chặng đã qua vẫn xong, chặng bị trả có ↺', () => {
+    render(<MemoryRouter><LoanHeader overview={{ ...overview({ status: 'RETURNED_TO_RM' }), timeline: [{ step_code: 'CHECKING' }, { step_code: 'APPRAISAL' }, { step_code: 'RISK_REVIEW' }, { step_code: 'APPROVAL' }] } as unknown as LoanOverview} todoCount={0} /></MemoryRouter>);
+    const t = screen.getByTestId('loan-header').textContent ?? '';
+    expect(t).toContain('Soạn đề xuất (đang sửa)');
+    expect(t).toContain('Phê duyệt (trả về QHKH)');
+    expect(screen.getAllByLabelText('Đã xong')).toHaveLength(3);
+  });
 });

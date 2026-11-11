@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { Alert, Button, Input, InputNumber, Modal, Radio, Select, Space, Typography } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
 import { ActionButton, HumanBlock, StatusPill } from '@/components/ui';
@@ -70,6 +72,8 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
 
   const blockedWhy = state.blockers.length > 0 ? `Chưa đủ điều kiện: ${state.blockers.map((b) => BLOCKERS[b] ?? b).join('; ')}` : undefined;
   const buttons: React.ReactNode[] = [];
+  let headNode: React.ReactNode = null;
+  let totalActions = 0;
   const lockNotes: Array<{ key: string; label: string; why: string }> = [];
   const notHolderWhy = state.can_write === false ? 'Hồ sơ đang do người khác xử lý; chỉ người đang giữ bước này mới thực hiện được.' : undefined;
   // Q-N: Tuân thủ ghi ý kiến, Rủi ro/Tuân thủ trả lại Thẩm định và trưởng phòng rút hồ sơ không cần giữ bước.
@@ -80,8 +84,14 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     if (holderWhy) lockedByHolder = true;
     const why = holderWhy ?? opts.disabled;
     if (why && why !== blockedWhy && why !== notHolderWhy) lockNotes.push({ key, label, why });
-    buttons.push(<ActionButton key={key} variant={opts.primary ? 'primary' : 'default'} disabled={!!why} title={why} onClick={onClick}>{label}</ActionButton>);
+    // Việc 2: nút đầu tiên của vai là nút chính (vàng) và nằm ở đầu trang; các nút còn lại ở thẻ hành động.
+    const isHead = !!opts.primary && headNode === null;
+    const node = <ActionButton key={key} variant={isHead ? 'gold' : 'default'} disabled={!!why} title={why} onClick={onClick}>{label}</ActionButton>;
+    if (isHead) headNode = node; else buttons.push(node);
+    totalActions += 1;
   };
+  const rework = (status === 'RETURNED_TO_RM' || status === 'DRAFT') && has('credit_officer');
+  if (rework) { headNode = <Link key="rework" to={`/de-xuat-vay/${loanId}`} className={`ant-btn ant-btn-default ${styles.goldLink}`}>Sửa đề xuất</Link>; totalActions += 1; }
 
   if ((status === 'RETURNED_TO_RM' || status === 'APPRAISAL_PENDING_INFO') && state.supplement) {
     const sup = state.supplement;
@@ -114,8 +124,8 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   }
   if (status === 'RISK_REVIEW') {
     const done = new Set(state.opinions.map((o) => o.kind));
-    if (has('risk_officer') && !done.has('RISK')) btn('op-risk', 'Ghi Ý kiến Rủi ro', () => reasonAction('Ý kiến Rủi ro', 'Ý kiến của Rủi ro', 'Ghi ý kiến', (t) => addOpinion(loanId, 'RISK', t)));
-    if (has('compliance_officer') && !done.has('COMPLIANCE')) btn('op-comp', 'Ghi ý kiến Tuân thủ', () => reasonAction('Ý kiến Tuân thủ', 'Ý kiến của Tuân thủ', 'Ghi ý kiến', (t) => addOpinion(loanId, 'COMPLIANCE', t)));
+    if (has('risk_officer') && !done.has('RISK')) btn('op-risk', 'Ghi ý kiến rủi ro', () => reasonAction('Ý kiến Rủi ro', 'Ý kiến của Rủi ro', 'Ghi ý kiến', (t) => addOpinion(loanId, 'RISK', t)), { primary: true });
+    if (has('compliance_officer') && !done.has('COMPLIANCE')) btn('op-comp', 'Ghi ý kiến Tuân thủ', () => reasonAction('Ý kiến Tuân thủ', 'Ý kiến của Tuân thủ', 'Ghi ý kiến', (t) => addOpinion(loanId, 'COMPLIANCE', t)), { primary: true });
     if (has('compliance_officer')) {
       btn('explain', 'Yêu cầu giải trình', () => reasonAction('Yêu cầu giải trình', 'Nội dung cần giải trình', 'Gửi yêu cầu', transit('request_explanation')));
       btn('fraud-hold', 'Giữ hồ sơ nghi gian lận', () => reasonAction('Giữ hồ sơ nghi gian lận', 'Căn cứ nghi ngờ', 'Giữ hồ sơ', transit('fraud_hold')));
@@ -163,12 +173,15 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     return params;
   };
 
+  const slot = typeof document === 'undefined' ? null : document.getElementById('loan-primary-action');
+  const decider = (has('loan_approver') && status === 'APPROVAL') || status === 'COUNCIL_SESSION';
   return (
     <section id="hanh-dong" aria-label="Hành động trên hồ sơ" data-testid="actions-panel">
-      <HumanBlock title="Hành động">
+      {slot && headNode && createPortal(headNode, slot)}
+      <HumanBlock title="Hành động" tag={decider ? 'Người quyết định' : 'Việc của bạn'}>
       <div className={styles.stackTight}>
       <Typography.Text type="secondary">AI chỉ đề xuất; người có thẩm quyền quyết định. Mọi hành động đều kiểm lại ở máy chủ.</Typography.Text>
-      {state.blockers.length > 0 && buttons.length > 0 && (
+      {state.blockers.length > 0 && totalActions > 0 && (
         <Alert type="warning" showIcon message="Chưa đủ điều kiện để trình"
           description={<ul style={{ margin: 0, paddingLeft: 18 }}>{state.blockers.map((b) => <li key={b}>{BLOCKERS[b] ?? b}</li>)}</ul>} />
       )}
@@ -185,9 +198,9 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
           <b>{f.title}</b> <Space wrap>{flagButtons(f)}</Space>
         </div>
       ))}
-      <Space wrap>{buttons}</Space>
+      <Space wrap>{buttons}{!slot && headNode}</Space>
       {lockNotes.map((n) => <span key={n.key} className={styles.note}><LockOutlined aria-hidden /> {n.label}: {n.why}</span>)}
-      {buttons.length === 0 && <div><span className={styles.note}>Không có hành động nào cho vai trò của bạn ở bước này.</span></div>}
+      {totalActions === 0 && <div><span className={styles.note}>Không có hành động nào cho vai trò của bạn ở bước này.</span></div>}
       {error && !dialog && <Alert type="error" showIcon role="alert" message={error} />}
       </div>
       </HumanBlock>

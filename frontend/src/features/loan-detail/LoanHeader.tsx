@@ -1,6 +1,6 @@
 import { Typography } from 'antd';
 import { Link } from 'react-router-dom';
-import { ActionButton, CaseStepper, StatusPill } from '@/components/ui';
+import { CaseStepper, StatusPill } from '@/components/ui';
 import { fmtDate, fmtNum } from './format';
 import { statusLabel, stepLabel } from '@/features/my-work/format';
 import type { LoanOverview } from './types';
@@ -16,6 +16,17 @@ export function stageIndex(status: string): number {
   if (status.startsWith('RISK')) return 3;
   if (status === 'APPROVAL' || status === 'COUNCIL_SESSION') return 4;
   return 5;
+}
+
+/** Chặng cao nhất hồ sơ từng đi tới (bỏ qua bước của QHKH), để hồ sơ trả về giữ lịch sử. */
+export function reachedStage(timeline: Array<{ step_code: string }>): number {
+  let top = 0;
+  for (const t of timeline) {
+    const c = t.step_code;
+    const i = c === 'CHECKING' ? 1 : c.startsWith('APPRAISAL') ? 2 : c.startsWith('RISK') ? 3 : c === 'APPROVAL' || c === 'COUNCIL_SESSION' ? 4 : 0;
+    if (i > top) top = i;
+  }
+  return top;
 }
 
 export const SECTIONS = [
@@ -38,6 +49,7 @@ export function LoanHeader({ overview, todoCount }: { overview: LoanOverview; to
   const { loan, timeline } = overview;
   const current = timeline.find((s) => !s.completed_at);
   const stage = stageIndex(loan.status);
+  const returnedFrom = loan.status === 'RETURNED_TO_RM' ? reachedStage(timeline) : 0;
   const approved = loan.decision_type !== 'REJECTED' && loan.approved_amount != null && Number(loan.approved_amount) > 0;
   const facts: Array<[string, string, boolean?]> = [
     ['Mã hồ sơ', loan.application_number, true],
@@ -62,13 +74,13 @@ export function LoanHeader({ overview, todoCount }: { overview: LoanOverview; to
         </div>
         <div className={styles.headAct}>
           <span data-testid="loan-status"><StatusPill tone={loan.status === 'REJECTED' || loan.status === 'RETURNED_TO_RM' ? 'bad' : loan.status.startsWith('APPROVED') ? 'ok' : 'info'}>{statusLabel(loan.status)}</StatusPill></span>
-          <ActionButton variant="gold" onClick={() => goTo('hanh-dong')}>
-            {todoCount > 0 ? `Còn ${todoCount} việc · tới phần hành động` : 'Tới phần hành động'}
-          </ActionButton>
+          {todoCount > 0 && <StatusPill tone="neutral">Còn {todoCount} việc</StatusPill>}
+          <span id="loan-primary-action" className={styles.headSlot} />
         </div>
       </div>
       <div className={styles.stepWrap}>
-        <CaseStepper current={stage} returned={loan.status === 'RETURNED_TO_RM'} steps={STAGES} />
+        <CaseStepper current={stage} returned={loan.status === 'RETURNED_TO_RM'} steps={STAGES}
+          backAt={returnedFrom > 0 ? returnedFrom : undefined} notes={returnedFrom > 0 ? { 0: '(đang sửa)', [returnedFrom]: '(trả về QHKH)' } : undefined} />
       </div>
       {current && (
         <div className={styles.due}>

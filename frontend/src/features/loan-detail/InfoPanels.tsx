@@ -1,5 +1,5 @@
 import { Table } from 'antd';
-import { Flag as FlagMark, Timeline, ledgerNum, ledgerTable, type TimelineEntry } from '@/components/ui';
+import { AiBlock, Flag as FlagMark, Timeline, ledgerNum, ledgerTable, type TimelineEntry } from '@/components/ui';
 import { conclusionLabel, flagSourceLabel, flagStatusLabel, fmtDate, fmtMoney, ownershipLabel, severityLabel, stepResultLabel, valuationLabel } from './format';
 import { stepLabel } from '@/features/my-work/format';
 import type { Collateral, Flag, TimelineStep } from './types';
@@ -7,23 +7,35 @@ import styles from './loan-detail.module.css';
 
 const SEV: Record<string, 'r' | 'y' | 'g'> = { HIGH: 'r', MEDIUM: 'y', LOW: 'g' };
 
+function FlagRow({ f }: { f: Flag }) {
+  return (
+    <div className={styles.item} data-testid="flag-row">
+      <div>
+        <FlagMark level={SEV[f.severity] ?? 'g'}>{severityLabel(f.severity)}</FlagMark>{' '}
+        <b>{f.title}</b> · {flagStatusLabel(f.status)}
+      </div>
+      <span className={styles.note}>Nguồn: {flagSourceLabel(f.source)}{f.blocks_submission ? ' · chặn trình' : ''}</span>
+      {f.handling_note && <span>{f.handling_note}</span>}
+      {f.compliance_conclusion && <span>Kết luận Tuân thủ: {conclusionLabel(f.compliance_conclusion)}{f.compliance_reason ? ` — ${f.compliance_reason}` : ''}</span>}
+    </div>
+  );
+}
+
+/** Cờ do AI sinh nằm trong khối AI (viền nét đứt tím); cờ do hệ thống hoặc người đặt ở ngoài. */
 export function FlagsPanel({ flags }: { flags: Flag[] }) {
+  const ai = flags.filter((f) => f.source.startsWith('AI_'));
+  const other = flags.filter((f) => !f.source.startsWith('AI_'));
   return (
     <section id="co" className={styles.card} aria-label="Cờ cảnh báo">
       <div className={styles.cardH}><h2>Cờ cảnh báo</h2></div>
       <div className={styles.cardB}>
         {flags.length === 0 && <span className={styles.note}>Không có cờ.</span>}
-        {flags.map((f) => (
-          <div key={f.id} className={styles.item} data-testid="flag-row">
-            <div>
-              <FlagMark level={SEV[f.severity] ?? 'g'}>{severityLabel(f.severity)}</FlagMark>{' '}
-              <b>{f.title}</b> · {flagStatusLabel(f.status)}
-            </div>
-            <span className={styles.note}>Nguồn: {flagSourceLabel(f.source)}{f.blocks_submission ? ' · chặn trình' : ''}</span>
-            {f.handling_note && <span>{f.handling_note}</span>}
-            {f.compliance_conclusion && <span>Kết luận Tuân thủ: {conclusionLabel(f.compliance_conclusion)}{f.compliance_reason ? ` — ${f.compliance_reason}` : ''}</span>}
-          </div>
-        ))}
+        {ai.length > 0 && (
+          <AiBlock title="Cờ do AI kiểm tra tài liệu">
+            <div className={styles.stackTight}>{ai.map((f) => <FlagRow key={f.id} f={f} />)}</div>
+          </AiBlock>
+        )}
+        {other.map((f) => <FlagRow key={f.id} f={f} />)}
       </div>
     </section>
   );
