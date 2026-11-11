@@ -11,7 +11,7 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-from tests.integration.seed_ids import CREDIT_APPRAISER, CREDIT_OFFICER, DOCUMENT_REVIEWER, RISK_HO
+from tests.integration.seed_ids import CREDIT_APPRAISER, CREDIT_MANAGER, CREDIT_OFFICER, DOCUMENT_REVIEWER, RISK_HO
 from tests.integration.test_workflow_service import Case, case, engine, mig, principal  # noqa: F401
 
 from app.db.rls_context import rls_transaction
@@ -111,4 +111,49 @@ async def test_rls_blocks_insert_by_non_holder_and_forged_author(
             with pytest.raises(DBAPIError):
                 await s.execute(text("DELETE FROM credit.loan_agent_run"))
     finally:
+        await mig.execute("DELETE FROM credit.loan_agent_run WHERE loan_application_id = $1", case.loan_id)
+
+
+async def test_manager_runs_without_holding_step_other_department_and_other_roles_denied(
+    case: Case, mig: asyncpg.Connection, engine: AsyncEngine  # noqa: F811
+) -> None:
+    """N01 (V063): Trưởng phòng chạy được trên hồ sơ của phòng dù không giữ bước; phòng khác và vai khác thì không."""
+    await case.create(status="APPRAISAL")
+    await case.add_step("APPRAISAL", CREDIT_APPRAISER)
+    call.loan = case.loan_id
+    eng = Engine()
+    manager = await principal(mig, CREDIT_MANAGER)
+    other_dept = await mig.fetchval("SELECT id FROM identity.department WHERE id <> "
+                                    "(SELECT department_id FROM identity.employee WHERE id = $1) LIMIT 1", CREDIT_MANAGER)
+    home = await mig.fetchval("SELECT department_id FROM identity.employee WHERE id = $1", CREDIT_MANAGER)
+    try:
+        result = await call(engine, manager, eng, "start")
+        assert result["can_run"] and len(result["runs"]) == 1 and len(eng.created) == 1
+        assert await mig.fetchval("SELECT started_by FROM credit.loan_agent_run WHERE loan_application_id=$1",
+                                  case.loan_id) == CREDIT_MANAGER
+        await mig.execute("DELETE FROM credit.loan_agent_run WHERE loan_application_id = $1", case.loan_id)
+        # Vai khác không giữ bước: vẫn bị chặn ở RLS.
+        sql = text("INSERT INTO credit.loan_agent_run (id, loan_application_id, case_id, started_by)"
+                   " VALUES (:id, :loan, :cid, :by)")
+        for who in (CREDIT_OFFICER, RISK_HO, DOCUMENT_REVIEWER):
+            p = await principal(mig, who)
+            async with AsyncSession(engine) as s:
+                with pytest.raises(DBAPIError):
+                    async with rls_transaction(s, p.employee_id, p.branch_id, p.is_admin):
+                        await s.execute(sql, {"id": uuid4(), "loan": case.loan_id, "cid": f"x_{uuid4().hex}", "by": who})
+        # Trưởng phòng ghi tên người khác: chặn.
+        async with AsyncSession(engine) as s:
+            with pytest.raises(DBAPIError):
+                async with rls_transaction(s, manager.employee_id, manager.branch_id, manager.is_admin):
+                    await s.execute(sql, {"id": uuid4(), "loan": case.loan_id, "cid": f"x_{uuid4().hex}",
+                                          "by": CREDIT_APPRAISER})
+        # Trưởng phòng của phòng khác: không thấy hồ sơ nên không chạy được.
+        if other_dept is not None:
+            await mig.execute("UPDATE identity.employee SET department_id = $1 WHERE id = $2", other_dept, CREDIT_MANAGER)
+            with pytest.raises((NotFoundError, AuthorizationError, DBAPIError)):
+                await call(engine, manager, eng, "start")
+        assert await mig.fetchval("SELECT count(*) FROM credit.loan_agent_run WHERE loan_application_id=$1",
+                                  case.loan_id) == 0
+    finally:
+        await mig.execute("UPDATE identity.employee SET department_id = $1 WHERE id = $2", home, CREDIT_MANAGER)
         await mig.execute("DELETE FROM credit.loan_agent_run WHERE loan_application_id = $1", case.loan_id)
