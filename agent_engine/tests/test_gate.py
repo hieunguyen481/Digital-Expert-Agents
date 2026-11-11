@@ -84,8 +84,8 @@ def test_negative_ebitda_is_surfaced_as_weak_indicator_line():
     fin = [{**FIN[0], "year": 2025, "ebitda": -22e9}]
     f = facts.build({"business": BIZ, "financials": fin, "loans": LOANS, "cic": CIC, "blacklist": BL,
                      "collateral": []}, REQ, TODAY)
-    assert any("EBITDA năm 2025 ÂM" in line for line in f["lines"])
-    assert not any("ÂM" in line for line in facts.build(
+    assert any("EBITDA năm 2025 âm" in line for line in f["lines"])
+    assert not any("âm (" in line for line in facts.build(
         {"business": BIZ, "financials": FIN, "loans": LOANS, "cic": CIC, "blacklist": BL, "collateral": []},
         REQ, TODAY)["lines"])
 

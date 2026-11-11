@@ -22,6 +22,7 @@ FIELD = {
     "existing_bank_exposure": "dư nợ hiện hữu tại ngân hàng", "screened": "đã sàng lọc", "hit": "trùng danh sách",
     "term_months": "kỳ hạn (tháng)", "loan_application_id": "mã hồ sơ vay", "kyc_assessment": "đánh giá KYC",
     "industry": "ngành", "established_year": "năm thành lập", "verified_status": "trạng thái xác minh",
+    "sanction_status": "kết quả sàng lọc trừng phạt",
 }
 STATUS = {
     "NEEDS_VERIFICATION": "cần xác minh", "VERIFIED": "đã xác minh", "CONFIRMED": "đã xác nhận", "PENDING": "chờ xử lý",
@@ -29,7 +30,9 @@ STATUS = {
     "need_more_info": "cần thêm thông tin", "approve": "đồng ý", "reject": "từ chối", "flag": "đồng ý có điều kiện",
     "dry-run": "chạy thử, chưa ghi", "dry_run": "chạy thử, chưa ghi", "clear": "rõ ràng", "pending": "chưa hoàn thiện",
     "branch_director": "Giám đốc chi nhánh (cấp 1)", "head_office_l2": "Cấp 2 Hội sở", "head_office": "Cấp 2 Hội sở",
-    "council": "Hội đồng tín dụng",
+    "council": "Hội đồng tín dụng", "POSSIBLE_MATCH": "có thể trùng danh sách, cần rà soát",
+    "ai_proposed": "do AI đề xuất, chưa xác nhận", "pending_registration": "đang chờ đăng ký", "encumbered": "đang bị ràng buộc",
+    "disputed": "đang tranh chấp", "unknown": "chưa rõ", "NEEDS_REVIEW": "cần rà soát",
     "declared": "giá trị khai báo", "appraised": "giá trị thẩm định", "eligible": "giá trị đủ điều kiện",
 }
 TOOL = {
@@ -60,6 +63,33 @@ _EMPTY_LABEL = {"collateral": "tài sản bảo đảm", "loans": "khoản vay h
                 "documents": "tài liệu", "findings": "phát hiện", "conditions": "điều kiện"}
 
 
+LEGAL = {"clear": "pháp lý rõ ràng", "pending": "pháp lý chưa hoàn thiện", "ai_proposed": "do AI đề xuất, chưa được xác nhận",
+         "unknown": "chưa rõ pháp lý", "not_verified": "chưa xác minh quyền sở hữu", "rejected": "xác minh không đạt"}
+
+
+def legal_vi(status) -> str:
+    """Tình trạng pháp lý của tài sản bảo đảm bằng tiếng Việt; giá trị lạ thì nói chưa rõ, không lộ enum thô."""
+    return LEGAL.get(str(status or "unknown").lower(), "chưa rõ pháp lý")
+
+
+def collateral_name(c: dict, index: int | None = None) -> str:
+    """Tên gọi tài sản cho người đọc: mô tả, hoặc loại, hoặc số thứ tự; không bao giờ là mã UUID."""
+    d = str(c.get("description") or "").strip()
+    if d:
+        return d if len(d) <= 60 else d[:57].rstrip() + "..."
+    t = str(c.get("type") or "").strip().replace("_", " ").lower()
+    n = f" số {index}" if index else ""
+    return f"tài sản bảo đảm{n}" + (f" ({t})" if t else "")
+
+
+def sanction_phrase(bl: dict) -> str:
+    """Kết quả sàng lọc có trùng: khớp hẳn thì nói trùng; POSSIBLE_MATCH chỉ là có thể trùng, cần rà soát."""
+    reason = str((bl.get("detail") or {}).get("reason") or "")
+    if "POSSIBLE_MATCH" in reason:
+        return "có thể trùng danh sách trừng phạt/AML, cần rà soát"
+    return "trùng khớp danh sách trừng phạt/AML"
+
+
 def humanize_source(s: str) -> str:
     """Tên nguồn nghiệp vụ; điều khoản chính sách (có §/Điều) và nguồn đã là tiếng Việt giữ nguyên."""
     if not isinstance(s, str) or not s:
@@ -87,10 +117,21 @@ _TERMS = {**{k: v for k, v in FIELD.items()}, **TOOL, **STATUS}
 _KV = re.compile(r"\b(" + "|".join(map(re.escape, sorted(FIELD, key=len, reverse=True))) + r")\b\s*(?:[:=]\s*)?"
                  r"(None|null|True|False|true|false)\b")
 _WORD = re.compile(r"(?<![\w-])(" + "|".join(map(re.escape, sorted(_TERMS, key=len, reverse=True))) + r")(?![\w-])")
-_MONEY = re.compile(r"(?<![\d.,*])(\d{1,3}(?:,\d{3}){2,}|\d{7,})(?![\d,*])(?!\s*%)")
+_MONEY = re.compile(r"(?<![\w.,*-])(\d{1,3}(?:,\d{3}){2,}|\d{7,})(?:\.0+)?(?![\w*-])(?!,\d)(?!\s*%)")
 _DEC = re.compile(r"(?<![\w§.])(\d+)\.(\d+)(?=\s*(?:tỷ|%|lần|triệu)\b|%)")
 _DRAFT = re.compile(r"(?:\bdraft_id\s*[:=]\s*)?\bdraft-case_\w+,?\s*")
 _COUNT = re.compile(r"\bcount\s*=\s*(\d+)")
+# câu tiếng Anh/khóa nội bộ do LLM chép nguyên từ kết quả công cụ vào trích dẫn
+_EN = (
+    (re.compile(r"\bVerified annual inflow\b\s*", re.I), "tiền về tài khoản 12 tháng đã xác minh "),
+    (re.compile(r",\s*months\s+(\d+)", re.I), r", \1 tháng"),
+    (re.compile(r"\bblacklist\.(?=\s*(?:hit|trùng danh sách))", re.I), ""),
+    (re.compile(r"\bblacklist\b\.?", re.I), "danh sách đen/trừng phạt"),
+    (re.compile(r"\bevidence\b", re.I), "trích dẫn"),
+    (re.compile(r"\bverdicts?\b", re.I), "kết luận chuyên gia"),
+    (re.compile(r"\binflow\b", re.I), "tiền về"),
+    (re.compile(r"\bDU_LIEU_MAU-?", re.I), ""),
+)
 _DSCR = re.compile(r"(DSCR[^\d\n]{0,15}?)(\d+)\.(\d+)")
 
 
@@ -114,6 +155,8 @@ def humanize(text: str) -> str:
     t = _COUNT.sub(lambda m: f"số lượng {m.group(1)}", t)
     t = _KV.sub(lambda m: f"{FIELD[m.group(1)]}: {_VALUE[m.group(2)]}", t)
     t = _WORD.sub(lambda m: _TERMS[m.group(1)], t)
+    for rx, rep in _EN:
+        t = rx.sub(rep, t)
     t = _MONEY.sub(lambda m: vn_money(float(m.group(1).replace(",", ""))), t)
     t = _DSCR.sub(lambda m: f"{m.group(1)}{m.group(2)},{m.group(3)}", t)
     return _DEC.sub(lambda m: f"{m.group(1)},{m.group(2)}", t)
