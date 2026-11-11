@@ -53,14 +53,14 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
     AI,
   ],
   ruiro: [
-    item(2, 'Hồ sơ chờ ý kiến', 'inbox', MY_WORK_PATH),
+    item(2, 'Chờ ý kiến', 'inbox', MY_WORK_PATH),
     item(4, 'Khách hàng SME', 'building', CUSTOMERS_PATH),
     item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
   ],
   pheduyet: [
-    item(2, 'Hồ sơ chờ phê duyệt', 'inbox', MY_WORK_PATH),
+    item(2, 'Chờ phê duyệt', 'inbox', MY_WORK_PATH),
     item(6, 'Phiên Hội đồng tín dụng', 'users'),
     item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,

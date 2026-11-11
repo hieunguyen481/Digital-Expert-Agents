@@ -2,6 +2,7 @@ import { Skeleton } from 'antd';
 import { Outlet, useLocation } from 'react-router-dom';
 import { uiRoleFromRoles } from '@/auth/roleFromMe';
 import { useMe } from '@/auth/session';
+import { SHBLogo } from '@/components/common/SHBLogo';
 import { PageError } from '@/components/common/PageError';
 import { AiPanel } from '@/features/ai-panel/AiPanel';
 import { AiPanelProvider, useAiPanel } from '@/features/ai-panel/AiPanelContext';
@@ -46,9 +47,23 @@ export function AppLayout() {
     return <PageError title="Không tải được hồ sơ người dùng" error={me.error} onRetry={() => void me.refetch()} />;
   }
   if (!me.data) {
+    // Khung ứng dụng và logo hiện ngay lúc tải đầu, nội dung là khung chờ.
     return (
-      <div className={styles.skeletonWrap} aria-busy>
-        <Skeleton active />
+      <div className={styles.layout} aria-busy>
+        <nav className={styles.side} aria-label="Điều hướng chính">
+          <div className={styles.brand}>
+            <SHBLogo variant="white" showProductName />
+          </div>
+        </nav>
+        <div className={styles.mainCol}>
+          <div className={styles.topbar} />
+          <main id="main-content" className={styles.content}>
+            <div className={styles.skeletonWrap}>
+              <h1 className="sr-only">Đang tải</h1>
+              <Skeleton active />
+            </div>
+          </main>
+        </div>
       </div>
     );
   }

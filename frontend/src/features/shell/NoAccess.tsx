@@ -23,7 +23,7 @@ export function NoAccess({ role, pageName = 'Việc của tôi' }: NoAccessProps
 
   return (
     <div className={styles.noAccessWrap}>
-      <Typography.Title level={4} className={styles.noAccessHead}>
+      <Typography.Title level={1} className={styles.noAccessHead}>
         {pageName}
       </Typography.Title>
       <StateBlock

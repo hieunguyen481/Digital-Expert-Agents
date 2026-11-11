@@ -71,11 +71,8 @@ export const routeObjects: RouteObject[] = [
       { path: '/khach-hang', element: withSuspense(<CustomerListPage />) },
       { path: '/customer/:id', element: withSuspense(<CustomerDetailPage />) },
       ...(import.meta.env.DEV ? [{ path: '/foundation', element: withSuspense(<FoundationPage />) }] : []),
+      { path: '*', element: withSuspense(<NotFoundPage />) },
     ],
-  },
-  {
-    path: '*',
-    element: withSuspense(<NotFoundPage />),
   },
 ];
 

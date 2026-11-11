@@ -51,15 +51,18 @@ export interface StateBlockProps {
   compact?: boolean;
   /** Dùng role="alert" cho lỗi và 403. */
   alert?: boolean;
+  /** Bậc tiêu đề: h1 khi khối là nội dung chính của cả trang (404, 403). Mặc định h2. */
+  headingLevel?: 1 | 2;
 }
 
 /** Trạng thái rỗng / lỗi / 403 (khiên) / 404: một hình, một tiêu đề, một câu giải thích, tối đa một nút. */
-export function StateBlock({ kind, title, description, action, code, compact, alert }: StateBlockProps) {
+export function StateBlock({ kind, title, description, action, code, compact, alert, headingLevel = 2 }: StateBlockProps) {
+  const Heading = headingLevel === 1 ? 'h1' : 'h2';
   return (
     <div className={styles.state} role={alert ? 'alert' : undefined} style={compact ? { padding: 'var(--s6) var(--s4)' } : undefined}>
       {!compact && <Illustration kind={kind} />}
       {code && <div className={styles.stateCode}>{code}</div>}
-      <h2>{title}</h2>
+      <Heading>{title}</Heading>
       {description && <p>{description}</p>}
       {action}
     </div>
