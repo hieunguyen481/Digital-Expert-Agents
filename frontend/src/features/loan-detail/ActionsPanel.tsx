@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Alert, Button, Input, InputNumber, Modal, Radio, Select, Space, Tag, Typography } from 'antd';
+import { Alert, Button, Input, InputNumber, Modal, Radio, Select, Space, Typography } from 'antd';
+import { LockOutlined } from '@ant-design/icons';
+import { ActionButton, HumanBlock, StatusPill } from '@/components/ui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
 import { normalizeError } from '@/services/apiClient';
@@ -68,6 +70,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
 
   const blockedWhy = state.blockers.length > 0 ? `Chưa đủ điều kiện: ${state.blockers.map((b) => BLOCKERS[b] ?? b).join('; ')}` : undefined;
   const buttons: React.ReactNode[] = [];
+  const lockNotes: Array<{ key: string; label: string; why: string }> = [];
   const notHolderWhy = state.can_write === false ? 'Hồ sơ đang do người khác xử lý; chỉ người đang giữ bước này mới thực hiện được.' : undefined;
   // Q-N: Tuân thủ ghi ý kiến, Rủi ro/Tuân thủ trả lại Thẩm định và trưởng phòng rút hồ sơ không cần giữ bước.
   const NO_HOLDER_NEEDED = ['op-comp', 'explain', 'fraud-hold', 'fraud-release', 'back', 'withdraw-customer', 'withdraw-overdue'];
@@ -76,7 +79,8 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     const holderWhy = NO_HOLDER_NEEDED.includes(key) ? undefined : notHolderWhy;
     if (holderWhy) lockedByHolder = true;
     const why = holderWhy ?? opts.disabled;
-    buttons.push(<Button key={key} type={opts.primary ? 'primary' : 'default'} disabled={!!why} title={why} onClick={onClick}>{label}</Button>);
+    if (why && why !== blockedWhy && why !== notHolderWhy) lockNotes.push({ key, label, why });
+    buttons.push(<ActionButton key={key} variant={opts.primary ? 'primary' : 'default'} disabled={!!why} title={why} onClick={onClick}>{label}</ActionButton>);
   };
 
   if ((status === 'RETURNED_TO_RM' || status === 'APPRAISAL_PENDING_INFO') && state.supplement) {
@@ -160,29 +164,33 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   };
 
   return (
-    <section id="hanh-dong" className={styles.panel} aria-label="Hành động trên hồ sơ" data-testid="actions-panel">
-      <h2>Hành động</h2>
+    <section id="hanh-dong" aria-label="Hành động trên hồ sơ" data-testid="actions-panel">
+      <HumanBlock title="Hành động">
+      <div className={styles.stackTight}>
       <Typography.Text type="secondary">AI chỉ đề xuất; người có thẩm quyền quyết định. Mọi hành động đều kiểm lại ở máy chủ.</Typography.Text>
       {state.blockers.length > 0 && buttons.length > 0 && (
-        <Alert type="warning" showIcon style={{ margin: '8px 0' }} message="Chưa đủ điều kiện để trình"
-          description={<ul style={{ margin: 0 }}>{state.blockers.map((b) => <li key={b}>{BLOCKERS[b] ?? b}</li>)}</ul>} />
+        <Alert type="warning" showIcon message="Chưa đủ điều kiện để trình"
+          description={<ul style={{ margin: 0, paddingLeft: 18 }}>{state.blockers.map((b) => <li key={b}>{BLOCKERS[b] ?? b}</li>)}</ul>} />
       )}
-      {notHolderWhy && lockedByHolder && <Alert type="info" showIcon style={{ margin: '8px 0' }} message={notHolderWhy} data-testid="not-holder-notice" />}
-      {state.excluded && has('loan_approver') && status === 'APPROVAL' && <Alert type="error" showIcon style={{ margin: '8px 0' }} message={E8_TEXT} data-testid="e8-notice" />}
+      {notHolderWhy && lockedByHolder && <Alert type="info" showIcon message={notHolderWhy} data-testid="not-holder-notice" />}
+      {state.excluded && has('loan_approver') && status === 'APPROVAL' && <Alert type="error" showIcon message={E8_TEXT} data-testid="e8-notice" />}
       {state.opinions.map((o) => (
-        <div key={o.kind} className={styles.section} data-testid={`opinion-${o.kind}`}>
-          <Tag>{o.kind === 'RISK' ? 'Ý kiến Rủi ro' : 'Ý kiến Tuân thủ'}</Tag> {o.author_name}
+        <div key={o.kind} className={styles.item} data-testid={`opinion-${o.kind}`}>
+          <span><StatusPill tone="human">{o.kind === 'RISK' ? 'Ý kiến Rủi ro' : 'Ý kiến Tuân thủ'}</StatusPill> {o.author_name}</span>
           <div className={styles.readText}>{o.content}</div>
         </div>
       ))}
       {overview.flags.filter((f) => flagButtons(f).length > 0).map((f) => (
-        <div key={f.id} className={styles.section} data-testid="flag-actions">
-          <b>{f.title}</b> <Space>{flagButtons(f)}</Space>
+        <div key={f.id} className={styles.item} data-testid="flag-actions">
+          <b>{f.title}</b> <Space wrap>{flagButtons(f)}</Space>
         </div>
       ))}
-      <Space wrap style={{ marginTop: 8 }}>{buttons}</Space>
+      <Space wrap>{buttons}</Space>
+      {lockNotes.map((n) => <span key={n.key} className={styles.note}><LockOutlined aria-hidden /> {n.label}: {n.why}</span>)}
       {buttons.length === 0 && <div><span className={styles.note}>Không có hành động nào cho vai trò của bạn ở bước này.</span></div>}
-      {error && !dialog && <Alert type="error" showIcon role="alert" style={{ marginTop: 8 }} message={error} />}
+      {error && !dialog && <Alert type="error" showIcon role="alert" message={error} />}
+      </div>
+      </HumanBlock>
 
       <Modal open={dialog?.kind === 'reason'} title={dialog?.kind === 'reason' ? dialog.title : ''} onCancel={() => setDialog(null)} destroyOnClose
         okText={dialog?.kind === 'reason' ? dialog.okText : 'OK'} cancelText="Hủy" confirmLoading={busy}
@@ -220,7 +228,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
             </>
           )}
           {state.pending_exceptions.map((e) => (
-            <div key={e.id} className={styles.section} data-testid="exception-row">
+            <div key={e.id} className={styles.item} data-testid="exception-row">
               <b>Ngoại lệ {e.checklist_code}</b> · {e.reason}
               <Radio.Group value={exceptionChoice[e.id]} onChange={(ev) => setExceptionChoice({ ...exceptionChoice, [e.id]: ev.target.value })}>
                 <Radio value="ACCEPTED">Chấp thuận</Radio><Radio value="REJECTED">Từ chối (phải trả lại bổ sung)</Radio>

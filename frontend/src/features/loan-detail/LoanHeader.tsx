@@ -1,9 +1,10 @@
-import { Tag, Typography } from 'antd';
+import { Typography } from 'antd';
 import { Link } from 'react-router-dom';
+import { ActionButton, CaseStepper, StatusPill } from '@/components/ui';
 import { fmtDate, fmtNum } from './format';
 import { statusLabel, stepLabel } from '@/features/my-work/format';
 import type { LoanOverview } from './types';
-import styles from './loan-header.module.css';
+import styles from './loan-detail.module.css';
 
 /** Các chặng chính của một hồ sơ; trạng thái chi tiết (chờ bổ sung, tạm dừng…) quy về chặng đang đứng. */
 export const STAGES = ['Soạn đề xuất', 'Kiểm tra', 'Thẩm định', 'Rủi ro', 'Phê duyệt', 'Hoàn tất'] as const;
@@ -32,44 +33,48 @@ export function goTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-/** Header dính: tên khách, bước, hạn, mục lục; nút chính đưa người dùng tới khối Hành động. */
+/** Đầu trang hồ sơ (mockup 03): tên khách, dữ kiện, một nút đồng, bước hồ sơ, mục lục. */
 export function LoanHeader({ overview, todoCount }: { overview: LoanOverview; todoCount: number }) {
   const { loan, timeline } = overview;
   const current = timeline.find((s) => !s.completed_at);
   const stage = stageIndex(loan.status);
   const approved = loan.decision_type !== 'REJECTED' && loan.approved_amount != null && Number(loan.approved_amount) > 0;
+  const facts: Array<[string, string, boolean?]> = [
+    ['Mã hồ sơ', loan.application_number, true],
+    ['Số tiền', `${fmtNum(Number(loan.requested_amount) / 1e9)} tỷ ${loan.currency}`, true],
+  ];
+  if (loan.requested_term_months) facts.push(['Kỳ hạn', `${loan.requested_term_months} tháng`, true]);
+  if (approved) facts.push(['Được duyệt', `${fmtNum(Number(loan.approved_amount) / 1e9)} tỷ ${loan.currency}${loan.approved_term_months ? ` · ${loan.approved_term_months} tháng` : ''}`, true]);
+  if (loan.assignee_name) facts.push(['Đang giữ', loan.assignee_name]);
   return (
-    <div className={styles.header} data-testid="loan-header">
+    <div data-testid="loan-header">
       <nav aria-label="Đường dẫn" className={styles.crumb}>
-        <Link to="/viec-cua-toi">Việc của tôi</Link> › <span>Hồ sơ {loan.application_number}</span>
+        <Link to="/viec-cua-toi">Việc của tôi</Link> / <span aria-current="page">Hồ sơ {loan.application_number}</span>
       </nav>
-      <div className={styles.row}>
-        <Typography.Title level={1} className={styles.title}>{loan.customer_name ?? loan.application_number}</Typography.Title>
-        <Tag color="blue" data-testid="loan-status">{statusLabel(loan.status)}</Tag>
-        <span className={styles.facts}>
-          {[loan.application_number,
-            `${fmtNum(Number(loan.requested_amount) / 1e9)} tỷ ${loan.currency}`,
-            loan.requested_term_months ? `${loan.requested_term_months} tháng` : null,
-            approved ? `Được duyệt: ${fmtNum(Number(loan.approved_amount) / 1e9)} tỷ ${loan.currency}${loan.approved_term_months ? ` · ${loan.approved_term_months} tháng` : ''}` : null,
-            loan.assignee_name ? `Đang giữ: ${loan.assignee_name}` : null,
-          ].filter(Boolean).join(' · ')}
-        </span>
-        <button type="button" className={styles.primary} onClick={() => goTo('hanh-dong')}>
-          {todoCount > 0 ? `Còn ${todoCount} việc · tới phần hành động` : 'Tới phần hành động'}
-        </button>
+      <div className={styles.headRow}>
+        <div className={styles.headTitle}>
+          <Typography.Title level={1}>{loan.customer_name ?? loan.application_number}</Typography.Title>
+          <dl className={styles.meta}>
+            {facts.map(([k, v, mono]) => (
+              <div key={k}><dt>{k}: </dt><dd className={mono ? styles.num : undefined}>{v}</dd></div>
+            ))}
+          </dl>
+        </div>
+        <div className={styles.headAct}>
+          <span data-testid="loan-status"><StatusPill tone={loan.status === 'REJECTED' || loan.status === 'RETURNED_TO_RM' ? 'bad' : loan.status.startsWith('APPROVED') ? 'ok' : 'info'}>{statusLabel(loan.status)}</StatusPill></span>
+          <ActionButton variant="gold" onClick={() => goTo('hanh-dong')}>
+            {todoCount > 0 ? `Còn ${todoCount} việc · tới phần hành động` : 'Tới phần hành động'}
+          </ActionButton>
+        </div>
       </div>
-      <ol className={styles.stepper} aria-label="Các chặng của hồ sơ">
-        {STAGES.map((s, i) => (
-          <li key={s} className={i < stage ? styles.done : i === stage ? styles.now : undefined} aria-current={i === stage ? 'step' : undefined}>
-            <span className={styles.dot}>{i < stage ? '✓' : i + 1}</span>{s}
-          </li>
-        ))}
-        {current && (
-          <li className={styles.due}>
-            {stepLabel(current.step_code)} · {current.due_at ? `hạn ${fmtDate(current.due_at)}` : 'không đặt hạn'}
-          </li>
-        )}
-      </ol>
+      <div className={styles.stepWrap}>
+        <CaseStepper current={stage} returned={loan.status === 'RETURNED_TO_RM'} steps={STAGES} />
+      </div>
+      {current && (
+        <div className={styles.due}>
+          {stepLabel(current.step_code)} · {current.due_at ? `hạn ${fmtDate(current.due_at)}` : 'không đặt hạn'}
+        </div>
+      )}
       <nav aria-label="Mục lục hồ sơ" className={styles.toc}>
         {SECTIONS.map((s) => (
           <a key={s.id} href={`#${s.id}`} onClick={(e) => { e.preventDefault(); goTo(s.id); }}>{s.label}</a>

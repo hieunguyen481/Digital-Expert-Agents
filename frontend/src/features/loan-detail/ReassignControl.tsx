@@ -28,10 +28,12 @@ export function ReassignControl({ loanId }: { loanId: string }) {
     } catch (e) { setError(normalizeError(e).message); } finally { setBusy(false); }
   };
   return (
-    <div className={styles.section} data-testid="reassign">
-      <b>Phân công lại (trưởng phòng)</b>
+    <section className={styles.card} data-testid="reassign" aria-label="Phân công lại">
+      <div className={styles.cardH}><h2>Phân công lại (trưởng phòng)</h2></div>
+      <div className={styles.cardB}>
       <span className={styles.note}>Chuyển người đang xử lý bước hiện tại sang người khác cùng vai trò, không bị loại theo quy tắc tách bạch.</span>
       <div><Button onClick={() => { setError(null); setOpen(true); }}>Chuyển người xử lý</Button></div>
+      </div>
       <Modal open={open} title="Chuyển người xử lý" onCancel={() => setOpen(false)} destroyOnClose okText="Chuyển" cancelText="Hủy"
         confirmLoading={busy} okButtonProps={{ disabled: !target || !reason.trim() }} onOk={() => void submit()}>
         <Select value={target} onChange={setTarget} style={{ width: '100%', marginBottom: 8 }} aria-label="Người nhận" placeholder="Chọn người nhận"
@@ -40,6 +42,6 @@ export function ReassignControl({ loanId }: { loanId: string }) {
         <Input.TextArea id="reassign-reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
         {error && <Alert type="error" showIcon role="alert" style={{ marginTop: 8 }} message={error} />}
       </Modal>
-    </div>
+    </section>
   );
 }

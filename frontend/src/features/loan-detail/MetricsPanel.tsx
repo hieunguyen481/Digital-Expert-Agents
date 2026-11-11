@@ -1,4 +1,4 @@
-import { Tag } from 'antd';
+import { KpiCard, StatusPill } from '@/components/ui';
 import { Link } from 'react-router-dom';
 import { KIND_LABEL, fmtDate, fmtNum, sourceTypeLabel } from './format';
 import type { Metric, MetricValue } from './types';
@@ -19,43 +19,63 @@ function Source({ loanId, m }: { loanId: string; m: MetricValue }) {
 function ValueCell({ loanId, metric, v }: { loanId: string; metric: Metric; v: MetricValue }) {
   const chosen = metric.chosen?.field_id === v.field_id;
   return (
-    <div data-testid={`metric-${metric.code}-${v.kind}`}>
+    <div className={styles.mVal} data-testid={`metric-${metric.code}-${v.kind}`}>
       <span>{KIND_LABEL[v.kind]}: </span>
-      <span className={styles.num}>{v.kind === 'RECOMPUTED' ? '≈ ' : ''}{fmtNum(v.value_number, metric.unit)}</span>
-      {v.result && <Tag color={v.result === 'PASS' ? 'success' : 'error'} style={{ marginLeft: 8 }}>{v.result === 'PASS' ? 'Đạt' : 'Không đạt'}</Tag>}
-      {chosen && <Tag color="processing">Nguồn đã chốt khi đối chiếu</Tag>}
+      <span className={styles.mNum}>{v.kind === 'RECOMPUTED' ? '≈ ' : ''}{fmtNum(v.value_number, metric.unit)}</span>
+      {v.result && <>{' '}<StatusPill tone={v.result === 'PASS' ? 'ok' : 'bad'}>{v.result === 'PASS' ? 'Đạt' : 'Không đạt'}</StatusPill></>}
+      {chosen && <>{' '}<StatusPill tone="info">Nguồn đã chốt khi đối chiếu</StatusPill></>}
       <Source loanId={loanId} m={v} />
+    </div>
+  );
+}
+
+/** Dải chỉ số chính: chỉ lấy số có thật của hồ sơ (đề nghị, kỳ hạn) và chỉ số đã có nguồn; thiếu thì không hiện. */
+export function KpiStrip({ amountBillion, currency, termMonths, metrics }: { amountBillion: number; currency: string; termMonths: number | null; metrics: Metric[] }) {
+  const pick = (code: string) => {
+    const m = metrics.find((x) => x.code === code);
+    const v = m?.values.find((x) => x.field_id === m.chosen?.field_id) ?? m?.values.find((x) => x.kind === 'RECOMPUTED') ?? m?.values[0];
+    return m && v ? { m, v } : null;
+  };
+  const dscr = pick('dscr');
+  const ltv = pick('ltv');
+  return (
+    <div className={styles.strip} role="group" aria-label="Chỉ số chính">
+      <KpiCard hero label={`Đề nghị, tỷ ${currency}`} value={fmtNum(amountBillion)} />
+      {termMonths != null && <KpiCard label="Kỳ hạn, tháng" value={String(termMonths)} />}
+      {[dscr, ltv].map((x) => x && <KpiCard key={x.m.code} label={`${x.m.label}${x.m.unit ? `, ${x.m.unit}` : ''}`} value={`${x.v.kind === 'RECOMPUTED' ? '≈ ' : ''}${fmtNum(x.v.value_number)}`} />)}
     </div>
   );
 }
 
 export function MetricsPanel({ loanId, metrics }: { loanId: string; metrics: Metric[] }) {
   return (
-    <section id="chi-so" className={styles.panel} aria-label="Chỉ số tài chính">
-      <h2>Chỉ số tài chính</h2>
-      {metrics.length === 0 && <span className={styles.note}>Chưa có chỉ số nào có tài liệu nguồn.</span>}
-      {metrics.length > 0 && <table style={{ width: '100%' }} data-testid="metrics-table">
-        <thead>
-          <tr><th align="left">Chỉ số</th><th align="left">Giá trị và nguồn</th><th align="left">Ngưỡng chính sách</th></tr>
-        </thead>
-        <tbody>
-          {metrics.map((m) => (
-            <tr key={m.code} data-testid={`metric-row-${m.code}`} style={{ verticalAlign: 'top' }}>
-              <td>{m.label}</td>
-              <td>
-                {m.values.map((v) => <ValueCell key={v.kind} loanId={loanId} metric={m} v={v} />)}
-                {m.chosen && (
-                  <span className={styles.src}>
-                    Đã chốt: {m.chosen.resolved_by_name ?? '—'}{m.chosen.reason ? ` — ${m.chosen.reason}` : ''}
-                  </span>
-                )}
-                {m.conflict_id && !m.chosen && <Tag color="warning">Mâu thuẫn chưa chốt · <Link to={`/doi-chieu/${loanId}`}>Đối chiếu tài liệu</Link></Tag>}
-              </td>
-              <td>{m.threshold ? `${m.threshold.op === '>=' ? '≥' : '≤'} ${fmtNum(m.threshold.value, m.unit)}` : 'Không có ngưỡng trong chính sách'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>}
+    <section id="chi-so" className={styles.card} aria-label="Chỉ số tài chính">
+      <div className={styles.cardH}><h2>Chỉ số tài chính</h2></div>
+      <div className={styles.cardB}>
+        {metrics.length === 0 && <span className={styles.note}>Chưa có chỉ số nào có tài liệu nguồn.</span>}
+        {metrics.length > 0 && <table className={styles.mTable} data-testid="metrics-table">
+          <thead>
+            <tr><th scope="col">Chỉ số</th><th scope="col">Giá trị và nguồn</th><th scope="col">Ngưỡng chính sách</th></tr>
+          </thead>
+          <tbody>
+            {metrics.map((m) => (
+              <tr key={m.code} data-testid={`metric-row-${m.code}`}>
+                <td><b>{m.label}</b></td>
+                <td>
+                  {m.values.map((v) => <ValueCell key={v.kind} loanId={loanId} metric={m} v={v} />)}
+                  {m.chosen && (
+                    <span className={styles.src}>
+                      Đã chốt: {m.chosen.resolved_by_name ?? '—'}{m.chosen.reason ? ` — ${m.chosen.reason}` : ''}
+                    </span>
+                  )}
+                  {m.conflict_id && !m.chosen && <StatusPill tone="warn">Mâu thuẫn chưa chốt · <Link to={`/doi-chieu/${loanId}`}>Đối chiếu tài liệu</Link></StatusPill>}
+                </td>
+                <td className={styles.num}>{m.threshold ? `${m.threshold.op === '>=' ? '≥' : '≤'} ${fmtNum(m.threshold.value, m.unit)}` : 'Không có ngưỡng trong chính sách'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>}
+      </div>
     </section>
   );
 }

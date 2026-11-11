@@ -15,11 +15,13 @@ export function PreDisbursementPanel({ loanId, status, decisionConditions }: { l
   const fromDecision = (decisionConditions ?? []).filter(Boolean);
   const fromAgents = (caseQ.data?.package?.conditions ?? []).filter((c) => !fromDecision.includes(c));
   return (
-    <div className={styles.section} data-testid="pre-disbursement">
-      <b>Điều kiện trước giải ngân</b>
-      {fromDecision.length === 0 && fromAgents.length === 0 && <span className={styles.note}>Không có điều kiện nào được ghi nhận.</span>}
-      {fromDecision.map((c) => <span key={`d-${c}`} data-testid="pre-disbursement-decision">Từ quyết định: {c}</span>)}
-      {fromAgents.map((c) => <span key={`a-${c}`} data-testid="pre-disbursement-agent">Từ đội agent: {c}</span>)}
-    </div>
+    <section className={styles.card} data-testid="pre-disbursement" aria-label="Điều kiện trước giải ngân">
+      <div className={styles.cardH}><h2>Điều kiện trước giải ngân</h2></div>
+      <div className={styles.cardB}>
+        {fromDecision.length === 0 && fromAgents.length === 0 && <span className={styles.note}>Không có điều kiện nào được ghi nhận.</span>}
+        {fromDecision.map((c) => <span key={`d-${c}`} data-testid="pre-disbursement-decision">Từ quyết định: {c}</span>)}
+        {fromAgents.map((c) => <span key={`a-${c}`} data-testid="pre-disbursement-agent">Từ đội agent: {c}</span>)}
+      </div>
+    </section>
   );
 }

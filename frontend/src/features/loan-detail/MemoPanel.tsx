@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Alert, Button, Input, Skeleton, Tag, Typography } from 'antd';
+import { Alert, Button, Input, Skeleton, Typography } from 'antd';
+import { ActionButton, AiTag, HumanBlock, StatusPill } from '@/components/ui';
 import { fmtDate } from './format';
 import { downloadMemoPdf } from './loanDetailService';
 import type { AiBlock, MemoSections } from './types';
@@ -15,13 +16,13 @@ function ReadSections({ titles, sections }: { titles: Record<string, string>; se
       {NOS.map((n) => {
         const s = sections[n];
         return (
-          <div key={n} className={styles.section} data-testid={`memo-read-${n}`}>
+          <div key={n} className={styles.memoSec} data-testid={`memo-read-${n}`}>
             <b>{n}. {titles[n]}</b>
             <div className={styles.readText}>{s?.body?.trim() || <span className={styles.note}>(để trống)</span>}</div>
             {(s?.ai_blocks ?? []).map((b) => (
-              <div key={b.id} className={`${styles.aiBlock} ${styles.aiBlockDone}`}>
+              <div key={b.id} className={`${styles.aiInline} ${styles.aiInlineDone}`}>
                 <span className={styles.readText}>{b.text}</span>
-                <span className={styles.note}>Nội dung AI đề xuất, đã được người xác nhận</span>
+                <span className={styles.note}><AiTag>AI đề xuất</AiTag> Đã được người xác nhận</span>
               </div>
             ))}
           </div>
@@ -35,14 +36,14 @@ function AiBlockView({ b, canDecide, onDecide }: { b: AiBlock; canDecide: boolea
   if (b.state === 'REJECTED') return null;
   const pending = b.state === 'PENDING';
   return (
-    <div className={`${styles.aiBlock} ${pending ? '' : styles.aiBlockDone}`} data-testid={`ai-block-${b.state}`}>
-      <Tag color={pending ? 'warning' : 'success'}>{pending ? 'AI đề xuất – chờ xác nhận (chưa vào bản trình)' : 'AI đề xuất – đã xác nhận'}</Tag>
+    <div className={`${styles.aiInline} ${pending ? '' : styles.aiInlineDone}`} data-testid={`ai-block-${b.state}`}>
+      <span><AiTag>AI đề xuất</AiTag> <StatusPill tone={pending ? 'warn' : 'ok'}>{pending ? 'Chờ xác nhận (chưa vào bản trình)' : 'Đã xác nhận'}</StatusPill></span>
       <span className={styles.readText}>{b.text}</span>
       {b.source_ref && <span className={styles.note}>Nguồn: {b.source_ref}</span>}
       {pending && canDecide && (
         <div>
-          <Button size="small" type="primary" onClick={() => onDecide('CONFIRM')}>Xác nhận</Button>{' '}
-          <Button size="small" onClick={() => onDecide('REJECT')}>Bỏ đề xuất</Button>
+          <ActionButton size="small" variant="primary" onClick={() => onDecide('CONFIRM')}>Xác nhận</ActionButton>{' '}
+          <ActionButton size="small" onClick={() => onDecide('REJECT')}>Bỏ đề xuất</ActionButton>
         </div>
       )}
     </div>
@@ -77,9 +78,9 @@ export function MemoPanel({ loanId }: { loanId: string }) {
   const editing = view.editable && view.draft;
 
   return (
-    <section id="to-trinh" className={styles.panel} aria-label="Tờ trình thẩm định">
-      <h2>Tờ trình thẩm định</h2>
-      <PdfButton loanId={loanId} revision={view.finalized?.revision ?? null} />
+    <section id="to-trinh" className={styles.card} aria-label="Tờ trình thẩm định">
+      <div className={styles.cardH}><h2>Tờ trình thẩm định</h2><span className={styles.r}><PdfButton loanId={loanId} revision={view.finalized?.revision ?? null} /></span></div>
+      <div className={styles.cardB}>
       {editing && view.draft ? (
         <>
           <Typography.Text type="secondary" role="status" data-testid="memo-save-status">
@@ -92,8 +93,8 @@ export function MemoPanel({ loanId }: { loanId: string }) {
               action={<Button onClick={() => void m.reload()}>Tải bản mới nhất</Button>} />
           )}
           {NOS.map((n) => (
-            <div key={n} className={styles.section}>
-              <label htmlFor={`memo-${n}`}><b>{n}. {view.titles[n]}</b> {view.progress?.[n] ? <Tag color="success">Đã điền</Tag> : <Tag>Chưa điền</Tag>}</label>
+            <div key={n} className={styles.memoSec}>
+              <label htmlFor={`memo-${n}`}><b>{n}. {view.titles[n]}</b> {view.progress?.[n] ? <StatusPill tone="ok">Đã điền</StatusPill> : <StatusPill>Chưa điền</StatusPill>}</label>
               <Input.TextArea id={`memo-${n}`} autoSize={{ minRows: 2, maxRows: 10 }} value={m.bodies[n] ?? ''}
                 onChange={(e) => m.change(n, e.target.value)} onBlur={() => void m.saveNow()} />
               {(view.draft?.sections[n]?.ai_blocks ?? []).map((b) => (
@@ -104,14 +105,15 @@ export function MemoPanel({ loanId }: { loanId: string }) {
         </>
       ) : view.finalized ? (
         <>
-          <Alert type="info" showIcon
-            message={"Bản đã chốt lúc trình"}
-            description={`${view.finalized.finalized_by_name} chốt ngày ${fmtDate(view.finalized.finalized_at)}. Nội dung không sửa được; chỉ gồm phần người viết và phần AI đã được xác nhận.`} />
-          <ReadSections titles={view.titles} sections={view.finalized.sections} />
+          <HumanBlock tag="Bản đã chốt" title="Bản đã chốt lúc trình">
+            <p className={styles.note} style={{ margin: 0 }}>{`${view.finalized.finalized_by_name} chốt ngày ${fmtDate(view.finalized.finalized_at)}. Nội dung không sửa được; chỉ gồm phần người viết và phần AI đã được xác nhận.`}</p>
+            <ReadSections titles={view.titles} sections={view.finalized.sections} />
+          </HumanBlock>
         </>
       ) : (
         <span className={styles.note}>Tờ trình chưa được trình.</span>
       )}
+      </div>
     </section>
   );
 }

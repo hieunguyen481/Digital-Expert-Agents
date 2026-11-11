@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { HumanBlock } from '@/components/ui';
 import { CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { BLOCKERS } from './ActionsPanel';
 import { goTo } from './LoanHeader';
@@ -25,21 +26,23 @@ export function buildTodos(overview: LoanOverview, state: CaseActionState | unde
 
 export function TodoPanel({ items, ready }: { items: TodoItem[]; ready: boolean }) {
   return (
-    <section id="viec-can-lam" className={`${styles.panel} ${styles.todo}`} aria-label="Việc cần làm" data-testid="todo-panel">
-      <h2>Việc cần làm {ready && items.length > 0 && <span className={styles.count}>{items.length}</span>}</h2>
-      {ready && items.length === 0 && <span className={styles.okLine}><CheckCircleOutlined /> Không còn điều kiện nào đang chặn ở bước này.</span>}
-      {items.length > 0 && (
-        <ul className={styles.todoList}>
-          {items.map((t) => (
-            <li key={t.key}>
-              <ExclamationCircleOutlined />
-              <span>{t.text}</span>
-              {t.to && <Link to={t.to}>Mở</Link>}
-              {t.anchor && <a href={`#${t.anchor}`} onClick={(e) => { e.preventDefault(); goTo(t.anchor!); }}>Đi tới</a>}
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+    <div id="viec-can-lam" aria-label="Việc cần làm" data-testid="todo-panel">
+      <HumanBlock tag="Việc của bạn" title={<>Việc cần làm {ready && items.length > 0 && <span className={styles.count}>{items.length}</span>}</>}>
+        {ready && items.length === 0 && <span className={styles.ok}><CheckCircleOutlined /> Không còn điều kiện nào đang chặn ở bước này.</span>}
+        {!ready && <span className={styles.note}>Đang kiểm tra điều kiện…</span>}
+        {items.length > 0 && (
+          <ul className={styles.todoList}>
+            {items.map((t) => (
+              <li key={t.key}>
+                <ExclamationCircleOutlined />
+                <span>{t.text}</span>
+                {t.to && <Link to={t.to}>Mở</Link>}
+                {t.anchor && <a href={`#${t.anchor}`} onClick={(e) => { e.preventDefault(); goTo(t.anchor!); }}>Đi tới</a>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </HumanBlock>
+    </div>
   );
 }

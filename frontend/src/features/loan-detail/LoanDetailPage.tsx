@@ -8,7 +8,7 @@ import { AgentTeamPanel } from './AgentTeamPanel';
 import { ActionsPanel } from './ActionsPanel';
 import { CollateralPanel, FlagsPanel, TimelinePanel } from './InfoPanels';
 import { MemoPanel } from './MemoPanel';
-import { MetricsPanel } from './MetricsPanel';
+import { KpiStrip, MetricsPanel } from './MetricsPanel';
 import { fetchOverview } from './loanDetailService';
 import { LoanHeader } from './LoanHeader';
 import { TodoPanel, buildTodos } from './TodoPanel';
@@ -29,7 +29,7 @@ export default function LoanDetailPage() {
   return (
     <>
       <LoanHeader overview={q.data} todoCount={todos.length} />
-      <div className={`${styles.page} ${styles.wrap}`}>
+      <div className={styles.page}>
         {supplement_request && (
           <Alert type="warning" showIcon data-testid="supplement-request" message={supplement_request.kind === 'RETURNED' ? 'Hồ sơ bị trả lại, cần chỉnh sửa' : 'Hồ sơ đang chờ bổ sung'}
             description={<>
@@ -38,18 +38,23 @@ export default function LoanDetailPage() {
               <Link to={`/doi-chieu/${loanId}`}>Tải tài liệu bổ sung</Link>
             </>} />
         )}
-        <TodoPanel items={todos} ready={!!actions.data} />
-        <AgentTeamPanel loanId={loanId} currency={loan.currency} />
-        <MetricsPanel loanId={loanId} metrics={metrics} />
         <div className={styles.grid}>
-          <FlagsPanel flags={flags} />
-          <TimelinePanel steps={timeline} />
+          <div className={styles.stack}>
+            <AgentTeamPanel loanId={loanId} currency={loan.currency} />
+            <KpiStrip amountBillion={Number(loan.requested_amount) / 1e9} currency={loan.currency} termMonths={loan.requested_term_months ?? null} metrics={metrics} />
+            <MetricsPanel loanId={loanId} metrics={metrics} />
+            <FlagsPanel flags={flags} />
+            <PreDisbursementPanel loanId={loanId} status={loan.status} decisionConditions={loan.conditions} />
+            <MemoPanel key={loan.status} loanId={loanId} />
+            <CollateralPanel items={collaterals} />
+          </div>
+          <aside className={styles.stack} aria-label="Việc và hành động">
+            <TodoPanel items={todos} ready={!!actions.data} />
+            <ActionsPanel loanId={loanId} overview={q.data} />
+            <ReassignControl loanId={loanId} />
+            <TimelinePanel steps={timeline} />
+          </aside>
         </div>
-        <PreDisbursementPanel loanId={loanId} status={loan.status} decisionConditions={loan.conditions} />
-        <MemoPanel key={loan.status} loanId={loanId} />
-        <CollateralPanel items={collaterals} />
-        <ReassignControl loanId={loanId} />
-        <ActionsPanel loanId={loanId} overview={q.data} />
       </div>
     </>
   );

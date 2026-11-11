@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Alert, Button, Input, Tag } from 'antd';
+import { AiTag, StatusPill, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
 import { normalizeError } from '@/services/apiClient';
@@ -18,7 +19,7 @@ const ROLES: Record<ProposalKind, string[]> = {
   request_documents: ['credit_appraiser'],
   add_disbursement_condition: ['credit_appraiser', 'loan_approver'],
 };
-const STATUS_TAG = { PROPOSED: ['gold', 'Chờ người xác nhận'], CONFIRMED: ['green', 'Đã xác nhận và thực hiện'], DISMISSED: ['default', 'Đã bỏ'] } as const;
+const STATUS_TAG: Record<string, [PillTone, string]> = { PROPOSED: ['warn', 'Chờ người xác nhận'], CONFIRMED: ['ok', 'Đã xác nhận và thực hiện'], DISMISSED: ['neutral', 'Đã bỏ'] };
 
 /** Đề xuất hành động ghi của đội agent. AI chỉ đề xuất; người có thẩm quyền xác nhận hoặc bỏ, kèm lý do. */
 export function ActionProposals({ caseId, loanId }: { caseId: string; loanId: string }) {
@@ -30,8 +31,9 @@ export function ActionProposals({ caseId, loanId }: { caseId: string; loanId: st
   if (q.isError) return <Alert type="error" showIcon message="Không tải được đề xuất hành động" description={normalizeError(q.error).message} />;
   if (!q.data || q.data.length === 0) return null;
   return (
-    <section aria-label="Đề xuất hành động" data-testid="action-proposals" style={{ marginTop: 12 }}>
-      <h3 style={{ margin: '0 0 6px' }}>Đề xuất hành động của đội agent</h3>
+    <section aria-label="Đề xuất hành động" data-testid="action-proposals" style={{ display: 'grid', gap: 'var(--s3)' }}>
+      <h3 style={{ margin: 0, font: '600 var(--fs-13)/1.4 var(--font-body)' }}>Đề xuất hành động của đội agent</h3>
+      <span style={{ fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>AI chỉ đề xuất. Chưa xác nhận thì chưa có thay đổi nào được ghi vào hồ sơ.</span>
       {q.data.map((p) => <ProposalCard key={p.id} proposal={p} caseId={caseId} loanId={loanId} />)}
     </section>
   );
@@ -56,35 +58,35 @@ function ProposalCard({ proposal: p, caseId, loanId }: { proposal: ActionProposa
   const docs = (p.params.documents as string[] | undefined) ?? [];
   return (
     <div data-testid="action-proposal" data-kind={p.kind} data-status={p.status}
-      style={{ border: '1px solid #d9d9d9', borderRadius: 6, padding: 10, marginBottom: 8 }}>
-      <div><Tag color="purple">{KIND_LABEL[p.kind]}</Tag><Tag color={color}>{label}</Tag><b>{p.title}</b></div>
-      <div style={{ fontSize: 13, marginTop: 4 }}>Căn cứ: {p.rationale}</div>
-      {docs.length > 0 && <ul style={{ margin: '4px 0', paddingLeft: 18, fontSize: 13 }}>{docs.map((d) => <li key={d}>{d}</li>)}</ul>}
+      style={{ background: 'var(--surface)', border: '1px solid var(--rule-strong)', borderRadius: 'var(--r-md)', padding: 'var(--s3) var(--s4)', display: 'grid', gap: 'var(--s2)' }}>
+      <div style={{ display: 'flex', gap: 'var(--s2)', alignItems: 'center', flexWrap: 'wrap' }}><AiTag>{KIND_LABEL[p.kind]}</AiTag><StatusPill tone={color}>{label}</StatusPill><b>{p.title}</b></div>
+      <div style={{ fontSize: 'var(--fs-13)' }}>Căn cứ: {p.rationale}</div>
+      {docs.length > 0 && <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-13)' }}>{docs.map((d) => <li key={d}>{d}</li>)}</ul>}
       {p.evidence.length > 0 && (
-        <ul style={{ margin: '4px 0', paddingLeft: 18, fontSize: 12, color: '#595959' }}>
+        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>
           {p.evidence.map((e, i) => <li key={i}><code>{e.source}</code> {e.quote}</li>)}
         </ul>
       )}
-      {p.status !== 'PROPOSED' && p.decided_reason && <div style={{ fontSize: 12 }}>Lý do của người xử lý: {p.decided_reason}</div>}
+      {p.status !== 'PROPOSED' && p.decided_reason && <div style={{ fontSize: 'var(--fs-12)' }}>Lý do của người xử lý: {p.decided_reason}</div>}
       {p.status === 'PROPOSED' && p.result && (p.result as { message?: string }).message && (
         <Alert type="warning" showIcon style={{ marginTop: 6 }} data-testid="proposal-refused"
           message={`Lần xác nhận trước bị từ chối: ${(p.result as { message?: string }).message}`} />
       )}
       {p.status === 'PROPOSED' && !canAct && (
-        <div style={{ fontSize: 12, marginTop: 4 }} data-testid="proposal-locked">Chỉ người đúng vai trò mới xác nhận hoặc bỏ được đề xuất này.</div>
+        <div style={{ fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }} data-testid="proposal-locked">Chỉ người đúng vai trò mới xác nhận hoặc bỏ được đề xuất này.</div>
       )}
       {p.status === 'PROPOSED' && canAct && mode === null && (
-        <div style={{ marginTop: 6, display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--s2)' }}>
           <Button type="primary" size="small" data-testid="proposal-confirm" onClick={() => setMode('confirm')}>Xác nhận</Button>
           <Button size="small" data-testid="proposal-dismiss" onClick={() => setMode('dismiss')}>Bỏ đề xuất</Button>
         </div>
       )}
       {mode && (
-        <div style={{ marginTop: 6 }}>
+        <div style={{ display: 'grid', gap: 'var(--s2)' }}>
           <Input.TextArea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} data-testid="proposal-reason"
             placeholder={mode === 'confirm' ? 'Lý do xác nhận (tối thiểu 5 ký tự)' : 'Lý do bỏ (tối thiểu 5 ký tự)'} />
           {act.isError && <Alert type="error" showIcon style={{ marginTop: 6 }} data-testid="proposal-error" message={normalizeError(act.error).message} />}
-          <div style={{ marginTop: 6, display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 'var(--s2)' }}>
             <Button type="primary" size="small" data-testid="proposal-submit" loading={act.isPending}
               disabled={reason.trim().length < 5} onClick={() => act.mutate(mode)}>
               {mode === 'confirm' ? 'Xác nhận và thực hiện' : 'Bỏ đề xuất'}
