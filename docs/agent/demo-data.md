@@ -6,13 +6,13 @@
 infra/scripts/reset-demo.sh      # DEMO_PROJECT=<tên compose> nếu stack không phải bank-ai-workbench
 ```
 
-Muốn hồ sơ cảnh 1 và hồ sơ cảnh 5 (màn của Cấp phê duyệt) có sẵn kết luận AI, cờ và Validation ngay khi mở (không phải bấm chạy), thêm `--warm`:
+Muốn hồ sơ cảnh 1 có sẵn kết luận AI, cờ và Validation ngay khi mở (không phải bấm chạy), thêm `--warm`:
 
 ```bash
 infra/scripts/reset-demo.sh --warm      # WARM_TIMEOUT=<giây> (mặc định 420); cần engine và LLM đang chạy
 ```
 
-`--warm` sau khi nạp seed đăng nhập `appraiser@example.local`, gọi API `POST /loan-applications/{id}/agent-runs` của HSV-2026-00187 (VinaNova, cảnh 1) rồi chờ ca vào trạng thái kết thúc. Sau đó đăng nhập `credit.manager@example.local` (Trưởng phòng, được chạy ở bước Phê duyệt theo `ROLE_STATUSES`) và làm tương tự cho HSV-2026-00163 (cảnh 5), để người quyết định mở hồ sơ là thấy kết luận, cờ và chỉ số có nguồn. Đó là hai lượt chạy đội agent thật (tốn token LLM, 1–3 phút mỗi lượt), không chèn dữ liệu agent giả vào seed; lệnh thoát khác 0 nếu ca không kết thúc kịp. Cảnh 1 và 5 ở bảng dưới sau đó đã có lượt chạy: e2e `demo-scenes` bấm chạy thêm sẽ tạo lượt thứ hai (API giữ lượt cũ).
+`--warm` sau khi nạp seed đăng nhập `appraiser@example.local`, gọi API `POST /loan-applications/{id}/agent-runs` của HSV-2026-00187 (VinaNova, cảnh 1) rồi chờ ca vào trạng thái kết thúc. Đây là một lượt chạy đội agent thật (tốn token LLM, 1–3 phút), không chèn dữ liệu agent giả vào seed; lệnh thoát khác 0 nếu ca không kết thúc kịp. Cảnh 1 ở bảng dưới sau đó đã có lượt chạy: e2e `demo-scenes` bấm chạy thêm sẽ tạo lượt thứ hai (API giữ lượt cũ).
 
 Khi chạy e2e, bọc trong `flock /tmp/do-an-e2e.lock`. Đừng chạy lúc có ca agent đang chạy (đang ghi sự kiện vào ca bị dọn).
 Seed phát sinh lại thông báo bằng trigger, kèm dòng outbox email `PENDING`; lệnh đặt lại đánh dấu các dòng sinh từ lúc chạy lệnh là `FAILED` (`last_error = 'demo-reset: khong gui'`) để worker email không gửi dồn ra hộp thư thật.
@@ -35,3 +35,6 @@ Ghi chú:
 - HSV-2026-00192 (Trường An) KHÔNG dùng cho cảnh phê duyệt: engine ra `Needs Info` (LTV 214% so với tài sản 30 tỷ, thiếu BCTC kiểm toán).
 - Hồ sơ cấp 2 do `giamdoc` mở thì thấy nút Quyết định nhưng ghi bị 500 (vi phạm RLS `loan_decision`) thay vì 403; dùng `pheduyet`.
 - Hồ sơ `HSV-2026-09xxx` là mẫu benchmark, không dùng để demo.
+
+
+Hồ sơ cảnh 5 (HSV-2026-00163, bước Phê duyệt) KHÔNG warm được: vai được chạy ở bước Phê duyệt theo `ROLE_STATUSES` là Trưởng phòng, nhưng RLS `loan_agent_run_insert_policy` (`can_write_loan`) chỉ cho người đang giữ bước ghi lượt chạy, nên API trả 403 "Chỉ người đang giữ bước xử lý…". Vì vậy khối AI của hồ sơ này ghi rõ "Hồ sơ này trình trước khi có đội agent".

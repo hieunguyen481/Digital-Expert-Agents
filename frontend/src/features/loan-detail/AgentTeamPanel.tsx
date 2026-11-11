@@ -36,7 +36,7 @@ const TASK_LABEL = { waiting: 'Chờ', running: 'Đang chạy', done: 'Xong', er
 export const AGENT_RUN_TIMEOUT_MS = 5 * 60_000;
 
 /** Đội agent trên hồ sơ thật: chạy, theo dõi qua SSE, xem đề xuất. AI chỉ đề xuất; người có thẩm quyền quyết định. */
-export function AgentTeamPanel({ loanId, currency }: { loanId: string; currency: string }) {
+export function AgentTeamPanel({ loanId, currency, status }: { loanId: string; currency: string; status?: string }) {
   const qc = useQueryClient();
   const runsQ = useQuery({ queryKey: ['loan-agent-runs', loanId], queryFn: () => fetchAgentRuns(loanId) });
   const run = useMutation({
@@ -90,7 +90,9 @@ export function AgentTeamPanel({ loanId, currency }: { loanId: string; currency:
           )}
           {data && !latest && (
             <span className={styles.note} data-testid="agent-team-empty">
-              Chưa chạy đội agent trên hồ sơ này.
+              {status && ['APPROVAL', 'COMMITTEE', 'COUNCIL_SESSION'].includes(status)
+                ? 'Hồ sơ này trình trước khi có đội agent nên chưa có kết luận AI. Người quyết định xem chỉ số và tài liệu bên dưới.'
+                : 'Chưa chạy đội agent trên hồ sơ này.'}
             </span>
           )}
           {overdue && (

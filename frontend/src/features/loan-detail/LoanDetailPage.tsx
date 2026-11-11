@@ -41,7 +41,7 @@ export default function LoanDetailPage() {
         )}
         <div className={styles.grid}>
           <div className={styles.stack}>
-            <AgentTeamPanel loanId={loanId} currency={loan.currency} />
+            <AgentTeamPanel loanId={loanId} currency={loan.currency} status={loan.status} />
             <KpiStrip amountBillion={Number(loan.requested_amount) / 1e9} currency={loan.currency} termMonths={loan.requested_term_months ?? null} metrics={metrics} />
             <MetricsPanel loanId={loanId} metrics={metrics} />
             <FlagsPanel flags={flags} />
