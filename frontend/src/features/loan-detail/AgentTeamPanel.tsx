@@ -126,6 +126,15 @@ export function softCaps(t: string): string {
   return low.charAt(0).toUpperCase() + low.slice(1) + t.slice(m[1].length);
 }
 
+/** Tiêu đề kết luận chỉ là nhãn đề xuất: cắt trước phần điều kiện (đã có danh sách bên dưới), bỏ dấu câu thừa. */
+export function conclusionHeadline(t: string): string {
+  const head = t.split(/\s*(?:Điều kiện chính\s*:|—\s*lưu ý)/i)[0];
+  return softCaps(head.replace(/[\s.;:,]+$/, '').trim());
+}
+
+/** Một ý điều kiện: bỏ tiền tố "Điều kiện:", dấu câu đầu/cuối thừa. */
+export const cleanCondition = (x: string): string => x.replace(/^[\s—–-]*(?:Điều kiện:\s*)?/i, '').replace(/[\s.;:,]+$/, '').replace(/\.{2,}/g, '.');
+
 const fmtClock = (ms: number) => {
   const t = Math.max(0, Math.floor(ms / 1000));
   return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
@@ -209,12 +218,12 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
       )}
       {(pkg?.recommendation || pkg?.proposed_limit != null) && (
         <div className={styles.stackTight} data-testid="agent-recommendation">
-          {pkg?.recommendation && <p className={styles.concl}>{softCaps(pkg.recommendation)}</p>}
+          {pkg?.recommendation && <p className={styles.concl}>{conclusionHeadline(pkg.recommendation)}</p>}
           {pkg?.proposed_limit != null && <span>Hạn mức đề xuất: <b className={styles.num}>{fmtMoney(String(pkg.proposed_limit), currency)}</b></span>}
           {pkg?.required_approver_level && <span className={styles.note}>Cấp phê duyệt đề xuất: {approverLevelLabel(pkg.required_approver_level)}</span>}
           {!!pkg?.conditions?.length && (
             <div><b className={styles.sub}>Yêu cầu bổ sung và điều kiện đội agent đề xuất</b>
-              <ul className={styles.condOl}>{pkg.conditions.map((x) => <li key={x}>{x.replace(/^Điều kiện:\s*/i, '')}</li>)}</ul></div>
+              <ul className={styles.condOl}>{pkg.conditions.map((x) => <li key={x}>{cleanCondition(x)}</li>)}</ul></div>
           )}
           <span className={styles.note}>Đề xuất của đội agent chưa có hiệu lực.</span>
         </div>
@@ -224,7 +233,7 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
       )}
       {verdicts.length > 0 && (
         <div className={styles.stackTight} data-testid="agent-findings">
-          <b className={styles.sub}>Phát hiện của từng chuyên gia ({findings.length} cần chú ý)</b>
+          <b className={styles.sub}>{finished ? `Phát hiện của từng chuyên gia (${findings.length} cần chú ý)` : `${verdicts.length}/4 chuyên gia đã xong`}</b>
           {verdicts.map((v, i) => (
             <span key={`${v.agent}-${i}`} className={styles.finding}>
               {findings.includes(v) ? <FlagMark level={level(v)}>{DECISION_LABEL[v.decision] ?? v.decision}</FlagMark> : <StatusPill tone="ok">{DECISION_LABEL[v.decision] ?? v.decision}</StatusPill>}

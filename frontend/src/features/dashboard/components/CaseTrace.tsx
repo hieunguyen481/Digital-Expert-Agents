@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { conclusionHeadline } from '@/features/loan-detail/AgentTeamPanel';
 import { Drawer, Skeleton } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { TERMINAL_STATES, getAgentCase, getAgentCaseEvents, getApproverNames, streamAgentCase, type AgentCaseEvent } from '@/services/agentCaseService';
@@ -306,7 +307,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         <h3>Quyết định của người duyệt và hành động thật</h3>
         {pkg?.recommendation && (
           <div className={styles.dec}>
-            <span>Đề xuất của đội agent</span><AiTag /><b>{pkg.recommendation}</b>
+            <span>Đề xuất của đội agent</span><AiTag /><b>{conclusionHeadline(pkg.recommendation)}</b>
             {pkg.proposed_limit != null && <span>, hạn mức {fmtInt(pkg.proposed_limit)} VND</span>}
             {pkg.required_approver_level && <span>, cấp xác nhận: {approverLevelLabel(pkg.required_approver_level)}</span>}
           </div>

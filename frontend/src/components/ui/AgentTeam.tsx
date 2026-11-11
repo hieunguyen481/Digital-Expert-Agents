@@ -33,7 +33,7 @@ export interface AgentTeamProps {
   human?: false | { who: string; note?: string };
 }
 
-const fmtSec = (ms: number) => `${(ms / 1000).toFixed(1).replace('.', ',')} giây`;
+const fmtSec = (ms: number) => (ms < 50 ? 'dưới 0,1 giây' : `${(ms / 1000).toFixed(1).replace('.', ',')} giây`);
 const ARIA =
   'Đội agent: Planner giao việc cho Credit, Compliance, Operations và Document chạy song song, Validation kiểm chứng, rồi chuyển người quyết định';
 const norm = (s: AgentState) => (s === 'to' ? 'err' : s);

@@ -15,7 +15,13 @@ export const fmtUsd = (n: number, digits = 4): string => `${fmtDec(n, digits)} U
 
 export const fmtVnd = (n: number): string => `${fmtInt(n)} VND`;
 
-export const fmtSec = (s: number): string => (s < 60 ? `${fmtDec(s, 1)} giây` : `${fmtDec(s / 60, 1)} phút`);
+export const fmtSec = (s: number): string => {
+  if (s < 0.05) return 'dưới 0,1 giây';
+  if (s < 60) return `${fmtDec(s, 1)} giây`;
+  const m = Math.floor(s / 60);
+  const r = Math.round(s - m * 60);
+  return r === 60 ? `${m + 1} phút` : r === 0 ? `${m} phút` : `${m} phút ${r} giây`;
+};
 
 const toDate = (v: string | number | Date): Date => (typeof v === 'number' ? new Date(v * 1000) : new Date(v));
 

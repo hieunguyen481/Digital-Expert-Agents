@@ -16,7 +16,7 @@ import asyncio  # noqa: E402
 
 from agents.base import a2a_send, build_agent_app  # noqa: E402
 from common import config, consistency, facts as facts_mod, gate, mcp_client, rag, recompute  # noqa: E402
-from common.report import demote_unsupported, merge_verdicts  # noqa: E402
+from common.report import demote_unsupported, join_clauses, merge_verdicts  # noqa: E402
 from common.schemas import (  # noqa: E402
     AgentCard, AgentSkill, Envelope, Evidence, MessageType, Verdict, VerdictDecision,
 )
@@ -234,7 +234,7 @@ async def handle_task(env: Envelope) -> Verdict:
     # — KHÔNG thay đổi quyết định/con số, chỉ viết lời văn cho người duyệt.
     if config.opt("report"):  # báo cáo dựng xác định: bỏ lượt LLM tường thuật
         conds = report["conditions"][:3]
-        narrative = rec + (" Điều kiện chính: " + "; ".join(conds) + "." if conds else "")
+        narrative = rec.rstrip(" .;:") + ". Điều kiện chính: " + join_clauses(conds) + "." if conds else rec
     else:
         narrative = await _synthesize_narrative(rec_decision, rec, verdicts, trace)
 

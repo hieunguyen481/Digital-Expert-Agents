@@ -10,6 +10,12 @@ from . import consistency
 from .schemas import Evidence, Verdict
 
 
+def join_clauses(items: list[str], sep: str = "; ") -> str:
+    """Nối các ý thành một câu: bỏ dấu câu cuối của từng ý để không sinh ".;" hay ".." khi ghép."""
+    parts = [re.sub(r"[\s.;:,]+$", "", x.strip()) for x in items if x and x.strip()]
+    return sep.join(p for p in parts if p)
+
+
 def _key(s: str) -> str:
     return re.sub(r"\W+", " ", s.casefold()).strip()
 

@@ -87,3 +87,11 @@ describe('softCaps', () => {
     expect(softCaps('Nên cho vay')).toBe('Nên cho vay');
   });
 });
+
+describe('conclusionHeadline', () => {
+  it('chỉ giữ nhãn đề xuất, bỏ phần điều kiện và dấu câu thừa', async () => {
+    const { conclusionHeadline, cleanCondition } = await import('./AgentTeamPanel');
+    expect(conclusionHeadline('ĐỀ XUẤT PHÊ DUYỆT kèm điều kiện. Điều kiện chính: A.; B..')).toBe('Đề xuất phê duyệt kèm điều kiện');
+    expect(cleanCondition('Điều kiện: Bổ sung tờ khai..')).toBe('Bổ sung tờ khai');
+  });
+});
