@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Alert, Button, Input, Modal, Radio, Space, Typography } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
 import { ActionButton, HumanBlock, StatusPill } from '@/components/ui';
@@ -45,6 +45,7 @@ function errorText(e: unknown): string {
 export function ActionsPanel({ loanId, overview }: { loanId: string; overview: LoanOverview }) {
   const me = useMe().data;
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [dialog, setDialog] = useState<Dialog>(null);
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +92,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     totalActions += 1;
   };
   const rework = (status === 'RETURNED_TO_RM' || status === 'DRAFT') && has('credit_officer');
-  if (rework) { headNode = <Link key="rework" to={`/de-xuat-vay/${loanId}`} className={`ant-btn ant-btn-default ${styles.goldLink}`}>Sửa đề xuất</Link>; totalActions += 1; }
+  if (rework) { headNode = <ActionButton key="rework" variant="gold" onClick={() => navigate(`/de-xuat-vay/${loanId}`)}>Sửa đề xuất</ActionButton>; totalActions += 1; }
 
   if ((status === 'RETURNED_TO_RM' || status === 'APPRAISAL_PENDING_INFO') && state.supplement) {
     const sup = state.supplement;

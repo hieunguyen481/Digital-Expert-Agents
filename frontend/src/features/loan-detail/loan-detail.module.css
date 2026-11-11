@@ -17,8 +17,6 @@
 .headTitle h1 { margin: 0 !important; font: 600 30px/1.2 var(--font-display) !important; color: var(--ink) !important; }
 .headAct { flex: none; display: flex; align-items: center; gap: var(--s3); }
 .headSlot { display: contents; }
-.goldLink { display: inline-flex; align-items: center; background: var(--bronze-500) !important; border-color: var(--bronze-500) !important; color: #1B1405 !important; font-weight: 500; }
-.goldLink:hover { background: var(--bronze-700) !important; border-color: var(--bronze-700) !important; color: #fff !important; }
 .stepWrap { margin: 0 var(--s8) var(--s4); overflow-x: auto; }
 .due { margin: 0 var(--s8) var(--s3); font-size: var(--fs-13); color: var(--ink-2); }
 .toc { display: flex; flex-wrap: wrap; gap: 0 var(--s1); margin: 0 var(--s8) var(--s5); border-bottom: 1px solid var(--rule); }
