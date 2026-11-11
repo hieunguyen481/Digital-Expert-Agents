@@ -73,7 +73,7 @@ export const SECURITY_MESSAGES = {
     'Vì sự an toàn của bạn, không chia sẻ mật khẩu, mã PIN, OTP, CVV hoặc thông tin xác thực trong cuộc trò chuyện.',
   transaction: 'Trợ lý AI không trực tiếp thực hiện giao dịch trong phiên bản demo này.',
   financialAdvice:
-    'Thông tin do Trợ lý AI cung cấp mang tính tham khảo và không thay thế kết quả thẩm định hoặc tư vấn chính thức từ SHB.',
+    'Thông tin do Trợ lý AI cung cấp mang tính tham khảo và không thay thế kết quả thẩm định hoặc tư vấn chính thức từ ngân hàng.',
   composerDisclaimer:
     'Trợ lý AI có thể đưa ra thông tin chưa chính xác. Không cung cấp mật khẩu, mã PIN, OTP hoặc thông tin bảo mật trong cuộc trò chuyện.',
 } as const;
