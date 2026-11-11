@@ -1,4 +1,5 @@
-import { Alert, Button, Input, Radio, Space, Tag, Typography } from 'antd';
+import { Alert, Button, Input, Radio, Space, Typography } from 'antd';
+import { StatusPill } from '@/components/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { getErrorMessage } from '@/services/apiClient';
@@ -46,7 +47,7 @@ function ConflictCard({ loanId, conflict, canResolve, onOpenField }: Omit<Props,
     <div className={styles.item} data-testid={`conflict-${conflict.code}`}>
       <Space>
         <Typography.Text strong>{conflict.code}</Typography.Text>
-        <Tag color={done ? 'success' : 'warning'}>{done ? 'Đã chốt nguồn' : 'Chưa chốt'}</Tag>
+        <StatusPill tone={done ? 'ok' : 'warn'}>{done ? 'Đã chốt nguồn' : 'Chưa chốt'}</StatusPill>
       </Space>
       <Radio.Group
         value={chosen}

@@ -1,4 +1,5 @@
-import { Alert, Button, Space, Tag, Typography } from 'antd';
+import { Alert, Button, Space, Typography } from 'antd';
+import { StatusPill, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getErrorMessage } from '@/services/apiClient';
@@ -172,15 +173,17 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
   );
 }
 
+const TONE: Record<string, PillTone> = { purple: 'ai', orange: 'warn', green: 'ok', default: 'neutral' };
+
 function FieldCard({
   field, canConfirm, busy, error, onConfirm,
 }: { field: ReconField; canConfirm: boolean; busy: boolean; error: string | null; onConfirm: () => void }) {
   const label = fieldStatusLabel(field);
   return (
-    <div className={styles.source} data-testid="field-card">
+    <div className={`${styles.source} ${field.verification_status === 'CONFIRMED' ? styles.sourceDone : ''}`} data-testid="field-card">
       <Typography.Text strong>{fieldLabel(field.field_name)}</Typography.Text>
       <span data-testid="field-card-value">{field.value ?? '—'}</span>
-      <Tag color={label.color} style={{ width: 'fit-content' }}>{label.text}</Tag>
+      <span style={{ width: 'fit-content' }}><StatusPill tone={TONE[label.color]}>{label.text}</StatusPill></span>
       {field.source_text && <span className={styles.note}>Nguồn trích: {field.source_text}</span>}
       {field.confidence != null && <span className={styles.note}>Độ tin cậy do AI báo: {Math.round(field.confidence * 100)}%</span>}
       {needsHuman(field) && canConfirm && (

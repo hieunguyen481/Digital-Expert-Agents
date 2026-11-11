@@ -1,6 +1,7 @@
 import { Alert, Skeleton, Table } from 'antd';
 import { Link } from 'react-router-dom';
 import { RequireRole } from '@/auth/RequireRole';
+import { StateBlock, StatusPill, ledgerTable } from '@/components/ui';
 import { PageHead } from '@/features/shell/PageHead';
 import { useWorkItems } from '@/features/my-work/useWorkItems';
 import { stepLabel } from '@/features/my-work/format';
@@ -16,16 +17,19 @@ export default function ReconciliationIndexPage() {
       <PageHead title="Đối chiếu tài liệu" facts={['Chọn hồ sơ, sắp theo hạn gần nhất']} />
       <div className={styles.page}>
         {q.isError && <Alert type="error" showIcon message="Không tải được danh sách hồ sơ" />}
+        {q.data && q.data.items.length === 0 && (
+          <StateBlock kind="empty" title="Chưa có hồ sơ cần đối chiếu" description="Khi hồ sơ chuyển tới bước của bạn, hồ sơ sẽ hiện ở đây." />
+        )}
         {!q.data && !q.isError && <Skeleton active />}
-        {q.data && (
+        {q.data && q.data.items.length > 0 && (
           <Table<WorkItem>
-            rowKey="loan_application_id" pagination={false} aria-label="Hồ sơ cần đối chiếu"
+            className={ledgerTable} rowKey="loan_application_id" pagination={false} aria-label="Hồ sơ cần đối chiếu"
             dataSource={[...q.data.items].sort((a, b) => (a.due_at ?? '9').localeCompare(b.due_at ?? '9'))}
             columns={[
-              { title: 'Hồ sơ', render: (_, r) => <Link to={`/doi-chieu/${r.loan_application_id}`}>{r.application_number}</Link> },
+              { title: 'Hồ sơ', render: (_, r) => <Link className={styles.ledgerLink} to={`/doi-chieu/${r.loan_application_id}`}>{r.application_number}</Link> },
               { title: 'Khách hàng', dataIndex: 'customer_name' },
               { title: 'Bước', render: (_, r) => stepLabel(r.step_code) },
-              { title: 'Hạn', render: (_, r) => (r.due_at ? fmtDay(r.due_at) : 'Không đặt hạn') },
+              { title: 'Hạn', render: (_, r) => (r.due_at ? <StatusPill tone={r.sla_level === 'over' ? 'bad' : r.sla_level === 'today' ? 'warn' : 'neutral'}>{fmtDay(r.due_at)}</StatusPill> : <span className={styles.note}>Không đặt hạn</span>) },
             ]}
           />
         )}

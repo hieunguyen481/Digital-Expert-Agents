@@ -1,6 +1,7 @@
-import { Alert, Button, Input, Modal, Popconfirm, Space, Tag } from 'antd';
+import { Alert, Button, Input, Modal, Popconfirm, Space } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { StatusPill } from '@/components/ui';
 import { getErrorMessage } from '@/services/apiClient';
 import { checkItem, removeReconDocument } from './reconciliationService';
 import type { ReconView } from './types';
@@ -39,10 +40,10 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['reconciliation', loanId] }),
   });
   const docRow = (id: string) => (
-    <span key={id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+    <span key={id} className={styles.docRow}>
       <button type="button" className={styles.docBtn} aria-current={id === documentId} data-testid={`doc-${id}`}
         onClick={() => onOpenDocument(id)}>{titles.get(id) ?? id}</button>
-      {failedIds.has(id) && <Tag color="error">Lỗi xử lý</Tag>}
+      {failedIds.has(id) && <StatusPill tone="bad">Lỗi xử lý</StatusPill>}
       {failedIds.has(id) && canRemove && (
         <Popconfirm title="Gỡ tài liệu lỗi khỏi hồ sơ?" description="Bản gốc vẫn được lưu; tài liệu không còn tính vào checklist."
           okText="Gỡ" cancelText="Hủy" onConfirm={() => remove.mutate(id)}>
@@ -60,11 +61,11 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
         <div key={it.item_id} className={styles.item} data-testid={`item-${it.code}`}>
           <Space wrap>
             <b>{it.label ?? it.code}</b>
-            {!it.mandatory && <Tag>Có điều kiện</Tag>}
-            <Tag color={it.status === 'VALID' ? 'success' : it.status === 'REQUIRED' ? 'error' : 'warning'}>
+            {!it.mandatory && <StatusPill>Có điều kiện</StatusPill>}
+            <StatusPill tone={it.status === 'VALID' ? 'ok' : it.status === 'REQUIRED' ? 'bad' : 'warn'}>
               {STATUS_TEXT[it.status] ?? it.status}
-            </Tag>
-            {it.has_exception && <Tag color="processing">Có ngoại lệ</Tag>}
+            </StatusPill>
+            {it.has_exception && <StatusPill tone="info">Có ngoại lệ</StatusPill>}
           </Space>
           {it.document_ids.length === 0 && <span className={styles.note}>Chưa có tài liệu gắn vào</span>}
           {it.document_ids.map(docRow)}

@@ -51,7 +51,7 @@ function Workspace({ loanId }: { loanId: string }) {
               : 'Bước tiếp theo: chờ QHKH tải tài liệu lên. Bạn sẽ đối chiếu khi có tài liệu.'} />
         )}
         <div className={styles.cols}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className={styles.stack}>
             <ChecklistPanel loanId={loanId} view={view} documentId={current} onOpenDocument={openDocument} />
             <UploadPanel loanId={loanId} view={view} onUploaded={(id) => { reload(); openDocument(id); }} />
           </div>
@@ -68,7 +68,7 @@ function Workspace({ loanId }: { loanId: string }) {
           ) : (
             <section className={styles.panel}>Hồ sơ chưa có tài liệu.</section>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className={styles.stack}>
             <ConflictPanel
               loanId={loanId}
               conflicts={view.conflicts}
