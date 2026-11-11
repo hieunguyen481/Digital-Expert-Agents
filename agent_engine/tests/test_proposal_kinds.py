@@ -22,3 +22,23 @@ def test_similar_wording_collapses():
     assert not proposals.similar("Mở tài khoản thanh toán", "Định giá lại tài sản bảo đảm")
     v, rep = _approve(["Mở tài khoản thanh toán trước giải ngân", "Mở tài khoản thanh toán trước khi giải ngân"])
     assert len(proposals.derive(v, [], rep)) == 1
+
+
+def test_mandatory_and_data_items_are_requests_not_conditions_or_flags():
+    """Tài liệu bắt buộc/dữ liệu cần bổ sung dù có chữ "trước giải ngân" là yêu cầu bổ sung; mỗi nội dung một thẻ."""
+    from common import gate
+    from common.schemas import Verdict, VerdictDecision
+    v, rep = _approve([
+        "Cung cấp inflow cùng kỳ doanh thu BCTC và hồ sơ pháp lý, định giá TSĐB để xác định LTV trước giải ngân.",
+        "Bổ sung BCTC kiểm toán; bổ sung thông tin người đại diện trước giải ngân.",
+        "BCTC kiểm toán (ý kiến chấp nhận toàn phần) bắt buộc vì tổng cấp tín dụng > 20 tỷ",
+        "Bổ sung trước giải ngân (không chặn trình): người đại diện pháp luật chưa có trong hồ sơ",
+        "Mở tài khoản thanh toán trước giải ngân"])
+    flag = Verdict(agent="credit", task_id="c", decision=VerdictDecision.FLAG, summary=gate.NON_BLOCKING + "thiếu BCTC",
+                   findings=["thiếu BCTC"], evidence=[])
+    items = proposals.derive(v, [flag], rep)
+    assert not [p for p in items if p["kind"] == "add_risk_flag"]
+    docs = [d for p in items if p["kind"] == "request_documents" for d in p["params"]["documents"]]
+    assert sum("kiểm toán" in d.casefold() for d in docs) == 1
+    assert sum("người đại diện" in d.casefold() for p in items for d in proposals._texts(p)) == 1
+    assert [p["params"]["text"] for p in items if p["kind"] == "add_disbursement_condition"] == ["Mở tài khoản thanh toán trước giải ngân"]

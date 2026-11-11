@@ -81,7 +81,9 @@ def demote_unsupported(verdicts: dict[str, Verdict], verified: dict | None) -> t
     for name, v in verdicts.items():
         keep_f = [f for f in v.findings if not contradicted_by_tools(f, verified)]
         keep_c = [c for c in v.conditions if not contradicted_by_tools(c, verified)]
-        demoted += [f"({name}) {t}" for t in [*v.findings, *v.conditions] if t not in keep_f and t not in keep_c]
+        # câu bị hạ vì LỆCH SỐ không chép lại vào báo cáo (đã có dòng "Phản biện số liệu" nêu số tính lại); chỉ liệt kê câu bị hạ vì lý do khác
+        demoted += [f"({name}) {t}" for t in [*v.findings, *v.conditions]
+                    if t not in keep_f and t not in keep_c and not consistency.mismatches(t, verified)]
         summary = v.summary
         if consistency.mismatches(summary, verified):
             kept = [x for x in re.split(r"(?<=[.;])\s+", summary) if not consistency.mismatches(x, verified)]

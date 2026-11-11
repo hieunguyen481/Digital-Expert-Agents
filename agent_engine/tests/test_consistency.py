@@ -29,10 +29,20 @@ def test_mismatch_flagged_and_demoted():
     notes = consistency.check_verdicts(vs, ver)
     assert len(notes) == 2 and all("Phản biện" in n for n in notes)
     out, demoted = demote_unsupported(vs, ver)
-    assert out["credit"].findings == ["Dòng tiền ổn"] and demoted
+    assert out["credit"].findings == ["Dòng tiền ổn"] and not any("1,39" in d for d in demoted)
     assert "28" not in out["compliance"].summary
 
 
 def test_unblock_for_approval():
     assert consistency.unblock_for_approval("Chưa thể phê duyệt: cần xác nhận hồ sơ kiểm toán") == "Cần xác nhận hồ sơ kiểm toán"
     assert consistency.unblock_for_approval("Bổ sung BCTC") == "Bổ sung BCTC"
+
+
+def test_demoted_list_does_not_repeat_mismatched_number():
+    from common.report import demote_unsupported
+    from common.schemas import Verdict, VerdictDecision
+    v = Verdict(agent="credit", task_id="t", decision=VerdictDecision.FLAG, summary="ok",
+                findings=["nợ vay/EBITDA sau cấp tín dụng là 1,39 lần."])
+    verified = {"leverage": {"ratio": 1.82, "ebitda": 1e11, "debt": 1.8e11, "over": False, "max": 3.5}}
+    out, demoted = demote_unsupported({"credit": v}, verified)
+    assert out["credit"].findings == [] and not any("1,39" in d for d in demoted)

@@ -9,6 +9,9 @@ from __future__ import annotations
 from .schemas import VerdictDecision
 
 
+NON_BLOCKING = "Phần còn thiếu không chặn việc áp dụng chính sách, xử lý như điều kiện trước giải ngân: "
+
+
 def decide(facts: dict, unresolved: dict | None = None) -> tuple[VerdictDecision, str, list[str]]:
     """Trả (quyết định, lý do ngắn, danh sách căn cứ)."""
     if facts["hard_stops"]:
@@ -38,7 +41,7 @@ def reconcile_experts(verdicts: dict, rec_decision: VerdictDecision) -> tuple[di
             reason = (v.summary or "").strip()
             out[name] = v.model_copy(update={
                 "decision": VerdictDecision.FLAG,
-                "summary": "Phần còn thiếu không chặn việc áp dụng chính sách, xử lý như điều kiện trước giải ngân: " + reason,
+                "summary": NON_BLOCKING + reason,
                 "conditions": [*v.conditions, *([reason] if reason and reason not in v.conditions else [])]})
             notes.append(f"{name}: từ 'Cần thêm thông tin' thành 'Đồng ý có điều kiện' vì dữ kiện công cụ không có thiếu hụt chặn")
     return out, notes
