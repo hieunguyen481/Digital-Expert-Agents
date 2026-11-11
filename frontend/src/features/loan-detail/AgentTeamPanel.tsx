@@ -99,14 +99,15 @@ export function AgentTeamPanel({ loanId, currency }: { loanId: string; currency:
               description="Đội agent có thể đang xử lý chậm hoặc đã dừng giữa chừng. Bấm cập nhật để kiểm tra lại; nếu engine ngừng cập nhật, hệ thống tự mở khóa để chạy lại sau 20 phút kể từ cập nhật cuối."
               action={<Button size="small" onClick={() => void latestCaseQ.refetch()}>Cập nhật trạng thái</Button>} />
           )}
-          {latest && <RunBody key={latest.case_id} caseId={latest.case_id} currency={currency} decider={decider} />}
+          {latest && <RunBody key={latest.case_id} caseId={latest.case_id} currency={currency} decider={decider} startedAt={latest.created_at}
+            retry={data?.can_run && !inProgress ? () => run.mutate() : undefined} retrying={run.isPending} />}
           {latest && <ActionProposals caseId={latest.case_id} loanId={loanId} />}
           {data && data.runs.length > 1 && (
             <div className={styles.stackTight} data-testid="agent-run-history">
               <b className={styles.sub}>Các lượt trước ({data.runs.length - 1})</b>
               {data.runs.slice(1).map((r) => (
                 <span key={r.id} className={styles.note}>
-                  {fmtDate(r.created_at)} · {r.started_by_name ?? '—'} · <Link to={`/dashboard?case=${r.case_id}`}>{r.case_id}</Link>
+                  {fmtDate(r.created_at)} · {r.started_by_name ?? '—'} · <Link to={`/dashboard?case=${r.case_id}`}>Xem dấu vết</Link>
                 </span>
               ))}
             </div>
@@ -117,7 +118,13 @@ export function AgentTeamPanel({ loanId, currency }: { loanId: string; currency:
   );
 }
 
-function RunBody({ caseId, currency, decider }: { caseId: string; currency: string; decider: string }) {
+const fmtClock = (ms: number) => {
+  const t = Math.max(0, Math.floor(ms / 1000));
+  return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+};
+
+function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { caseId: string; currency: string; decider: string; startedAt: string; retry?: () => void; retrying?: boolean }) {
+  const [tick, setTick] = useState(() => Date.now());
   const qc = useQueryClient();
   const caseQ = useQuery({
     queryKey: ['agent-case', caseId], queryFn: () => getAgentCase(caseId),
@@ -130,6 +137,11 @@ function RunBody({ caseId, currency, decider }: { caseId: string; currency: stri
     refetchInterval: finishedNow ? false : 3000,
   });
   useEffect(() => { if (finishedNow) void eventsQ.refetch(); }, [finishedNow]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (finishedNow) return undefined;
+    const t = setInterval(() => setTick(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [finishedNow]);
   const [live, setLive] = useState<AgentCaseEvent[]>([]);
   const [streaming, setStreaming] = useState(false);
   const [streamError, setStreamError] = useState(false);
@@ -170,10 +182,23 @@ function RunBody({ caseId, currency, decider }: { caseId: string; currency: stri
   const findings = verdicts.filter((v) => v.decision !== 'pass' && v.decision !== 'approve');
 
   const agentSt = agentStates(plan?.tasks, states);
+  const failed = plan?.tasks.filter((t) => states[t.task_id]?.state === 'error') ?? [];
+  const okAgents = plan?.tasks.filter((t) => states[t.task_id]?.state === 'done') ?? [];
+  const startMs = Date.parse(startedAt);
   const stateTone: Record<string, PillTone> = { Completed: 'ok', Rejected: 'bad', Escalated: 'bad', 'Pending Approval': 'human', 'Needs Info': 'warn' };
   const level = (v: TraceVerdict) => (v.decision === 'reject' || v.decision === 'fail' ? 'r' : 'y') as 'r' | 'y';
   return (
     <div className={styles.run} data-testid="agent-run" data-state={c.state}>
+      {failed.length > 0 && (
+        <Alert type="error" showIcon role="alert" data-testid="agent-run-failed"
+          message={`${failed.map((t) => agentName(t.agent)).join(', ')} gặp lỗi khi chạy.`}
+          description={`${okAgents.length > 0 ? `${okAgents.map((t) => agentName(t.agent)).join(', ')} đã xong và kết quả từng phần đã lưu, còn xem được trong tab Dấu vết. ` : ''}${pkg ? '' : 'Chưa có kết luận vì Validation chưa thể kiểm chứng. '}Dữ liệu hồ sơ không bị mất. Chạy lại đội agent; nếu vẫn lỗi, kiểm tra tài liệu ở mục Đối chiếu tài liệu.`}
+          action={retry && <Button size="small" loading={retrying} onClick={retry}>Chạy lại đội agent</Button>} />
+      )}
+      {!finished && Number.isFinite(startMs) && (
+        <Alert type="info" showIcon role="status" data-testid="agent-run-elapsed"
+          message={<>Đã chạy <b className={styles.num}>{fmtClock(tick - startMs)}</b>. Thường mất vài phút. Bạn có thể rời trang, kết quả vẫn được lưu.</>} />
+      )}
       {(pkg?.recommendation || pkg?.proposed_limit != null) && (
         <div className={styles.stackTight} data-testid="agent-recommendation">
           {pkg?.recommendation && <p className={styles.concl}>{pkg.recommendation}</p>}
@@ -184,7 +209,7 @@ function RunBody({ caseId, currency, decider }: { caseId: string; currency: stri
         </div>
       )}
       {finished && !pkg && !verdicts.length && (
-        <Alert type="info" showIcon message={`Case kết thúc ở trạng thái "${stateLabel(c.state)}" và chưa có gói đề xuất.`} />
+        <Alert type="info" showIcon message={`Lượt chạy kết thúc ở trạng thái "${stateLabel(c.state)}" và chưa có gói đề xuất.`} />
       )}
       {verdicts.length > 0 && (
         <div className={styles.stackTight} data-testid="agent-findings">
@@ -203,7 +228,7 @@ function RunBody({ caseId, currency, decider }: { caseId: string; currency: stri
           {finished ? 'Đã kết thúc' : streamError ? 'Mất luồng trực tiếp, đang cập nhật định kỳ' : streaming ? '● Đang nhận cập nhật trực tiếp' : 'Đang cập nhật'}
           {` · ${events.length} sự kiện · `}
         </span>
-        <Link to={`/dashboard?case=${caseId}`} data-testid="agent-trace-link">Xem trace của case</Link>
+        <Link to={`/dashboard?case=${caseId}`} data-testid="agent-trace-link">Xem dấu vết của lượt chạy</Link>
       </div>
       <div data-testid="agent-flow">
         <AgentTeam variant="compact" states={agentSt} human={{ who: decider }} />
@@ -229,7 +254,6 @@ function RunBody({ caseId, currency, decider }: { caseId: string; currency: stri
           {sources.map((s, i) => (
             <span key={i} className={styles.note}>{agentName(s.agent)} · {sourceLabel(s.source)}: “{s.quote}”</span>
           ))}
-          <details className={styles.note}><summary>Chi tiết kỹ thuật (kiểm toán)</summary>{sources.map((s, i) => <div key={i}>{s.source}: {s.raw_quote ?? s.quote}</div>)}</details>
         </div>
       )}
       {c.state === 'Pending Approval' && <span className={styles.note}>Đang chờ người có thẩm quyền xác nhận; agent không tự phê duyệt.</span>}
