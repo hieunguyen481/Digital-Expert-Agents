@@ -6,7 +6,7 @@ const REQUEST =
 
 async function pickVinaNova(page: import('@playwright/test').Page) {
   await page.goto('/chat');
-  const box = page.getByPlaceholder(/Hỏi SH-AI/);
+  const box = page.getByPlaceholder(/Hỏi Trợ lý AI/);
   await box.fill('/VinaNova');
   await page.getByText(/VinaNova/i).first().click();
 }
@@ -15,7 +15,7 @@ test('thẩm định viên: yêu cầu phức tạp → multi-agent thật → c
   test.setTimeout(180_000);
   await loginAs(page, 'tdinh');
   await pickVinaNova(page);
-  const box = page.getByPlaceholder(/Hỏi SH-AI/);
+  const box = page.getByPlaceholder(/Hỏi Trợ lý AI/);
   await box.fill(REQUEST);
   await page.getByRole('button', { name: 'Gửi' }).click();
 
@@ -47,7 +47,7 @@ test('QHKH gửi phân tích sâu bị từ chối với thông báo dễ hiểu
   test.setTimeout(120_000);
   await loginAs(page, 'qhkh');
   await pickVinaNova(page);
-  await page.getByPlaceholder(/Hỏi SH-AI/).fill(REQUEST);
+  await page.getByPlaceholder(/Hỏi Trợ lý AI/).fill(REQUEST);
   await page.getByRole('button', { name: 'Gửi' }).click();
   await expect(page.locator('#main-content').getByText(/không có quyền thực hiện thao tác này/)).toBeVisible({ timeout: 60_000 });
   await expect(page.locator('#main-content').getByTestId('engine-panel')).toHaveCount(0);

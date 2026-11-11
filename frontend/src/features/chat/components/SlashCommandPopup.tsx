@@ -3,7 +3,6 @@ import { Avatar, Tag } from 'antd';
 import { ShopOutlined, UserOutlined } from '@ant-design/icons';
 import { motion, useReducedMotion } from 'motion/react';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { shbColors } from '@/theme/tokens';
 import { RISK_LABEL, type Customer } from '@/types/customer';
 import styles from './SlashCommandPopup.module.css';
 
@@ -85,7 +84,7 @@ export function SlashCommandPopup({
               className={styles.avatar}
               size={30}
               icon={customer.segment === 'business' ? <ShopOutlined /> : <UserOutlined />}
-              style={{ background: shbColors.navy[100], color: shbColors.navy[700] }}
+              style={{ background: 'var(--navy-100)', color: 'var(--navy-700)' }}
             />
 
             <span className={styles.body}>

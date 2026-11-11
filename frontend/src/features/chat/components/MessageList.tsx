@@ -6,7 +6,6 @@ import { AssistantMessage } from './AssistantMessage';
 import type { HighlightDocument } from './HighlightDocumentViewer';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PageError } from '@/components/common/PageError';
-import { shbColors } from '@/theme/tokens';
 import type { ChatMessage } from '@/types/chat';
 import type { LoanApplication, LoanApplicationStatus } from '@/types/customer';
 import styles from './MessageList.module.css';
@@ -101,11 +100,11 @@ export function MessageList({
               <Avatar
                 size={48}
                 icon={<MessageOutlined />}
-                style={{ background: shbColors.orange[50], color: shbColors.orange[500] }}
+                style={{ background: 'var(--bronze-100)', color: 'var(--bronze-700)' }}
               />
             }
             title="Cuộc trò chuyện này chưa có nội dung"
-            description="Hãy bắt đầu bằng một câu hỏi dành cho SH-AI."
+            description="Hãy bắt đầu bằng một câu hỏi dành cho Trợ lý AI."
           />
         </div>
       </div>

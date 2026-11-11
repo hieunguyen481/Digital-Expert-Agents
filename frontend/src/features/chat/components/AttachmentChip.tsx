@@ -12,7 +12,6 @@ import {
 import type { ComponentType } from 'react';
 import { createElement } from 'react';
 import { formatFileSize, getFileExtensionLabel } from '@/utils/formatFileSize';
-import { shbColors } from '@/theme/tokens';
 import type { ChatAttachment } from '@/types/attachment';
 import styles from './AttachmentChip.module.css';
 
@@ -63,7 +62,7 @@ export function AttachmentChip({ attachment, readOnly = false, onRemove, onRetry
               percent={attachment.progress ?? 0}
               size="small"
               showInfo={false}
-              strokeColor={shbColors.orange[500]}
+              strokeColor="var(--navy-500)"
             />
           </span>
         )}

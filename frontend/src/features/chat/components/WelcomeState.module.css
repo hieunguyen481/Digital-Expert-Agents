@@ -12,7 +12,7 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: var(--shb-chat-max-width);
+  max-width: 880px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -30,12 +30,12 @@
   font-weight: 680;
   line-height: 1.18;
   letter-spacing: -0.025em;
-  color: var(--shb-navy-800);
+  color: var(--navy-900);
 }
 
-/* Chỉ tô cam cụm "SH-AI" — điểm nhấn, không lạm dụng. */
+/* Chỉ tô đồng cụm cuối của tiêu đề — nhấn bằng màu đồng, không lạm dụng. */
 .headingAccent {
-  color: var(--shb-orange-500);
+  color: var(--bronze-500);
 }
 
 .description {
@@ -43,7 +43,7 @@
   max-width: 560px;
   font-size: 16px;
   line-height: 1.65;
-  color: var(--shb-text-secondary);
+  color: var(--ink-2);
 }
 
 .grid {

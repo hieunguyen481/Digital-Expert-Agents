@@ -6,7 +6,7 @@ const REQUEST =
 
 async function openCases(page: import('@playwright/test').Page) {
   await page.getByRole('link', { name: 'Đội agent' }).click();
-  await page.getByRole('tab', { name: /Agent traces/ }).click();
+  await page.getByRole('tab', { name: 'Dấu vết' }).click();
   // Ca trò chuyện không gắn hồ sơ là ca kiểm thử: mặc định ẩn, bật bộ lọc để thấy.
   const showTest = page.getByTestId('trace-show-test');
   if (await showTest.waitFor({ timeout: 15_000 }).then(() => true, () => false)) await showTest.click();
@@ -16,10 +16,10 @@ test('dashboard hiện đúng case vừa chạy ở /chat: DAG, task, luồng ph
   test.setTimeout(240_000);
   await loginAs(page, 'tdinh');
   await page.goto('/chat');
-  await page.getByPlaceholder(/Hỏi SH-AI/).fill('/VinaNova');
+  await page.getByPlaceholder(/Hỏi Trợ lý AI/).fill('/VinaNova');
   await page.getByText(/VinaNova/i).first().click();
   const caseResp = page.waitForResponse((r) => /\/agent-cases\/case_[0-9a-f]+$/.test(r.url()), { timeout: 120_000 });
-  await page.getByPlaceholder(/Hỏi SH-AI/).fill(REQUEST);
+  await page.getByPlaceholder(/Hỏi Trợ lý AI/).fill(REQUEST);
   await page.getByRole('button', { name: 'Gửi' }).click();
   const caseId = /(case_[0-9a-f]+)$/.exec((await caseResp).url())![1];
   // Engine llm dừng ở Chờ xác nhận hoặc Cần bổ sung/Từ chối; cả hai đều chờ người, không tự duyệt.

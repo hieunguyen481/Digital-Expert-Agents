@@ -1,10 +1,10 @@
 import { motion, useReducedMotion } from 'motion/react';
-import { SHBLogo, type SHBLogoProps } from './SHBLogo';
-import styles from './AnimatedSHBLogo.module.css';
+import { BrandLogo, type BrandLogoProps } from './BrandLogo';
+import styles from './AnimatedBrandLogo.module.css';
 
-export interface AnimatedSHBLogoProps {
-  variant?: SHBLogoProps['variant'];
-  size?: SHBLogoProps['size'];
+export interface AnimatedBrandLogoProps {
+  variant?: BrandLogoProps['variant'];
+  size?: BrandLogoProps['size'];
   animated?: boolean;
   showProductName?: boolean;
   /** Glow cam phía sau logo. */
@@ -14,12 +14,12 @@ export interface AnimatedSHBLogoProps {
 }
 
 /**
- * Logo SHB có hiệu ứng xuất hiện.
+ * Logo có hiệu ứng xuất hiện.
  *
  * Nguyên tắc thương hiệu: CHỈ animate container và lớp glow.
  * Không xoay, không bóp méo, không tách phần, không đổi màu logo.
  */
-export function AnimatedSHBLogo({
+export function AnimatedBrandLogo({
   variant = 'default',
   size = 'medium',
   animated = true,
@@ -27,7 +27,7 @@ export function AnimatedSHBLogo({
   glow = false,
   glowIntensity = 'normal',
   className,
-}: AnimatedSHBLogoProps) {
+}: AnimatedBrandLogoProps) {
   const prefersReducedMotion = useReducedMotion();
   const shouldAnimate = animated && !prefersReducedMotion;
 
@@ -50,7 +50,7 @@ export function AnimatedSHBLogo({
         />
       )}
 
-      <SHBLogo variant={variant} size={size} showProductName={showProductName} />
+      <BrandLogo variant={variant} size={size} showProductName={showProductName} />
     </motion.span>
   );
 }

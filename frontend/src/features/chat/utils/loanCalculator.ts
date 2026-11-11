@@ -3,7 +3,7 @@
  *
  * Đây là công thức niên kim (annuity) tiêu chuẩn dùng để minh hoạ giao diện.
  * Nó KHÔNG phản ánh chính sách tín dụng, biểu lãi suất hay kết quả thẩm định
- * thực tế của SHB. Khi có backend, toàn bộ phép tính phải chuyển về phía máy chủ.
+ * thực tế của ngân hàng. Khi có backend, toàn bộ phép tính phải chuyển về phía máy chủ.
  */
 
 export interface LoanEstimateInput {

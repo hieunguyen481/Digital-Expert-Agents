@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react';
-import { AnimatedSHBLogo } from '@/components/common/AnimatedSHBLogo';
+import { AnimatedBrandLogo } from '@/components/common/AnimatedBrandLogo';
 import { QuickActionCard } from '@/components/common/QuickActionCard';
-import { SHBAmbientBackground } from './SHBAmbientBackground';
+import { AmbientBackground } from './AmbientBackground';
 import { QUICK_PROMPTS } from '@/features/chat/constants/quickPrompts';
 import styles from './WelcomeState.module.css';
 
@@ -30,11 +30,11 @@ export function WelcomeState({ onSelectPrompt, staffName }: WelcomeStateProps) {
 
   return (
     <div className={styles.wrapper}>
-      <SHBAmbientBackground />
+      <AmbientBackground />
 
       <div className={styles.inner}>
         <div className={styles.logoBlock}>
-          <AnimatedSHBLogo size="large" glow glowIntensity="normal" />
+          <AnimatedBrandLogo size="large" glow glowIntensity="normal" />
         </div>
 
         <motion.h1 className={styles.heading} {...fadeUp(0.1)}>
@@ -44,7 +44,7 @@ export function WelcomeState({ onSelectPrompt, staffName }: WelcomeStateProps) {
             </>
           ) : (
             <>
-              Hệ chuyên gia số <span className={styles.headingAccent}>SH-AI</span>
+              Trợ lý AI của <span className={styles.headingAccent}>đội agent</span>
             </>
           )}
         </motion.h1>

@@ -11,7 +11,7 @@
   flex-direction: column;
   gap: 26px;
   width: 100%;
-  max-width: var(--shb-chat-max-width);
+  max-width: 880px;
   margin: 0 auto;
   padding: 26px 24px 8px;
 }
@@ -23,7 +23,7 @@
 
 .skeletonBody {
   flex: 1;
-  max-width: var(--shb-content-max-width);
+  max-width: 820px;
 }
 
 .stateWrap {

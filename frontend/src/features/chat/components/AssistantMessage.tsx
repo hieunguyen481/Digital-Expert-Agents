@@ -40,7 +40,7 @@ export interface AssistantMessageProps {
   ) => void;
 }
 
-/** Tin nhắn của SH-AI — canh trái, không bubble nặng, tối ưu cho văn bản dài. */
+/** Tin nhắn của Trợ lý AI — canh trái, không bubble nặng, tối ưu cho văn bản dài. */
 export function AssistantMessage({
   message,
   onPrompt,
@@ -99,7 +99,7 @@ export function AssistantMessage({
       </span>
 
       <div className={styles.body}>
-        <span className={styles.name}>SH-AI</span>
+        <span className={styles.name}>Trợ lý AI</span>
 
         {/*
           Agent trace đứng TRƯỚC nội dung: chuyên viên thấy hệ chuyên gia số đã

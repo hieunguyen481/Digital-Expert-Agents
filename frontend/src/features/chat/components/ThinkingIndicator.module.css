@@ -20,7 +20,7 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: var(--shb-orange-100);
+  background: var(--bronze-100);
 }
 
 .pulseCore {
@@ -31,14 +31,14 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--shb-orange-50);
-  color: var(--shb-orange-500);
+  background: var(--bronze-100);
+  color: var(--bronze-500);
   font-size: 14px;
 }
 
 .text {
   font-size: 14px;
-  color: var(--shb-text-secondary);
+  color: var(--ink-2);
   line-height: 1.5;
 }
 
@@ -53,5 +53,5 @@
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: var(--shb-orange-400);
+  background: var(--bronze-500);
 }

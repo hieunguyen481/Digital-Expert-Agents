@@ -15,7 +15,7 @@ import {
   SearchOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
-import { SHBLogo } from '@/components/common/SHBLogo';
+import { BrandLogo } from '@/components/common/BrandLogo';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PageError } from '@/components/common/PageError';
 import { filterConversations, groupConversations } from '@/features/chat/utils/groupConversations';
@@ -122,9 +122,9 @@ export function ConversationSidebar({
       <div className={styles.sider}>
         <div className={[styles.brand, styles.brandCollapsed].join(' ')}>
           {/* Không có symbol chính thức -> thu nhỏ logo đầy đủ, không tự crop. */}
-          <Tooltip title="SH-AI" placement="right">
+          <Tooltip title="Trợ lý AI" placement="right">
             <span>
-              <SHBLogo size="small" />
+              <BrandLogo size="small" />
             </span>
           </Tooltip>
         </div>
@@ -171,7 +171,7 @@ export function ConversationSidebar({
   return (
     <div className={styles.sider}>
       <div className={styles.brand}>
-        <SHBLogo size="medium" showProductName />
+        <BrandLogo size="medium" showProductName />
       </div>
 
       <div className={styles.section}>
@@ -191,7 +191,7 @@ export function ConversationSidebar({
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
           placeholder="Tìm kiếm cuộc trò chuyện"
-          prefix={<SearchOutlined style={{ color: 'var(--shb-text-muted)' }} />}
+          prefix={<SearchOutlined style={{ color: 'var(--ink-3)' }} />}
           allowClear
           aria-label="Tìm kiếm cuộc trò chuyện"
         />
@@ -214,7 +214,7 @@ export function ConversationSidebar({
             <EmptyState
               compact
               title="Chưa có cuộc trò chuyện nào"
-              description="Hãy bắt đầu bằng một câu hỏi dành cho SH-AI."
+              description="Hãy bắt đầu bằng một câu hỏi dành cho Trợ lý AI."
             />
           </div>
         ) : !hasResults ? (
@@ -296,7 +296,7 @@ export function ConversationSidebar({
           <span className={styles.supportBody}>
             <span className={styles.supportTitle}>Bạn cần hỗ trợ thêm?</span>
             <span className={styles.supportText}>
-              Liên hệ chuyên viên SHB qua kênh chính thức để được tư vấn trực tiếp.
+              Liên hệ chuyên viên qua kênh chính thức để được tư vấn trực tiếp.
             </span>
           </span>
         </div>

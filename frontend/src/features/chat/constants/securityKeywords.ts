@@ -4,7 +4,7 @@
  * Danh sách được so khớp trên chuỗi đã bỏ dấu tiếng Việt (xem
  * `src/utils/detectSensitiveContent.ts`), nên chỉ cần viết dạng không dấu.
  *
- * Mục đích: CẢNH BÁO người dùng, không phải chặn nội dung. SH-AI không bao giờ
+ * Mục đích: CẢNH BÁO người dùng, không phải chặn nội dung. Trợ lý AI không bao giờ
  * yêu cầu các thông tin này.
  */
 
@@ -71,9 +71,9 @@ export const FINANCIAL_ADVICE_KEYWORDS: readonly string[] = [
 export const SECURITY_MESSAGES = {
   credential:
     'Vì sự an toàn của bạn, không chia sẻ mật khẩu, mã PIN, OTP, CVV hoặc thông tin xác thực trong cuộc trò chuyện.',
-  transaction: 'SH-AI không trực tiếp thực hiện giao dịch trong phiên bản demo này.',
+  transaction: 'Trợ lý AI không trực tiếp thực hiện giao dịch trong phiên bản demo này.',
   financialAdvice:
-    'Thông tin do SH-AI cung cấp mang tính tham khảo và không thay thế kết quả thẩm định hoặc tư vấn chính thức từ SHB.',
+    'Thông tin do Trợ lý AI cung cấp mang tính tham khảo và không thay thế kết quả thẩm định hoặc tư vấn chính thức từ SHB.',
   composerDisclaimer:
-    'SH-AI có thể đưa ra thông tin chưa chính xác. Không cung cấp mật khẩu, mã PIN, OTP hoặc thông tin bảo mật trong cuộc trò chuyện.',
+    'Trợ lý AI có thể đưa ra thông tin chưa chính xác. Không cung cấp mật khẩu, mã PIN, OTP hoặc thông tin bảo mật trong cuộc trò chuyện.',
 } as const;

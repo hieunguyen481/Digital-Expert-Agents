@@ -1,6 +1,6 @@
-import styles from './SHBLogo.module.css';
+import styles from './BrandLogo.module.css';
 
-export interface SHBLogoProps {
+export interface BrandLogoProps {
   /** `white`: chữ sáng, dùng trên nền navy. */
   variant?: 'default' | 'white';
   size?: 'small' | 'medium' | 'large';
@@ -9,7 +9,7 @@ export interface SHBLogoProps {
   className?: string;
 }
 
-const SIZE_CLASS: Record<NonNullable<SHBLogoProps['size']>, string> = {
+const SIZE_CLASS: Record<NonNullable<BrandLogoProps['size']>, string> = {
   small: styles.sizeSmall,
   medium: styles.sizeMedium,
   large: styles.sizeLarge,
@@ -17,10 +17,8 @@ const SIZE_CLASS: Record<NonNullable<SHBLogoProps['size']>, string> = {
 
 /**
  * Logo "Sổ Tín Dụng": ô vuông giấy, chữ S navy, gạch chân đồng (§5.7).
- * Tên tệp và tên component còn là `SHBLogo` vì vài tệp của Chat (đang do crew khác
- * sửa) vẫn import tên này; đổi tên sang `BrandLogo` khi các tệp đó được làm lại.
  */
-export function SHBLogo({ variant = 'default', size = 'medium', showProductName = false, className }: SHBLogoProps) {
+export function BrandLogo({ variant = 'default', size = 'medium', showProductName = false, className }: BrandLogoProps) {
   const rootClassName = [styles.logo, SIZE_CLASS[size], variant === 'white' ? styles.white : '', className]
     .filter(Boolean)
     .join(' ');

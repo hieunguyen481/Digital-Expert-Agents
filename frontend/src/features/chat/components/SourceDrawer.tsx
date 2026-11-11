@@ -118,7 +118,7 @@ export function SourceDrawer({ open, onClose, sources, loading = false }: Source
 
           <p className={styles.note}>
             Nguồn tham khảo trong phiên bản demo là dữ liệu minh hoạ. Khi kết nối hệ thống thật,
-            phần này sẽ hiển thị tài liệu chính thức của SHB.
+            phần này sẽ hiển thị tài liệu gốc của hồ sơ.
           </p>
         </>
       )}

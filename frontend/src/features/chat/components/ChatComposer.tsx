@@ -52,7 +52,7 @@ export function ChatComposer({
   onStop,
   isStreaming,
   disabled = false,
-  placeholder = 'Hỏi SH-AI, hoặc gõ / để tra cứu khách hàng...',
+  placeholder = 'Hỏi Trợ lý AI, hoặc gõ / để tra cứu khách hàng',
   customers = [],
   onSelectCustomer,
   onCustomerAutoCreated,

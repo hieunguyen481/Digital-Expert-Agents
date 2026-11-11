@@ -7,7 +7,7 @@
 
 .label {
   font-size: 12.5px;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
 }
 
 .chips {
@@ -18,10 +18,10 @@
 
 .chip {
   padding: 6px 14px;
-  border: 1px solid var(--shb-border);
-  border-radius: var(--shb-radius-pill);
-  background: var(--shb-surface);
-  color: var(--shb-navy-700);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--navy-700);
   font-size: 13.5px;
   line-height: 1.45;
   cursor: pointer;
@@ -33,8 +33,8 @@
 }
 
 .chip:hover {
-  border-color: var(--shb-orange-300);
-  background: var(--shb-orange-50);
+  border-color: var(--bronze-500);
+  background: var(--bronze-100);
   transform: translateY(-1px);
 }
 
@@ -43,7 +43,7 @@
 }
 
 .chip:focus-visible {
-  outline: 3px solid var(--shb-orange-500);
+  outline: 3px solid var(--bronze-500);
   outline-offset: 2px;
 }
 
