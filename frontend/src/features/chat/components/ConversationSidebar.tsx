@@ -170,8 +170,9 @@ export function ConversationSidebar({
 
   return (
     <div className={styles.sider}>
-      <div className={styles.brand}>
-        <BrandLogo size="medium" showProductName />
+      <div className={styles.head}>
+        <h2 className={styles.headTitle}>Trợ lý AI</h2>
+        <span className={styles.headSub}>Lịch sử trò chuyện</span>
       </div>
 
       <div className={styles.section}>

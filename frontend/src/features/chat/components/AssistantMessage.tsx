@@ -18,6 +18,7 @@ import { MessageBlocks } from './MessageBlocks';
 import { SuggestedQuestions } from './SuggestedQuestions';
 import { ThinkingIndicator } from './ThinkingIndicator';
 import { AgentTrace } from './AgentTrace';
+import { scrubAnswer } from '@/features/chat/utils/humanizeCodes';
 import { EnginePanel } from './EnginePanel';
 import type { ChatMessage, MessageFeedback } from '@/types/chat';
 import type { LoanApplication, LoanApplicationStatus } from '@/types/customer';
@@ -113,7 +114,7 @@ export function AssistantMessage({
 
         {isStreaming && (
           <p className={styles.streamingText}>
-            {message.content}
+            {scrubAnswer(message.content)}
             <span className={styles.cursor} aria-hidden="true" />
           </p>
         )}
@@ -138,7 +139,7 @@ export function AssistantMessage({
           <>
             {/* Có thể dừng khi chưa stream chữ nào -> chỉ hiện phần text nếu có. */}
             {message.content.trim() && (
-              <p className={styles.streamingText}>{message.content}</p>
+              <p className={styles.streamingText}>{scrubAnswer(message.content)}</p>
             )}
             <span className={styles.stoppedNote}>
               {message.content.trim()
