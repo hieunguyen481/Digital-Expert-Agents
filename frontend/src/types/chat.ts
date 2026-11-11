@@ -200,7 +200,7 @@ export interface ChatMessage {
    */
   trace?: AgentTrace;
   /** Hồ sơ phân tích multi-agent thật (engine) gắn với câu trả lời này. */
-  engine?: { caseId: string; loanApplicationId?: string };
+  engine?: { caseId: string; loanApplicationId?: string; decisionRelated?: boolean };
   /** Thông báo lỗi hiển thị cho người dùng khi status = 'error'. */
   errorMessage?: string;
 }

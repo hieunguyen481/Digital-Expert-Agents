@@ -19,10 +19,12 @@ const VND = (v: number) => `${v.toLocaleString('vi-VN')} VND`;
 export interface EnginePanelProps {
   caseId: string;
   loanApplicationId?: string;
+  /** Câu hỏi liên quan quyền quyết định: chỉ khi đó mới nhắc người dùng về thẩm quyền phê duyệt. */
+  decisionRelated?: boolean;
 }
 
 /** Kết quả hội đồng multi-agent thật: kế hoạch, ý kiến chuyên gia, nguồn, thẻ xác nhận của người có thẩm quyền. */
-export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
+export function EnginePanel({ caseId, loanApplicationId, decisionRelated }: EnginePanelProps) {
   const qc = useQueryClient();
   const me = useMe();
   const [reason, setReason] = useState('');
@@ -180,9 +182,9 @@ export function EnginePanel({ caseId, loanApplicationId }: EnginePanelProps) {
                 </Button>
               </Space>
             </Space>
-          ) : (
+          ) : decisionRelated ? (
             <div style={{ marginTop: 8 }}>Bạn không có thẩm quyền phê duyệt; chuyển hồ sơ cho người duyệt.</div>
-          )}
+          ) : null}
           {error && <Alert style={{ marginTop: 8 }} type="error" message={error} />}
         </div>
       )}

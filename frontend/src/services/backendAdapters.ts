@@ -50,7 +50,7 @@ export function toChatMessage(
     ...(highlightDocuments?.length ? { highlightDocuments } : {}),
     ...(suggestions?.length ? { suggestions } : {}),
     ...(typeof engineCaseId === 'string'
-      ? { engine: { caseId: engineCaseId, ...(typeof engineLoanId === 'string' ? { loanApplicationId: engineLoanId } : {}) } }
+      ? { engine: { caseId: engineCaseId, ...(typeof engineLoanId === 'string' ? { loanApplicationId: engineLoanId } : {}), ...(metadata?.decision_related === true ? { decisionRelated: true } : {}) } }
       : {}),
   };
 }

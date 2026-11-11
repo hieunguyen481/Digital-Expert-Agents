@@ -167,7 +167,7 @@ export function AssistantMessage({
           ))}
 
         {isComplete && message.engine && (
-          <EnginePanel caseId={message.engine.caseId} loanApplicationId={message.engine.loanApplicationId} />
+          <EnginePanel caseId={message.engine.caseId} loanApplicationId={message.engine.loanApplicationId} decisionRelated={message.engine.decisionRelated} />
         )}
 
         {isComplete && <p className={styles.limit}>Chỉ để tham khảo. Quyết định thuộc người có thẩm quyền.</p>}
