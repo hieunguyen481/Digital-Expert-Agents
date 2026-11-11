@@ -6,8 +6,8 @@ import { loginAs } from './helpers';
 test('quản trị: trang Quản trị chỉ đọc, có người dùng, ma trận quyền, ngưỡng và cấu hình AI không lộ khóa', async ({ page }) => {
   await loginAs(page, 'quantri');
   await page.goto('/quan-tri');
-  await expect(page.getByRole('region', { name: 'Người dùng và vai' }).locator('tbody tr').first()).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Ma trận quyền' }).locator('tbody tr').first()).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Người dùng và vai' }).getByRole('cell').first()).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Ma trận quyền' }).getByRole('cell').first()).toBeVisible();
   await expect(page.getByRole('region', { name: 'Ngưỡng cấp phê duyệt' })).toContainText('Cấp 1');
   const ai = page.getByRole('region', { name: 'Cấu hình AI' });
   await expect(ai).toBeVisible();
@@ -18,7 +18,7 @@ test('quản trị: trang Quản trị chỉ đọc, có người dùng, ma tr�
 test('quản trị: nút "Mở Quản trị" ở trang không có quyền dẫn tới trang Quản trị', async ({ page }) => {
   await loginAs(page, 'quantri');
   await page.goto('/viec-cua-toi');
-  await page.getByRole('link', { name: 'Mở Quản trị' }).click();
+  await page.getByRole('button', { name: 'Mở Quản trị' }).click();
   await expect(page).toHaveURL(/\/quan-tri/);
 });
 
@@ -34,7 +34,7 @@ test('trưởng phòng: "Hồ sơ của phòng" liệt kê hồ sơ đang mở c
 
 test('trưởng phòng: tìm theo tên khách ở thanh trên ra hồ sơ và mở được khách hàng trong phòng', async ({ page }) => {
   await loginAs(page, 'truongphong');
-  const box = page.getByLabel('Tìm kiếm');
+  const box = page.getByRole('textbox', { name: 'Tìm kiếm' });
   await box.fill('Mekong');
   const results = page.getByRole('listbox', { name: 'Kết quả tìm kiếm' });
   await expect(results.locator('a').first()).toBeVisible();
@@ -45,7 +45,7 @@ test('trưởng phòng: tìm theo tên khách ở thanh trên ra hồ sơ và m�
 
 test('qhkh: tìm bằng mã hồ sơ ra đúng hồ sơ; từ khóa lạ báo không có kết quả', async ({ page }) => {
   await loginAs(page, 'qhkh');
-  const box = page.getByLabel('Tìm kiếm');
+  const box = page.getByRole('textbox', { name: 'Tìm kiếm' });
   await box.fill('HSV-2026');
   const results = page.getByRole('listbox', { name: 'Kết quả tìm kiếm' });
   await expect(results.locator('a[href^="/ho-so-vay/"]').first()).toBeVisible();
