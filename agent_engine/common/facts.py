@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 from datetime import date, datetime
 
-from . import config, mcp_client, recompute
+from . import config, labels, mcp_client, recompute
 
 CIC_VALID_DAYS = 30  # CS-TD-SME/2025 §6.3; rules.md Q10: hiệu lực đến hết ngày tra cứu + 29
 
@@ -28,7 +28,7 @@ def _weak_indicators(fin: list[dict]) -> list[str]:
         for key, label in (("ebitda", "EBITDA"), ("equity", "Vốn chủ sở hữu")):
             v = f.get(key)
             if isinstance(v, (int, float)) and v < 0:
-                out.append(f"CHỈ TIÊU XẤU: {label} năm {f.get('year')} ÂM ({v / 1e9:,.1f} tỷ) — phải nêu trong kết luận")
+                out.append(f"Chỉ tiêu xấu: {label} năm {f.get('year')} âm ({v / 1e9:,.1f} tỷ)")
     return out
 
 
@@ -71,7 +71,7 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
     ancillary: list[str] = []
 
     if bl.get("hit"):
-        hard_stops.append("Chủ thể trùng khớp danh sách trừng phạt/AML — dừng cứng")
+        hard_stops.append(f"Chủ thể {labels.sanction_phrase(bl)} — dừng cứng")
     group = cic.get("cic_group")
     if group is None:
         blockers.append("Chưa có kết quả tra cứu CIC — phải tra cứu trước khi trình (CS-TD-SME/2025 §6.1, §6.3)")
@@ -161,4 +161,6 @@ def scoped_text(facts: dict, scope: str) -> str:
     return json.dumps(data, ensure_ascii=False, default=str, separators=(",", ":"))
 
 
+LLM_HINT = (" Nếu so_tinh_lai có dòng 'Chỉ tiêu xấu' thì nêu chỉ tiêu đó trong findings. Trích dẫn (quote) và findings viết "
+            "bằng tiếng Việt nghiệp vụ, không chép nguyên tên khóa hay chữ tiếng Anh từ dữ kiện.")
 COMPACT_HINT = " Trả lời ngắn: tối đa 5 findings, mỗi câu dưới 30 từ; evidence tối đa 4 mục, quote dưới 200 ký tự."

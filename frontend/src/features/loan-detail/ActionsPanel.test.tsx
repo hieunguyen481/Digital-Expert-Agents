@@ -92,3 +92,21 @@ describe('ActionsPanel – QA3-01 người không giữ bước', () => {
     expect(await screen.findByRole('button', { name: /Nâng cấp phê duyệt \(cấp 1 → 2\)/ })).toBeTruthy();
   });
 });
+
+describe('ActionsPanel – N12 nút Xử lý cờ phân biệt được theo tên cờ', () => {
+  it('mỗi nút "Xử lý cờ" có tên truy cập nêu rõ cờ nào, chữ hiển thị giữ ngắn', async () => {
+    me.roles = ['credit_appraiser'];
+    svc.fetchActionState.mockResolvedValue(state({ can_write: true }));
+    const ov = overview('APPRAISAL');
+    (ov as unknown as { flags: unknown[] }).flags = [
+      { id: 'f1', code: 'ltv', title: 'LTV vượt trần', status: 'OPEN' },
+      { id: 'f2', code: 'dscr', title: 'DSCR thấp', status: 'OPEN' },
+    ];
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<MemoryRouter><QueryClientProvider client={qc}><ActionsPanel loanId="L" overview={ov} /></QueryClientProvider></MemoryRouter>);
+    const a = await screen.findByRole('button', { name: 'Xử lý cờ: LTV vượt trần' });
+    const b = screen.getByRole('button', { name: 'Xử lý cờ: DSCR thấp' });
+    expect(a.textContent).toBe('Xử lý cờ');
+    expect(b.textContent).toBe('Xử lý cờ');
+  });
+});

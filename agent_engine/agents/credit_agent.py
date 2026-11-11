@@ -144,7 +144,7 @@ async def _facts_task(env: Envelope, shared: dict) -> Verdict:
                f"Phân tích DSCR (tối thiểu {config.DSCR_MIN}), đòn bẩy, dòng tiền; đối chiếu dòng tiền thực tế "
                f"(inflow) với doanh thu BCTC. Dữ kiện công cụ và chính sách đã cho sẵn, KHÔNG cần gọi thêm. "
                f"{POLICY_CHECKLIST} {EXPERT_RULES}"
-               + (facts_mod.COMPACT_HINT if config.opt("compact") else "") + " Kết thúc bằng submit_verdict.",
+               + facts_mod.LLM_HINT + (facts_mod.COMPACT_HINT if config.opt("compact") else "") + " Kết thúc bằng submit_verdict.",
         user=f"Thẩm định đề nghị vay: {request}\nDữ kiện: {facts_mod.scoped_text(shared, 'credit')}\n"
              f"Chính sách:\n{policy}",
         tools=[_submit_tool()],

@@ -7,6 +7,7 @@ Ngưỡng lấy từ `common.config` / chính sách CS-TD-SME/2025, không gắn
 from __future__ import annotations
 
 from . import config
+from .labels import collateral_name, legal_vi
 
 TIER_LIMITS_VND = (20e9, 100e9)   # ≤20 / 20–100 / >100 tỷ (BANK.TIERS)
 AUDIT_THRESHOLD_VND = 20e9        # E5: tổng cấp tín dụng > 20 tỷ -> BCTC kiểm toán
@@ -33,7 +34,8 @@ def collateral_check(collaterals: list[dict], amount: float, ltv_max: float | No
         "ltv_over": bool(value) and amount > ltv_max * value + 1,
         "no_eligible_collateral": bool(collaterals) and not eligible,
         "excluded": [{"collateral_id": c.get("collateral_id"), "legal_status": c.get("legal_status"),
-                      "valuation": _num(c.get("valuation"))} for c in excluded],
+                      "name": collateral_name(c, i), "valuation": _num(c.get("valuation"))}
+                     for i, c in enumerate(collaterals, 1) if c in excluded],
     }
 
 
@@ -103,7 +105,7 @@ def describe(col: dict | None, exp: dict, lev: dict | None, amount: float) -> li
                        f"= {col['ltv']:.1%} (tối đa {col['ltv_max']:.0%}, tương ứng {_bn(col['max_secured_limit'])})"
                        + ("; VƯỢT ngưỡng LTV" if col["ltv_over"] else "; trong ngưỡng LTV") + " (CS-TD-SME/2025 §7.1)")
         for x in col["excluded"]:
-            out.append(f"TSĐB {x['collateral_id']} không tính vào LTV (pháp lý: {x['legal_status']}, "
+            out.append(f"{x['name'][:1].upper() + x['name'][1:]} không tính vào LTV (pháp lý: {legal_vi(x['legal_status'])}, "
                        f"giá trị {_bn(x['valuation'])})")
         if col["no_eligible_collateral"]:
             out.append("Không có TSĐB nào đủ điều kiện pháp lý để tính LTV")

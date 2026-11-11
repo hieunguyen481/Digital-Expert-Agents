@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agents.base import build_agent_app  # noqa: E402
-from common import agent_tools, config, facts as facts_mod, llm, mcp_client, rag, recompute  # noqa: E402
+from common import labels, agent_tools, config, facts as facts_mod, llm, mcp_client, rag, recompute  # noqa: E402
 from common.expert_rules import EXPERT_RULES  # noqa: E402
 from common.report import with_policy_evidence  # noqa: E402
 from common.schemas import (  # noqa: E402
@@ -64,8 +64,7 @@ async def _rules_task(env: Envelope) -> Verdict:
         return Verdict(
             agent=CARD.agent_id, task_id=env.task_id or "",
             decision=VerdictDecision.REJECT,
-            summary=f"HARD STOP: người đại diện có tên trong danh sách đen AML "
-                    f"({bl['detail'].get('reason', '')}) — từ chối, không cần thẩm định tiếp",
+            summary=f"Dừng cứng: chủ thể {labels.sanction_phrase(bl)} — từ chối, không cần thẩm định tiếp",
             evidence=evidence, confidence=1.0,
         )
 
@@ -90,11 +89,11 @@ async def _rules_task(env: Envelope) -> Verdict:
             findings.append("Khai có TSĐB nhưng không tìm thấy hồ sơ tài sản")
         else:
             chk = recompute.collateral_check(cols, float(request.get("amount") or 0))
-            for col in cols:
+            for i, col in enumerate(cols, 1):
                 if col["legal_status"] != "clear":
                     decision = VerdictDecision.NEED_MORE_INFO
-                    findings.append(f"TSĐB {col['collateral_id']} chưa hoàn thiện pháp lý: "
-                                    f"{col['legal_status']}")
+                    findings.append(f"TSĐB «{labels.collateral_name(col, i)}» chưa hoàn thiện pháp lý: "
+                                    f"{labels.legal_vi(col['legal_status'])}")
             if chk["eligible_value"]:
                 max_secured = chk["max_secured_limit"]
                 evidence.append(Evidence(
@@ -143,7 +142,7 @@ async def _facts_task(env: Envelope, shared: dict) -> Verdict:
                f"blacklist (hit = từ chối ngay), CIC (nhóm >=3 từ chối, nhóm 2 flag), "
                f"pháp lý TSĐB (LTV tối đa {config.LTV_MAX:.0%} — tính max_secured_limit). "
                f"Dữ kiện công cụ và quy định đã cho sẵn, KHÔNG cần gọi thêm. {EXPERT_RULES}"
-               + (facts_mod.COMPACT_HINT if config.opt("compact") else "") + " Kết thúc bằng submit_verdict.",
+               + facts_mod.LLM_HINT + (facts_mod.COMPACT_HINT if config.opt("compact") else "") + " Kết thúc bằng submit_verdict.",
         user=f"Kiểm tra tuân thủ đề nghị vay: {request}, "
              f"kiểm tra TSĐB: {params.get('check_collateral', False)}\n"
              f"Dữ kiện: {facts_mod.scoped_text(shared, 'compliance')}\nQuy định:\n{policy}"
