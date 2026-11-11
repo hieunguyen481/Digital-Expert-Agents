@@ -61,7 +61,7 @@
 /* Đội agent */
 .run { display: grid; gap: var(--s4); }
 .runHead { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); font-size: var(--fs-13); color: var(--ink-2); }
-.concl { font: 600 var(--fs-16)/1.45 var(--font-body); color: var(--ink); margin: 0; }
+.concl { font: 500 var(--fs-15, 15px)/1.55 var(--font-body); color: var(--ink); margin: 0; }
 .finding { display: flex; gap: var(--s2); align-items: baseline; flex-wrap: wrap; }
 .sub { margin: 0; font: 600 var(--fs-13)/1.4 var(--font-body); color: var(--ink); }
 .det { margin-top: var(--s3); }

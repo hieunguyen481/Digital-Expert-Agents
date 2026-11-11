@@ -48,7 +48,8 @@ export function goTo(id: string) {
 export function LoanHeader({ overview, todoCount }: { overview: LoanOverview; todoCount: number }) {
   const { loan, timeline } = overview;
   const current = timeline.find((s) => !s.completed_at);
-  const stage = stageIndex(loan.status);
+  // Hồ sơ đã có quyết định cuối (duyệt, từ chối): mọi chặng đã xong.
+  const stage = loan.status.startsWith('APPROVED') || loan.status === 'REJECTED' ? STAGES.length : stageIndex(loan.status);
   const returnedFrom = loan.status === 'RETURNED_TO_RM' ? reachedStage(timeline) : 0;
   const approved = loan.decision_type !== 'REJECTED' && loan.approved_amount != null && Number(loan.approved_amount) > 0;
   const facts: Array<[string, string, boolean?]> = [

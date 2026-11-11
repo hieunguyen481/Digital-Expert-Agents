@@ -118,6 +118,14 @@ export function AgentTeamPanel({ loanId, currency }: { loanId: string; currency:
   );
 }
 
+/** Chuỗi mở đầu viết hoa toàn bộ ("ĐỀ XUẤT PHÊ DUYỆT kèm…") đổi về câu thường để không quát vào mắt người đọc. */
+export function softCaps(t: string): string {
+  const m = t.match(/^([A-ZÀ-ỴĐ][A-ZÀ-ỴĐ ]{5,}[A-ZÀ-ỴĐ])(?=\s|$)/);
+  if (!m) return t;
+  const low = m[1].toLowerCase();
+  return low.charAt(0).toUpperCase() + low.slice(1) + t.slice(m[1].length);
+}
+
 const fmtClock = (ms: number) => {
   const t = Math.max(0, Math.floor(ms / 1000));
   return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
@@ -201,10 +209,13 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
       )}
       {(pkg?.recommendation || pkg?.proposed_limit != null) && (
         <div className={styles.stackTight} data-testid="agent-recommendation">
-          {pkg?.recommendation && <p className={styles.concl}>{pkg.recommendation}</p>}
+          {pkg?.recommendation && <p className={styles.concl}>{softCaps(pkg.recommendation)}</p>}
           {pkg?.proposed_limit != null && <span>Hạn mức đề xuất: <b className={styles.num}>{fmtMoney(String(pkg.proposed_limit), currency)}</b></span>}
           {pkg?.required_approver_level && <span className={styles.note}>Cấp phê duyệt đề xuất: {approverLevelLabel(pkg.required_approver_level)}</span>}
-          {pkg?.conditions?.map((x) => <span key={x} className={styles.note}>Điều kiện: {x}</span>)}
+          {!!pkg?.conditions?.length && (
+            <div><b className={styles.sub}>Điều kiện đội agent đề xuất</b>
+              <ul className={styles.condOl}>{pkg.conditions.map((x) => <li key={x}>{x.replace(/^Điều kiện:\s*/i, '')}</li>)}</ul></div>
+          )}
           <span className={styles.note}>Đề xuất của đội agent chưa có hiệu lực.</span>
         </div>
       )}

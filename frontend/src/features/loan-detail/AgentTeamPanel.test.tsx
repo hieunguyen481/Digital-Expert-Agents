@@ -79,3 +79,11 @@ describe('AgentTeamPanel', () => {
     expect(screen.queryByTestId('agent-run-timeout')).toBeNull();
   });
 });
+
+describe('softCaps', () => {
+  it('đổi cụm mở đầu viết hoa thành câu thường', async () => {
+    const { softCaps } = await import('./AgentTeamPanel');
+    expect(softCaps('ĐỀ XUẤT PHÊ DUYỆT kèm điều kiện')).toBe('Đề xuất phê duyệt kèm điều kiện');
+    expect(softCaps('Nên cho vay')).toBe('Nên cho vay');
+  });
+});

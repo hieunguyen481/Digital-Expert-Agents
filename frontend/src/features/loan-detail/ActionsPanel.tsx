@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Alert, Button, Input, Modal, Radio, Space, Typography } from 'antd';
@@ -50,6 +50,8 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [conclusion, setConclusion] = useState<string>('');
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => { setSlot(document.getElementById('loan-primary-action')); }, []);
   const st = useQuery({ queryKey: ['loan-actions', loanId], queryFn: () => fetchActionState(loanId) });
   const roles = new Set(me?.roles ?? []);
   const state = st.data;
@@ -157,7 +159,6 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     return out;
   };
 
-  const slot = typeof document === 'undefined' ? null : document.getElementById('loan-primary-action');
   const decider = (has('loan_approver') && status === 'APPROVAL') || status === 'COUNCIL_SESSION';
   return (
     <section id="hanh-dong" aria-label="Hành động trên hồ sơ" data-testid="actions-panel">
