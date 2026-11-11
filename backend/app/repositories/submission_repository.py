@@ -72,19 +72,12 @@ class SubmissionRepository:
     async def set_related_status(
         self, loan_id: UUID, party_id: UUID, *, status: str, basis: str | None, employee_id: UUID
     ) -> bool:
-        # Bên liên quan do hệ thống liệt kê từ dữ liệu khách hàng có thể chưa có dòng quyết định (hồ sơ mới): quyết định
-        # của người tạo dòng đó (proposed_by_ai = false); bên không thuộc danh sách của hồ sơ thì không có kết quả.
         row = await fetch_one(
             self.session,
             """
-            INSERT INTO credit.case_related_party
-                (loan_application_id, party_id, proposed_by_ai, status, basis, decided_by, decided_at, created_at)
-            SELECT :loan_id, :party_id, false, :status, :basis, :employee_id, now(), now()
-            FROM credit.case_exposure_lines(:loan_id) AS line
-            WHERE line.line_party_id = :party_id AND line.line_relation = 'RELATED'
-            ON CONFLICT (loan_application_id, party_id) DO UPDATE
-            SET status = EXCLUDED.status, basis = EXCLUDED.basis,
-                decided_by = EXCLUDED.decided_by, decided_at = EXCLUDED.decided_at
+            UPDATE credit.case_related_party
+            SET status = :status, basis = :basis, decided_by = :employee_id, decided_at = now()
+            WHERE loan_application_id = :loan_id AND party_id = :party_id
             RETURNING party_id
             """,
             {"loan_id": loan_id, "party_id": party_id, "status": status, "basis": basis, "employee_id": employee_id},

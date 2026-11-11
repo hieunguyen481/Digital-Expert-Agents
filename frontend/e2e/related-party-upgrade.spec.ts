@@ -16,6 +16,16 @@ test('thẩm định xác nhận bên liên quan làm tổng vượt cấp 2, n�
   const id = await createProposal(page, 'm04', 'Mekong Flex', 90);
   await httdChecksAndTransfers(page, id, 'm04');
 
+  // Hệ thống (đội agent) đề xuất bên liên quan khi chuyển Thẩm định (F10): chưa có đường giao diện tạo dòng này,
+  // nên dựng bằng SQL đúng như bản ghi seed của hồ sơ Mekong mẫu.
+  const sql = process.env.E2E_PSQL_CMD;
+  test.skip(!sql, 'cần E2E_PSQL_CMD để dựng đề xuất bên liên quan');
+  execSync(sql!, {
+    input: `INSERT INTO credit.case_related_party (loan_application_id, party_id, proposed_by_ai, status, basis, created_at)
+            VALUES ('${id}', '55000000-0000-4000-8000-000000000017', TRUE, 'PROPOSED', 'Góp 60 tỷ đồng · 60% vốn điều lệ', now());`,
+    stdio: ['pipe', 'ignore', 'inherit'],
+  });
+
   await as(page, 'tdinh');
   await page.goto(`/ho-so-vay/${id}`);
   const review = page.getByTestId('related-review');
