@@ -19,7 +19,7 @@ export function NeedSection({ form, products, disabled, onChange }: Props) {
   const term = /^\d+$/.test(form.termMonths.trim()) ? Number(form.termMonths) : null;
 
   const amountMsg = useMemo(() => {
-    if (!vnd) return 'Nhập số tiền lớn hơn 0 (đơn vị tỷ đồng).';
+    if (!vnd) return 'Nhập số tiền lớn hơn 0, đơn vị tỷ đồng. Ví dụ 15 hoặc 12,5.';
     if (product?.min_amount && Number(vnd) < Number(product.min_amount))
       return `Số tiền tối thiểu của sản phẩm là ${Number(product.min_amount) / BILLION} tỷ đồng.`;
     if (product?.max_amount && Number(vnd) > Number(product.max_amount))
@@ -27,7 +27,7 @@ export function NeedSection({ form, products, disabled, onChange }: Props) {
     return null;
   }, [vnd, product]);
   const termMsg = useMemo(() => {
-    if (term === null || term <= 0) return 'Nhập kỳ hạn là số tháng lớn hơn 0.';
+    if (term === null || term <= 0) return 'Nhập kỳ hạn là số tháng lớn hơn 0. Ví dụ 12.';
     if (product?.min_term_months && term < product.min_term_months)
       return `Kỳ hạn tối thiểu ${product.min_term_months} tháng.`;
     if (product?.max_term_months && term > product.max_term_months)
@@ -37,16 +37,17 @@ export function NeedSection({ form, products, disabled, onChange }: Props) {
 
   return (
     <Form layout="vertical" disabled={disabled} aria-label="Nhu cầu vay">
-      <Form.Item label="Sản phẩm" htmlFor="need-product">
+      <Form.Item label="Sản phẩm (bắt buộc)" htmlFor="need-product">
         <Select
           id="need-product"
+          placeholder="Chọn sản phẩm vay"
           value={form.productId}
           options={products.map((p) => ({ value: p.id, label: p.product_name }))}
           onChange={(productId: string) => onChange({ productId })}
         />
       </Form.Item>
       <Form.Item
-        label="Số tiền đề nghị (tỷ đồng)"
+        label="Số tiền đề nghị (tỷ đồng) (bắt buộc)"
         htmlFor="need-amount"
         validateStatus={amountMsg ? 'warning' : undefined}
         help={amountMsg ?? undefined}
@@ -60,7 +61,7 @@ export function NeedSection({ form, products, disabled, onChange }: Props) {
         />
       </Form.Item>
       <Form.Item
-        label="Kỳ hạn (tháng)"
+        label="Kỳ hạn (tháng) (bắt buộc)"
         htmlFor="need-term"
         validateStatus={termMsg ? 'warning' : undefined}
         help={termMsg ?? undefined}
@@ -76,6 +77,7 @@ export function NeedSection({ form, products, disabled, onChange }: Props) {
       <Form.Item label="Mục đích vay" htmlFor="need-purpose">
         <Input.TextArea
           id="need-purpose"
+          placeholder="Ví dụ: bổ sung vốn lưu động"
           rows={2}
           value={form.purposeText}
           onChange={(e) => onChange({ purposeText: e.target.value })}
@@ -88,6 +90,7 @@ export function NeedSection({ form, products, disabled, onChange }: Props) {
       >
         <Input.TextArea
           id="need-repay"
+          placeholder="Nêu nguồn tiền trả nợ cụ thể và kỳ trả"
           rows={2}
           value={form.repaymentText}
           onChange={(e) => onChange({ repaymentText: e.target.value })}
