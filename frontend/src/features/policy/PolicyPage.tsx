@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Input, Table } from 'antd';
+import { Button, Input, Table } from 'antd';
 import { useState } from 'react';
 import { RequireRole } from '@/auth/RequireRole';
 import type { UiRole } from '@/auth/roleFromMe';
@@ -42,6 +42,14 @@ function PolicyContent() {
             value={term} onChange={(e) => { setTerm(e.target.value); if (!e.target.value) setQuery(''); }}
             onSearch={(v) => setQuery(v.trim())}
           />
+          {query.length < 2 && (
+            <p className={styles.searchLabel} style={{ marginTop: 12 }}>
+              Từ khóa hay dùng:{' '}
+              {['DSCR', 'LTV', 'Tài sản bảo đảm'].map((k) => (
+                <Button key={k} size="small" style={{ marginRight: 6 }} onClick={() => { setTerm(k); setQuery(k); }}>{k}</Button>
+              ))}
+            </p>
+          )}
         </div>
         {query.length >= 2 && (
           <section aria-label="Kết quả tìm kiếm" data-testid="policy-results" className={styles.results}>

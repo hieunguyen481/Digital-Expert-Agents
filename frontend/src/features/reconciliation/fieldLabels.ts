@@ -24,3 +24,20 @@ const SOURCE_TYPE: Record<string, string> = {
 /** Nguồn của giá trị theo tiếng Việt; mã không biết được đổi sang dạng đọc được thay vì lộ mã thô. */
 export const sourceTypeLabel = (t: string): string =>
   SOURCE_TYPE[t] ?? (/^[A-Z0-9_]+$/.test(t) ? t.toLowerCase().replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase()) : t);
+
+/** Giá trị trường kèm đơn vị theo loại: tiền lớn ghi "tỷ đồng", phần trăm ghi "%". Không biết loại thì giữ nguyên. */
+export function fieldValueText(f: { value: string | null; value_type?: string; value_number: number | null }): string {
+  if (f.value == null) return '—';
+  if (f.value_type === 'MONEY' && f.value_number != null && Math.abs(f.value_number) >= 1e9) return `${f.value} tỷ đồng`;
+  if (f.value_type === 'PERCENT') return `${f.value}%`;
+  return f.value;
+}
+
+/** Tách mã kỹ thuật khỏi câu nguồn: "DONGY · Tờ trình" → { text: "Tờ trình", code: "DONGY" }; "Dữ liệu mẫu · cfo" → { text: "Dữ liệu mẫu", code: "cfo" }. */
+export function splitSourceCode(t: string): { text: string; code: string | null } {
+  const pre = t.match(/^([A-Z0-9][A-Z0-9-]{2,})\s·\s(.+)$/);
+  if (pre) return { text: pre[2], code: pre[1] };
+  const suf = t.match(/^(.+?)\s·\s([a-z][a-z0-9_]*)$/);
+  if (suf) return { text: suf[1], code: suf[2] };
+  return { text: t, code: null };
+}

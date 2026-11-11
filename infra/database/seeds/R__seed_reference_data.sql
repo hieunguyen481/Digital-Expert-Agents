@@ -219,7 +219,7 @@ VALUES (
     '42000000-0000-4000-8000-000000000001',
     'CREDIT_POLICY',
     'RETAIL_HOME_LOAN',
-    'Chinh sach Tin dung Mau',
+    'Chính sách tín dụng mẫu',
     NULL,
     'INTERNAL',
     DATE '2026-01-01',
@@ -274,7 +274,7 @@ INSERT INTO policy.policy (
 VALUES (
     '43000000-0000-4000-8000-000000000001',
     'RETAIL-CREDIT-DEMO',
-    'Chinh sach Tin dung Ban le Mau',
+    'Chính sách tín dụng bán lẻ mẫu',
     'CREDIT',
     '31000000-0000-4000-8000-000000000004',
     'ACTIVE',

@@ -1,7 +1,7 @@
 import { paginationItemRender } from '@/utils/paginationRender';
 import { useState } from 'react';
-import { Button, Checkbox, Input, Select, Skeleton } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
+import { Button, Checkbox, Input, Select, Skeleton } from 'antd';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
@@ -87,7 +87,6 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
               render: (_: unknown, r) => (
                 <span>
                   {r.customer_name ? <b>{r.customer_name}</b> : <span className={styles.sub}>Chưa gắn hồ sơ</span>}
-                  <span className={styles.mono}>{r.case_id}</span>
                 </span>
               ),
             },

@@ -6,7 +6,7 @@ import { getErrorMessage } from '@/services/apiClient';
 import { confirmField, fetchPageImageUrl, fetchReconDocument } from './reconciliationService';
 import { fieldStatusLabel, highlightStyle, needsHuman } from './fieldStatus';
 import type { ReconField } from './types';
-import { fieldLabel } from './fieldLabels';
+import { fieldLabel, fieldValueText, splitSourceCode } from './fieldLabels';
 import styles from './reconciliation.module.css';
 
 interface Props {
@@ -102,7 +102,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
         </Space>
       )}
       <div className={styles.pageFrame} data-testid="page-frame" aria-label={`Trang ${page}`}
-        data-source={doc.data_source} style={img.data ? { aspectRatio: 'auto' } : undefined}>
+        data-source={doc.data_source} style={img.data ? { aspectRatio: 'auto' } : { aspectRatio: 'auto', minHeight: 240 }}>
         {img.data && <img src={img.data} alt={`Trang ${page} của ${doc.title ?? 'tài liệu'}`} className={styles.pageImage} />}
         {onPage.map((f) => {
           const style = highlightStyle(f);
@@ -162,7 +162,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
                   onClick={() => onSelect(f.field_id)}
                 >
                   <span>{fieldLabel(f.field_name)}</span>
-                  <span>{f.value ?? '—'}</span>
+                  <span>{fieldValueText(f)}</span>
                 </button>
               ))}
             </div>
@@ -182,9 +182,12 @@ function FieldCard({
   return (
     <div className={`${styles.source} ${field.verification_status === 'CONFIRMED' ? styles.sourceDone : ''}`} data-testid="field-card">
       <Typography.Text strong>{fieldLabel(field.field_name)}</Typography.Text>
-      <span data-testid="field-card-value">{field.value ?? '—'}</span>
+      <span data-testid="field-card-value">{fieldValueText(field)}</span>
       <span style={{ width: 'fit-content' }}><StatusPill tone={TONE[label.color]}>{label.text}</StatusPill></span>
-      {field.source_text && <span className={styles.note}>Nguồn trích: {field.source_text}</span>}
+      {field.source_text && (() => {
+        const src = splitSourceCode(field.source_text);
+        return <span className={styles.note}>Nguồn trích: {src.text}{src.code && <> <code className={styles.srcCode}>{src.code}</code></>}</span>;
+      })()}
       {field.confidence != null && <span className={styles.note}>Độ tin cậy do AI báo: {Math.round(field.confidence * 100)}%</span>}
       {needsHuman(field) && canConfirm && (
         <Button size="small" onClick={onConfirm} loading={busy}>Tôi đã đối chiếu, xác nhận giá trị</Button>

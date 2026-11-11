@@ -47,7 +47,7 @@ describe('ActionsPanel – QA3-01 người không giữ bước', () => {
     me.roles = ['compliance_officer'];
     svc.fetchActionState.mockResolvedValue(state({ can_write: false }));
     mount('RISK_REVIEW');
-    expect(await screen.findByRole('button', { name: 'Ghi ý kiến Tuân thủ' })).toBeEnabled();
+    expect(await screen.findByRole('button', { name: 'Ghi ý kiến tuân thủ' })).toBeEnabled();
     expect(screen.queryByTestId('not-holder-notice')).toBeNull();
   });
 

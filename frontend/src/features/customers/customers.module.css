@@ -24,3 +24,4 @@
 .kpi:first-child { border-left: 0; }
 .kpiValue { font: 500 var(--fs-26)/1 var(--font-num); letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
 .kpiLabel { font-size: var(--fs-13); color: var(--ink-2); }
+.mono { font-family: var(--font-num); }

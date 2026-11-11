@@ -32,3 +32,5 @@
 .tableCard { min-width: 0; border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-1); overflow: hidden; }
 
 .noteBar { margin: 0; padding: var(--s2) var(--s4); border-left: 3px solid var(--navy-700); background: var(--surface); border-radius: var(--r-sm); color: var(--ink-2); font-size: var(--fs-13); }
+
+.srcCode { font: 400 var(--fs-12) var(--font-num); color: var(--ink-3); background: none; padding: 0; }
