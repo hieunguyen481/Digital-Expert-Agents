@@ -41,4 +41,39 @@ def test_mandatory_and_data_items_are_requests_not_conditions_or_flags():
     docs = [d for p in items if p["kind"] == "request_documents" for d in p["params"]["documents"]]
     assert sum("kiểm toán" in d.casefold() for d in docs) == 1
     assert sum("người đại diện" in d.casefold() for p in items for d in proposals._texts(p)) == 1
-    assert [p["params"]["text"] for p in items if p["kind"] == "add_disbursement_condition"] == ["Mở tài khoản thanh toán trước giải ngân"]
+    conds = [p["params"]["text"] for p in items if p["kind"] == "add_disbursement_condition"]
+    assert len(conds) == 2 and "Mở tài khoản thanh toán trước giải ngân" in conds  # + người đại diện (Q7: không chặn trình)
+
+
+def test_condition_parts_are_classified_by_meaning():
+    """Mỗi vế (tách theo ";") phân loại theo nghĩa: dữ liệu/tài liệu để ra quyết định → yêu cầu bổ sung; chỉ ràng buộc
+    giai đoạn giải ngân → điều kiện giải ngân. Không phụ thuộc hồ sơ nào."""
+    requests = [
+        "Bổ sung BCTC kiểm toán với ý kiến chấp nhận toàn phần",
+        "Đối chiếu lịch trả nợ và nguồn tính DSCR",
+        "Đối chiếu inflow với doanh thu cùng kỳ",
+        "Xác nhận CIC còn hiệu lực tại ngày trình phê duyệt",
+        "Hoàn thiện hồ sơ TSĐB để xác định LTV",
+        "BCTC kiểm toán bắt buộc vì tổng cấp tín dụng > 20 tỷ",
+    ]
+    conditions = [
+        "Bổ sung trước giải ngân (không chặn trình): người đại diện pháp luật chưa có trong hồ sơ",
+        "Bổ sung thông tin người đại diện trước giải ngân",
+        "Hoàn thiện hồ sơ pháp lý và định giá tài sản bảo đảm trước giải ngân",
+        "Mở tài khoản thanh toán trước giải ngân",
+        "Ký hợp đồng tín dụng kèm lịch trả nợ",
+        "Đăng ký giao dịch bảo đảm và mua bảo hiểm tài sản",
+    ]
+    assert not [t for t in requests if proposals.is_disbursement_condition(t)]
+    assert all(proposals.is_disbursement_condition(t) for t in conditions)
+
+
+def test_compound_conditions_split_and_explicit_stage_condition_survives():
+    v, rep = _approve([
+        "Bổ sung BCTC kiểm toán; bổ sung và xác minh thông tin người đại diện trước giải ngân.",
+        "Cung cấp BCTC kiểm toán và thông tin người đại diện trước phê duyệt; đối chiếu inflow với doanh thu",
+        "Bổ sung trước giải ngân (không chặn trình): người đại diện pháp luật chưa có trong hồ sơ"])
+    items = proposals.derive(v, [], rep)
+    assert [p["kind"] for p in items].count("add_disbursement_condition") == 1
+    again = proposals.dedupe_items(proposals.derive(v, [], rep), have=items)
+    assert again == []  # chạy lại không phình thêm
