@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import re
 import time
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from collections.abc import Mapping, Sequence
 from typing import Any
 from uuid import UUID
@@ -18,10 +20,12 @@ from app.logging import get_logger
 from app.repositories.customer_repository import CustomerRepository
 from app.schemas.conversation import ConversationReply
 from app.services.agent_engine_client import AgentEngineClient, AgentEngineError
+from app.services.llm_conversation_responder import PII_REFUSAL
 from app.services.protocols import PrincipalLike
 
 logger = get_logger(__name__)
 
+_VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh")
 DEEP_ANALYSIS_ROUTES = {"ORCHESTRATED", "SINGLE_AGENT"}
 
 _VERDICT_LABEL = {
@@ -106,9 +110,6 @@ _METRIC_Q = re.compile(r"dscr|ebitda|\bltv\b|nợ vay|đòn bẩy|hạn mức|t�
 _RERUN = re.compile(r"phân tích lại|chạy lại|đánh giá lại|thẩm định lại|làm mới|phân tích mới|tính lại từ đầu", re.I)
 _PII = re.compile(r"\b(cccd|cmnd|căn cước|số điện thoại|sđt|email|địa chỉ nhà|ngày sinh)\b", re.I)
 _FINAL_STATES = {"Pending Approval", "Needs Info", "Rejected", "Completed", "Executing"}
-PII_REFUSAL = ("Tôi không cung cấp thông tin định danh cá nhân (CCCD, số điện thoại, email, ngày sinh) qua trợ lý. "
-               "Đây là dữ liệu ngoài phạm vi thẩm định của hồ sơ đang mở; nếu có quyền, bạn xem trực tiếp ở trang hồ sơ "
-               "khách hàng. Tôi chỉ trả lời về kết quả thẩm định của hồ sơ hiện tại.")
 
 
 def _epoch(value: Any) -> float | None:
@@ -127,7 +128,7 @@ def question_kind(message: str) -> str:
 
 _KIND_GUIDE = {
     "broad": "trả lời thẳng câu hỏi, nêu số liệu và căn cứ có trong kết quả; thiếu thì nói rõ là kết quả chưa nêu",
-    "metric": ("chỉ trả lời chỉ số được hỏi trong 2-4 câu: giá trị, ngưỡng, đạt hay không, nguồn; số liệu lấy đúng từ kết quả; "
+    "metric": ("chỉ trả lời chỉ số được hỏi trong 2-4 câu: giá trị, ngưỡng, đạt hay không, nguồn; số liệu lấy đúng từ kết quả hoặc từ báo cáo tài chính theo năm (kèm năm); "
                "KHÔNG chép lại kết luận, KHÔNG liệt kê điều kiện hay cờ rủi ro; thiếu thì nói rõ là kết quả chưa nêu"),
     "authority": ("trả lời theo cấp thẩm quyền và vai, không nêu tên hay mã định danh; nêu CẤP PHÊ DUYỆT ĐỀ XUẤT của đội agent "
                   "và điều khoản chính sách (số điều khoản) quy định thẩm quyền; nói rõ đây là đề xuất của AI, người có thẩm quyền "
@@ -194,6 +195,9 @@ class EngineConversationResponder:
                       message: str, route: Mapping[str, Any],
                       attachment_ids: Sequence[UUID] = ()) -> ConversationReply:
         route_type = str(route.get("route_type") or "DIRECT")
+        if route.get("intent") == "PERSONAL_DATA":  # xin dữ liệu cá nhân: từ chối vì bảo mật, trả lời thường
+            return ConversationReply(content=PII_REFUSAL, route_type="REFUSE", complexity_level=None,
+                                     metadata={"responder": "agent_engine", "refused": "PII_OUT_OF_SCOPE"})
         if (route_type not in DEEP_ANALYSIS_ROUTES or route.get("intent") == "OUT_OF_SCOPE"):
             if route.get("intent") != "OUT_OF_SCOPE" and route_type != "REFUSE" and _METRIC_Q.search(message) \
                     and not _PII.search(message):
@@ -325,7 +329,7 @@ class EngineConversationResponder:
         logger.info("CHAT_TIMING", list_cases_s=round(t_list, 2), get_case_events_s=round(t_case, 2),
                     events=len(events), inner_respond_s=round(time.perf_counter() - t2, 2), prompt_chars=len(grounded))
         package = case.get("package") or {}
-        when = time.strftime("%H:%M %d/%m/%Y", time.localtime(float(latest.get("updated_at") or 0)))
+        when = datetime.fromtimestamp(float(latest.get("updated_at") or 0), _VN_TZ).strftime("%H:%M %d/%m/%Y")
         meta = {**(inner.metadata or {}), "responder": "agent_engine", "reused_result": True,
                 "engine_case_id": latest["case_id"], "engine_state": case.get("state"),
                 "verdicts": package.get("verdicts") or [], "sources": collect_sources(package),

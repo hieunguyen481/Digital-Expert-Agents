@@ -157,7 +157,7 @@ class FixedRouter:
         route: dict[str, Any] = {
             "route_type": self.route_type,
             "complexity_level": 4 if self.route_type == "ORCHESTRATED" else 3,
-            "intent": "ASSESS_REPAYMENT_CAPACITY",
+            "intent": getattr(self, "intent", "ASSESS_REPAYMENT_CAPACITY"),
         }
         if self.analysis_case_id is not None:
             route["analysis_case_id"] = self.analysis_case_id
@@ -514,3 +514,45 @@ async def test_message_listing_stays_within_the_existing_ai_message_contract() -
     sql, _params = session.calls[0]
     assert "document.document_link" not in sql
     assert "c.employee_id = :employee_id" in sql
+
+
+class _RerunGuard(RecordingProcessingGuard):
+    def __init__(self, deny: Exception | None = None) -> None:
+        super().__init__()
+        self.deny, self.rerun_calls = deny, []
+
+    async def assert_can_rerun(self, principal: Principal, loan_application_id: UUID) -> None:
+        self.rerun_calls.append(loan_application_id)
+        if self.deny:
+            raise self.deny
+
+
+@pytest.mark.asyncio
+async def test_rerun_in_chat_uses_agent_run_rules_not_customer_assignment() -> None:
+    # N07a: người được chạy ở trang hồ sơ thì chạy được qua chat; không đi qua guard phân công khách, không đòi loan:analyze
+    repository = InMemoryConversationRepository()
+    responder = RecordingResponder(ConversationReply(content="ok"))
+    guard = _RerunGuard()
+    router = FixedRouter()
+    router.intent = "RERUN_ANALYSIS"
+    service = ConversationService(repository, router, responder, guard)
+    principal = _principal(can_analyze=False)
+    conversation = await _create_conversation(service, principal)
+    await service.add_message(principal, conversation["id"], content="Chạy lại đội agent", attachment_ids=[])
+    assert len(guard.rerun_calls) == 1 and guard.calls == [] and len(responder.calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_rerun_in_chat_denied_with_agent_run_reason() -> None:
+    from app.exceptions import AuthorizationError
+    repository = InMemoryConversationRepository()
+    responder = RecordingResponder(ConversationReply(content="no"))
+    guard = _RerunGuard(AuthorizationError("AGENT_RUN_NOT_ALLOWED", "Bạn không phải người đang giữ hồ sơ này."))
+    router = FixedRouter()
+    router.intent = "RERUN_ANALYSIS"
+    service = ConversationService(repository, router, responder, guard)
+    principal = _principal()
+    conversation = await _create_conversation(service, principal)
+    with pytest.raises(AuthorizationError, match="người đang giữ"):
+        await service.add_message(principal, conversation["id"], content="Chạy lại đội agent", attachment_ids=[])
+    assert repository.message_rows == [] and responder.calls == []

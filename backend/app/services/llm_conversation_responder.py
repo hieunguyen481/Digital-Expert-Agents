@@ -35,6 +35,10 @@ _REFUSAL_TEXT = (
     "có cờ rủi ro hay điều kiện kèm theo nào; điều khoản chính sách nào áp dụng; ai là người quyết định."
 )
 
+PII_REFUSAL = ("Tôi không cung cấp thông tin định danh cá nhân (CCCD, số điện thoại, email, ngày sinh) qua trợ lý. "
+               "Đây là dữ liệu ngoài phạm vi thẩm định của hồ sơ đang mở; nếu có quyền, bạn xem trực tiếp ở trang hồ sơ "
+               "khách hàng. Tôi chỉ trả lời về kết quả thẩm định của hồ sơ hiện tại.")
+
 _FALLBACK_TEXT = (
     "Hệ thống AI đang tạm thời gián đoạn, chưa thể trả lời câu hỏi này. "
     "Vui lòng thử lại sau ít phút; dữ liệu nghiệp vụ của bạn không bị ảnh hưởng."
@@ -61,7 +65,8 @@ _SYSTEM_PROMPT = (
 
 _RAW_SOURCE = {
     "customer_overview": "hồ sơ khách hàng", "loan_applications": "hồ sơ vay", "existing_obligations": "dư nợ hiện hữu",
-    "transaction_summary": "tổng hợp giao dịch", "recent_transactions": "giao dịch gần đây",
+    "transaction_summary": "tổng hợp giao dịch", "financial_statements": "báo cáo tài chính",
+    "financial_statements_note": "báo cáo tài chính", "recent_transactions": "giao dịch gần đây",
     "existing_obligations_note": "dư nợ hiện hữu", "recent_transactions_note": "giao dịch gần đây",
 }
 _RAW_RE = re.compile(r"\b(" + "|".join(sorted(_RAW_SOURCE, key=len, reverse=True)) + r")\b")
@@ -72,9 +77,12 @@ _UUID_RE = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`?")
 
 
+_STRAY_CHARS_RE = re.compile(r"[çñßøåæœ]", re.I)  # ký tự Latin ngoài tiếng Việt do mô hình gõ nhầm ("hồ sơç")
+
+
 def scrub_raw_names(text: str) -> str:
     """Tên mục dữ liệu kỹ thuật lọt vào câu trả lời -> tên nghiệp vụ; mã UUID không bao giờ lộ ra người dùng."""
-    text = _UUID_RE.sub("cán bộ được phân công", text)
+    text = _STRAY_CHARS_RE.sub("", _UUID_RE.sub("cán bộ được phân công", text))
     return _RAW_RE.sub(lambda m: _RAW_SOURCE[m.group(1)], text)
 
 
@@ -142,9 +150,9 @@ class LLMConversationResponder:
             "attachments_used_for_llm_analysis": False,
         }
 
-        if route_type == "REFUSE" or intent == "OUT_OF_SCOPE":
+        if route_type == "REFUSE" or intent in {"OUT_OF_SCOPE", "PERSONAL_DATA"}:
             return ConversationReply(
-                content=_REFUSAL_TEXT,
+                content=PII_REFUSAL if intent == "PERSONAL_DATA" else _REFUSAL_TEXT,
                 route_type=route_type,
                 complexity_level=complexity_level,
                 metadata=base_metadata,
@@ -373,6 +381,7 @@ class LLMConversationResponder:
                     }
                 loans = await customers.list_loans(customer_id)
                 obligations = await customers.list_existing_obligations(customer_id)
+                financial_years = await customers.list_financial_years(customer_id)
                 recent_transactions, transaction_total = await transactions.for_customer(
                     customer_id, page=1, page_size=self._transaction_page_size
                 )
@@ -388,6 +397,13 @@ class LLMConversationResponder:
             "existing_obligations_note": (
                 "Dư nợ hiện hữu của khách (khác với hồ sơ vay đang xử lý); "
                 "tổng dư nợ = cộng outstanding_balance các dòng này."
+            ),
+            "financial_statements": financial_years,
+            "financial_statements_note": (
+                "Báo cáo tài chính theo năm (VND; DỮ LIỆU MẪU): revenue doanh thu, ebitda, total_debt tổng nợ vay, equity vốn chủ, "
+                "current_assets/current_liabilities tài sản/nợ ngắn hạn. Số null hoặc có trong missing_fields là CHƯA CÓ số, không suy ra. "
+                "Nợ vay/EBITDA = total_debt / ebitda cùng năm (chỉ tính khi cả hai có số và ebitda > 0). "
+                "Khi nêu số phải kèm năm và nguồn [nguồn: báo cáo tài chính năm X]."
             ),
             "transaction_summary": summary,
             "recent_transactions": recent_transactions,

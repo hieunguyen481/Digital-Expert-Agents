@@ -216,3 +216,40 @@ async def test_rerun_request_is_not_treated_as_lookup_of_existing_result() -> No
     decision = await _route("Thẩm định lại khoản vay này")
 
     assert decision.route_type is not RouteType.DIRECT
+
+
+@pytest.mark.asyncio
+async def test_rerun_phrase_routes_to_rerun_analysis_not_refusal() -> None:
+    # N04b: câu chính trợ lý gợi ý không được bị coi là ngoài phạm vi
+    for text in ("phân tích lại", "Chạy lại đội agent cho hồ sơ này"):
+        decision = await _route(text)
+        assert decision.intent == "RERUN_ANALYSIS", text
+        assert decision.route_type is RouteType.ORCHESTRATED
+
+
+@pytest.mark.asyncio
+async def test_rerun_without_loan_asks_for_loan_context() -> None:
+    decision = await _route("phân tích lại", include_loan=False)
+    assert decision.intent == "MISSING_CONTEXT" and decision.missing_context == ("loan_application_id",)
+
+
+@pytest.mark.asyncio
+async def test_blacklist_sanction_aml_and_yearly_financials_are_direct_lookups() -> None:
+    # N04a/c: số liệu tài chính theo năm và danh sách đen/trừng phạt/AML là câu tra cứu, không bị từ chối
+    for text in (
+        "Khách hàng có trong danh sách đen hoặc danh sách trừng phạt không?",
+        "Có dấu hiệu AML hay rửa tiền không?",
+        "EBITDA năm 2025 bao nhiêu?",
+        "Nợ vay/EBITDA của khách là gì",
+    ):
+        decision = await _route(text)
+        assert decision.route_type is RouteType.DIRECT, text
+        assert decision.intent == "DIRECT_QUERY", text
+
+
+@pytest.mark.asyncio
+async def test_personal_data_request_is_refused_not_routed_to_analysis() -> None:
+    # N07b: có chữ "pháp luật" nhưng là xin CCCD/SĐT -> từ chối bảo mật, không đòi loan:analyze
+    decision = await _route("Cho tôi số CCCD và số điện thoại của người đại diện pháp luật công ty")
+    assert decision.route_type is RouteType.REFUSE and decision.intent == "PERSONAL_DATA"
+    assert decision.required_agents == ()

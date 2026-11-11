@@ -139,9 +139,17 @@ class ConversationProcessingGuard:
         self,
         customer_guard: CustomerProcessingGuardLike,
         loan_guard: LoanProcessingGuardLike,
+        run_guard: Any = None,
     ) -> None:
         self._customer_guard = customer_guard
         self._loan_guard = loan_guard
+        self._run_guard = run_guard
+
+    async def assert_can_rerun(self, principal: PrincipalLike, loan_application_id: UUID) -> None:
+        """Chạy lại đội agent qua chat tuân đúng luật của trang hồ sơ (vai theo bước + người giữ bước)."""
+        if self._run_guard is None:
+            raise RuntimeError("Agent run guard is not configured")
+        await self._run_guard.assert_can_run(principal, loan_application_id)
 
     async def assert_can_process(
         self,
@@ -328,26 +336,36 @@ class ConversationService:
             and str(route.get("route_type")) in protected_analysis_routes
             and not normalized_attachment_ids
         ):
-            require_permission(principal, "loan:analyze")
             if self._processing_guard is None:
                 raise RuntimeError(
                     "Conversation processing ownership guard is not configured"
                 )
-            customer_id = _required_context_uuid(
-                route.get("customer_id") or conversation.get("active_customer_id"),
-                "customer_id",
-            )
-            loan_application_id = _optional_context_uuid(
-                route.get("loan_application_id")
-                or conversation.get("active_loan_application_id"),
-                "loan_application_id",
-            )
-            await self._processing_guard.assert_can_process(
-                principal,
-                customer_id=customer_id,
-                loan_application_id=loan_application_id,
-                lease_token=assignment_lease_token,
-            )
+            if route.get("intent") == "RERUN_ANALYSIS" and hasattr(self._processing_guard, "assert_can_rerun"):
+                # chạy lại cả đội: cùng luật với nút "Chạy đội agent" ở trang hồ sơ, lý do từ chối cũng từ đó
+                await self._processing_guard.assert_can_rerun(
+                    principal,
+                    _required_context_uuid(
+                        route.get("loan_application_id") or conversation.get("active_loan_application_id"),
+                        "loan_application_id",
+                    ),
+                )
+            else:
+                require_permission(principal, "loan:analyze")
+                customer_id = _required_context_uuid(
+                    route.get("customer_id") or conversation.get("active_customer_id"),
+                    "customer_id",
+                )
+                loan_application_id = _optional_context_uuid(
+                    route.get("loan_application_id")
+                    or conversation.get("active_loan_application_id"),
+                    "loan_application_id",
+                )
+                await self._processing_guard.assert_can_process(
+                    principal,
+                    customer_id=customer_id,
+                    loan_application_id=loan_application_id,
+                    lease_token=assignment_lease_token,
+                )
 
         repository_options: dict[str, Any] = {}
         if normalized_attachment_ids:
