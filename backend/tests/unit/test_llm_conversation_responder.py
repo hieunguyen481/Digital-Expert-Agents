@@ -57,7 +57,7 @@ async def test_refuse_route_never_calls_llm() -> None:
         route={"route_type": "REFUSE", "intent": "OUT_OF_SCOPE"},
     )
     assert llm.calls == 0
-    assert "không xử lý" in reply.content
+    assert "ngoài phạm vi" in reply.content
     assert reply.metadata["responder"] == "llm"
 
 

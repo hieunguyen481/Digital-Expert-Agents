@@ -41,7 +41,7 @@ async def test_mock_responder_refuses_explicit_out_of_scope_request() -> None:
 
     assert reply.route_type == "REFUSE"
     assert reply.metadata["refused"] is True
-    assert "chỉ hỗ trợ nghiệp vụ ngân hàng" in reply.content
+    assert "chỉ hỗ trợ nghiệp vụ tín dụng" in reply.content
 
 
 @pytest.mark.asyncio

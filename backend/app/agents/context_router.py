@@ -89,6 +89,28 @@ _LOOKUP_TERMS = (
     "outstanding",
     "status",
 )
+# Câu hỏi về kết quả đã có của một hồ sơ (kết luận, chỉ số, cờ rủi ro, điều kiện, điều khoản, người quyết định):
+# đây là từ vựng nghiệp vụ tín dụng, không cần người hỏi gõ đúng chữ "hồ sơ"; trả lời từ lượt thẩm định đã có.
+_CASE_RESULT_TERMS = (
+    "kết luận",
+    "thẩm định",
+    "phê duyệt",
+    "quyết định",
+    "thẩm quyền",
+    "rủi ro",
+    "cờ ",
+    "điều kiện",
+    "điều khoản",
+    "ltv",
+    "đề xuất",
+    "phát hiện",
+    "chuyên gia",
+    "đội agent",
+    "tài sản bảo đảm",
+    "tsđb",
+)
+# Yêu cầu chạy lại phân tích: không phải câu tra cứu kết quả đã có.
+_RERUN_TERMS = ("phân tích lại", "thẩm định lại", "đánh giá lại", "chạy lại", "làm mới", "phân tích mới", "từ đầu", "rerun", "re-run")
 _ANALYSIS_VERBS = (
     "phân tích",
     "đánh giá",
@@ -185,6 +207,11 @@ class ContextRouter:
             and not is_definition
             and _contains_any(lowered, _LOOKUP_TERMS)
             and not _contains_any(lowered, _ANALYSIS_VERBS)
+        ) or (
+            not requires_loan
+            and not is_definition
+            and _contains_any(lowered, _CASE_RESULT_TERMS)
+            and not _contains_any(lowered, _RERUN_TERMS)
         )
 
         # An unknown prompt is not implicitly trusted as a general-purpose chat

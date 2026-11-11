@@ -30,8 +30,9 @@ from app.storage.interface import Storage
 logger = get_logger(__name__)
 
 _REFUSAL_TEXT = (
-    "Tôi chỉ hỗ trợ nghiệp vụ ngân hàng trong phạm vi khách hàng, giao dịch, "
-    "hồ sơ, chính sách tín dụng và phân tích khoản vay. Tôi không xử lý yêu cầu này."
+    "Câu hỏi này nằm ngoài phạm vi của trợ lý, vốn chỉ hỗ trợ nghiệp vụ tín dụng của hồ sơ đang mở. "
+    "Bạn có thể hỏi, ví dụ: kết luận thẩm định gần nhất là gì; chỉ số DSCR, LTV của hồ sơ; "
+    "có cờ rủi ro hay điều kiện kèm theo nào; điều khoản chính sách nào áp dụng; ai là người quyết định."
 )
 
 _FALLBACK_TEXT = (

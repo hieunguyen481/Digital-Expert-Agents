@@ -177,3 +177,42 @@ async def test_lookup_question_is_answered_directly_not_refused_or_deep(message:
 )
 async def test_lookup_terms_do_not_weaken_out_of_scope_refusal(message: str) -> None:
     assert (await _route(message)).route_type is RouteType.REFUSE
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Kết luận thẩm định gần nhất của hồ sơ này là gì?",
+        "Kết luận thẩm định gần nhất là gì?",
+        "Chỉ số DSCR và LTV của khoản vay này là bao nhiêu?",
+        "LTV hiện tại ra sao?",
+        "Có cờ rủi ro nào cần lưu ý không?",
+        "Điều kiện kèm theo để giải ngân là gì?",
+        "Điều khoản chính sách nào áp dụng cho khoản vay này?",
+        "Ai là người ra quyết định phê duyệt?",
+    ],
+)
+@pytest.mark.asyncio
+async def test_valid_case_questions_are_never_refused(message: str) -> None:
+    decision = await _route(message)
+
+    assert decision.route_type is not RouteType.REFUSE
+    assert decision.intent != "OUT_OF_SCOPE"
+
+
+@pytest.mark.parametrize(
+    "message",
+    ["Hôm nay nên mua cổ phiếu nào?", "Viết giúp tôi đoạn mã Python sắp xếp danh sách"],
+)
+@pytest.mark.asyncio
+async def test_out_of_scope_questions_are_still_refused(message: str) -> None:
+    decision = await _route(message)
+
+    assert decision.route_type is RouteType.REFUSE
+
+
+@pytest.mark.asyncio
+async def test_rerun_request_is_not_treated_as_lookup_of_existing_result() -> None:
+    decision = await _route("Thẩm định lại khoản vay này")
+
+    assert decision.route_type is not RouteType.DIRECT
