@@ -35,6 +35,6 @@ test('trưởng phòng chuyển bước Thẩm định sang đồng nghiệp cù
   // Người cũ không còn giữ bước nên hồ sơ ra ngoài phạm vi xem của họ: trang không tìm thấy, không có nút thao tác.
   await as(page, 'tdinh');
   await page.goto(`/ho-so-vay/${id}`);
-  await expect(page.getByText('Không tìm thấy nội dung')).toBeVisible();
+  await expect(page.getByText('Hồ sơ đã chuyển cho người khác')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Trình Rủi ro' })).toHaveCount(0);
 });

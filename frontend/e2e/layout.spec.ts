@@ -57,7 +57,7 @@ test('Ctrl+J mở/đóng, Esc đóng và trả focus', async ({ page }) => {
   await page.keyboard.press('Control+j');
   await expect(panel).toHaveAttribute('data-open', 'false');
 
-  const opener = page.getByRole('button', { name: 'Hỏi AI' }).first();
+  const opener = page.getByRole('button', { name: /Hỏi trợ lý/ }).first();
   await opener.focus();
   await opener.click();
   await expect(panel).toHaveAttribute('data-open', 'true');

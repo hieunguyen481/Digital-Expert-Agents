@@ -16,7 +16,7 @@ test('401 khi token hết hạn: tự làm mới rồi gửi lại, trang vẫn 
   });
   const refresh = page.waitForRequest((r) => r.url().includes('/protocol/openid-connect/token') && r.method() === 'POST');
   const retried = page.waitForResponse((r) => r.url().includes('/work-items') && r.status() === 200);
-  await page.getByText('Quá hạn', { exact: true }).click();
+  await page.getByText(/^Quá hạn/).click();
   await refresh;
   await retried;
   await expect(page.getByRole('heading', { level: 1, name: 'Việc của tôi' })).toBeVisible();
@@ -31,6 +31,6 @@ test('phiên Keycloak đã mất: chuyển về /login giữ returnTo', async ({
   await page.route('**/api/v1/work-items*', (route) =>
     route.fulfill({ status: 401, contentType: 'application/json', body: '{"detail":"expired"}' }),
   );
-  await page.getByText('Quá hạn', { exact: true }).click();
+  await page.getByText(/^Quá hạn/).click();
   await expect(page).toHaveURL(/\/login\?returnTo=%2Fviec-cua-toi/);
 });
