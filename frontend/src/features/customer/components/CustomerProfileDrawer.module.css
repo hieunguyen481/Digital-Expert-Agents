@@ -3,7 +3,7 @@
   align-items: center;
   gap: 12px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--shb-border);
+  border-bottom: 1px solid var(--rule);
 }
 
 .identityBody {
@@ -18,12 +18,12 @@
   font-size: 16.5px;
   font-weight: 650;
   line-height: 1.3;
-  color: var(--shb-navy-800);
+  color: var(--navy-900);
 }
 
 .code {
   font-size: 12px;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
   letter-spacing: 0.03em;
 }
 
@@ -36,7 +36,7 @@
 
 .section {
   padding: 16px 0;
-  border-bottom: 1px solid var(--shb-border);
+  border-bottom: 1px solid var(--rule);
 }
 
 .sectionTitle {
@@ -45,7 +45,7 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
 }
 
 .rows {
@@ -63,14 +63,14 @@
 
 .rowLabel {
   font-size: 13px;
-  color: var(--shb-text-secondary);
+  color: var(--ink-2);
   flex-shrink: 0;
 }
 
 .rowValue {
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--shb-navy-800);
+  color: var(--navy-900);
   text-align: right;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -79,8 +79,8 @@
 /* Thanh đo DTI. */
 .meter {
   height: 6px;
-  border-radius: var(--shb-radius-pill);
-  background: var(--shb-orange-50);
+  border-radius: var(--r-pill);
+  background: var(--bronze-100);
   overflow: hidden;
   margin-top: 6px;
 }
@@ -96,7 +96,7 @@
   justify-content: space-between;
   margin-top: 5px;
   font-size: 11.5px;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
 }
 
 .maskNote {
@@ -105,15 +105,15 @@
   gap: 7px;
   margin-top: 14px;
   padding: 9px 11px;
-  border-radius: var(--shb-radius-sm);
-  background: var(--shb-canvas);
+  border-radius: var(--r-md);
+  background: var(--paper);
   font-size: 11.5px;
   line-height: 1.5;
-  color: var(--shb-text-secondary);
+  color: var(--ink-2);
 }
 
 .maskIcon {
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
   margin-top: 2px;
   flex-shrink: 0;
 }

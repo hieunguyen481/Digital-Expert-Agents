@@ -3,14 +3,14 @@
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border: 1px solid var(--shb-border);
-  border-radius: var(--shb-radius-lg);
-  background: var(--shb-surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  background: var(--surface);
   transition: border-color 160ms ease;
 }
 
 .card:hover {
-  border-color: var(--shb-orange-200);
+  border-color: var(--bronze-100);
 }
 
 .body {
@@ -31,13 +31,13 @@
 .name {
   font-size: 14.5px;
   font-weight: 650;
-  color: var(--shb-navy-800);
+  color: var(--navy-900);
   line-height: 1.35;
 }
 
 .meta {
   font-size: 12.5px;
-  color: var(--shb-text-secondary);
+  color: var(--ink-2);
   line-height: 1.45;
 }
 
@@ -56,13 +56,13 @@
 
 .statLabel {
   font-size: 11px;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
 }
 
 .statValue {
   font-size: 13px;
   font-weight: 600;
-  color: var(--shb-navy-700);
+  color: var(--navy-700);
 }
 
 @media (max-width: 767px) {

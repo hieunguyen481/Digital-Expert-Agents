@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { App, Avatar, Button, Card, Empty, Modal, Result, Tabs, Tag, Timeline } from 'antd';
+import { App, Avatar, Button, Card, Empty, Modal, Tabs, Tag, Timeline } from 'antd';
 import {
   AuditOutlined,
   ClockCircleOutlined,
@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, useReducedMotion } from 'motion/react';
+import { StateBlock } from '@/components/ui';
 import { PageHead } from '@/features/shell/PageHead';
 import { LoanApprovalCard } from '@/features/customer/components/LoanApprovalCard';
 import { formatCurrency, formatRate } from '@/utils/formatCurrency';
@@ -74,11 +75,11 @@ export default function CustomerDetailPage() {
       <div className={styles.page}>
         <PageHead title="Khách hàng" />
         <div className={styles.container}>
-          <Result
-            status="warning"
+          <StateBlock
+            kind="notfound"
             title="Không tìm thấy khách hàng"
-            subTitle="Mã khách hàng trong đường dẫn không tồn tại hoặc nằm ngoài phạm vi bạn được xem."
-            extra={<Button type="primary" onClick={() => navigate('/viec-cua-toi')}>Về Việc của tôi</Button>}
+            description="Mã khách hàng trong đường dẫn không tồn tại hoặc nằm ngoài phạm vi bạn được xem."
+            action={<Button type="primary" onClick={() => navigate('/viec-cua-toi')}>Về Việc của tôi</Button>}
           />
         </div>
       </div>
@@ -221,13 +222,13 @@ export default function CustomerDetailPage() {
           children: (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <strong style={{ color: 'var(--shb-navy-800)' }}>{loan.code}</strong>
+                <strong style={{ color: 'var(--navy-900)' }}>{loan.code}</strong>
                 <Tag color={LOAN_STATUS_COLOR[loan.status]}>{LOAN_STATUS_LABEL[loan.status]}</Tag>
               </span>
-              <span style={{ fontSize: 13.5, color: 'var(--shb-navy-700)' }}>
+              <span style={{ fontSize: 13.5, color: 'var(--navy-700)' }}>
                 {loan.productName} — {formatCurrency(loan.amount)}
               </span>
-              <span style={{ fontSize: 12, color: 'var(--shb-text-muted)' }}>
+              <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>
                 Nộp {formatDate(loan.submittedAt)}
               </span>
             </div>

@@ -10,9 +10,9 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  border: 1px solid var(--shb-border);
-  border-radius: var(--shb-radius-md);
-  background: var(--shb-surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: var(--surface);
   cursor: pointer;
   text-align: left;
   transition:
@@ -22,18 +22,18 @@
 }
 
 .card:hover {
-  border-color: var(--shb-orange-200);
-  box-shadow: var(--shb-shadow-sm);
+  border-color: var(--bronze-100);
+  box-shadow: var(--sh-1);
 }
 
 .card:focus-visible {
-  outline: 3px solid var(--shb-orange-500);
+  outline: 3px solid var(--bronze-500);
   outline-offset: 2px;
 }
 
 .cardSelected {
-  border-color: var(--shb-orange-500);
-  background: var(--shb-orange-50);
+  border-color: var(--bronze-500);
+  background: var(--bronze-100);
 }
 
 .top {
@@ -49,15 +49,15 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: var(--shb-radius-sm);
-  background: var(--shb-orange-50);
-  color: var(--shb-orange-600);
+  border-radius: var(--r-md);
+  background: var(--bronze-100);
+  color: var(--bronze-700);
   font-size: 15px;
   flex-shrink: 0;
 }
 
 .cardSelected .fileIcon {
-  background: var(--shb-orange-100);
+  background: var(--bronze-100);
 }
 
 .check {
@@ -68,14 +68,14 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
 }
 
 .product {
   font-size: 13px;
   font-weight: 600;
   line-height: 1.35;
-  color: var(--shb-navy-800);
+  color: var(--navy-900);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -86,7 +86,7 @@
 .amount {
   font-size: 13.5px;
   font-weight: 680;
-  color: var(--shb-navy-700);
+  color: var(--navy-700);
   letter-spacing: -0.01em;
 }
 
@@ -99,7 +99,7 @@
 
 .date {
   font-size: 11px;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
 }
 
 /* Thanh hành động khi có file được chọn. */
@@ -112,16 +112,16 @@
   flex-wrap: wrap;
   margin-top: 12px;
   padding: 11px 12px;
-  border: 1px solid var(--shb-orange-200);
-  border-radius: var(--shb-radius-lg);
-  background: var(--shb-surface-soft);
-  box-shadow: var(--shb-shadow-sm);
+  border: 1px solid var(--bronze-100);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  box-shadow: var(--sh-1);
 }
 
 .actionCount {
   font-size: 13px;
   font-weight: 600;
-  color: var(--shb-navy-700);
+  color: var(--navy-700);
   margin-right: auto;
 }
 
@@ -135,7 +135,7 @@
 
 .selectAllLabel {
   font-size: 12px;
-  color: var(--shb-text-secondary);
+  color: var(--ink-2);
 }
 
 @media (max-width: 1199px) {

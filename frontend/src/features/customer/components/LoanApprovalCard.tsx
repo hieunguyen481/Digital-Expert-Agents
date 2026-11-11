@@ -239,7 +239,7 @@ export function LoanApprovalCard({ application, onDecision, onViewCustomer }: Lo
         onCancel={() => setRejectOpen(false)}
         destroyOnHidden
       >
-        <p style={{ marginTop: 0, color: 'var(--shb-text-secondary)' }}>
+        <p style={{ marginTop: 0, color: 'var(--ink-2)' }}>
           Lý do từ chối sẽ được lưu vết kiểm toán và dùng để thông báo cho khách hàng.
         </p>
         <Input.TextArea

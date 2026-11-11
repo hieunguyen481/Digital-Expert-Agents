@@ -3,8 +3,8 @@
   flex-direction: column;
   height: 100%;
   min-width: 0;
-  background: var(--shb-warm-white);
-  border-left: 1px solid var(--shb-border);
+  background: var(--surface);
+  border-left: 1px solid var(--rule);
   overflow: hidden;
 }
 
@@ -13,7 +13,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  border-bottom: 1px solid var(--shb-border);
+  border-bottom: 1px solid var(--rule);
   background: rgba(255, 255, 255, 0.9);
   flex-shrink: 0;
 }
@@ -33,7 +33,7 @@
 .headerName {
   font-size: 14.5px;
   font-weight: 650;
-  color: var(--shb-navy-800);
+  color: var(--navy-900);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -42,7 +42,7 @@
 
 .headerMeta {
   font-size: 11.5px;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -72,26 +72,26 @@
 .stat {
   flex: 1;
   padding: 9px 11px;
-  border: 1px solid var(--shb-border);
-  border-radius: var(--shb-radius-md);
-  background: var(--shb-surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: var(--surface);
 }
 
 .statLabel {
   font-size: 11px;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
   line-height: 1.4;
 }
 
 .statValue {
   font-size: 16px;
   font-weight: 680;
-  color: var(--shb-navy-800);
+  color: var(--navy-900);
   line-height: 1.25;
 }
 
 .statAccent {
-  color: var(--shb-orange-600);
+  color: var(--bronze-700);
 }
 
 .sectionTitle {
@@ -100,7 +100,7 @@
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
 }
 
 .backRow {
@@ -113,14 +113,14 @@
 .backTitle {
   font-size: 14px;
   font-weight: 600;
-  color: var(--shb-navy-700);
+  color: var(--navy-700);
 }
 
 /* Bảng so sánh */
 .compareScroll {
   overflow-x: auto;
-  border: 1px solid var(--shb-border);
-  border-radius: var(--shb-radius-md);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
 }
 
 .compareTable {
@@ -133,13 +133,13 @@
 .compareTable td {
   padding: 9px 12px;
   text-align: left;
-  border-bottom: 1px solid var(--shb-border);
+  border-bottom: 1px solid var(--rule);
   white-space: nowrap;
 }
 
 .compareTable th {
-  background: var(--shb-orange-50);
-  color: var(--shb-navy-700);
+  background: var(--bronze-100);
+  color: var(--navy-700);
   font-weight: 600;
   position: sticky;
   left: 0;
@@ -151,8 +151,8 @@
 
 .rowHead {
   font-weight: 600;
-  color: var(--shb-text-secondary);
-  background: var(--shb-surface-soft);
+  color: var(--ink-2);
+  background: var(--surface-2);
   position: sticky;
   left: 0;
 }

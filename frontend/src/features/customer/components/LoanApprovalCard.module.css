@@ -1,9 +1,9 @@
 .card {
-  border: 1px solid var(--shb-border);
-  border-radius: var(--shb-radius-card);
-  background: var(--shb-surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  background: var(--surface);
   overflow: hidden;
-  box-shadow: var(--shb-shadow-sm);
+  box-shadow: var(--sh-1);
 }
 
 .header {
@@ -12,7 +12,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 16px 18px 12px;
-  background: linear-gradient(180deg, var(--shb-orange-50) 0%, transparent 100%);
+  background: linear-gradient(180deg, var(--bronze-100) 0%, transparent 100%);
 }
 
 .headerLeft {
@@ -26,7 +26,7 @@
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
 }
 
 .title {
@@ -34,12 +34,12 @@
   font-size: 16px;
   font-weight: 650;
   line-height: 1.35;
-  color: var(--shb-navy-700);
+  color: var(--navy-700);
 }
 
 .customer {
   font-size: 13px;
-  color: var(--shb-text-secondary);
+  color: var(--ink-2);
 }
 
 .grid {
@@ -58,28 +58,28 @@
 
 .itemLabel {
   font-size: 11.5px;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
   line-height: 1.4;
 }
 
 .itemValue {
   font-size: 14.5px;
   font-weight: 600;
-  color: var(--shb-navy-800);
+  color: var(--navy-900);
   line-height: 1.4;
 }
 
 .checks {
   padding: 12px 18px;
-  border-top: 1px solid var(--shb-border);
-  background: var(--shb-warm-white);
+  border-top: 1px solid var(--rule);
+  background: var(--surface);
 }
 
 .checksTitle {
   margin: 0 0 9px;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--shb-navy-700);
+  color: var(--navy-700);
 }
 
 .checkList {
@@ -104,11 +104,11 @@
 }
 
 .checkPass {
-  color: var(--shb-success);
+  color: var(--ok-700);
 }
 
 .checkFail {
-  color: var(--shb-error);
+  color: var(--danger-700);
 }
 
 .checkBody {
@@ -124,7 +124,7 @@
   gap: 7px;
   font-size: 13px;
   font-weight: 550;
-  color: var(--shb-navy-800);
+  color: var(--navy-900);
   line-height: 1.45;
   flex-wrap: wrap;
 }
@@ -132,7 +132,7 @@
 .checkNote {
   font-size: 12.5px;
   line-height: 1.5;
-  color: var(--shb-text-secondary);
+  color: var(--ink-2);
 }
 
 .actions {
@@ -141,7 +141,7 @@
   gap: 8px;
   flex-wrap: wrap;
   padding: 13px 18px;
-  border-top: 1px solid var(--shb-border);
+  border-top: 1px solid var(--rule);
 }
 
 .spacer {
@@ -150,7 +150,7 @@
 
 .limitNote {
   font-size: 11.5px;
-  color: var(--shb-text-muted);
+  color: var(--ink-3);
   line-height: 1.45;
 }
 
@@ -159,23 +159,23 @@
   align-items: center;
   gap: 8px;
   padding: 13px 18px;
-  border-top: 1px solid var(--shb-border);
+  border-top: 1px solid var(--rule);
   font-size: 13.5px;
   font-weight: 550;
 }
 
 .decidedApproved {
-  color: var(--shb-success);
+  color: var(--ok-700);
   background: rgba(21, 128, 93, 0.05);
 }
 
 .decidedRejected {
-  color: var(--shb-error);
+  color: var(--danger-700);
   background: rgba(201, 54, 43, 0.04);
 }
 
 .decidedInfo {
-  color: var(--shb-warning);
+  color: var(--warn-700);
   background: rgba(217, 119, 6, 0.05);
 }
 
