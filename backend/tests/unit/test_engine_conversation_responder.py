@@ -176,3 +176,59 @@ def test_engine_reply_card_vietnamese_without_blank_limit():
 def test_scrub_raw_names():
     from app.services.llm_conversation_responder import scrub_raw_names
     assert scrub_raw_names("DSCR 1,34 [nguồn: existing_obligations]") == "DSCR 1,34 [nguồn: dư nợ hiện hữu]"
+
+
+class _CapInner(_Inner):
+    async def respond(self, **kwargs):
+        self.calls += 1
+        self.message = kwargs["message"]
+        return SimpleNamespace(metadata={}, content="ok")
+
+
+class _PolicyEngine(_Engine):
+    async def policy_search(self, q, k=3):
+        if "thẩm quyền" in q and "Cấp nào" not in q:  # truy vấn theo chủ đề tra được §3.1
+            return [{"source": "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt", "text": "≤ 20 / 20–100 / > 100 tỷ"}]
+        return [{"source": "CS-TD-SME/2025 §3.4 – Tách bạch", "text": "Không phê duyệt nếu đã tham gia"}]
+
+
+_Q_LEVEL = "Cấp nào phê duyệt hồ sơ này, theo điều khoản nào của chính sách?"
+
+
+@pytest.mark.asyncio
+async def test_approval_level_question_gets_section_3_1_and_proposed_level() -> None:
+    inner, engine = _CapInner(), _PolicyEngine()
+    engine.cases = [_prior()]
+    reply = await _ask(EngineConversationResponder(inner, engine), message=_Q_LEVEL,
+                       route={"route_type": "DIRECT", "intent": "DIRECT_QUERY"})
+    assert "§3.1" in inner.message and "Cấp phê duyệt đề xuất" in inner.message
+    assert "Giám đốc chi nhánh" in inner.message and "đề xuất của AI" in inner.message
+    assert reply.metadata["decision_related"] is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("message,kind", [
+    ("Nợ vay trên EBITDA của hồ sơ này là bao nhiêu?", "metric"),
+    ("Kết luận thẩm định gần nhất của VinaNova là gì?", "broad"),
+    ("Hồ sơ này có những cờ rủi ro nào và điều kiện gì?", "broad"),
+    ("Ai là người quyết định hồ sơ này?", "authority"),
+])
+async def test_question_kind_selects_context_and_closing_flag(message, kind) -> None:
+    assert mod.question_kind(message) == kind
+    inner, engine = _CapInner(), _PolicyEngine()
+    engine.cases = [_prior()]
+    reply = await _ask(EngineConversationResponder(inner, engine), message=message,
+                       route={"route_type": "DIRECT", "intent": "DIRECT_QUERY"})
+    has_block = "Bổ sung BCTC" in inner.message or "Đề xuất cấp có điều kiện" in inner.message
+    assert has_block == (kind == "broad")                      # câu hỏi một chỉ số/thẩm quyền không nhận cả khối kết luận
+    assert ("2-4 câu" in inner.message) == (kind == "metric")
+    assert reply.metadata["decision_related"] == (kind == "authority")
+
+
+def test_no_uuid_in_any_answer() -> None:
+    import re
+    from app.services.llm_conversation_responder import scrub_raw_names
+    uid = "10000000-0000-4000-8000-000000000008"
+    for raw in (f"Người được phân công xử lý là nhân viên có mã {uid}, cũng là QHKH.", f"Mã `{uid}` ...", f"id: {uid}"):
+        assert not re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", scrub_raw_names(raw), re.I)
+    assert "cán bộ được phân công" in scrub_raw_names(f"là nhân viên có mã {uid}, cũng")

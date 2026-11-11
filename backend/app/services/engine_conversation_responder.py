@@ -91,11 +91,18 @@ def compose_engine_reply(case: Mapping[str, Any]) -> str:
     return "\n".join(lines)
 
 
-_POLICY_Q = re.compile(r"điều khoản|chính sách|quy định|quy chế|§|thẩm quyền|cấp phê duyệt|ngưỡng|trần|quy trình", re.I)
+_POLICY_Q = re.compile(r"điều khoản|chính sách|quy định|quy chế|§|thẩm quyền|cấp phê duyệt|ngưỡng|trần|quy trình|"
+                       r"phê duyệt|quyết định|người duyệt", re.I)
+# Câu hỏi về quyền quyết định: BM25 trên corpus nhỏ xếp §3.1 sau các mục khác nên thêm truy vấn theo chủ đề
+# (tra thêm điều khoản thẩm quyền) thay vì chỉ tra bằng nguyên câu hỏi.
+_AUTHORITY_Q = re.compile(r"phê duyệt|thẩm quyền|quyết định|cấp nào|người duyệt|ai duyệt|ký duyệt", re.I)
+_AUTHORITY_TOPIC = "thẩm quyền phê duyệt theo tổng cấp tín dụng"
+# Câu hỏi tổng hợp (cả kết luận, cờ rủi ro, điều kiện) mới nhận cả khối kết luận; câu hỏi một chỉ số nhận phần gọn.
+_BROAD_Q = re.compile(r"kết luận|đề xuất|điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|tổng quan|tóm tắt", re.I)
 _POLICY_NOTE = ("\n\nĐIỀU KHOẢN CHÍNH SÁCH LIÊN QUAN (CS-TD-SME/2025; trích đúng số điều khoản khi trả lời, "
                 "không có trong đây thì nói rõ là chưa tra được):\n")
 _METRIC_Q = re.compile(r"dscr|ebitda|\bltv\b|nợ vay|đòn bẩy|hạn mức|tài sản bảo đảm|tsđb|định giá|kết luận|đề xuất|cấp phê duyệt|"
-                       r"điều kiện|phát hiện|chuyên gia|đội agent", re.I)
+                       r"điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|phê duyệt|quyết định|thẩm quyền", re.I)
 _RERUN = re.compile(r"phân tích lại|chạy lại|đánh giá lại|thẩm định lại|làm mới|phân tích mới|tính lại từ đầu", re.I)
 _PII = re.compile(r"\b(cccd|cmnd|căn cước|số điện thoại|sđt|email|địa chỉ nhà|ngày sinh)\b", re.I)
 _FINAL_STATES = {"Pending Approval", "Needs Info", "Rejected", "Completed", "Executing"}
@@ -111,21 +118,50 @@ def _epoch(value: Any) -> float | None:
         return None
 
 
-def result_context(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]]) -> str:
-    """Kết quả lượt phân tích gần nhất dưới dạng văn bản để trả lời thẳng câu hỏi (gói phê duyệt, hoặc báo cáo cuối khi cần bổ sung/từ chối)."""
+def question_kind(message: str) -> str:
+    """Loại câu hỏi về kết quả hồ sơ: authority (ai/cấp nào quyết định), broad (kết luận, cờ, điều kiện), metric (một chỉ số)."""
+    if _AUTHORITY_Q.search(message):
+        return "authority"
+    return "broad" if _BROAD_Q.search(message) else "metric"
+
+
+_KIND_GUIDE = {
+    "broad": "trả lời thẳng câu hỏi, nêu số liệu và căn cứ có trong kết quả; thiếu thì nói rõ là kết quả chưa nêu",
+    "metric": ("chỉ trả lời chỉ số được hỏi trong 2-4 câu: giá trị, ngưỡng, đạt hay không, nguồn; số liệu lấy đúng từ kết quả; "
+               "KHÔNG chép lại kết luận, KHÔNG liệt kê điều kiện hay cờ rủi ro; thiếu thì nói rõ là kết quả chưa nêu"),
+    "authority": ("trả lời theo cấp thẩm quyền và vai, không nêu tên hay mã định danh; nêu CẤP PHÊ DUYỆT ĐỀ XUẤT của đội agent "
+                  "và điều khoản chính sách (số điều khoản) quy định thẩm quyền; nói rõ đây là đề xuất của AI, người có thẩm quyền "
+                  "quyết định; người được phân công/QHKH của khách không được phê duyệt nếu điều khoản tách bạch nêu vậy; "
+                  "tối đa 5 câu, không chép lại kết luận hay điều kiện; dùng cấp đề xuất này, không dùng trường cấp phê duyệt của hồ sơ vay"),
+}
+
+
+def result_context(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]], kind: str = "broad") -> str:
+    """Kết quả lượt phân tích gần nhất dưới dạng văn bản để trả lời thẳng câu hỏi (gói phê duyệt, hoặc báo cáo cuối khi cần bổ sung/từ chối).
+
+    kind=metric/authority: bản gọn, không có khối kết luận/điều kiện để câu trả lời không chép lại cả khối đó."""
     package = case.get("package") or {}
     final = next((e.get("payload") or {} for e in reversed(events) if e.get("type") == "state_changed"
                   and (e.get("payload") or {}).get("report_text")), {})
     parts = [f"Trạng thái: {_STATE_LABEL.get(str(case.get('state')), case.get('state'))}"]
-    if package.get("recommendation"):
+    if package.get("recommendation") and kind == "broad":
         parts.append(f"Kết luận: {package['recommendation']}")
-    if package.get("required_approver_level"):
-        level = package["required_approver_level"]
-        parts.append(f"Cấp phê duyệt: {_LEVEL_LABEL.get(level, level)}")
+    level = package.get("required_approver_level") or ""
+    if not level and kind == "authority":  # báo cáo cuối của lượt phân tích có thể ghi cấp đề xuất dạng chữ
+        m = re.search(r"Cấp phê duyệt đề xuất:[^\n.]*", str(final.get("report_text") or ""))
+        if m:
+            parts.append(m.group(0).strip())
+    if level:
+        parts.append(f"Cấp phê duyệt đề xuất (của đội agent, chưa phải quyết định): {_LEVEL_LABEL.get(level, level)}")
+    if kind == "authority":
+        return "\n".join(parts)[:2000]
     for v in package.get("verdicts") or []:
         decision = _VERDICT_LABEL.get(str(v.get("decision", "")).lower(), v.get("decision"))
-        parts.append(f"{_AGENT_LABEL.get(v.get('agent'), v.get('agent'))} ({decision}): {v.get('summary')}; "
-                     f"phát hiện: {'; '.join(v.get('findings') or [])}; điều kiện: {'; '.join(v.get('conditions') or [])}")
+        line = f"{_AGENT_LABEL.get(v.get('agent'), v.get('agent'))} ({decision}): {v.get('summary')}; " \
+               f"phát hiện: {'; '.join(v.get('findings') or [])}"
+        parts.append(line + (f"; điều kiện: {'; '.join(v.get('conditions') or [])}" if kind == "broad" else ""))
+    if kind != "broad":
+        return "\n".join(parts)[:4000]
     for k, label in (("reason", "Lý do"), ("report_text", "Báo cáo cuối")):
         if final.get(k):
             parts.append(f"{label}: {final[k]}")
@@ -147,6 +183,9 @@ class EngineConversationResponder:
             return ""
         try:
             hits = await self._engine.policy_search(message, k=3)
+            if _AUTHORITY_Q.search(message):
+                topic = await self._engine.policy_search(_AUTHORITY_TOPIC, k=2)
+                hits = [*topic, *(h for h in hits if h["source"] not in {t["source"] for t in topic})]
         except Exception:  # noqa: BLE001 - thiếu điều khoản không được làm hỏng câu trả lời
             return ""
         return _POLICY_NOTE + "\n".join(f"- {h['source']}: {h['text']}" for h in hits) if hits else ""
@@ -276,9 +315,10 @@ class EngineConversationResponder:
         except AgentEngineError:
             return None
         t_case = time.perf_counter() - t1
+        kind = question_kind(message)
         grounded = (f"{message}\n\nKẾT QUẢ PHÂN TÍCH GẦN NHẤT CỦA ĐỘI AGENT CHO HỒ SƠ NÀY (nguồn chính để trả lời; "
-                    f"trả lời thẳng câu hỏi, nêu số liệu và căn cứ có trong kết quả; thiếu thì nói rõ là kết quả chưa nêu):\n"
-                    f"{result_context(case, events)}{await self._policy_block(message)}")
+                    f"{_KIND_GUIDE[kind]}):\n"
+                    f"{result_context(case, events, kind)}{await self._policy_block(message)}")
         t2 = time.perf_counter()
         inner = await self._inner.respond(principal=principal, conversation=conversation, message=grounded,
                                           route={**route, "route_type": "DIRECT"}, attachment_ids=attachment_ids)
@@ -288,7 +328,8 @@ class EngineConversationResponder:
         when = time.strftime("%H:%M %d/%m/%Y", time.localtime(float(latest.get("updated_at") or 0)))
         meta = {**(inner.metadata or {}), "responder": "agent_engine", "reused_result": True,
                 "engine_case_id": latest["case_id"], "engine_state": case.get("state"),
-                "verdicts": package.get("verdicts") or [], "sources": collect_sources(package), **ids}
+                "verdicts": package.get("verdicts") or [], "sources": collect_sources(package),
+                "decision_related": kind == "authority", **ids}
         return ConversationReply(
             content=f"{inner.content}\n\n_Dựa trên kết quả phân tích lúc {when}. Gõ “phân tích lại” để chạy lại cả đội agent._",
             route_type=str(route.get("route_type") or "ORCHESTRATED"),
