@@ -5,6 +5,7 @@ import { ActionButton, StateBlock, StatusPill } from '@/components/ui';
 import { PageHead } from '@/features/shell/PageHead';
 import apiClient from '@/services/apiClient';
 import { formatDateTime } from '@/utils/formatDate';
+import { groupNotifications } from './cleanText';
 import styles from './notifications.module.css';
 
 export interface NotificationRow {
@@ -35,12 +36,14 @@ export default function NotificationsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   });
   const items = q.data ?? [];
+  const groups = groupNotifications(items);
   const unread = items.filter((n) => n.status === 'UNREAD');
   const markAll = async () => {
     await Promise.all(unread.map((n) => markRead.mutateAsync(n.id)));
   };
-  const open = (n: NotificationRow) => {
-    if (n.status === 'UNREAD') markRead.mutate(n.id);
+  const open = (g: (typeof groups)[number]) => {
+    const n = g.head;
+    if (g.unread) items.filter((x) => g.ids.includes(x.id) && x.status === 'UNREAD').forEach((x) => markRead.mutate(x.id));
     if (n.resource_type === 'LOAN_APPLICATION' && n.resource_id) navigate(`/ho-so-vay/${n.resource_id}`);
   };
   return (
@@ -65,14 +68,15 @@ export default function NotificationsPage() {
         {items.length > 0 && (
           <section className={styles.card} aria-label="Danh sách thông báo">
             <ul className={styles.list} data-testid="notification-page-list">
-              {items.map((n) => {
+              {groups.map((g) => {
+                const n = g.head;
                 const linked = n.resource_type === 'LOAN_APPLICATION' && !!n.resource_id;
                 return (
-                  <li key={n.id} className={styles.row} data-status={n.status}>
-                    <StatusPill tone={n.status === 'UNREAD' ? 'info' : 'neutral'}>{n.status === 'UNREAD' ? 'Mới' : 'Đã đọc'}</StatusPill>
-                    <button type="button" className={styles.body} onClick={() => open(n)} aria-label={linked ? `${n.title}. Mở hồ sơ` : n.title}>
-                      <b>{n.title}</b>
-                      <span>{n.message}</span>
+                  <li key={n.id} className={styles.row} data-status={g.unread ? 'UNREAD' : 'READ'}>
+                    <StatusPill tone={g.unread ? 'info' : 'neutral'}>{g.unread ? 'Mới' : 'Đã đọc'}</StatusPill>
+                    <button type="button" className={styles.body} onClick={() => open(g)} aria-label={linked ? `${g.title}. Mở hồ sơ` : g.title}>
+                      <b>{g.title}{g.count > 1 && <span className={styles.count}> · {g.count} lần</span>}</b>
+                      <span>{g.message}</span>
                     </button>
                     <time className={styles.time} dateTime={n.created_at}>{formatDateTime(n.created_at)}</time>
                   </li>
@@ -81,6 +85,7 @@ export default function NotificationsPage() {
             </ul>
           </section>
         )}
+        {groups.some((g) => g.sample) && <p className={styles.sampleNote}>Một số thông báo thuộc hồ sơ dữ liệu mẫu; không ảnh hưởng hồ sơ thật.</p>}
       </div>
     </>
   );
