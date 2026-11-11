@@ -70,7 +70,7 @@ function PolicyContent() {
         <Table<Policy>
           className={ledgerTable} rowKey="id" loading={list.isLoading} pagination={false} aria-label="Danh sách chính sách" dataSource={list.data ?? []}
           columns={[
-            { title: 'Mã', dataIndex: 'policy_code' },
+            { title: 'Mã', dataIndex: 'policy_code', render: (v: string) => <span className={styles.num}>{v}</span> },
             { title: 'Tên chính sách', dataIndex: 'policy_name' },
             { title: 'Loại', dataIndex: 'policy_type', render: (v: string) => TYPE_LABEL[v.toUpperCase()] ?? v },
             { title: 'Trạng thái', dataIndex: 'status', render: (v: string) => <StatusPill tone={v.toUpperCase() === 'ACTIVE' ? 'ok' : 'neutral'}>{STATUS_LABEL[v.toUpperCase()] ?? 'Không áp dụng'}</StatusPill> },

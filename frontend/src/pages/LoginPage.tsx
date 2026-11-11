@@ -64,7 +64,7 @@ export default function LoginPage() {
           </div>
           <div className={`${styles.sample} ${styles.sampleTeam}`}>
             <span>Đội agent, cùng một sơ đồ ở mọi màn hình:</span>
-            <AgentTeam variant="compact" human={{ who: 'Người quyết định' }} />
+            <AgentTeam variant="compact" human={{ who: 'Người quyết định', note: 'ngoài khung AI' }} />
           </div>
         </div>
       </section>

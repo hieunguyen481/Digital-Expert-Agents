@@ -6,6 +6,7 @@ import { PageHead } from '@/features/shell/PageHead';
 import apiClient from '@/services/apiClient';
 import { formatDateTime } from '@/utils/formatDate';
 import { groupNotifications } from './cleanText';
+import { CodeText } from '@/components/common/CodeText';
 import styles from './notifications.module.css';
 
 export interface NotificationRow {
@@ -75,8 +76,8 @@ export default function NotificationsPage() {
                   <li key={n.id} className={styles.row} data-status={g.unread ? 'UNREAD' : 'READ'}>
                     <StatusPill tone={g.unread ? 'info' : 'neutral'}>{g.unread ? 'Mới' : 'Đã đọc'}</StatusPill>
                     <button type="button" className={styles.body} onClick={() => open(g)} aria-label={linked ? `${g.title}. Mở hồ sơ` : g.title}>
-                      <b>{g.title}{g.count > 1 && <span className={styles.count}> · {g.count} lần</span>}</b>
-                      <span>{g.message}</span>
+                      <b><CodeText>{g.title}</CodeText>{g.count > 1 && <span className={styles.count}> · {g.count} lần</span>}</b>
+                      <span><CodeText>{g.message}</CodeText></span>
                     </button>
                     <time className={styles.time} dateTime={n.created_at}>{formatDateTime(n.created_at)}</time>
                   </li>
