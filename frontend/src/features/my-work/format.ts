@@ -68,3 +68,9 @@ export const STATUS_LABEL: Record<string, string> = {
 
 export const stepLabel = (code: string): string => STEP_LABEL[code] ?? code;
 export const statusLabel = (code: string): string => STATUS_LABEL[code] ?? code;
+
+/** Tên khách hiển thị: hồ sơ chưa có người vay thì nói rõ thay vì "—". */
+export const customerLabel = (name: string | null | undefined): string => (name && name.trim() && name.trim() !== '—' ? name : 'Chưa có tên khách');
+
+/** Hồ sơ chưa có người vay (nháp thử nghiệm): không có gì để kiểm toán. */
+export const isNameless = (i: { customer_name: string }): boolean => customerLabel(i.customer_name) === 'Chưa có tên khách';

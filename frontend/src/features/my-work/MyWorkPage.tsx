@@ -1,5 +1,6 @@
-import { LockOutlined, PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Skeleton, Tooltip } from 'antd';
+import { useMemo } from 'react';
+import { PlusOutlined } from '@ant-design/icons';
+import { Alert, Button, Skeleton } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { uiRoleFromRoles } from '@/auth/roleFromMe';
 import { RequireRole } from '@/auth/RequireRole';
@@ -12,7 +13,8 @@ import { QueueTable } from './QueueTable';
 import { SideBlock } from './SideBlock';
 import styles from './my-work.module.css';
 import { EMPTY_COPY, PAGE_TITLE, QUEUE_TITLE, WORK_ROLES } from './roleCopy';
-import { QUEUE_FILTERS, type QueueFilter } from './types';
+import { isNameless } from './format';
+import { QUEUE_FILTERS, type QueueFilter, type WorkItem } from './types';
 import { useWorkItems } from './useWorkItems';
 
 function filterFromHash(hash: string): QueueFilter {
@@ -28,9 +30,14 @@ function Content() {
   const { openWith } = useAiPanel();
   const filter = filterFromHash(location.hash);
 
-  const all = useWorkItems('all');
-  const filtered = useWorkItems(filter);
   const readOnly = role === 'kiemtoan';
+  const rawAll = useWorkItems('all');
+  const rawFiltered = useWorkItems(filter);
+  // Kiểm toán không cần thấy hồ sơ chưa có khách (nháp do thử nghiệm tạo ra): ẩn khỏi danh sách mặc định.
+  const visible = <T extends { items: WorkItem[] } | undefined>(d: T): T =>
+    (readOnly && d ? { ...d, items: d.items.filter((i) => !isNameless(i)) } : d) as T;
+  const all = useMemo(() => ({ ...rawAll, data: visible(rawAll.data) }), [rawAll.data, readOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+  const filtered = useMemo(() => ({ ...rawFiltered, data: visible(rawFiltered.data) }), [rawFiltered.data, readOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setFilter = (next: QueueFilter) =>
     navigate({ pathname: location.pathname, hash: next === 'all' ? '' : `#filter=${next}` }, { replace: true });
@@ -38,21 +45,12 @@ function Content() {
   const facts = all.data
     ? [
         all.data.facts.overdue > 0 && `${all.data.facts.overdue} quá hạn`,
-        all.data.facts.due_within_1_workday > 0 && `${all.data.facts.due_within_1_workday} đến hạn trong 1 ngày LV`,
         all.data.facts.returned > 0 && `${all.data.facts.returned} bị trả lại`,
         all.data.facts.waiting_supplement > 0 && `${all.data.facts.waiting_supplement} chờ bổ sung`,
       ]
     : [];
 
-  const actions = readOnly ? (
-    <Tooltip title="Kiểm toán nội bộ chỉ xem, không thao tác">
-      <span>
-        <Button icon={<LockOutlined />} disabled>
-          Chỉ đọc
-        </Button>
-      </span>
-    </Tooltip>
-  ) : role === 'qhkh' ? (
+  const actions = readOnly ? null : role === 'qhkh' ? (
     <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/de-xuat-vay')}>
       Tạo đề xuất vay
     </Button>
@@ -98,7 +96,7 @@ function Content() {
   const strip = [
     { label: readOnly || role === 'truongphong' ? 'Hồ sơ đang mở' : 'Cần bạn xử lý', value: readOnly || role === 'truongphong' ? all.data.items.length : mine.length },
     { label: 'Hạn hôm nay', value: all.data.items.filter((i) => i.sla_level === 'today').length },
-    { label: 'Đã quá hạn', value: all.data.facts.overdue },
+    { label: readOnly || role === 'truongphong' ? 'Đã quá hạn' : 'Bạn đang giữ, quá hạn', value: all.data.facts.overdue },
     role === 'truongphong'
       ? { label: 'Chưa giao người', value: all.data.items.filter((i) => !i.holder_name).length }
       : { label: 'Đang chờ người khác', value: all.data.items.filter((i) => !i.mine).length },

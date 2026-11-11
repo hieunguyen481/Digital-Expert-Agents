@@ -4,7 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { Link, useNavigate } from 'react-router-dom';
 import { Flag, StateBlock, StatusPill, ledgerNum, ledgerTable, type PillTone } from '@/components/ui';
 import { useAiPanel } from '@/features/ai-panel/AiPanelContext';
-import { formatBillion, slaText, statusLabel, stepLabel } from './format';
+import { customerLabel, formatBillion, slaText, statusLabel, stepLabel } from './format';
 import styles from './my-work.module.css';
 import { QUEUE_FILTERS, type QueueFilter, type SlaLevel, type WorkItem } from './types';
 
@@ -45,7 +45,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
       render: (_, r) => (
         <div>
           <div className={styles.name}>
-            <Link to={`/ho-so-vay/${r.loan_application_id}`}>{r.customer_name}</Link>
+            <Link to={`/ho-so-vay/${r.loan_application_id}`}>{customerLabel(r.customer_name)}</Link>
             {!r.mine && !showHolder && <StatusPill>Theo dõi</StatusPill>}
           </div>
           <div className={styles.id}>{r.application_number}</div>
@@ -80,7 +80,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
       key: 'flags',
       render: (_, r) =>
         r.high_flags > 0 ? (
-          <Flag level="r">{r.open_flags} cờ, {r.high_flags} Cao</Flag>
+          <Flag level="r">{r.open_flags} cờ · {r.high_flags} cao</Flag>
         ) : r.open_flags > 0 ? (
           <Flag level="y">{r.open_flags} cờ</Flag>
         ) : (
@@ -116,7 +116,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
                 aria-label={`Hỏi trợ lý về ${r.application_number}`}
                 title="Hỏi trợ lý"
                 onClick={() =>
-                  openWith({ type: 'case', id: r.loan_application_id, label: `${r.application_number} · ${r.customer_name}` })
+                  openWith({ type: 'case', id: r.loan_application_id, label: `${r.application_number} · ${customerLabel(r.customer_name)}` })
                 }
               />
             )}

@@ -42,3 +42,12 @@ describe('nhãn trạng thái', () => {
     expect(statusLabel('APPRAISAL_PENDING_INFO')).toBe('Thẩm định – chờ bổ sung');
   });
 });
+
+describe('customerLabel', () => {
+  it('thay "—" bằng câu rõ nghĩa và nhận ra hồ sơ chưa có khách', async () => {
+    const { customerLabel, isNameless } = await import('./format');
+    expect(customerLabel('—')).toBe('Chưa có tên khách');
+    expect(customerLabel('CTCP A')).toBe('CTCP A');
+    expect(isNameless({ customer_name: '' })).toBe(true);
+  });
+});

@@ -48,4 +48,24 @@ DELETE FROM storage.object_metadata AS om
    AND NOT EXISTS (SELECT 1 FROM document.document_version dv WHERE dv.original_object_id = om.id)
    AND NOT EXISTS (SELECT 1 FROM document.document_page dp WHERE dp.page_image_object_id = om.id)
    AND NOT EXISTS (SELECT 1 FROM ai.report r WHERE r.pdf_object_id = om.id);
+-- Ho so NHAP LA- do e2e tao va chua co nguoi vay (hien "Chua co ten khach" o man Kiem toan): xoa cung cac dong phu thuoc thong dung;
+-- ho so con dong phu thuoc khac (FK) thi giu nguyen. Khong dung ho so khong co ma LA-, khong dung seed.
+DO $$
+DECLARE r record;
+BEGIN
+  FOR r IN SELECT a.id FROM credit.loan_application a
+            WHERE a.application_number LIKE 'LA-%' AND a.status = 'DRAFT'
+              AND NOT EXISTS (SELECT 1 FROM credit.loan_party p WHERE p.loan_application_id = a.id) LOOP
+    BEGIN
+      DELETE FROM credit.checklist_item_document WHERE checklist_item_id IN (SELECT id FROM credit.loan_checklist_item WHERE loan_application_id = r.id);
+      DELETE FROM credit.checklist_check_log WHERE loan_application_id = r.id;
+      DELETE FROM credit.loan_checklist_item WHERE loan_application_id = r.id;
+      DELETE FROM credit.loan_draft WHERE loan_application_id = r.id;
+      DELETE FROM credit.case_step WHERE loan_application_id = r.id;
+      DELETE FROM credit.case_exception WHERE loan_application_id = r.id;
+      DELETE FROM credit.loan_application WHERE id = r.id;
+    EXCEPTION WHEN foreign_key_violation THEN NULL;  -- con ban ghi phu thuoc khac: giu lai
+    END;
+  END LOOP;
+END $$;
 COMMIT;
