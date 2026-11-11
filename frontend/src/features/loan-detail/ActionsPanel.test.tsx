@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActionsPanel } from './ActionsPanel';
 import type { LoanOverview } from './types';
@@ -18,7 +19,7 @@ const state = (extra: Record<string, unknown>) => ({
 });
 function mount(status: string) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={qc}><ActionsPanel loanId="L" overview={overview(status)} /></QueryClientProvider>);
+  return render(<MemoryRouter><QueryClientProvider client={qc}><ActionsPanel loanId="L" overview={overview(status)} /></QueryClientProvider></MemoryRouter>);
 }
 
 describe('ActionsPanel – QA3-01 người không giữ bước', () => {
