@@ -108,8 +108,8 @@ async function focusRing(page: Page): Promise<string[]> {
     const res = await page.evaluate(() => {
       const active = document.activeElement as HTMLElement | null;
       if (!active || active === document.body) return null;
-      // Antd: ô thật nằm trong vỏ vẽ vòng focus (Select, Segmented, Input có tiền tố).
-      const el = (active.closest('.ant-select, .ant-picker, .ant-segmented-item, .ant-input-affix-wrapper') as HTMLElement | null) ?? active;
+      // Ô thật nằm trong vỏ vẽ vòng focus (Antd Select, Segmented, Input có tiền tố; ô tìm kiếm thanh trên đánh dấu data-focus-ring).
+      const el = (active.closest('.ant-select, .ant-picker, .ant-segmented-item, .ant-input-affix-wrapper, [data-focus-ring]') as HTMLElement | null) ?? active;
       const parse = (c: string) => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; };
       const lum = (c: { r: number; g: number; b: number }) => { const f = (v: number) => { const s = v / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
       const cs = getComputedStyle(el);

@@ -31,7 +31,7 @@ export function SearchBox() {
 
   return (
     <div className={styles.searchWrap}>
-      <label className={styles.search} role="search">
+      <label className={styles.search} role="search" data-focus-ring>
         <SearchOutlined aria-hidden />
         <input
           aria-label="Tìm kiếm"

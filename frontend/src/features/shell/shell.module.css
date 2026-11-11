@@ -63,7 +63,7 @@
   border: 1px solid var(--control); border-radius: var(--r-md); padding: 0 var(--s3); height: 34px;
   color: var(--ink-3); font-size: var(--fs-13);
 }
-.search:focus-within { box-shadow: var(--focus); }
+.search:focus-within { outline: 3px solid var(--navy-500); outline-offset: 2px; }
 .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; color: var(--ink); }
 .search input::placeholder { color: var(--ink-3); }
 .search input:disabled { cursor: not-allowed; }
