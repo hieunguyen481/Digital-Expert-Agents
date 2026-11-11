@@ -20,6 +20,7 @@ export default function AgentDashboardPage() {
       <Tabs
         activeKey={tab}
         onChange={setTab}
+        more={{ 'aria-label': 'Thêm tab' }}
         items={[
           { key: 'overview', label: 'Tổng quan', children: <OverviewTab /> },
           { key: 'traces', label: 'Dấu vết', children: <TracesTab initialCaseId={caseParam} /> },

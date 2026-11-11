@@ -1,4 +1,5 @@
 import { Button, Tag } from 'antd';
+import { StatusPill } from '@/components/ui';
 import { SlidersOutlined } from '@ant-design/icons';
 import { formatCurrency, formatRate } from '@/utils/formatCurrency';
 import type { LoanEstimateBlock } from '@/types/chat';
@@ -19,7 +20,7 @@ export function LoanEstimateCard({ estimate, onAdjust }: LoanEstimateCardProps) 
   return (
     <section className={styles.card} aria-label="Ước tính khoản vay">
       <div className={styles.badgeRow}>
-        <Tag color="orange">Ước tính</Tag>
+        <StatusPill tone="info">Ước tính</StatusPill>
         <Tag>Dữ liệu demo</Tag>
       </div>
 

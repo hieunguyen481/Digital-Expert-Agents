@@ -1,3 +1,4 @@
+import { paginationItemRender } from '@/utils/paginationRender';
 import { useState } from 'react';
 import { Button, Checkbox, Input, Select, Skeleton } from 'antd';
 import { Link } from 'react-router-dom';
@@ -72,7 +73,7 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
             : 'Lượt phân tích xuất hiện khi cán bộ có quyền chạy đội agent ở trang Hồ sơ vay hoặc gửi yêu cầu phân tích sâu ở trang Trợ lý AI.'} />
       ) : (
         <DataTable<AgentCaseSummary>
-          rowKey="case_id" dataSource={cases} size="small" className={ledgerTable} pagination={{ pageSize: 20, showSizeChanger: false }}
+          rowKey="case_id" dataSource={cases} size="small" className={ledgerTable} pagination={{ pageSize: 20, showSizeChanger: false, itemRender: paginationItemRender }}
           onRow={(r) => ({
             onClick: () => setOpen(r.case_id), className: styles.rowClick, 'data-testid': `case-row-${r.case_id}`,
             tabIndex: 0,

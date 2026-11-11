@@ -1,3 +1,4 @@
+import { paginationItemRender } from '@/utils/paginationRender';
 import { useQuery } from '@tanstack/react-query';
 import { Input, Pagination, Skeleton, Table } from 'antd';
 import { useState } from 'react';
@@ -69,7 +70,7 @@ export default function CustomerListPage() {
             />
             <div className={styles.pager}>
               <span>Hiển thị {from} đến {to} trong {total} khách hàng</span>
-              {total > PAGE_SIZE && <Pagination size="small" current={page} pageSize={PAGE_SIZE} total={total} showSizeChanger={false} onChange={setPage} />}
+              {total > PAGE_SIZE && <Pagination size="small" current={page} pageSize={PAGE_SIZE} total={total} showSizeChanger={false} onChange={setPage} itemRender={paginationItemRender} />}
             </div>
           </section>
         )}

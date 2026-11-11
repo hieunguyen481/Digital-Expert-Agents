@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Button, Input, Tag } from 'antd';
+import { Alert, Button, Input } from 'antd';
 import { AiTag, StatusPill, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
@@ -99,7 +99,7 @@ function ProposalCard({ proposal: p, caseId, loanId }: { proposal: ActionProposa
   );
 }
 
-interface ChainRow { id: string; kind: ProposalKind; title: string; steps: { label: string; tone: 'gold' | 'blue' | 'green' | 'red' | 'default'; text: string }[] }
+interface ChainRow { id: string; kind: ProposalKind; title: string; steps: { label: string; tone: PillTone; text: string }[] }
 
 /** Chuỗi trace của mỗi đề xuất: agent đề xuất → người xác nhận/bỏ → hệ thống thực hiện → kết quả. */
 export function proposalChains(events: AgentCaseEvent[]): ChainRow[] {
@@ -111,11 +111,11 @@ export function proposalChains(events: AgentCaseEvent[]): ChainRow[] {
     const row = rows.get(id) ?? { id, kind, title: String(e.payload?.title ?? KIND_LABEL[kind] ?? ''), steps: [] };
     if (e.type === 'action_proposed') {
       row.title = String(e.payload?.title ?? row.title);
-      row.steps.push({ label: 'Agent đề xuất', tone: 'gold', text: String(e.payload?.rationale ?? '') });
-    } else if (e.type === 'action_confirmed') row.steps.push({ label: 'Người xác nhận', tone: 'blue', text: String(e.payload?.reason ?? '') });
-    else if (e.type === 'action_dismissed') row.steps.push({ label: 'Người bỏ đề xuất', tone: 'default', text: String(e.payload?.reason ?? '') });
-    else if (e.type === 'action_executed') row.steps.push({ label: 'Hệ thống thực hiện', tone: 'green', text: 'Đã ghi vào hồ sơ bằng quyền của người xác nhận, có nhật ký kiểm toán.' });
-    else if (e.type === 'action_refused') row.steps.push({ label: 'Hệ thống từ chối', tone: 'red', text: String(e.payload?.message ?? '') });
+      row.steps.push({ label: 'Agent đề xuất', tone: 'warn', text: String(e.payload?.rationale ?? '') });
+    } else if (e.type === 'action_confirmed') row.steps.push({ label: 'Người xác nhận', tone: 'info', text: String(e.payload?.reason ?? '') });
+    else if (e.type === 'action_dismissed') row.steps.push({ label: 'Người bỏ đề xuất', tone: 'neutral', text: String(e.payload?.reason ?? '') });
+    else if (e.type === 'action_executed') row.steps.push({ label: 'Hệ thống thực hiện', tone: 'ok', text: 'Đã ghi vào hồ sơ bằng quyền của người xác nhận, có nhật ký kiểm toán.' });
+    else if (e.type === 'action_refused') row.steps.push({ label: 'Hệ thống từ chối', tone: 'bad', text: String(e.payload?.message ?? '') });
     rows.set(id, row);
   }
   return [...rows.values()];
@@ -131,7 +131,7 @@ export function ProposalChain({ events }: { events: AgentCaseEvent[] }) {
         <div key={c.id} data-testid="trace-proposal-chain" style={{ fontSize: 13, marginBottom: 8 }}>
           <b>{KIND_LABEL[c.kind] ?? c.kind}</b>: {c.title}
           {c.steps.map((s, i) => (
-            <div key={i} style={{ marginLeft: 12 }}><Tag color={s.tone}>{i + 1}. {s.label}</Tag>{s.text}</div>
+            <div key={i} style={{ marginLeft: 12 }}><StatusPill tone={s.tone}>{i + 1}. {s.label}</StatusPill> {s.text}</div>
           ))}
         </div>
       ))}

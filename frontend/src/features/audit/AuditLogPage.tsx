@@ -1,3 +1,4 @@
+import { paginationItemRender } from '@/utils/paginationRender';
 import { useQuery } from '@tanstack/react-query';
 import { Button, DatePicker, Input, Select, Table } from 'antd';
 import { useState } from 'react';
@@ -74,7 +75,7 @@ export default function AuditLogPage() {
         <Table<AuditEvent>
           className={ledgerTable} rowKey="id" loading={q.isLoading} aria-label="Nhật ký kiểm toán" dataSource={q.data?.items ?? []}
           locale={{ emptyText: <StateBlock kind="empty" compact title="Không có dòng nào khớp" description="Bỏ bớt điều kiện lọc hoặc mở rộng khoảng ngày." /> }}
-          pagination={{ current: page, pageSize: PAGE_SIZE, total: q.data?.meta.total, showSizeChanger: false, onChange: setPage }}
+          pagination={{ current: page, pageSize: PAGE_SIZE, total: q.data?.meta.total, showSizeChanger: false, onChange: setPage, itemRender: paginationItemRender }}
           columns={[
             { title: 'Thời gian', dataIndex: 'event_time', render: (v: string) => <span className={styles.time}>{new Date(v).toLocaleString('vi-VN')}</span> },
             { title: 'Nguồn', dataIndex: 'actor_type', render: (v: string) => {
