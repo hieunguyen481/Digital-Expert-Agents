@@ -22,6 +22,7 @@ export default function ReconciliationIndexPage() {
         )}
         {!q.data && !q.isError && <Skeleton active />}
         {q.data && q.data.items.length > 0 && (
+          <div className={styles.tableCard}>
           <Table<WorkItem>
             className={ledgerTable} rowKey="loan_application_id" pagination={false} aria-label="Hồ sơ cần đối chiếu"
             dataSource={[...q.data.items].sort((a, b) => (a.due_at ?? '9').localeCompare(b.due_at ?? '9'))}
@@ -32,6 +33,7 @@ export default function ReconciliationIndexPage() {
               { title: 'Hạn', render: (_, r) => (r.due_at ? <StatusPill tone={r.sla_level === 'over' ? 'bad' : r.sla_level === 'today' ? 'warn' : 'neutral'}>{fmtDay(r.due_at)}</StatusPill> : <span className={styles.note}>Không đặt hạn</span>) },
             ]}
           />
+          </div>
         )}
       </div>
     </RequireRole>

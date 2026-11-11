@@ -27,3 +27,4 @@
 .sourceDone { border: 1px solid var(--navy-700); border-left: 5px solid var(--navy-700); background: var(--surface); }
 .ledgerLink { color: var(--navy-900); font-weight: 600; text-decoration: none; font-family: var(--font-num); }
 .ledgerLink:hover { text-decoration: underline; }
+.tableCard { min-width: 0; border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-1); overflow: hidden; }
