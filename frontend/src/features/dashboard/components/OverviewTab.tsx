@@ -5,7 +5,7 @@ import { AgentTeam, AGENTS, KpiCard, StateBlock, StatusPill, ledgerNum, ledgerTa
 import { fmtDec, fmtInt } from '@/utils/format';
 import { TERM } from '@/utils/glossary';
 import { getAgentCaseStats } from '@/services/agentCaseService';
-import { STATE_TONE, agentName, fmtSeconds, stateLabel } from '../agentTrace';
+import { STATE_TONE, agentName, fmtSeconds, stateLabel, toolLabel } from '../agentTrace';
 import styles from '@/pages/AgentDashboardPage.module.css';
 
 const ROLES = Object.fromEntries(AGENTS.map((a) => [a.key, a.role]));
@@ -43,7 +43,7 @@ export function OverviewTab() {
         <KpiCard label={TERM.toolCalls} value={fmtInt(s.tool_calls)} note="lần" />
         <KpiCard label={TERM.challenge} value={fmtInt(s.challenges)} note="lần" />
         {avg && <KpiCard label="Thời gian trung bình" value={avg[0]} note={avg[1]} />}
-        {s.cost_usd != null && <KpiCard label="Chi phí LLM" value={fmtDec(s.cost_usd, 4)} note={`USD, ${fmtInt(s.llm_calls)} lượt gọi`} />}
+        {s.cost_usd != null && <KpiCard label="Chi phí LLM" value={fmtDec(s.cost_usd, 2)} note={`USD, ${fmtInt(s.llm_calls)} lượt gọi`} />}
       </div>
 
       <section className={styles.card} aria-labelledby="ov-flow">
@@ -75,11 +75,12 @@ export function OverviewTab() {
             emptyTitle="Chưa có tác vụ nào hoàn tất"
             columns={[
               { title: 'Agent', dataIndex: 'agent', key: 'agent', render: (a: string) => <b>{agentName(a)}</b> },
-              { title: 'Việc đã xử lý', dataIndex: 'tasks', key: 'tasks', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
-              { title: 'Lỗi', dataIndex: 'errors', key: 'errors', align: 'right', className: ledgerNum },
-              { title: 'Công cụ gọi', dataIndex: 'tool_calls', key: 'tool_calls', align: 'right', className: ledgerNum },
+              { title: 'Lượt tham gia', dataIndex: 'tasks', key: 'tasks', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
+              { title: 'Lỗi', dataIndex: 'errors', key: 'errors', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
+              { title: 'Công cụ gọi', dataIndex: 'tool_calls', key: 'tool_calls', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
             ]}
           />
+          <p className={styles.muted} style={{ padding: '8px 16px' }}>Planner điều phối nên không nhận việc riêng. Số lượt tham gia của mỗi agent là số tác vụ nó đã xử lý.</p>
         </div>
       </section>
 
@@ -89,9 +90,9 @@ export function OverviewTab() {
           <div className={`${styles.cardBody} ${styles.flush}`}>
             <DataTable<(typeof s.tools)[number]> rowKey="tool" dataSource={s.tools} size="small" className={ledgerTable}
               columns={[
-                { title: 'Công cụ', dataIndex: 'tool', key: 'tool', render: (t: string) => <span className={styles.mono}>{t}</span> },
+                { title: 'Công cụ', dataIndex: 'tool', key: 'tool', render: (t: string) => <span title={t}>{toolLabel(t)}</span> },
                 { title: 'Số lần', dataIndex: 'n', key: 'n', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
-                { title: 'Không thành công', dataIndex: 'failed', key: 'failed', align: 'right', className: ledgerNum },
+                { title: 'Không thành công', dataIndex: 'failed', key: 'failed', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
               ]}
             />
           </div>

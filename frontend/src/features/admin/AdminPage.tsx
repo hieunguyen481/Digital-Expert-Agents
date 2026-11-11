@@ -3,6 +3,7 @@ import { Skeleton, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { RequireRole } from '@/auth/RequireRole';
 import { StateBlock, StatusPill, ledgerNum, ledgerTable } from '@/components/ui';
+import { UI_ROLE_LABEL, uiRoleFromRoles } from '@/auth/roleFromMe';
 import { PageHead } from '@/features/shell/PageHead';
 import apiClient from '@/services/apiClient';
 import styles from './admin.module.css';
@@ -35,6 +36,25 @@ export interface AdminAiConfig {
 
 const get = async <T,>(path: string): Promise<T> => (await apiClient.get<T>(`/admin/${path}`)).data;
 
+/** Nhãn vai tiếng Việt: dùng lại bảng nhãn của thanh bên; hai vai chung một nhãn ở thanh bên thì tách ra để cột không trùng. */
+const SPLIT_ROLE: Record<string, string> = { risk_officer: 'Quản lý rủi ro', compliance_officer: 'Chuyên viên tuân thủ' };
+export function roleLabel(code: string, fallback?: string): string {
+  const ui = uiRoleFromRoles([code]);
+  return SPLIT_ROLE[code] ?? (ui ? UI_ROLE_LABEL[ui] : fallback ?? 'Vai khác');
+}
+
+/** Nhãn tiếng Việt của mã quyền; mã gốc hiện nhỏ bên dưới. */
+const PERM_LABEL: Record<string, string> = {
+  'account:read': 'Xem tài khoản', 'admin:manage': 'Quản trị hệ thống', 'audit:read': 'Xem nhật ký kiểm toán',
+  'customer:read': 'Xem khách hàng', 'customer:search': 'Tìm khách hàng',
+  'document:download': 'Tải tài liệu', 'document:read': 'Xem tài liệu', 'document:upload': 'Tải tài liệu lên', 'document:verify': 'Đối chiếu tài liệu',
+  'loan:analyze': 'Chạy phân tích hồ sơ', 'loan:approve': 'Quyết định phê duyệt', 'loan:create': 'Tạo hồ sơ vay', 'loan:read': 'Xem hồ sơ vay',
+  'loan:submit': 'Trình hồ sơ', 'loan:update': 'Sửa hồ sơ vay', 'policy:read': 'Tra cứu chính sách',
+  'report:export': 'Xuất báo cáo', 'report:generate': 'Lập báo cáo', 'report:read': 'Xem báo cáo', 'report:review': 'Soát báo cáo',
+  'transaction:read': 'Xem giao dịch',
+};
+export const permLabel = (code: string): string => PERM_LABEL[code] ?? 'Quyền khác';
+
 const TIER_LABEL: Record<number, string> = {
   1: 'Cấp 1 · Phê duyệt tại chi nhánh',
   2: 'Cấp 2 · Phê duyệt Hội sở',
@@ -66,7 +86,7 @@ function Users() {
     { title: 'Mã', dataIndex: 'employee_code', key: 'code' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Phòng', key: 'dept', render: (_, r) => r.department ?? '—' },
-    { title: 'Vai', key: 'roles', render: (_, r) => r.roles.map((x) => <StatusPill key={x}>{x}</StatusPill>) },
+    { title: 'Vai', key: 'roles', render: (_, r) => r.roles.map((x) => <StatusPill key={x}>{roleLabel(x)}</StatusPill>) },
   ];
   return (
     <Section title="Người dùng và vai" hint="Tài khoản nhân viên và vai đang có hiệu lực. Thêm, khóa hoặc đổi vai thực hiện ở Keycloak và dữ liệu nhân sự.">
@@ -82,9 +102,12 @@ function Permissions() {
   const roles = q.data ?? [];
   const codes = Array.from(new Set(roles.flatMap((r) => r.permissions))).sort();
   const columns: ColumnsType<{ code: string }> = [
-    { title: 'Quyền', dataIndex: 'code', key: 'code', fixed: 'left' },
+    {
+      title: 'Quyền', dataIndex: 'code', key: 'code', fixed: 'left', width: 240,
+      render: (c: string) => (<><div>{permLabel(c)}</div><code className={styles.permCode}>{c}</code></>),
+    },
     ...roles.map((r) => ({
-      title: r.role_name,
+      title: roleLabel(r.role_code, r.role_name),
       key: r.role_code,
       align: 'center' as const,
       render: (_: unknown, row: { code: string }) => (r.permissions.includes(row.code) ? <span aria-label="Được">✔</span> : <span aria-label="Không">—</span>),
@@ -94,7 +117,7 @@ function Permissions() {
     <Section title="Ma trận quyền" hint="Quyền chức năng của từng vai. Phạm vi dữ liệu do chính sách truy cập ở cơ sở dữ liệu quyết định. Chỉ đổi qua migration và seed.">
       {q.isLoading && <Skeleton active />}
       {q.isError && <StateBlock kind="error" title="Không tải được ma trận quyền" description="Thử lại sau ít phút." />}
-      {q.data && <Table rowKey="code" size="small" pagination={false} scroll={{ x: 'max-content' }} className={ledgerTable} columns={columns} dataSource={codes.map((code) => ({ code }))} />}
+      {q.data && <Table rowKey="code" size="small" pagination={false} scroll={{ x: 'max-content' }} className={`${ledgerTable} ${styles.matrix}`} columns={columns} dataSource={codes.map((code) => ({ code }))} />}
     </Section>
   );
 }

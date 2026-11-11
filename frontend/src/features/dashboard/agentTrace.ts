@@ -187,6 +187,8 @@ export const TOOL_LABEL: Record<string, string> = {
   get_annual_inflow: 'Tiền về tài khoản 12 tháng',
   get_bank_exposure: 'Dư nợ tại ngân hàng',
   create_loan_draft: 'Tạo bản nháp hồ sơ vay',
+  get_audit_log: 'Nhật ký kiểm toán',
+  get_loan_by_idempotency: 'Tra hồ sơ đã tạo',
 };
 export const toolLabel = (t: string) => TOOL_LABEL[t] ?? t;
 /** Tên nguồn nghiệp vụ cho bảng dữ liệu/tệp corpus/khóa nội bộ (khớp agent_engine/common/labels.py SOURCE). */
