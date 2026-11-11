@@ -351,3 +351,12 @@ Thay đổi được kiểm: cấp duyệt một nguồn theo tổng cấp tín 
 
 - Theo ca (sau): F5 4/5, F6 3/4, H4 3/4 giữ nguyên như §11; các ca còn lại đủ. Không có ca nào lệch cổng.
 - Kết luận: không thoái lui vượt dao động; mẫu nhỏ (1 lần/ca), chỉ bắt được thoái lui lớn. Tổng chi phí hai lượt $0,046. Tệp kết quả đã nạp `agent.benchmark_run`.
+
+## 14. Ghi chú đăng ký trước khi đo v8: định nghĩa "tổng cấp tín dụng" (11/11/2026)
+
+Ghi trước mọi lượt đo v8. Không sửa `cases_v7.json`, `cases_v8.json`, `grade.py`.
+
+- **Chuyện gì xảy ra.** Lần chấm chức năng 1 phát hiện agent nêu cấp phê duyệt lệch backend. Nguyên nhân: engine cộng mọi dòng `credit.existing_obligation` (kể cả dư nợ ở TCTD khác) vào tổng cấp tín dụng. `rules.md` Q4 và ví dụ VinaNova (dòng 38) quy định chỉ tính dư nợ tại ngân hàng cộng khoản mới. Commit `b32e260`, `774f932` sửa engine dùng cùng cách tính với backend (V059 `credit.existing_bank_exposure`).
+- **Hệ quả với bộ đo.** Đáp án đã đăng ký của v7 và v8 cho hai loại phát hiện `total_exposure` và `audit_required` được viết theo cách tính cũ (có cộng dư nợ TCTD khác): 12/33 phát hiện ở v7, 17/48 ở v8. Sau khi sửa, cả single lẫn multi đều không còn khớp hai loại này. Kiểm hồi quy v7 một lượt mỗi ca: multi độ phủ 0,969 → 0,690; single 0,533 (mốc 3 lượt trước đó 0,883); cổng multi 1,000, single 0,750; trích nguồn multi 1,000, single 0,884.
+- **Cách báo cáo v8, chốt trước khi đo.** Đo đúng một lượt (3 lần × 2 chế độ). Báo hai dòng số cạnh nhau cho cả hai chế độ: (a) độ phủ theo đáp án đã đăng ký, nguyên vẹn; (b) độ phủ không tính hai loại phát hiện `total_exposure` và `audit_required`, vì đáp án của chúng mâu thuẫn `rules.md`. Các chỉ số khác (trích nguồn, độ chính xác, cổng, sai, độ trễ, chi phí) giữ nguyên cách chấm. Không viết lại đáp án, không thêm ca, không chọn dòng nào đẹp hơn để nêu riêng.
+- **Giới hạn.** Dòng (b) được định nghĩa sau khi đã thấy số v7 giảm, nên nó là số tham khảo có giải thích, không phải kết quả mù thuần túy. Số v7 đã công bố ở §13 đo trên engine trước khi sửa và vẫn giữ nguyên.
