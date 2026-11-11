@@ -3,8 +3,8 @@
 # ho so LA- tao khi demo/e2e bi go nguoi vay chinh nen khong con hien trong danh sach viec).
 # Khong dung agent.benchmark_run. Chay nhieu lan cho cung ket qua. Khi chay e2e: boc trong flock /tmp/do-an-e2e.lock.
 # Bien: DEMO_PROJECT (mac dinh bank-ai-workbench). Can stack dang chay; khong down, khong xoa volume.
-# Tuy chon --warm: sau khi nap seed, chay doi agent THAT (LLM) cho ho so canh 1 (HSV-2026-00187, VinaNova) va cho xong,
-# de khoi AI o chi tiet ho so co ket luan, co, Validation ngay khi mo. Khong chen du lieu agent gia vao seed. Bien: WARM_TIMEOUT (giay, mac dinh 420).
+# Tuy chon --warm: sau khi nap seed, chay doi agent THAT (LLM) cho 2 ho so: canh 1 (HSV-2026-00187, VinaNova, do Tham dinh) va ho so o buoc Phe duyet (HSV-2026-00163, do Truong phong), moi ho so cho xong,
+# de khoi AI o chi tiet ho so (ca man cua Cap phe duyet) co ket luan, co, Validation ngay khi mo. Khong chen du lieu agent gia vao seed. Bien: WARM_TIMEOUT (giay, mac dinh 420).
 set -euo pipefail
 warm=0
 for arg in "$@"; do case "$arg" in --warm) warm=1 ;; *) echo "Tham so khong biet: $arg (chi co --warm)" >&2; exit 2 ;; esac; done
@@ -31,7 +31,8 @@ for line in open(os.environ["ENV_FILE"], encoding="utf-8"):
     if line and not line.startswith("#") and "=" in line:
         k, v = line.split("=", 1); env[k] = v.strip().strip('"').strip("'")
 kc = os.environ.get("KEYCLOAK_URL", "http://localhost:8080"); api = os.environ.get("API_URL", "http://localhost:8000/api/v1")
-loan = "75000000-0000-4000-8000-000000000001"
+# (ho so, tai khoan chay): 00187 do Tham dinh; 00163 (dang o buoc Phe duyet) do Truong phong, vai duoc phep chay theo ROLE_STATUSES.
+runs = [("75000000-0000-4000-8000-000000000001", "appraiser@example.local"), ("75000000-0000-4000-8000-000000000013", "credit.manager@example.local")]
 terminal = {"Pending Approval", "Needs Info", "Escalated", "Executing", "Completed", "Rejected"}
 def call(method, url, form=None, token=None, body=None):
     data = urllib.parse.urlencode(form).encode() if form else (json.dumps(body).encode() if body is not None else None)
@@ -41,20 +42,23 @@ def call(method, url, form=None, token=None, body=None):
     if token: req.add_header("Authorization", "Bearer " + token)
     with urllib.request.urlopen(req, timeout=60) as r:
         return json.loads(r.read() or b"null")
+ok = True
 try:
-    tok = call("POST", f"{kc}/realms/bank-ai/protocol/openid-connect/token", form={
-        "grant_type": "password", "client_id": "bank-ai-backend", "client_secret": env["KEYCLOAK_BACKEND_CLIENT_SECRET"],
-        "username": "appraiser@example.local", "password": env["SEED_USER_PASSWORD"]})["access_token"]
-    ov = call("POST", f"{api}/loan-applications/{loan}/agent-runs", token=tok)
-    case_id = ov["latest"]["case_id"]
-    deadline = time.time() + int(os.environ.get("WARM_TIMEOUT", "420"))
-    state = None
-    while time.time() < deadline:
-        state = call("GET", f"{api}/agent-cases/{case_id}", token=tok).get("state")
-        if state in terminal: break
-        time.sleep(5)
-    print(f"warm: ca {case_id} trang thai {state}")
-    sys.exit(0 if state in terminal else 1)
+    for loan, user in runs:
+        tok = call("POST", f"{kc}/realms/bank-ai/protocol/openid-connect/token", form={
+            "grant_type": "password", "client_id": "bank-ai-backend", "client_secret": env["KEYCLOAK_BACKEND_CLIENT_SECRET"],
+            "username": user, "password": env["SEED_USER_PASSWORD"]})["access_token"]
+        ov = call("POST", f"{api}/loan-applications/{loan}/agent-runs", token=tok)
+        case_id = ov["latest"]["case_id"]
+        deadline = time.time() + int(os.environ.get("WARM_TIMEOUT", "420"))
+        state = None
+        while time.time() < deadline:
+            state = call("GET", f"{api}/agent-cases/{case_id}", token=tok).get("state")
+            if state in terminal: break
+            time.sleep(5)
+        print(f"warm: ho so {loan[-2:]} ca {case_id} trang thai {state}")
+        ok = ok and state in terminal
+    sys.exit(0 if ok else 1)
 except Exception as e:  # khong in token/mat khau
     print(f"warm that bai: {type(e).__name__}: {e}", file=sys.stderr); sys.exit(1)
 PY
