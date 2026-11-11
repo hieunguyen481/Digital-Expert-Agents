@@ -1306,7 +1306,7 @@ async def test_action_proposal_notifies_only_holder_who_can_confirm(
     made = [await _proposal(mig, case, "add_risk_flag"), await _proposal(mig, case, "request_documents")]
     try:
         got = [t for e, t in await notifications_of(mig, case.loan_id) if t == "AGENT_ACTION_PROPOSED"]
-        assert got == ["AGENT_ACTION_PROPOSED"] * 2
+        assert got == ["AGENT_ACTION_PROPOSED"]  # M05: nhiều đề xuất của một lượt gộp thành một thông báo
         assert {e for e, t in await notifications_of(mig, case.loan_id) if t == "AGENT_ACTION_PROPOSED"} == {CREDIT_APPRAISER}
     finally:
         for c in made:
