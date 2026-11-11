@@ -36,6 +36,8 @@ test('hồ sơ 25 tỷ: tải BCTC kiểm toán, đi trọn tới quyết địn
   }
   await page.locator('#action-text').fill('Đủ điều kiện, phê duyệt theo đề nghị.');
   await page.getByRole('button', { name: 'Ghi quyết định' }).click();
+  await expect(page.getByTestId('decision-confirm')).toContainText('Không hoàn tác được');
+  await page.getByRole('button', { name: /^Xác nhận/ }).click();
   await expect(page.getByText(/Đã phê duyệt|Phê duyệt có điều kiện/).first()).toBeVisible({ timeout: 30_000 });
   await shot(page, 't2', 'da-quyet-dinh');
 });

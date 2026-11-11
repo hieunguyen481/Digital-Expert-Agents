@@ -37,8 +37,7 @@ async function openDecision(page: Page, id: string) {
 }
 
 async function pickDecision(page: Page, label: string) {
-  await page.getByLabel('Loại quyết định').click();
-  await page.locator('.ant-select-item-option').filter({ hasText: label }).click();
+  await page.getByRole('radiogroup', { name: 'Loại quyết định' }).getByText(label, { exact: true }).click();
 }
 
 test('nhánh Từ chối: Giám đốc từ chối, hồ sơ đóng; điều kiện trước giải ngân hiện khi thiếu tài khoản', async ({ page }) => {
@@ -49,6 +48,8 @@ test('nhánh Từ chối: Giám đốc từ chối, hồ sơ đóng; điều ki�
   await page.locator('#action-text').fill('Từ chối: dòng tiền không đủ chịu nợ theo đánh giá của cấp phê duyệt.');
   await shot(page, 'b1', 'quyet-dinh');
   await page.getByRole('button', { name: 'Ghi quyết định' }).click();
+  await expect(page.getByTestId('decision-confirm')).toContainText('Không hoàn tác được');
+  await page.getByRole('button', { name: /^Xác nhận/ }).click();
   await expect(page.getByText('Từ chối').first()).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole('button', { name: 'Quyết định', exact: true })).toHaveCount(0);
   await shot(page, 'b1', 'da-tu-choi');
@@ -62,6 +63,8 @@ test('nhánh Phê duyệt có điều kiện: điều kiện được ghi và h�
   await page.getByPlaceholder('Mỗi điều kiện một dòng').fill('Mở tài khoản thanh toán trước giải ngân\nTheo dõi dòng tiền hằng quý');
   await page.locator('#action-text').fill('Phê duyệt có điều kiện theo đề xuất của Thẩm định.');
   await page.getByRole('button', { name: 'Ghi quyết định' }).click();
+  await expect(page.getByTestId('decision-confirm')).toContainText('Không hoàn tác được');
+  await page.getByRole('button', { name: /^Xác nhận/ }).click();
   await expect(page.getByText(/Phê duyệt có điều kiện/).first()).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText('Mở tài khoản thanh toán trước giải ngân').first()).toBeVisible();
   await expect(page.getByRole('button', { name: 'Quyết định', exact: true })).toHaveCount(0);
@@ -77,8 +80,10 @@ test('nhánh Trả về Thẩm định: cấp phê duyệt trả lại, Thẩm �
   test.setTimeout(600_000);
   const id = await toApproval(page, 'b3');
   await openDecision(page, id);
+  await pickDecision(page, 'Trả lại');
   await page.locator('#action-text').fill('Cần Thẩm định làm rõ nguồn trả nợ trước khi phê duyệt.');
   await page.getByRole('button', { name: 'Trả lại bổ sung' }).click();
+  await page.getByRole('button', { name: /^Xác nhận trả về Thẩm định/ }).click();
   await expect(page.getByText('Đang thẩm định').first()).toBeVisible({ timeout: 30_000 });
   await shot(page, 'b3', 'da-tra-ve');
   await as(page, 'tdinh');
@@ -96,6 +101,7 @@ test('R-05: từ chối một ngoại lệ kèm lý do thì không ghi được 
   await expect(rows.first()).toBeVisible();
   const reasonBox = rows.first().getByRole('textbox');
   await rows.first().getByText('Từ chối (phải trả lại bổ sung)').click();
+  await pickDecision(page, 'Trả lại');
   await page.locator('#action-text').fill('Cần bổ sung thêm chứng từ.');
   await expect(page.getByRole('button', { name: 'Trả lại bổ sung' })).toBeDisabled(); // thiếu lý do của ngoại lệ
   await reasonBox.fill('Chứng từ thay thế chưa đủ căn cứ.');
@@ -103,6 +109,7 @@ test('R-05: từ chối một ngoại lệ kèm lý do thì không ghi được 
   for (let i = 1; i < others; i++) { await rows.nth(i).getByText('Chấp thuận').click(); await rows.nth(i).getByRole('textbox').fill('Chấp thuận theo đề xuất.'); }
   await shot(page, 'b5', 'tu-choi-ngoai-le');
   await page.getByRole('button', { name: 'Trả lại bổ sung' }).click();
+  await page.getByRole('button', { name: /^Xác nhận trả về/ }).click();
   await expect(page.getByText('Đang thẩm định').first()).toBeVisible({ timeout: 30_000 });
 });
 

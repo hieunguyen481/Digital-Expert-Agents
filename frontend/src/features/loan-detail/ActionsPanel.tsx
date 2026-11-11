@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { Alert, Button, Input, InputNumber, Modal, Radio, Select, Space, Typography } from 'antd';
+import { Alert, Button, Input, Modal, Radio, Space, Typography } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
 import { ActionButton, HumanBlock, StatusPill } from '@/components/ui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +10,7 @@ import { normalizeError } from '@/services/apiClient';
 import {
   addOpinion, concludeFlag, earlyWarning, extendDeadline, fetchActionState, handleFlag, runTransition, upgradeApproval,
 } from './loanDetailService';
+import { DecisionModal } from './DecisionModal';
 import type { Flag, LoanOverview } from './types';
 import styles from './loan-detail.module.css';
 
@@ -49,9 +50,6 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [conclusion, setConclusion] = useState<string>('');
-  const [decision, setDecision] = useState({ type: 'APPROVED', amount: Number(overview.loan.requested_amount), term: overview.loan.requested_term_months ?? 12, conditions: '', target: 'APPRAISAL' });
-  const [exceptionChoice, setExceptionChoice] = useState<Record<string, 'ACCEPTED' | 'REJECTED'>>({});
-  const [exceptionReason, setExceptionReason] = useState<Record<string, string>>({});
   const st = useQuery({ queryKey: ['loan-actions', loanId], queryFn: () => fetchActionState(loanId) });
   const roles = new Set(me?.roles ?? []);
   const state = st.data;
@@ -159,20 +157,6 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     return out;
   };
 
-  const approving = decision.type !== 'REJECTED';
-  const amountInvalid = approving && !(decision.amount > 0);
-  const termInvalid = approving && !(decision.term > 0);
-  const exceptionsDecided = state.pending_exceptions.every((e) => exceptionChoice[e.id] && exceptionReason[e.id]?.trim());
-  const decideBody = () => {
-    const params = {
-      decision_type: decision.type,
-      ...(approving ? { approved_amount: decision.amount, approved_term_months: decision.term } : {}),
-      conditions: decision.conditions.split('\n').map((c) => c.trim()).filter(Boolean),
-      exceptions: state.pending_exceptions.map((e) => ({ id: e.id, decision: exceptionChoice[e.id], reason: exceptionReason[e.id]?.trim() })),
-    };
-    return params;
-  };
-
   const slot = typeof document === 'undefined' ? null : document.getElementById('loan-primary-action');
   const decider = (has('loan_approver') && status === 'APPROVAL') || status === 'COUNCIL_SESSION';
   return (
@@ -225,39 +209,9 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
         {error && <Alert type="error" showIcon role="alert" style={{ marginTop: 8 }} message={error} />}
       </Modal>
 
-      <Modal open={dialog?.kind === 'decide'} title="Quyết định của cấp phê duyệt" onCancel={() => setDialog(null)} destroyOnClose
-        okText="Ghi quyết định" cancelText="Hủy" confirmLoading={busy} okButtonProps={{ disabled: !text.trim() || !exceptionsDecided || amountInvalid || termInvalid }}
-        onOk={() => void submit(() => runTransition(loanId, 'decide', state.version, text.trim(), decideBody()))}>
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <Select value={decision.type} onChange={(v) => setDecision({ ...decision, type: v })} style={{ width: '100%' }} aria-label="Loại quyết định"
-            options={[{ value: 'APPROVED', label: 'Phê duyệt' }, { value: 'APPROVED_WITH_CONDITIONS', label: 'Phê duyệt có điều kiện' }, { value: 'REJECTED', label: 'Từ chối' }]} />
-          {decision.type !== 'REJECTED' && (
-            <>
-              <label>Số tiền duyệt (VND) <InputNumber style={{ width: '100%' }} formatter={(v) => (v == null ? '' : new Intl.NumberFormat('vi-VN').format(Number(v)))} parser={(v) => Number((v ?? '').replace(/\./g, '').replace(/[^0-9]/g, ''))} status={amountInvalid ? 'error' : undefined} value={decision.amount} onChange={(v) => setDecision({ ...decision, amount: Number(v ?? 0) })} /></label>
-              <label>Kỳ hạn (tháng) <InputNumber style={{ width: '100%' }} status={termInvalid ? 'error' : undefined} value={decision.term} onChange={(v) => setDecision({ ...decision, term: Number(v ?? 0) })} /></label>
-              {amountInvalid && <Typography.Text type="danger" role="alert">Số tiền duyệt phải lớn hơn 0.</Typography.Text>}
-              {termInvalid && <Typography.Text type="danger" role="alert">Kỳ hạn duyệt phải lớn hơn 0.</Typography.Text>}
-              {decision.type === 'APPROVED_WITH_CONDITIONS' && <Input.TextArea rows={2} placeholder="Mỗi điều kiện một dòng" value={decision.conditions} onChange={(e) => setDecision({ ...decision, conditions: e.target.value })} />}
-            </>
-          )}
-          {state.pending_exceptions.map((e) => (
-            <div key={e.id} className={styles.item} data-testid="exception-row">
-              <b>Ngoại lệ {e.checklist_code}</b> · {e.reason}
-              <Radio.Group value={exceptionChoice[e.id]} onChange={(ev) => setExceptionChoice({ ...exceptionChoice, [e.id]: ev.target.value })}>
-                <Radio value="ACCEPTED">Chấp thuận</Radio><Radio value="REJECTED">Từ chối (phải trả lại bổ sung)</Radio>
-              </Radio.Group>
-              <Input aria-label={`Lý do ngoại lệ ${e.checklist_code}`} placeholder="Lý do chấp thuận / từ chối (bắt buộc)" value={exceptionReason[e.id] ?? ''}
-                onChange={(ev) => setExceptionReason({ ...exceptionReason, [e.id]: ev.target.value })} />
-            </div>
-          ))}
-          <label htmlFor="action-text">Lý do quyết định (bắt buộc)</label>
-          <Input.TextArea id="action-text" rows={3} value={text} onChange={(e) => setText(e.target.value)} />
-          <Button disabled={busy || !text.trim() || !exceptionsDecided} onClick={() => void submit(() => runTransition(loanId, 'return_for_supplement', state.version, text.trim(), { target: decision.target, exceptions: decideBody().exceptions }))}>Trả lại bổ sung</Button>
-          <Select value={decision.target} onChange={(v) => setDecision({ ...decision, target: v })} aria-label="Trả về"
-            options={[{ value: 'APPRAISAL', label: 'Trả về Thẩm định' }, { value: 'RETURNED_TO_RM', label: 'Trả về QHKH (sửa đề xuất)' }]} />
-          {error && <Alert type="error" showIcon role="alert" message={error} />}
-        </Space>
-      </Modal>
+      <DecisionModal open={dialog?.kind === 'decide'} loanId={loanId} applicationNumber={overview.loan.application_number}
+        requestedAmount={Number(overview.loan.requested_amount)} requestedTerm={overview.loan.requested_term_months ?? 12}
+        state={state} busy={busy} error={error} onCancel={() => setDialog(null)} onSubmit={(fn) => void submit(fn)} />
     </section>
   );
 }
