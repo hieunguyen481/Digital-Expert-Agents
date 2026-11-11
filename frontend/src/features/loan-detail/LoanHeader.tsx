@@ -1,7 +1,7 @@
 import { Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import { CaseStepper, StatusPill } from '@/components/ui';
-import { fmtDate, fmtNum } from './format';
+import { currencyWord, fmtDate, fmtNum } from './format';
 import { statusLabel, stepLabel } from '@/features/my-work/format';
 import type { LoanOverview, TimelineStep } from './types';
 import styles from './loan-detail.module.css';
@@ -71,10 +71,10 @@ export function LoanHeader({ overview, todoCount }: { overview: LoanOverview; to
   const approved = loan.decision_type !== 'REJECTED' && loan.approved_amount != null && Number(loan.approved_amount) > 0;
   const facts: Array<[string, string, boolean?]> = [
     ['Mã hồ sơ', loan.application_number, true],
-    ['Số tiền', `${fmtNum(Number(loan.requested_amount) / 1e9)} tỷ ${loan.currency}`, true],
+    ['Số tiền', `${fmtNum(Number(loan.requested_amount) / 1e9)} tỷ ${currencyWord(loan.currency)}`, true],
   ];
   if (loan.requested_term_months) facts.push(['Kỳ hạn', `${loan.requested_term_months} tháng`, true]);
-  if (approved) facts.push(['Được duyệt', `${fmtNum(Number(loan.approved_amount) / 1e9)} tỷ ${loan.currency}${loan.approved_term_months ? ` · ${loan.approved_term_months} tháng` : ''}`, true]);
+  if (approved) facts.push(['Được duyệt', `${fmtNum(Number(loan.approved_amount) / 1e9)} tỷ ${currencyWord(loan.currency)}${loan.approved_term_months ? ` · ${loan.approved_term_months} tháng` : ''}`, true]);
   if (loan.assignee_name) facts.push(['Đang giữ', loan.assignee_name]);
   return (
     <div data-testid="loan-header">

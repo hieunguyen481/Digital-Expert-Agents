@@ -54,7 +54,7 @@ test('hồ sơ 120 tỷ: sau Rủi ro trình thì chờ phiên Hội đồng (Q-
   await page.getByRole('button', { name: 'Ghi ý kiến', exact: true }).click();
   await as(page, 'tuanthu');
   await page.goto(`/ho-so-vay/${id}`);
-  await page.getByRole('button', { name: 'Ghi ý kiến Tuân thủ' }).click();
+  await page.getByRole('button', { name: 'Ghi ý kiến tuân thủ' }).click();
   await page.locator('#action-text').fill('Tuân thủ: không có cờ vi phạm, KYC và CIC còn hiệu lực.');
   await page.getByRole('button', { name: 'Ghi ý kiến', exact: true }).click();
   await as(page, 'ruiro');

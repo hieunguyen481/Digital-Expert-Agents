@@ -140,10 +140,10 @@ export async function opinionsAndSubmitToApproval(page: Page, id: string, flow: 
   await expect(page.getByRole('button', { name: 'Ghi Ý kiến Rủi ro' })).toHaveCount(0);
   await as(page, 'tuanthu');
   await page.goto(`/ho-so-vay/${id}`);
-  await page.getByRole('button', { name: 'Ghi ý kiến Tuân thủ' }).click();
+  await page.getByRole('button', { name: 'Ghi ý kiến tuân thủ' }).click();
   await page.locator('#action-text').fill('Tuân thủ: không có cờ vi phạm, KYC và CIC còn hiệu lực.');
   await page.getByRole('button', { name: 'Ghi ý kiến', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Ghi ý kiến Tuân thủ' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Ghi ý kiến tuân thủ' })).toHaveCount(0);
   await as(page, 'ruiro');
   await page.goto(`/ho-so-vay/${id}`);
   await page.getByRole('button', { name: 'Trình phê duyệt' }).click();

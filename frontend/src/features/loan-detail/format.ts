@@ -5,6 +5,9 @@ export const fmtNum = (n: number | null | undefined, unit = ''): string =>
 export const fmtDate = (iso: string | null | undefined): string =>
   iso ? fmtDay(iso) : '—';
 
+/** Đơn vị tiền ghi bằng chữ: VND → "đồng". */
+export const currencyWord = (c: string): string => (c === 'VND' ? 'đồng' : c);
+
 export const fmtMoney = (v: string | null, currency: string): string =>
   v == null ? '—' : `${new Intl.NumberFormat('vi-VN').format(Number(v))} ${currency}`;
 

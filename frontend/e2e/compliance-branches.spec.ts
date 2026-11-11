@@ -49,7 +49,7 @@ test('L03 + giữ hồ sơ nghi gian lận + yêu cầu giải trình: Tuân th�
   await actWithReason(page, 'Giữ hồ sơ nghi gian lận', 'Chữ ký trên hợp đồng không khớp mẫu lưu.', 'Giữ hồ sơ');
   await expect(page.getByText('Tạm dừng nghi gian lận').first()).toBeVisible({ timeout: 30_000 });
   await actWithReason(page, 'Đóng xử lý nghi gian lận', 'Đã đối chiếu, chữ ký hợp lệ.', 'Đóng xử lý');
-  await expect(page.getByRole('button', { name: 'Ghi ý kiến Tuân thủ' })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole('button', { name: 'Ghi ý kiến tuân thủ' })).toBeVisible({ timeout: 30_000 });
 
   await actWithReason(page, 'Yêu cầu giải trình', 'Giải trình nguồn tiền trả nợ quý 2.', 'Gửi yêu cầu');
   await as(page, 'httd');
@@ -59,8 +59,8 @@ test('L03 + giữ hồ sơ nghi gian lận + yêu cầu giải trình: Tuân th�
 
   await as(page, 'tuanthu');
   await page.goto(`/ho-so-vay/${id}`);
-  await actWithReason(page, 'Ghi ý kiến Tuân thủ', 'Không phát hiện vấn đề.', 'Ghi ý kiến');
-  await expect(page.getByRole('button', { name: 'Ghi ý kiến Tuân thủ' })).toHaveCount(0);
+  await actWithReason(page, 'Ghi ý kiến tuân thủ', 'Không phát hiện vấn đề.', 'Ghi ý kiến');
+  await expect(page.getByRole('button', { name: 'Ghi ý kiến tuân thủ' })).toHaveCount(0);
   await page.goto('/viec-cua-toi');
   await expect(page.locator(`a[href="/ho-so-vay/${id}"]`)).toHaveCount(0); // việc đóng khi đã ghi ý kiến
 });

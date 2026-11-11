@@ -211,7 +211,7 @@ export function ComparisonTab() {
     const b = run.summary.multi?.[def.key]?.mean;
     if (a == null || b == null) return '—';
     const d = b - a;
-    const unit = def.format === pct ? ' điểm %' : '';
+    const unit = def.format === pct ? ' điểm phần trăm' : '';
     const v = def.format === pct ? fmtDec(Math.abs(d) * 100, 1) : def.format(Math.abs(d));
     return `${d > 0 ? '+' : d < 0 ? '−' : ''}${v}${unit}`;
   };
@@ -231,7 +231,7 @@ export function ComparisonTab() {
               loading={runsQ.isLoading}
             />
           </div>
-          <span className={styles.tech} data-testid="cmp-label">
+          <span className={styles.cmpLabel} data-testid="cmp-label">
             {runOptionLabel({ ...run, modes: (['single', 'multi'] as const).filter((k) => !!run.summary[k]) })}
             <span style={{ display: 'block' }} data-testid="cmp-desc">{runDescription({ ...run, modes: (['single', 'multi'] as const).filter((k) => !!run.summary[k]) })}</span>
           </span>
@@ -277,7 +277,7 @@ export function ComparisonTab() {
           <b>Vì sao độ phủ khác nhau giữa các lượt đo. </b>
           Từ 11/11/2026 hệ thống tính tổng cấp tín dụng theo đúng quy định (dư nợ tại ngân hàng cộng khoản vay mới, không cộng dư nợ ở tổ chức tín dụng khác).
           Đáp án đăng ký trước của hai loại phát hiện về tổng cấp tín dụng và yêu cầu BCTC kiểm toán được viết theo cách tính cũ nên cả hai chế độ đều không còn khớp,
-          làm độ phủ ở các lượt đo sau lần sửa thấp hơn lượt trước đó. Đáp án không được viết lại; xem mục 14 của tài liệu nghiên cứu benchmark.
+          làm độ phủ ở các lượt đo sau lần sửa thấp hơn lượt trước đó. Đáp án không được viết lại.
           Số lần lặp mỗi ca cũng khác nhau giữa các lượt, nên đừng so trực tiếp lượt một lần với lượt nhiều lần.
         </p>
       </div>

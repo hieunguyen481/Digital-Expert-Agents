@@ -47,7 +47,7 @@ export function NeedSection({ form, products, disabled, onChange }: Props) {
         />
       </Form.Item>
       <Form.Item
-        label="Số tiền đề nghị (tỷ đồng) (bắt buộc)"
+        label="Số tiền đề nghị, tỷ đồng (bắt buộc)"
         htmlFor="need-amount"
         validateStatus={amountMsg ? 'warning' : undefined}
         help={amountMsg ?? undefined}

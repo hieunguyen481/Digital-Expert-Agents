@@ -149,7 +149,7 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await dialog(page).locator('#action-text').fill('Đã đối chiếu CIC trực tiếp, bản nộp hợp lệ');
   await dialog(page).getByRole('button', { name: 'Kết luận', exact: true }).click();
   await expect(page.getByTestId('flag-row').filter({ hasText: 'Kết luận Tuân thủ' })).toBeVisible();
-  await page.getByRole('button', { name: 'Ghi ý kiến Tuân thủ' }).click();
+  await page.getByRole('button', { name: 'Ghi ý kiến tuân thủ' }).click();
   await dialog(page).locator('#action-text').fill('Tuân thủ: không có vi phạm');
   await dialog(page).getByRole('button', { name: 'Ghi ý kiến' }).click();
   await expect(page.getByTestId('opinion-COMPLIANCE')).toBeVisible();

@@ -97,7 +97,7 @@ function Content() {
                 options={(products.data ?? []).map((p) => ({ value: p.id, label: p.product_name }))}
               />
             </Form.Item>
-            <Form.Item label="Số tiền đề nghị (tỷ đồng) (bắt buộc)" htmlFor="new-amount" validateStatus={amountErr ? 'error' : undefined} help={amountErr ?? 'Ví dụ 15 hoặc 12,5.'}>
+            <Form.Item label="Số tiền đề nghị, tỷ đồng (bắt buộc)" htmlFor="new-amount" validateStatus={amountErr ? 'error' : undefined} help={amountErr ?? 'Ví dụ 15 hoặc 12,5.'}>
               <Input id="new-amount" inputMode="decimal" suffix="tỷ đồng" value={amount} onChange={(e) => setAmount(e.target.value)} />
             </Form.Item>
             <Form.Item label="Kỳ hạn (tháng) (bắt buộc)" htmlFor="new-term" validateStatus={termErr ? 'error' : undefined} help={termErr ?? 'Nhập số tháng, ví dụ 12.'}>

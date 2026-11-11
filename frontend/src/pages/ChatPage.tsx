@@ -56,6 +56,7 @@ export default function ChatPage() {
   /* ---------------- Local UI state (không dùng TanStack Query) ---------------- */
 
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [blank, setBlank] = useState(false); // người dùng bấm "Cuộc trò chuyện mới": giữ màn trắng, chưa tạo cuộc nào
   const activeConversationIdRef = useRef<string | null>(null);
   activeConversationIdRef.current = activeConversationId;
   const openingCustomerRef = useRef<Promise<void> | null>(null);
@@ -90,10 +91,10 @@ export default function ChatPage() {
 
   // Mở hội thoại đầu tiên khi vào ứng dụng.
   useEffect(() => {
-    if (!activeConversationId && conversations.length > 0) {
+    if (!activeConversationId && !blank && conversations.length > 0) {
       setActiveConversationId(conversations[0].id);
     }
-  }, [activeConversationId, conversations]);
+  }, [activeConversationId, blank, conversations]);
 
   // Mở lại hội thoại đã gắn khách hàng (thanh bên hoặc tự mở) cũng phải nhận phân công
   // như khi chọn khách hàng, nếu không backend từ chối phân tích sâu với 409.
@@ -145,8 +146,12 @@ export default function ChatPage() {
       // Chưa có hội thoại nào -> tạo mới trước khi gửi.
       if (!conversationId) {
         try {
-          const created = await createConversation.mutateAsync({});
+          // Tên cuộc chat theo câu hỏi đầu, để lịch sử không có nhiều mục cùng tên.
+          const firstLine = content.trim().split('\n')[0].replace(/\s+/g, ' ');
+          const title = firstLine ? (firstLine.length > 48 ? `${firstLine.slice(0, 47).trimEnd()}…` : firstLine) : undefined;
+          const created = await createConversation.mutateAsync({ title });
           conversationId = created.id;
+          setBlank(false);
           setActiveConversationId(created.id);
         } catch (error) {
           messageApi.error(getErrorMessage(error));
@@ -198,15 +203,12 @@ export default function ChatPage() {
     }
   }, [location.state, handleQuickPrompt, navigate]);
 
+  // Không lưu cuộc rỗng: "Cuộc trò chuyện mới" chỉ mở màn trắng; cuộc chat được tạo khi gửi câu hỏi đầu.
   const handleCreateConversation = useCallback(async () => {
-    try {
-      const created = await createConversation.mutateAsync({});
-      setActiveConversationId(created.id);
-      setComposerValue('');
-    } catch (error) {
-      messageApi.error(getErrorMessage(error));
-    }
-  }, [createConversation, messageApi]);
+    setBlank(true);
+    setActiveConversationId(null);
+    setComposerValue('');
+  }, []);
 
   const handleRename = useCallback(
     (id: string, title: string) => {
@@ -354,6 +356,7 @@ export default function ChatPage() {
 
   const handleSelectConversation = useCallback((conversationId: string) => {
     setActiveAssignmentLeaseToken(undefined);
+    setBlank(false);
     setActiveConversationId(conversationId);
   }, []);
 

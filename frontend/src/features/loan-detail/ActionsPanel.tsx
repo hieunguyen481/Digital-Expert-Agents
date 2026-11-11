@@ -126,7 +126,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   if (status === 'RISK_REVIEW') {
     const done = new Set(state.opinions.map((o) => o.kind));
     if (has('risk_officer') && !done.has('RISK')) btn('op-risk', 'Ghi ý kiến rủi ro', () => reasonAction('Ý kiến Rủi ro', 'Ý kiến của Rủi ro', 'Ghi ý kiến', (t) => addOpinion(loanId, 'RISK', t)), { primary: true });
-    if (has('compliance_officer') && !done.has('COMPLIANCE')) btn('op-comp', 'Ghi ý kiến Tuân thủ', () => reasonAction('Ý kiến Tuân thủ', 'Ý kiến của Tuân thủ', 'Ghi ý kiến', (t) => addOpinion(loanId, 'COMPLIANCE', t)), { primary: true });
+    if (has('compliance_officer') && !done.has('COMPLIANCE')) btn('op-comp', 'Ghi ý kiến tuân thủ', () => reasonAction('Ý kiến Tuân thủ', 'Ý kiến của Tuân thủ', 'Ghi ý kiến', (t) => addOpinion(loanId, 'COMPLIANCE', t)), { primary: true });
     if (has('compliance_officer')) {
       btn('explain', 'Yêu cầu giải trình', () => reasonAction('Yêu cầu giải trình', 'Nội dung cần giải trình', 'Gửi yêu cầu', transit('request_explanation')));
       btn('fraud-hold', 'Giữ hồ sơ nghi gian lận', () => reasonAction('Giữ hồ sơ nghi gian lận', 'Căn cứ nghi ngờ', 'Giữ hồ sơ', transit('fraud_hold')));
