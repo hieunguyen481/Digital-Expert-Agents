@@ -173,6 +173,6 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await expect(dialog(page).getByRole('button', { name: 'Ghi quyết định' })).toBeDisabled();
   await dialog(page).locator('#action-text').fill('Đủ điều kiện, phê duyệt theo đề nghị');
   await dialog(page).getByRole('button', { name: 'Ghi quyết định' }).click();
-  await page.getByRole('button', { name: /^Xác nhận/ }).click();
+  await page.getByRole('button', { name: /^Xác nhận phê duyệt/ }).click();
   await expect(page.getByText('Đã phê duyệt').first()).toBeVisible();
 });
