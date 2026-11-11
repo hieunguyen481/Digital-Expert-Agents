@@ -78,7 +78,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, hasAi }: Q
       key: 'sla',
       render: (_, r) => (
         <div>
-          <StatusPill tone={SLA_TONE[r.sla_level]}>{slaText(r, today)}</StatusPill>
+          <StatusPill tone={SLA_TONE[r.sla_level]}>{r.due_at || r.paused ? slaText(r, today) : 'Chưa có hạn'}</StatusPill>
           {dueDate(r) && <div className={styles.sub}>{dueDate(r)}</div>}
         </div>
       ),

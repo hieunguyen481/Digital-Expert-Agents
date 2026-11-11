@@ -7,7 +7,7 @@
 .err { color: var(--danger-700); font-size: var(--fs-13); }
 /* Các bước: danh sách đánh số, bước đang chọn có vạch navy (mockup 04, 17). */
 .steps:global(.ant-menu) { counter-reset: step; background: transparent; border: 0; padding: 0; }
-.steps :global(.ant-menu-item) { counter-increment: step; height: 44px; line-height: 44px; margin: 0 0 var(--s1); border-radius: var(--r-md); color: var(--ink-2); }
+.steps :global(.ant-menu-item) { counter-increment: step; height: auto; min-height: 44px; line-height: 1.35; padding-block: 10px; white-space: normal; margin: 0 0 var(--s1); border-radius: var(--r-md); color: var(--ink-2); }
 .steps :global(.ant-menu-title-content)::before {
   content: counter(step); display: inline-grid; place-items: center; width: 24px; height: 24px; margin-right: var(--s3);
   border-radius: 50%; border: 1.5px solid var(--rule-strong); background: var(--surface); font: 600 12px var(--font-num);
@@ -15,3 +15,4 @@
 .steps :global(.ant-menu-item-selected) { background: var(--navy-50); color: var(--ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--navy-700); }
 .steps :global(.ant-menu-item-selected .ant-menu-title-content)::before { border-color: var(--bronze-700); background: var(--bronze-100); color: var(--bronze-800); }
 @media (max-width: 1100px) { .ws { grid-template-columns: minmax(0, 1fr); } }
+.steps :global(.ant-menu-title-content) { display: flex; align-items: center; overflow: visible; white-space: normal; }
