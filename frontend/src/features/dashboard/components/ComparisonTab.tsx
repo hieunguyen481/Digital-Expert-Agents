@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Alert, Card, Empty, Select, Skeleton, Typography } from 'antd';
-import { CheckCircleFilled, ThunderboltOutlined } from '@ant-design/icons';
+import { Select, Skeleton } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
 import { LazyBaseChart } from '@/components/charts/LazyBaseChart';
-import { shbColors } from '@/theme/tokens';
+import { StateBlock, StatusPill, ledgerNum, ledgerTable } from '@/components/ui';
 import { fmtDay, fmtDayTime, fmtDec, fmtInt, fmtPct, fmtSec, fmtUsd } from '@/utils/format';
 import { modelName } from '@/utils/glossary';
 import { getBenchmarkRun, getBenchmarkRuns, getLatestBenchmark } from '@/services/benchmarkService';
@@ -16,8 +15,6 @@ import type {
   BenchmarkStat,
 } from '@/types/dashboard';
 import styles from '@/pages/AgentDashboardPage.module.css';
-
-const { Text } = Typography;
 
 type MetricKey = Exclude<keyof BenchmarkModeSummary, 'runs' | 'errors'>;
 type Better = 'higher' | 'lower' | 'none';
@@ -94,7 +91,7 @@ export function conclusion(rows: Row[], run: BenchmarkRun): string {
   const s = names('single');
   const m = names('multi');
   const list = (xs: string[]) => (xs.length ? xs.join('; ') : 'không chỉ số nào');
-  return `Hệ đa agent hơn ở ${m.length} chỉ số: ${list(m)}. Chatbot đơn agent hơn ở ${s.length} chỉ số: ${list(s)}.`;
+  return `Đội agent hơn ở ${m.length} chỉ số: ${list(m)}. Mô hình đơn lẻ hơn ở ${s.length} chỉ số: ${list(s)}.`;
 }
 
 /** Dòng kết luận đầu trang: chênh lệch độ phủ phát hiện đúng giữa hai hệ, tính từ số đo thật. */
@@ -103,13 +100,13 @@ export function headline(run: BenchmarkRun): string {
   const b = run.summary.multi?.finding_recall?.mean;
   if (a == null || b == null) return 'Lượt đo này chỉ chạy một chế độ nên chưa so sánh được hai hệ.';
   const d = (b - a) * 100;
-  if (Math.abs(d) < 0.05) return 'Hệ đa agent và chatbot đơn agent bằng nhau về độ phủ phát hiện đúng.';
-  return `Hệ đa agent ${d > 0 ? 'cao' : 'thấp'} hơn chatbot đơn agent ${fmtDec(Math.abs(d), 1)} điểm phần trăm về độ phủ phát hiện đúng (${fmtPct(b)} so với ${fmtPct(a)}).`;
+  if (Math.abs(d) < 0.05) return 'Đội agent và mô hình đơn lẻ bằng nhau về độ phủ phát hiện đúng.';
+  return `Đội agent ${d > 0 ? 'cao' : 'thấp'} hơn mô hình đơn lẻ ${fmtDec(Math.abs(d), 1)} điểm phần trăm về độ phủ phát hiện đúng (${fmtPct(b)} so với ${fmtPct(a)}).`;
 }
 
 function chartData(run: BenchmarkRun) {
   const keys: MetricKey[] = ['finding_recall', 'citation_recall', 'tool_recall', 'gate_ok'];
-  const modes: [BenchmarkMode, string][] = [['single', 'Đơn agent'], ['multi', 'Đa agent']];
+  const modes: [BenchmarkMode, string][] = [['single', 'Mô hình đơn lẻ'], ['multi', 'Đội agent']];
   return keys.flatMap((k) => {
     const def = METRICS.find((d) => d.key === k)!;
     return modes.map(([mode, series]) => ({
@@ -175,145 +172,178 @@ export function ComparisonTab() {
 
   if (runsQ.isLoading || q.isLoading) return <Skeleton active />;
   if (q.isError) {
-    return <Alert type="error" showIcon message="Không tải được kết quả so sánh" description="Kiểm tra quyền truy cập hoặc trạng thái agent engine." />;
+    return <StateBlock kind="error" alert title="Không tải được kết quả so sánh" description="Kiểm tra quyền truy cập hoặc trạng thái agent engine." />;
   }
   const run = q.data?.run;
   if (!run) {
     return (
-      <Card size="small" data-testid="cmp-empty">
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description="Chưa có kết quả đo. Chạy: python3 agent_engine/scripts/benchmark/run.py"
-        />
-      </Card>
+      <div data-testid="cmp-empty">
+        <StateBlock kind="empty" title="Chưa có kết quả đo" description="Chạy bộ đo hiệu năng ở môi trường kiểm thử, kết quả sẽ hiện ở đây." />
+      </div>
     );
   }
 
   const rows = buildRows(run);
   const cases = Object.keys(run.per_case).sort();
+  const both = !!run.summary.single && !!run.summary.multi;
+  const recall = METRICS[0];
+  const single = run.summary.single?.finding_recall;
+  const multi = run.summary.multi?.finding_recall;
+  const singleModel = modelName(run.specialist_model);
+  const verdict = (w: Row['winner']) =>
+    w === 'multi' ? <StatusPill tone="ok">Đội agent tốt hơn</StatusPill>
+      : w === 'single' ? <StatusPill tone="bad">Đội agent kém hơn</StatusPill>
+        : <StatusPill>Ngang nhau</StatusPill>;
+  const delta = (def: MetricDef) => {
+    const a = run.summary.single?.[def.key]?.mean;
+    const b = run.summary.multi?.[def.key]?.mean;
+    if (a == null || b == null) return '—';
+    const d = b - a;
+    const unit = def.format === pct ? ' điểm %' : '';
+    const v = def.format === pct ? fmtDec(Math.abs(d) * 100, 1) : def.format(Math.abs(d));
+    return `${d > 0 ? '+' : d < 0 ? '−' : ''}${v}${unit}`;
+  };
+
   return (
-    <>
-      <Card size="small" className={styles.section}>
-        <span style={{ marginRight: 8 }}>Lượt đo:</span>
-        <Select
-          data-testid="cmp-select"
-          style={{ minWidth: 560, maxWidth: '100%' }}
-          value={effective ?? run.run_id}
-          onChange={setSelected}
-          options={runOptionGroups(runsQ.data ?? [])}
-          loading={runsQ.isLoading}
-        />
-        <Text type="secondary" style={{ display: 'block', marginTop: 6, fontSize: 12 }} data-testid="cmp-label">
-          {runOptionLabel(run)}
-          <span style={{ display: 'block', opacity: 0.7 }} data-testid="cmp-tech">{runTechnicalNote(run)}</span>
-        </Text>
-      </Card>
-      <Alert type="info" showIcon style={{ marginBottom: 12 }} data-testid="cmp-headline" message={headline(run)} />
-      <div className={styles.cmpHead} data-testid="cmp-meta">
-        <ThunderboltOutlined />
-        <span>
-          Bộ ca đánh giá <strong>{run.cases_version}</strong> · {cases.length} ca × {run.runs_per_case} lượt × {modeCount(run)} ·{' '}
-          Planner <strong>{modelName(run.planner_model)}</strong> · Chuyên gia/đơn agent <strong>{modelName(run.specialist_model)}</strong> ·{' '}
-          chi phí đo thật{' '}
-          <strong>{run.total_cost_usd === null ? '—' : fmtUsd(run.total_cost_usd)}</strong> · {fmtDay(run.created_at)}
-          <details style={{ display: 'inline', marginLeft: 6 }}><summary style={{ display: 'inline', cursor: 'pointer', color: 'var(--text-3)' }}>Mã kỹ thuật</summary> <code>{run.run_id}</code> · bộ chấm {run.grader_version} · chế độ LLM {run.llm_mode}</details>
-        </span>
+    <div className={styles.stack}>
+      <section className={styles.card} aria-label="Chọn lượt đo">
+        <div className={styles.cardBody}>
+          <div className={styles.pickRow}>
+            <label htmlFor="cmp-select">Lượt đo</label>
+            <Select
+              id="cmp-select"
+              data-testid="cmp-select"
+              value={effective ?? run.run_id}
+              onChange={setSelected}
+              options={runOptionGroups(runsQ.data ?? [])}
+              loading={runsQ.isLoading}
+            />
+          </div>
+          <span className={styles.tech} data-testid="cmp-label">
+            {runOptionLabel(run)}
+            <span style={{ display: 'block' }} data-testid="cmp-tech">{runTechnicalNote(run)}</span>
+          </span>
+        </div>
+      </section>
+
+      <div className={styles.banner} data-testid="cmp-headline" role="note">
+        <p className={styles.bannerNote}><b>Nhận xét. </b>{headline(run)}</p>
       </div>
 
-      <Card className={styles.section} title="Chất lượng thẩm định — đơn agent so với đa agent" size="small">
-        <p className={styles.sectionDesc}>
-          Trung bình trên cùng bộ ca, cùng bộ chấm tự động (phần trăm; cột cao hơn là tốt hơn).
+      <div className={styles.banner} data-testid="cmp-meta" role="note">
+        <p className={styles.bannerNote}>
+          <b>Cách đo. </b>
+          Bộ ca đánh giá <strong>{run.cases_version}</strong>, {cases.length} ca × {run.runs_per_case} lượt × {modeCount(run)}, đo ngày {fmtDay(run.created_at)}.
+          Planner <strong>{modelName(run.planner_model)}</strong>; chuyên gia và mô hình đơn lẻ <strong>{singleModel}</strong>.
+          Chi phí đo thật <strong>{run.total_cost_usd === null ? '—' : fmtUsd(run.total_cost_usd)}</strong>.
+          <details style={{ display: 'inline', marginLeft: 6 }}><summary style={{ display: 'inline', cursor: 'pointer' }}>Mã kỹ thuật</summary> <code>{run.run_id}</code>, bộ chấm {run.grader_version}, chế độ LLM {run.llm_mode}</details>
         </p>
-        <LazyBaseChart<ReturnType<typeof chartData>[number]>
-          type="column"
-          data={chartData(run)}
-          height={300}
-          ariaLabel="Biểu đồ cột nhóm so sánh độ phủ phát hiện, trích nguồn, công cụ và đúng cổng giữa đơn agent và đa agent"
-          config={{
-            xField: 'category',
-            yField: 'value',
-            colorField: 'series',
-            group: true,
-            scale: { color: { range: [shbColors.navy[300], shbColors.orange[500]] } },
-            legend: { color: { position: 'top' } },
-            style: { radiusTopLeft: 5, radiusTopRight: 5, maxWidth: 46 },
-            axis: { y: { title: '%' } },
-          }}
-        />
-      </Card>
+      </div>
 
-      <Card className={styles.section} title="So sánh chi tiết (trung bình ± độ lệch chuẩn)" size="small">
-        <DataTable<Row>
-          rowKey="id"
-          dataSource={rows}
-          size="small"
-          columns={[
-            {
-              title: 'Chỉ tiêu',
-              dataIndex: 'label',
-              key: 'label',
-              render: (label: string, record) => (
-                <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span style={{ fontWeight: 550 }}>{label}</span>
-                  <Text type="secondary" style={{ fontSize: 11.5 }}>{record.description}</Text>
-                </span>
-              ),
-            },
-            {
-              title: 'Chatbot đơn agent',
-              dataIndex: 'single',
-              key: 'single',
-              render: (value: string, record) => (
-                <span className={styles.winnerCell} data-testid={`cmp-${record.id}-single`}>
-                  {record.winner === 'single' && <CheckCircleFilled style={{ color: shbColors.semantic.success }} />}
-                  {value}
-                </span>
-              ),
-            },
-            {
-              title: 'Hệ đa agent',
-              dataIndex: 'multi',
-              key: 'multi',
-              render: (value: string, record) => (
-                <span className={styles.winnerCell} data-testid={`cmp-${record.id}-multi`}>
-                  {record.winner === 'multi' && <CheckCircleFilled style={{ color: shbColors.semantic.success }} />}
-                  <strong>{value}</strong>
-                </span>
-              ),
-            },
-          ]}
-        />
-
-        <div className={styles.verdict}>
-          <h4 className={styles.verdictTitle}>Kết luận</h4>
-          <p className={styles.verdictText} data-testid="cmp-conclusion">{conclusion(rows, run)}</p>
+      {both && (
+        <div className={styles.vs}>
+          <section className={styles.vsTeam} aria-label="Đội agent">
+            <h2 className={styles.vsTitle}>Đội agent (6 agent)</h2>
+            <span className={styles.vsLabel}>{recall.label}</span>
+            <div className={styles.vsRow}><span className={styles.vsBig}>{statText(multi, recall)}</span></div>
+          </section>
+          <section className={styles.vsSingle} aria-label="Mô hình đơn lẻ">
+            <h2 className={styles.vsTitle}>Mô hình đơn lẻ ({singleModel})</h2>
+            <span className={styles.vsLabel}>{recall.label}</span>
+            <div className={styles.vsRow}><span className={styles.vsBig}>{statText(single, recall)}</span></div>
+          </section>
         </div>
-      </Card>
+      )}
 
-      <Card className={styles.section} title="Độ phủ phát hiện theo từng ca" size="small">
-        <DataTable<{ id: string; single: string; multi: string }>
-          rowKey="id"
-          size="small"
-          pagination={false}
-          dataSource={cases.map((id) => {
-            const def = METRICS[0];
-            return {
+      <section className={styles.card} aria-labelledby="cmp-detail">
+        <div className={styles.cardHead}><h2 id="cmp-detail">Chênh lệch chi tiết</h2><span className={styles.cardNote}>Trung bình ± độ lệch chuẩn</span></div>
+        <div className={`${styles.cardBody} ${styles.flush}`}>
+          <DataTable<Row>
+            rowKey="id"
+            dataSource={rows}
+            size="small"
+            className={`${ledgerTable} ${styles.cmpTable}`}
+            columns={[
+              {
+                title: 'Chỉ số',
+                dataIndex: 'label',
+                key: 'label',
+                render: (label: string, record) => (
+                  <span>
+                    <span className={styles.metricName}>{label}</span>
+                    <span className={styles.metricDesc}>{record.description}</span>
+                  </span>
+                ),
+              },
+              {
+                title: 'Đội agent', dataIndex: 'multi', key: 'multi', align: 'right', className: ledgerNum,
+                render: (value: string, record) => <span className={record.winner === 'multi' ? styles.best : undefined} data-testid={`cmp-${record.id}-multi`}>{value}</span>,
+              },
+              {
+                title: 'Mô hình đơn lẻ', dataIndex: 'single', key: 'single', align: 'right', className: ledgerNum,
+                render: (value: string, record) => <span className={record.winner === 'single' ? styles.best : undefined} data-testid={`cmp-${record.id}-single`}>{value}</span>,
+              },
+              {
+                title: 'Chênh lệch', key: 'delta', align: 'right', className: ledgerNum,
+                render: (_: unknown, record) => delta(METRICS.find((d) => d.key === record.id)!),
+              },
+              { title: 'Đánh giá', key: 'verdict', render: (_: unknown, record) => verdict(record.winner) },
+            ]}
+          />
+        </div>
+        <div className={styles.verdict}>
+          <h3>Kết luận</h3>
+          <p data-testid="cmp-conclusion">{conclusion(rows, run)}</p>
+        </div>
+      </section>
+
+      <section className={styles.card} aria-labelledby="cmp-chart">
+        <div className={styles.cardHead}><h2 id="cmp-chart">Chất lượng thẩm định: mô hình đơn lẻ so với đội agent</h2><span className={styles.cardNote}>Phần trăm, cột cao hơn là tốt hơn</span></div>
+        <div className={styles.cardBody}>
+          <LazyBaseChart<ReturnType<typeof chartData>[number]>
+            type="column"
+            data={chartData(run)}
+            height={300}
+            ariaLabel="Biểu đồ cột nhóm so sánh độ phủ phát hiện, trích nguồn, công cụ và đúng cổng giữa mô hình đơn lẻ và đội agent"
+            config={{
+              xField: 'category',
+              yField: 'value',
+              colorField: 'series',
+              group: true,
+              scale: { color: { range: ['#6F7660', '#6B4FB8'] } },
+              legend: { color: { position: 'top' } },
+              style: { radiusTopLeft: 3, radiusTopRight: 3, maxWidth: 46 },
+              axis: { y: { title: '%' } },
+            }}
+          />
+        </div>
+      </section>
+
+      <section className={styles.card} aria-labelledby="cmp-case">
+        <div className={styles.cardHead}><h2 id="cmp-case">Độ phủ phát hiện theo từng ca</h2></div>
+        <div className={`${styles.cardBody} ${styles.flush}`}>
+          <DataTable<{ id: string; single: string; multi: string }>
+            rowKey="id"
+            size="small"
+            className={ledgerTable}
+            pagination={false}
+            dataSource={cases.map((id) => ({
               id,
-              single: statText(run.per_case[id]?.single?.finding_recall, def),
-              multi: statText(run.per_case[id]?.multi?.finding_recall, def),
-            };
-          })}
-          columns={[
-            { title: 'Ca', dataIndex: 'id', key: 'id' },
-            { title: 'Đơn agent', dataIndex: 'single', key: 'single', render: (v: string, r) => <span data-testid={`cmp-case-${r.id}-single`}>{v}</span> },
-            { title: 'Đa agent', dataIndex: 'multi', key: 'multi', render: (v: string, r) => <span data-testid={`cmp-case-${r.id}-multi`}>{v}</span> },
-          ]}
-        />
-        <p className={styles.sectionDesc} style={{ marginTop: 10 }}>
+              single: statText(run.per_case[id]?.single?.finding_recall, recall),
+              multi: statText(run.per_case[id]?.multi?.finding_recall, recall),
+            }))}
+            columns={[
+              { title: 'Ca', dataIndex: 'id', key: 'id' },
+              { title: 'Đội agent', dataIndex: 'multi', key: 'multi', align: 'right', className: ledgerNum, render: (v: string, r) => <span data-testid={`cmp-case-${r.id}-multi`}>{v}</span> },
+              { title: 'Mô hình đơn lẻ', dataIndex: 'single', key: 'single', align: 'right', className: ledgerNum, render: (v: string, r) => <span data-testid={`cmp-case-${r.id}-single`}>{v}</span> },
+            ]}
+          />
+        </div>
+        <p className={styles.muted} style={{ padding: '0 var(--s5) var(--s4)' }}>
           Chấm bằng từ khóa trên phần kết luận, không có LLM chấm; có thể bỏ sót cách diễn đạt khác.
           Đáp án viết trước khi chạy (bộ ca {run.cases_version}).
         </p>
-      </Card>
-    </>
+      </section>
+    </div>
   );
 }

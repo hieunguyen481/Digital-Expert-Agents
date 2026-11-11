@@ -5,7 +5,7 @@ import { loginAs } from './helpers';
 import { fmtDayTime } from '../src/utils/format';
 
 /**
- * Đối chiếu số hiện trên tab "So sánh hiệu năng" với MỌI file kết quả đã lưu
+ * Đối chiếu số hiện trên tab "So sánh" với MỌI file kết quả đã lưu
  * (agent_engine/benchmark_results/*.json, bản đã nạp vào agent.benchmark_run), chọn qua danh sách lượt đo.
  * Mặc định phải là lượt đo thật của bộ ca mới nhất (v3), lượt mới nhất trong bộ đó. Cần stack thật và kết quả đã nạp: `run.py --import-file <file>`.
  */
@@ -49,7 +49,7 @@ test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ
   test.skip(!defaultRun, 'Chưa có file kết quả benchmark đo thật');
   await loginAs(page, 'qhkh');
   await page.goto('/dashboard');
-  await page.getByRole('tab', { name: /So sánh hiệu năng/ }).click();
+  await page.getByRole('tab', { name: 'So sánh' }).click();
 
   await expectRun(page, defaultRun); // mặc định
   // Nhãn lựa chọn viết cho người đọc nghiệp vụ (runOptionLabel): giờ đo · bộ ca · so sánh/đa agent · số lượt mỗi ca.
