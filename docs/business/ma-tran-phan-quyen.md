@@ -221,7 +221,7 @@ hiện dòng khóa kèm lý do). Quản trị không thấy ca nào (RLS, Q-J). 
 | Chính sách `/policies` | Mọi vai trò nghiệp vụ đọc; Quản trị không | Q-R, Q-J |
 | Chat Trợ lý AI `/chat` | Người đăng nhập, mỗi người chỉ thấy phiên của mình | Q-K |
 | Dashboard trace đội agent | Vai trò ngoài Quản trị thấy ca theo RLS (Quản trị thấy rỗng) | Q-K, Q-M, Q-J |
-| Chạy đội agent (`loan:analyze`) | Thẩm định, Rủi ro, Tuân thủ, Trưởng phòng; QHKH không | Q-B, Q-C |
+| Chạy đội agent trên hồ sơ (`ROLE_STATUSES` trong `loan_agent_run_service.py`) | QHKH (Nháp, Trả về QHKH, Thẩm định chờ bổ sung), Thẩm định, Rủi ro, Tuân thủ khi đang giữ bước; Trưởng phòng trên hồ sơ của phòng. Kết quả chỉ là đề xuất của AI | Q-B, Q-C; quyết định 11/11/2026 (C-N2) |
 | Phê duyệt / từ chối ca engine | Chỉ `loan_approver` | E8, Q4 |
 | Chế độ demo đổi tài khoản | Chỉ Quản trị, chỉ khi bật cấu hình; ngoại lệ có giới hạn của Q-J | Q-J (ngoại lệ ghi ở mục "Ngoại lệ demo") |
 
