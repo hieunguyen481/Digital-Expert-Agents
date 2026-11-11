@@ -34,7 +34,7 @@ test('trưởng phòng: "Hồ sơ của phòng" liệt kê hồ sơ đang mở c
 
 test('trưởng phòng: tìm theo tên khách ở thanh trên ra hồ sơ và mở được khách hàng trong phòng', async ({ page }) => {
   await loginAs(page, 'truongphong');
-  const box = page.getByRole('textbox', { name: 'Tìm kiếm' });
+  const box = page.getByRole('combobox', { name: 'Tìm kiếm' });
   await box.fill('Mekong');
   const results = page.getByRole('listbox', { name: 'Kết quả tìm kiếm' });
   await expect(results.locator('a').first()).toBeVisible();
@@ -45,7 +45,7 @@ test('trưởng phòng: tìm theo tên khách ở thanh trên ra hồ sơ và m�
 
 test('qhkh: tìm bằng mã hồ sơ ra đúng hồ sơ; từ khóa lạ báo không có kết quả', async ({ page }) => {
   await loginAs(page, 'qhkh');
-  const box = page.getByRole('textbox', { name: 'Tìm kiếm' });
+  const box = page.getByRole('combobox', { name: 'Tìm kiếm' });
   await box.fill('HSV-2026');
   const results = page.getByRole('listbox', { name: 'Kết quả tìm kiếm' });
   await expect(results.locator('a[href^="/ho-so-vay/"]').first()).toBeVisible();

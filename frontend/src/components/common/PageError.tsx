@@ -38,7 +38,6 @@ export function PageError({
         alert
         compact={compact}
       headingLevel={headingLevel}
-        headingLevel={headingLevel}
         title="Hồ sơ đã chuyển cho người khác"
         description="Hồ sơ này không còn ở bước của bạn. Nếu cần xem, hãy nhờ người đang giữ hồ sơ hoặc Trưởng phòng."
         action={<Link to="/viec-cua-toi"><Button type="primary">Về Việc của tôi</Button></Link>}
@@ -52,7 +51,6 @@ export function PageError({
         alert
         compact={compact}
       headingLevel={headingLevel}
-        headingLevel={headingLevel}
         title={status === 403 ? 'Bạn không có quyền xem nội dung này' : 'Không tìm thấy nội dung'}
         description={description ?? (status === 403
           ? 'Hồ sơ ngoài phạm vi được xem của vai trò hoặc đơn vị bạn. Nếu cần xem, hãy nhờ người đang giữ hồ sơ.'
