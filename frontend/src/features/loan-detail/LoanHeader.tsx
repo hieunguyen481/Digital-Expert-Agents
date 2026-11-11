@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { CaseStepper, StatusPill } from '@/components/ui';
 import { fmtDate, fmtNum } from './format';
 import { statusLabel, stepLabel } from '@/features/my-work/format';
-import type { LoanOverview } from './types';
+import type { LoanOverview, TimelineStep } from './types';
 import styles from './loan-detail.module.css';
 
 /** Các chặng chính của một hồ sơ; trạng thái chi tiết (chờ bổ sung, tạm dừng…) quy về chặng đang đứng. */
@@ -29,6 +29,22 @@ export function reachedStage(timeline: Array<{ step_code: string }>): number {
   return top;
 }
 
+const STEP_STAGE: Record<string, number> = {
+  DRAFT: 0, RM_DRAFT: 0, RM_REWORK: 0, CHECKING: 1, APPRAISAL: 2, PENDING_INFO: 2,
+  RISK_REVIEW: 3, RISK_PENDING_INFO: 3, FRAUD_HOLD: 3, APPROVAL: 4, COUNCIL_SESSION: 4,
+};
+
+const STOP_LABEL: Record<string, string> = { WITHDRAWN: 'Khách đã rút', REJECTED: 'Bị từ chối', RISK_HOLD_FRAUD: 'Đang bị giữ' };
+
+/** Hồ sơ đã rút, bị từ chối hoặc bị giữ: chặng nơi hồ sơ dừng (bước gần nhất theo thời gian) và lý do dừng. */
+export function stopInfo(status: string, timeline: TimelineStep[]): { stage: number; label: string } | null {
+  const label = STOP_LABEL[status];
+  if (!label) return null;
+  if (status === 'RISK_HOLD_FRAUD') return { stage: 3, label };
+  const last = [...timeline].sort((a, b) => a.received_at.localeCompare(b.received_at)).at(-1);
+  return { stage: last ? (STEP_STAGE[last.step_code] ?? 4) : 0, label };
+}
+
 export const SECTIONS = [
   { id: 'viec-can-lam', label: 'Việc cần làm' },
   { id: 'doi-agent', label: 'Đội agent' },
@@ -48,8 +64,9 @@ export function goTo(id: string) {
 export function LoanHeader({ overview, todoCount }: { overview: LoanOverview; todoCount: number }) {
   const { loan, timeline } = overview;
   const current = timeline.find((s) => !s.completed_at);
-  // Hồ sơ đã có quyết định cuối (duyệt, từ chối): mọi chặng đã xong.
-  const stage = loan.status.startsWith('APPROVED') || loan.status === 'REJECTED' ? STAGES.length : stageIndex(loan.status);
+  const stop = stopInfo(loan.status, timeline);
+  // Hồ sơ đã có quyết định cuối (duyệt): mọi chặng đã xong; rút, từ chối, bị giữ: dừng ở chặng gần nhất.
+  const stage = stop ? stop.stage : loan.status.startsWith('APPROVED') ? STAGES.length : stageIndex(loan.status);
   const returnedFrom = loan.status === 'RETURNED_TO_RM' ? reachedStage(timeline) : 0;
   const approved = loan.decision_type !== 'REJECTED' && loan.approved_amount != null && Number(loan.approved_amount) > 0;
   const facts: Array<[string, string, boolean?]> = [
@@ -80,7 +97,7 @@ export function LoanHeader({ overview, todoCount }: { overview: LoanOverview; to
         </div>
       </div>
       <div className={styles.stepWrap}>
-        <CaseStepper current={stage} returned={loan.status === 'RETURNED_TO_RM'} steps={STAGES}
+        <CaseStepper current={stage} returned={loan.status === 'RETURNED_TO_RM'} stopped={stop?.label} steps={STAGES}
           backAt={returnedFrom > 0 ? returnedFrom : undefined} notes={returnedFrom > 0 ? { 0: '(đang sửa)', [returnedFrom]: '(trả về QHKH)' } : undefined} />
       </div>
       {current && (

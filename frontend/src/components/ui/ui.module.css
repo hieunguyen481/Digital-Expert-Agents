@@ -136,3 +136,4 @@
 .gold:global(.ant-btn):disabled, .aiBtn:global(.ant-btn):disabled {
   background: var(--paper-2) !important; border-color: var(--rule-strong) !important; color: var(--ink-3) !important; cursor: not-allowed;
 }
+.stNote { font-weight: 500; color: var(--warn-700); }

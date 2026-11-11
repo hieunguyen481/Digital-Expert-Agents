@@ -38,4 +38,15 @@ describe('LoanHeader – L04/L10', () => {
     expect(t).toContain('Phê duyệt (trả về QHKH)');
     expect(screen.getAllByLabelText('Đã xong')).toHaveLength(3);
   });
+  it('M03: hồ sơ đã rút dừng ở bước thẩm định, các bước sau không có dấu tick', () => {
+    const o = overview({ status: 'WITHDRAWN' });
+    o.timeline = [
+      { id: '1', step_code: 'CHECKING', received_at: '2026-01-01T00:00:00Z', completed_at: '2026-01-02T00:00:00Z' },
+      { id: '2', step_code: 'APPRAISAL', received_at: '2026-01-02T00:00:00Z', completed_at: null },
+    ] as unknown as LoanOverview['timeline'];
+    render(<MemoryRouter><LoanHeader overview={o} todoCount={0} /></MemoryRouter>);
+    const stepper = screen.getByLabelText('Các bước của hồ sơ');
+    expect(stepper.querySelectorAll('[aria-label="Đã xong"]')).toHaveLength(2);
+    expect(stepper.textContent).toContain('Thẩm định · Khách đã rút');
+  });
 });
