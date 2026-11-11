@@ -47,8 +47,9 @@ test('QHKH gửi phân tích sâu bị từ chối với thông báo dễ hiểu
   test.setTimeout(120_000);
   await loginAs(page, 'qhkh');
   await pickVinaNova(page);
-  await page.getByPlaceholder(/Hỏi Trợ lý AI/).fill(REQUEST);
+  // Câu hỏi phân tích thường được trả lời từ kết quả đã có; chỉ yêu cầu CHẠY LẠI cả đội mới cần quyền phân tích.
+  await page.getByPlaceholder(/Hỏi Trợ lý AI/).fill('Phân tích lại hồ sơ vay VinaNova bằng cả đội agent');
   await page.getByRole('button', { name: 'Gửi' }).click();
-  await expect(page.locator('#main-content').getByText(/không có quyền thực hiện thao tác này/)).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator('#main-content').getByText(/không có quyền thực hiện thao tác này/).last()).toBeVisible({ timeout: 60_000 });
   await expect(page.locator('#main-content').getByTestId('engine-panel')).toHaveCount(0);
 });

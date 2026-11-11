@@ -61,7 +61,8 @@ test('tdinh đang giữ hồ sơ: bấm chạy, thấy tiến trình, kết qu�
   // Chạy lại: lượt mới, lượt cũ còn trong lịch sử.
   await panel.getByTestId('run-agent-team').click();
   await expect(panel.getByTestId('agent-trace-link')).not.toHaveAttribute('href', link!);
-  await expect(panel.getByTestId('agent-run-history')).toContainText(firstCase, { timeout: 30_000 });
+  // Lịch sử không in mã lượt thô; lượt cũ còn đó qua liên kết dấu vết.
+  await expect(panel.getByTestId('agent-run-history').locator(`a[href="${link}"]`)).toHaveCount(1, { timeout: 30_000 });
   await expect.poll(() => runCount(page, token), { timeout: 30_000 }).toBe(before + 2);
   const secondLink = await panel.getByTestId('agent-trace-link').getAttribute('href');
   expect(secondLink).not.toBe(link);
@@ -73,9 +74,17 @@ test('tdinh đang giữ hồ sơ: bấm chạy, thấy tiến trình, kết qu�
   await expect(page.getByTestId('case-trace')).toBeVisible({ timeout: 30_000 });
 });
 
-// Vai trò khác (kể cả người đang giữ hồ sơ ở bước không thuộc QHKH/Thẩm định) xem được nhưng không có nút; POST bị 403 có lý do.
+// C-N2: Rủi ro đang giữ bước Ý kiến Rủi ro được chạy đội agent (ma-tran-phan-quyen.md).
+test('ruiro đang giữ bước Rủi ro: có nút chạy, không có khóa', async ({ page }) => {
+  await loginAs(page, 'ruiro');
+  await page.goto('/ho-so-vay/75000000-0000-4000-8000-000000000012');
+  const panel = page.getByTestId('agent-team');
+  await expect(panel.getByTestId('run-agent-team')).toBeEnabled({ timeout: 30_000 });
+  await expect(panel.getByTestId('agent-team-lock')).toHaveCount(0);
+});
+
+// Vai không có quyền ở bước hiện tại xem được nhưng không có nút; POST bị 403 có lý do.
 const DENIED = [
-  { role: 'ruiro', loan: '75000000-0000-4000-8000-000000000012' }, // Rủi ro đang giữ bước RISK_REVIEW
   { role: 'qhkh', loan: '75000000-0000-4000-8000-000000000004' }, // QHKH nhưng hồ sơ đang ở bước Thẩm định
   { role: 'kiemtoan', loan: LOAN },
 ] as const;
