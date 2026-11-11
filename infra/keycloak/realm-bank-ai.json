@@ -1,6 +1,6 @@
 {
   "realm": "bank-ai",
-  "displayName": "AI Credit Intelligence Workbench",
+  "displayName": "Sổ Tín Dụng",
   "enabled": true,
   "sslRequired": "external",
   "registrationAllowed": false,
