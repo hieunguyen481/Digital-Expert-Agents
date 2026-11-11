@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import asyncio  # noqa: E402
 
 from agents.base import a2a_send, build_agent_app  # noqa: E402
-from common import config, facts as facts_mod, gate, mcp_client, rag, recompute  # noqa: E402
+from common import config, consistency, facts as facts_mod, gate, mcp_client, rag, recompute  # noqa: E402
 from common.report import demote_unsupported, merge_verdicts  # noqa: E402
 from common.schemas import (  # noqa: E402
     AgentCard, AgentSkill, Envelope, Evidence, MessageType, Verdict, VerdictDecision,
@@ -178,6 +178,9 @@ async def handle_task(env: Envelope) -> Verdict:
             breach = True
             own_conditions.append("Bổ sung phương án giảm đòn bẩy hoặc nguồn trả nợ: Nợ vay/EBITDA sau cấp TD vượt ngưỡng")
     # Phát hiện/điều kiện của chuyên gia mâu thuẫn số công cụ vừa tính lại bị hạ cấp trước khi vào báo cáo
+    numeric_notes = consistency.check_verdicts(verdicts, verified)  # phản biện số lệch, tính trước khi hạ cấp
+    own_findings.extend(numeric_notes)
+    trace.extend(numeric_notes)
     verdicts, demoted = demote_unsupported(verdicts, verified)
     if demoted:
         trace.append(f"Hạ cấp {len(demoted)} câu của chuyên gia mâu thuẫn số tính lại bằng công cụ")
@@ -201,6 +204,11 @@ async def handle_task(env: Envelope) -> Verdict:
                 rec += " — lưu ý, chuyên gia còn ý kiến khác: " + " | ".join(dissent)
             elif any(v.decision == VerdictDecision.FLAG for v in verdicts.values()):
                 rec += " kèm điều kiện"
+        if rec_decision == VerdictDecision.APPROVE:  # đề xuất phê duyệt thì không còn điều kiện "Chưa thể phê duyệt"
+            verdicts = {k: v.model_copy(update={
+                "conditions": [consistency.unblock_for_approval(c) for c in v.conditions],
+                "findings": [consistency.unblock_for_approval(c) for c in v.findings]}) for k, v in verdicts.items()}
+            report = merge_verdicts(verdicts, own_findings, own_conditions, demoted)
         extra = [*gate_why]
         if verified["ancillary"]:
             extra.append("Bổ sung trước giải ngân (không chặn trình): " + "; ".join(verified["ancillary"]))

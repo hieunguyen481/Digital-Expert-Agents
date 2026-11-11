@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import re
 
+from . import consistency
 from .schemas import Evidence, Verdict
 
 
@@ -68,7 +69,9 @@ def contradicted_by_tools(text: str, verified: dict | None) -> bool:
         return True
     if col and col["eligible_value"] and not col["ltv_over"] and _affirmed(r"LTV[^.\n]{0,40}vượt", text):
         return True
-    return bool(lev and not lev["over"] and _affirmed(r"Nợ vay\s*/\s*EBITDA[^.\n]{0,60}vượt", text))
+    if lev and not lev["over"] and _affirmed(r"Nợ vay\s*/\s*EBITDA[^.\n]{0,60}vượt", text):
+        return True
+    return bool(consistency.mismatches(text, verified))  # số khác số tính lại: không vào bản tổng hợp
 
 
 def demote_unsupported(verdicts: dict[str, Verdict], verified: dict | None) -> tuple[dict[str, Verdict], list[str]]:
@@ -79,7 +82,11 @@ def demote_unsupported(verdicts: dict[str, Verdict], verified: dict | None) -> t
         keep_f = [f for f in v.findings if not contradicted_by_tools(f, verified)]
         keep_c = [c for c in v.conditions if not contradicted_by_tools(c, verified)]
         demoted += [f"({name}) {t}" for t in [*v.findings, *v.conditions] if t not in keep_f and t not in keep_c]
-        out[name] = v.model_copy(update={"findings": keep_f, "conditions": keep_c})
+        summary = v.summary
+        if consistency.mismatches(summary, verified):
+            kept = [x for x in re.split(r"(?<=[.;])\s+", summary) if not consistency.mismatches(x, verified)]
+            summary = " ".join(kept) or "(số liệu trong kết luận đã được Validation thay bằng số tính lại — xem phản biện)"
+        out[name] = v.model_copy(update={"findings": keep_f, "conditions": keep_c, "summary": summary})
     return out, demoted
 
 
