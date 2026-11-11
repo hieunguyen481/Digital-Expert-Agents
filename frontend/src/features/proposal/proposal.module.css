@@ -27,3 +27,5 @@
 .steps :global(.ant-menu-title-content) { display: flex; align-items: center; overflow: visible; white-space: normal; }
 
 .footNote { color: var(--ink-2); font-size: var(--fs-13); }
+.formNarrow :global(.ant-form-item-explain) { padding-bottom: 16px; }
+.formNarrow :global(.ant-form-item-explain:empty) { padding-bottom: 0; }

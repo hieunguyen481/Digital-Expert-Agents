@@ -100,7 +100,7 @@ function Content() {
             <Form.Item label="Số tiền đề nghị, tỷ đồng (bắt buộc)" htmlFor="new-amount" validateStatus={amountErr ? 'error' : undefined} help={amountErr ?? 'Ví dụ 15 hoặc 12,5.'}>
               <Input id="new-amount" inputMode="decimal" suffix="tỷ đồng" value={amount} onChange={(e) => setAmount(e.target.value)} />
             </Form.Item>
-            <Form.Item label="Kỳ hạn (tháng) (bắt buộc)" htmlFor="new-term" validateStatus={termErr ? 'error' : undefined} help={termErr ?? 'Nhập số tháng, ví dụ 12.'}>
+            <Form.Item label="Kỳ hạn, tháng (bắt buộc)" htmlFor="new-term" validateStatus={termErr ? 'error' : undefined} help={termErr ?? 'Nhập số tháng, ví dụ 12.'}>
               <Input id="new-term" inputMode="numeric" suffix="tháng" value={term} onChange={(e) => setTerm(e.target.value)} />
             </Form.Item>
             {err && <div role="alert" className={styles.err}>{err} Kiểm tra lại thông tin rồi bấm Tạo bản nháp.</div>}

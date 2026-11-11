@@ -61,7 +61,7 @@ export function NeedSection({ form, products, disabled, onChange }: Props) {
         />
       </Form.Item>
       <Form.Item
-        label="Kỳ hạn (tháng) (bắt buộc)"
+        label="Kỳ hạn, tháng (bắt buộc)"
         htmlFor="need-term"
         validateStatus={termMsg ? 'warning' : undefined}
         help={termMsg ?? undefined}
