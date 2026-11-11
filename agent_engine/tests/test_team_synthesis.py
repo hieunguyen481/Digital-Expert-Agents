@@ -215,7 +215,7 @@ async def test_gate_approve_title_does_not_contradict_expert_opinion(monkeypatch
     # L05: chuyên gia "Cần thêm thông tin" không còn trái cổng: thành "Đồng ý có điều kiện", ghi lý do
     assert out.summary.startswith("ĐỀ XUẤT PHÊ DUYỆT") and out.summary.endswith("kèm điều kiện")
     fv = out.data["final_verdicts"]["credit"]
-    assert fv["decision"] == "flag" and "dư nợ lệch 56 vs 98 tỷ" in fv["summary"]
+    assert fv["decision"] == "flag" and "dư nợ lệch 56 vs 98 tỷ" in fv["summary"].lower()
 
 
 def test_cx4_customer_with_outstanding_loans_is_not_new():

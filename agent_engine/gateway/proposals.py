@@ -146,7 +146,7 @@ def derive(validation: Verdict, final_verdicts: list[Verdict], report: dict) -> 
         if pre:  # việc phải làm trước quyết định: yêu cầu bổ sung (người dùng xác nhận gửi khách), không phải điều kiện giải ngân
             out.append({"kind": "request_documents", "source_agent": "validation", "evidence": _evidence(validation, 3),
                         "title": f"Yêu cầu khách bổ sung {len(pre[:MAX_DOCUMENTS])} mục",
-                        "rationale": "Việc cần hoàn tất trước khi trình quyết định, nêu trong báo cáo cuối của đội agent.",
+                        "rationale": "Điều kiện tiên quyết: phải hoàn tất trước khi trình cấp phê duyệt (khác điều kiện trước giải ngân); nêu trong báo cáo cuối của đội agent.",
                         "params": {"documents": pre[:MAX_DOCUMENTS]}})
         for cond in (c for c in conds if c not in pre):
             out.append({"kind": "add_disbursement_condition", "source_agent": "validation",

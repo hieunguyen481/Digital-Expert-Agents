@@ -84,7 +84,8 @@ def check_verdicts(verdicts: dict, verified: dict | None) -> list[str]:
     return notes
 
 
-_BLOCKING = re.compile(r"^\s*(chưa|không)\s+thể\s+phê\s+duyệt\s*[:\-–—]?\s*", re.IGNORECASE)
+_BLOCKING = re.compile(r"^\s*(chưa|không)\s+thể\s+(?:chốt\s+|chấp\s+thuận\s+|kết\s+luận\s+)?(?:phê\s+duyệt)?[^:;.]*?[:\-–—]\s*|"
+                       r"^\s*(chưa|không)\s+thể\s+phê\s+duyệt\s*[:\-–—]?\s*", re.IGNORECASE)
 
 
 def unblock_for_approval(text: str) -> str:

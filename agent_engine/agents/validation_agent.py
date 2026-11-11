@@ -115,8 +115,9 @@ async def handle_task(env: Envelope) -> Verdict:
     issues: list[str] = []
     for name, v in verdicts.items():
         if name in ("credit", "compliance") and not v.evidence:
-            issues.append(f"Verdict của {name} thiếu evidence/citation")
-    trace.append(f"Xác thực {len(verdicts)} verdict: {len(issues)} vấn đề evidence")
+            issues.append(f"Kết luận của {name} thiếu trích dẫn nguồn")
+    trace.append(f"Đã xác thực {len(verdicts)} kết luận chuyên gia: "
+                 + (f"{len(issues)} kết luận thiếu trích dẫn nguồn" if issues else "đều có trích dẫn nguồn"))
 
     request = env.payload.get("params", {}).get("request", {})
     shared = env.payload.get("params", {}).get("facts")
@@ -169,7 +170,8 @@ async def handle_task(env: Envelope) -> Verdict:
     if verified:
         col, exp, lev = verified["collateral"], verified["exposure"], verified["leverage"]
         if exp["audit_required"]:
-            own_conditions.append("BCTC kiểm toán (ý kiến chấp nhận toàn phần) bắt buộc vì tổng cấp tín dụng > 20 tỷ")
+            own_conditions.append("Điều kiện tiên quyết trước khi trình cấp phê duyệt: BCTC kiểm toán (ý kiến chấp nhận toàn phần) "
+                                  "bắt buộc vì tổng cấp tín dụng > 20 tỷ (CS-TD-SME/2025 §4.1, §6.1)")
         if col and col["ltv_over"] and not (credit and credit.proposed_limit
                                             and credit.proposed_limit <= col["max_secured_limit"] + 1):
             breach = True
@@ -190,7 +192,7 @@ async def handle_task(env: Envelope) -> Verdict:
         # Cổng xác định: dữ kiện công cụ + xung đột đã kiểm chứng; thiếu trường phụ chỉ thành điều kiện bổ sung
         rec_decision, rec, gate_why = gate.decide(verified, unresolved)
         trace.append(f"Cổng xác định: {rec_decision.value} ({'; '.join(gate_why) or 'không có căn cứ chặn'})")
-        verdicts, reconciled = gate.reconcile_experts(verdicts, rec_decision)
+        verdicts, reconciled = gate.reconcile_experts(verdicts, rec_decision, bool(verified['exposure']['audit_required']))
         trace.extend(reconciled)
         if reconciled:
             report = merge_verdicts(verdicts, own_findings, own_conditions, demoted)
@@ -202,6 +204,8 @@ async def handle_task(env: Envelope) -> Verdict:
                        if v.decision == VerdictDecision.NEED_MORE_INFO]
             if dissent:  # không còn xảy ra sau reconcile_experts; giữ làm lưới an toàn
                 rec += " — lưu ý, chuyên gia còn ý kiến khác: " + " | ".join(dissent)
+            elif verified["exposure"]["audit_required"]:
+                rec += " với điều kiện tiên quyết: " + gate.AUDIT_PREREQ
             elif any(v.decision == VerdictDecision.FLAG for v in verdicts.values()):
                 rec += " kèm điều kiện"
         if rec_decision == VerdictDecision.APPROVE:  # đề xuất phê duyệt thì không còn điều kiện "Chưa thể phê duyệt"
