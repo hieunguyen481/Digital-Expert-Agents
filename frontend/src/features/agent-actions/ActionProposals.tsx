@@ -111,8 +111,8 @@ export function proposalChains(events: AgentCaseEvent[]): ChainRow[] {
     const row = rows.get(id) ?? { id, kind, title: String(e.payload?.title ?? KIND_LABEL[kind] ?? ''), steps: [] };
     if (e.type === 'action_proposed') {
       row.title = String(e.payload?.title ?? row.title);
-      row.steps.push({ label: 'Agent đề xuất', tone: 'warn', text: String(e.payload?.rationale ?? '') });
-    } else if (e.type === 'action_confirmed') row.steps.push({ label: 'Người xác nhận', tone: 'info', text: String(e.payload?.reason ?? '') });
+      row.steps.push({ label: 'Agent đề xuất', tone: 'ai', text: String(e.payload?.rationale ?? '') });
+    } else if (e.type === 'action_confirmed') row.steps.push({ label: 'Người xác nhận', tone: 'human', text: String(e.payload?.reason ?? '') });
     else if (e.type === 'action_dismissed') row.steps.push({ label: 'Người bỏ đề xuất', tone: 'neutral', text: String(e.payload?.reason ?? '') });
     else if (e.type === 'action_executed') row.steps.push({ label: 'Hệ thống thực hiện', tone: 'ok', text: 'Đã ghi vào hồ sơ bằng quyền của người xác nhận, có nhật ký kiểm toán.' });
     else if (e.type === 'action_refused') row.steps.push({ label: 'Hệ thống từ chối', tone: 'bad', text: String(e.payload?.message ?? '') });

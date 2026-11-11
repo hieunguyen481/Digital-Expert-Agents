@@ -151,7 +151,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
               <div className={styles.flowWrap}>
                 <div className={styles.frame}>
                   <div className={styles.node + ' ' + styles.done} style={{ alignSelf: 'center' }}>
-                    <b style={{ fontSize: 13 }}>Planner</b>
+                    <b style={{ fontSize: 13 }}>{agentName('planner')}</b>
                     <span className={styles.nodeSum}>Lập kế hoạch, giao việc</span>
                   </div>
                   {dagLevels(plan.tasks).map((col, i) => (
@@ -234,7 +234,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                       : <span data-testid="tool-by-agent"><StatusPill>Agent tự gọi</StatusPill></span>}
                   </td>
                   <td><StatusPill tone={c.outcome === 'ok' ? 'ok' : 'bad'}>{c.outcome === 'ok' ? 'Thành công' : c.outcome === 'denied' ? 'Bị từ chối' : 'Lỗi'}</StatusPill></td>
-                  <td className={styles.r}>{c.durationMs} ms</td>
+                  <td className={styles.r}>{fmtSeconds(c.durationMs / 1000)}</td>
                 </tr>
               ))}
             </tbody>
@@ -250,7 +250,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
           <ul className={styles.plainList}>
             {boards.map((b) => (
               <li key={b.id} className={styles.text}>
-                <b>{agentName(b.scope)}</b> gom {b.keys.length} mục: {b.keys.map((k) => BOARD_LABEL[k] ?? k).join(', ')}
+                <b>{agentName(b.scope)}</b> đã thu thập {b.keys.length} mục: {b.keys.map((k) => BOARD_LABEL[k] ?? k).join(', ')}
                 {b.compensated.length > 0 && (
                   <> <StatusPill tone="info">Hệ thống gọi bù</StatusPill> {b.compensated.map((k) => BOARD_LABEL[k] ?? k).join(', ')} (agent bỏ sót mục bắt buộc)</>
                 )}
@@ -267,7 +267,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             ))}
           </ul>
         ) : (
-          <span className={styles.dim}>Chưa có dữ liệu gom lên bảng chung (lượt chạy không dùng công cụ động).</span>
+          <span className={styles.dim}>Chưa có dữ liệu thu thập lên bảng chung (lượt chạy không dùng công cụ động).</span>
         )}
       </section>
 

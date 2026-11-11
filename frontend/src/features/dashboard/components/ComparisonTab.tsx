@@ -150,7 +150,7 @@ export function runDescription(m: Pick<BenchmarkRunMeta, 'runs_per_case' | 'case
 
 export function runOptionLabel(m: BenchmarkRunMeta): string {
   const kind = m.regrade_of ? ' · chấm lại dữ liệu cũ' : '';
-  const modes = hasBothModes(m) ? 'So sánh single và multi' : 'Chỉ đa agent';
+  const modes = hasBothModes(m) ? 'So sánh single và multi' : 'Chỉ đo đội agent';
   return `${fmtDayTime(m.created_at)} · Bộ ca ${m.cases_version} · ${modes} · ${m.runs_per_case} lượt mỗi ca${kind}${isTestRun(m) ? ' · [Kiểm thử]' : ''}`;
 }
 
@@ -234,16 +234,19 @@ export function ComparisonTab() {
           <span className={styles.tech} data-testid="cmp-label">
             {runOptionLabel(run)}
             <span style={{ display: 'block' }} data-testid="cmp-desc">{runDescription(run)}</span>
-            <span style={{ display: 'block' }} data-testid="cmp-tech">{runTechnicalNote(run)}</span>
           </span>
+          <details className={styles.techDet}>
+            <summary>Chi tiết kỹ thuật (kiểm toán)</summary>
+            <span data-testid="cmp-tech">{runTechnicalNote(run)}</span>
+          </details>
         </div>
       </section>
 
-      <div className={styles.banner} data-testid="cmp-headline" role="note">
+      <div className={styles.headline} data-testid="cmp-headline" role="note">
         <p className={styles.bannerNote}><b>Nhận xét. </b>{headline(run)}</p>
       </div>
 
-      <div className={styles.banner} data-testid="cmp-meta" role="note">
+      <div className={styles.note} data-testid="cmp-meta" role="note">
         <p className={styles.bannerNote}>
           <b>Cách đo. </b>
           Bộ ca đánh giá <strong>{run.cases_version}</strong>, {cases.length} ca × {run.runs_per_case} lượt × {modeCount(run)}, đo ngày {fmtDay(run.created_at)}.
@@ -269,7 +272,7 @@ export function ComparisonTab() {
         </div>
       )}
 
-      <div className={styles.banner} data-testid="cmp-coverage-note" role="note">
+      <div className={styles.note} data-testid="cmp-coverage-note" role="note">
         <p className={styles.bannerNote}>
           <b>Vì sao độ phủ khác nhau giữa các lượt đo. </b>
           Từ 11/11/2026 hệ thống tính tổng cấp tín dụng theo đúng quy định (dư nợ tại ngân hàng cộng khoản vay mới, không cộng dư nợ ở tổ chức tín dụng khác).

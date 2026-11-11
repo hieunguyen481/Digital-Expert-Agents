@@ -2,13 +2,14 @@ import { fmtSec } from '@/utils/format';
 import type { AgentCaseEvent } from '@/services/agentCaseService';
 
 export const AGENT_NAME: Record<string, string> = {
-  planner: 'Planner',
+  planner: 'Planner (điều phối)',
   credit: 'Credit',
   compliance: 'Compliance',
   operations: 'Operations',
   validation: 'Validation',
   document: 'Document',
-  orchestrator: 'Điều phối',
+  orchestrator: 'Bộ chạy tác vụ',
+  system: 'Hệ thống',
   gateway: 'Cổng',
   hitl: 'Người xác nhận',
   sla: 'SLA',
@@ -42,7 +43,7 @@ export const STATE_TONE: Record<string, 'neutral' | 'ok' | 'warn' | 'bad' | 'inf
   'In Analysis': 'ai',
   'Pending Approval': 'warn',
   'Needs Info': 'warn',
-  Escalated: 'bad',
+  Escalated: 'info',
   Executing: 'info',
   Completed: 'ok',
   Rejected: 'bad',

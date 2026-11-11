@@ -49,6 +49,7 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
         <h2 id="tr-h">Lượt phân tích gần đây</h2>
         <span className={styles.cardNote}>{cases.length === all.length ? `${fmtInt(all.length)} lượt gần nhất bạn được phép xem` : `${fmtInt(cases.length)}/${fmtInt(all.length)} lượt gần nhất bạn được phép xem`}</span>
       </div>
+      <p className={styles.scopeNote}>Tổng quan đếm toàn hệ thống; ở đây bạn chỉ xem được lượt trên hồ sơ trong phạm vi của mình.</p>
       <div className={styles.filters}>
         <Input.Search allowClear aria-label="Tìm lượt phân tích" placeholder="Tìm theo khách hàng, mã hồ sơ, mã lượt hoặc mục đích vay"
           data-testid="trace-search" onChange={(e) => setText(e.target.value)} />
@@ -82,19 +83,24 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
           columns={[
             {
               title: 'Khách hàng', key: 'customer',
-              render: (_: unknown, r) => (r.customer_name ? <b>{r.customer_name}</b> : <span className={styles.sub}>Chưa gắn hồ sơ</span>),
+              render: (_: unknown, r) => (
+                <span>
+                  {r.customer_name ? <b>{r.customer_name}</b> : <span className={styles.sub}>Chưa gắn hồ sơ</span>}
+                  <span className={styles.mono}>{r.case_id}</span>
+                </span>
+              ),
             },
             {
               title: 'Hồ sơ vay', key: 'loan',
               render: (_: unknown, r) => (r.loan_id && r.application_number
-                ? <Link to={`/ho-so-vay/${r.loan_id}`} onClick={(e) => e.stopPropagation()}>{r.application_number}</Link> : '—'),
+                ? <Link to={`/ho-so-vay/${r.loan_id}`} onClick={(e) => e.stopPropagation()}>{r.application_number}</Link>
+                : <span className={styles.sub}>Không gắn hồ sơ</span>),
             },
-            { title: 'Mã lượt', dataIndex: 'case_id', key: 'case_id', render: (id: string) => <span className={styles.mono}>{id}</span> },
             {
               title: 'Yêu cầu', key: 'request',
               render: (_: unknown, r) => (
                 <span>
-                  {r.request.amount != null ? `${fmtInt(r.request.amount)} VND` : '—'}
+                  {r.request.amount != null ? `${fmtInt(r.request.amount)} đồng` : '—'}
                   {r.request.term_months ? `, ${r.request.term_months} tháng` : ''}
                   {r.request.purpose ? <span className={styles.sub}>{purposeLabel(r.request.purpose)}</span> : null}
                 </span>
