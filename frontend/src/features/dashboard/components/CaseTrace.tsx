@@ -27,7 +27,7 @@ const DECISION_TONE = { ok: 'ok', error: 'bad' } as const;
 /** Chi tiết một case: DAG planner, task, luồng phối hợp, công cụ MCP, quyết định, nguồn. Case đang chạy cập nhật qua SSE. */
 export function CaseTrace({ caseId, onClose }: { caseId: string | null; onClose: () => void }) {
   return (
-    <Drawer open={!!caseId} onClose={onClose} width={760} destroyOnHidden title={`${TERM.runs} ${caseId ?? ''}`}>
+    <Drawer open={!!caseId} onClose={onClose} width="min(980px, 94vw)" destroyOnHidden title={TERM.runs}>
       {caseId && <CaseTraceBody caseId={caseId} />}
     </Drawer>
   );

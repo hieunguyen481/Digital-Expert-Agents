@@ -11,6 +11,7 @@ import styles from './policy.module.css';
 interface Policy { id: string; policy_code: string; policy_name: string; policy_type: string; status: string }
 interface Clause { policy_version_id: string; clause_number: string; title: string | null; content: string; effective_from: string; effective_until: string | null }
 
+const TYPE_LABEL: Record<string, string> = { CREDIT: 'Tín dụng', RISK: 'Rủi ro', COMPLIANCE: 'Tuân thủ', OPERATIONS: 'Vận hành' };
 const STATUS_LABEL: Record<string, string> = { ACTIVE: 'Hiệu lực', DRAFT: 'Bản nháp', RETIRED: 'Hết hiệu lực', SUPERSEDED: 'Đã thay thế' };
 
 /** Tra cứu chính sách: danh sách chính sách và tìm điều khoản theo từ khóa. */
@@ -71,7 +72,7 @@ function PolicyContent() {
           columns={[
             { title: 'Mã', dataIndex: 'policy_code' },
             { title: 'Tên chính sách', dataIndex: 'policy_name' },
-            { title: 'Loại', dataIndex: 'policy_type' },
+            { title: 'Loại', dataIndex: 'policy_type', render: (v: string) => TYPE_LABEL[v.toUpperCase()] ?? v },
             { title: 'Trạng thái', dataIndex: 'status', render: (v: string) => <StatusPill tone={v.toUpperCase() === 'ACTIVE' ? 'ok' : 'neutral'}>{STATUS_LABEL[v.toUpperCase()] ?? 'Không áp dụng'}</StatusPill> },
           ]}
         />

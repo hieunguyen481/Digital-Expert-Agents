@@ -88,7 +88,7 @@ export default function AuditLogPage() {
             { title: 'Hành động', dataIndex: 'action', render: (v: string) => actionLabel(v) },
             { title: 'Đối tượng', dataIndex: 'resource_type', render: (v: string) => RESOURCE_LABELS[v] ?? v },
             { title: 'Hồ sơ', render: (_, r) => r.loan_application_id ? <Link to={`/ho-so-vay/${r.loan_application_id}`}>{r.loan_application_number ?? 'Mở hồ sơ'}</Link> : '—' },
-            { title: 'Kết quả', dataIndex: 'result', render: (v: string) => RESULT_LABELS[v] ?? v },
+            { title: 'Kết quả', dataIndex: 'result', render: (v: string) => <span style={{ whiteSpace: 'nowrap' }}>{RESULT_LABELS[v] ?? v}</span> },
           ]}
         />
         </section>

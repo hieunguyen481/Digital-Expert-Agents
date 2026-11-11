@@ -13,8 +13,8 @@
 
 /* Dòng chảy: Planner → chuyên gia → Validation (trong khung AI) → người quyết định (ngoài khung) */
 .flowWrap { display: flex; align-items: stretch; gap: var(--s2); overflow-x: auto; padding-bottom: var(--s1); }
-.frame { display: flex; align-items: stretch; gap: var(--s2); border: 1.5px dashed var(--ai-500); background: var(--ai-50); border-radius: var(--r-lg); padding: var(--s3); flex: 1; min-width: 0; }
-.col { display: grid; gap: var(--s2); align-content: center; flex: 1; min-width: 150px; }
+.frame { display: flex; align-items: stretch; gap: var(--s2); border: 1.5px dashed var(--ai-500); background: var(--ai-50); border-radius: var(--r-lg); padding: var(--s3); flex: 1; min-width: 0; overflow-x: auto; }
+.col { display: grid; gap: var(--s2); align-content: center; flex: 1; min-width: 200px; }
 .arr { align-self: center; color: var(--ai-700); font-weight: 700; flex: none; }
 .arrHm { align-self: center; color: var(--navy-700); font-weight: 700; flex: none; }
 .node { border: 1.5px dashed var(--ai-500); background: var(--surface); border-radius: var(--r-md); padding: var(--s2) var(--s3); display: grid; gap: var(--s1); min-width: 0; }
