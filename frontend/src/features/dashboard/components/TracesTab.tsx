@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { Alert, Button, Card, Checkbox, Empty, Input, Select, Skeleton, Tag, Typography } from 'antd';
+import { Button, Checkbox, Input, Select, Skeleton } from 'antd';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
 import { listAgentCases, type AgentCaseSummary } from '@/services/agentCaseService';
 import { fmtDayTime, fmtInt } from '@/utils/format';
-import { STATE_COLOR, fmtSeconds, isTestCase, purposeLabel, stateLabel } from '../agentTrace';
+import { StateBlock, StatusPill, ledgerNum, ledgerTable } from '@/components/ui';
+import { STATE_TONE, fmtSeconds, isTestCase, purposeLabel, stateLabel } from '../agentTrace';
 import { CaseTrace } from './CaseTrace';
+import styles from '@/pages/AgentDashboardPage.module.css';
 
-const { Text } = Typography;
 
 export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | null }) {
   const [open, setOpen] = useState<string | null>(initialCaseId);
@@ -21,8 +22,9 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
   if (q.isLoading) return <Skeleton active />;
   if (q.isError) {
     return (
-      <Alert type="error" showIcon message="Không tải được danh sách lượt phân tích"
-        action={<Button size="small" onClick={() => void q.refetch()}>Thử lại</Button>} />
+      <StateBlock kind="error" alert title="Không tải được danh sách lượt phân tích"
+        description="Kiểm tra kết nối rồi thử lại."
+        action={<Button onClick={() => void q.refetch()}>Thử lại</Button>} />
     );
   }
   const raw = q.data ?? [];
@@ -41,12 +43,15 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
   const states = [...new Set(all.map((c) => c.state))].sort();
 
   return (
-    <Card title="Lượt phân tích gần đây" size="small"
-      extra={<Text type="secondary" style={{ fontSize: 12 }}>{cases.length === all.length ? `${fmtInt(all.length)} lượt gần nhất bạn được phép xem` : `${fmtInt(cases.length)}/${fmtInt(all.length)} lượt gần nhất bạn được phép xem`}</Text>}>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-        <Input.Search allowClear placeholder="Tìm theo khách hàng, mã hồ sơ, mã lượt hoặc mục đích vay" style={{ width: 380 }}
+    <section className={styles.card} aria-labelledby="tr-h">
+      <div className={styles.cardHead}>
+        <h2 id="tr-h">Lượt phân tích gần đây</h2>
+        <span className={styles.cardNote}>{cases.length === all.length ? `${fmtInt(all.length)} lượt gần nhất bạn được phép xem` : `${fmtInt(cases.length)}/${fmtInt(all.length)} lượt gần nhất bạn được phép xem`}</span>
+      </div>
+      <div className={styles.filters}>
+        <Input.Search allowClear aria-label="Tìm lượt phân tích" placeholder="Tìm theo khách hàng, mã hồ sơ, mã lượt hoặc mục đích vay"
           data-testid="trace-search" onChange={(e) => setText(e.target.value)} />
-        <Select allowClear placeholder="Mọi trạng thái" style={{ width: 200 }} data-testid="trace-state-filter"
+        <Select allowClear aria-label="Lọc theo trạng thái" placeholder="Mọi trạng thái" style={{ width: 200 }} data-testid="trace-state-filter"
           value={stateFilter} onChange={setStateFilter}
           options={states.map((s) => ({ value: s, label: stateLabel(s) }))} />
         {hiddenTest > 0 && (
@@ -61,47 +66,53 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
         )}
       </div>
       {cases.length === 0 ? (
-        <Empty description={all.length > 0 ? 'Không có lượt phân tích khớp bộ lọc.'
-          : 'Chưa có lượt phân tích nào trong phạm vi của bạn. Lượt phân tích xuất hiện khi cán bộ có quyền chạy đội agent ở trang Hồ sơ vay hoặc gửi yêu cầu phân tích sâu ở trang trò chuyện.'} />
+        <StateBlock kind="empty" compact
+          title={all.length > 0 ? 'Không có lượt phân tích khớp bộ lọc' : 'Chưa có lượt phân tích nào trong phạm vi của bạn'}
+          description={all.length > 0 ? 'Bỏ bớt bộ lọc hoặc đổi từ khóa tìm kiếm.'
+            : 'Lượt phân tích xuất hiện khi cán bộ có quyền chạy đội agent ở trang Hồ sơ vay hoặc gửi yêu cầu phân tích sâu ở trang Trợ lý AI.'} />
       ) : (
         <DataTable<AgentCaseSummary>
-          rowKey="case_id" dataSource={cases} size="small" pagination={{ pageSize: 20, showSizeChanger: false }}
-          onRow={(r) => ({ onClick: () => setOpen(r.case_id), style: { cursor: 'pointer' }, 'data-testid': `case-row-${r.case_id}` }) as React.HTMLAttributes<HTMLElement>}
+          rowKey="case_id" dataSource={cases} size="small" className={ledgerTable} pagination={{ pageSize: 20, showSizeChanger: false }}
+          onRow={(r) => ({
+            onClick: () => setOpen(r.case_id), className: styles.rowClick, 'data-testid': `case-row-${r.case_id}`,
+            tabIndex: 0,
+            onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(r.case_id); } },
+          }) as React.HTMLAttributes<HTMLElement>}
           columns={[
             {
               title: 'Khách hàng', key: 'customer',
-              render: (_: unknown, r) => (r.customer_name ? <b>{r.customer_name}</b> : <Text type="secondary">Chưa gắn hồ sơ</Text>),
+              render: (_: unknown, r) => (r.customer_name ? <b>{r.customer_name}</b> : <span className={styles.sub}>Chưa gắn hồ sơ</span>),
             },
             {
               title: 'Hồ sơ vay', key: 'loan',
               render: (_: unknown, r) => (r.loan_id && r.application_number
                 ? <Link to={`/ho-so-vay/${r.loan_id}`} onClick={(e) => e.stopPropagation()}>{r.application_number}</Link> : '—'),
             },
-            { title: 'Mã lượt', dataIndex: 'case_id', key: 'case_id', render: (id: string) => <Typography.Text code style={{ fontSize: 11 }}>{id}</Typography.Text> },
+            { title: 'Mã lượt', dataIndex: 'case_id', key: 'case_id', render: (id: string) => <span className={styles.mono}>{id}</span> },
             {
               title: 'Yêu cầu', key: 'request',
               render: (_: unknown, r) => (
                 <span>
                   {r.request.amount != null ? `${fmtInt(r.request.amount)} VND` : '—'}
-                  {r.request.term_months ? ` · ${r.request.term_months} tháng` : ''}
-                  {r.request.purpose ? <Text type="secondary" style={{ display: 'block', fontSize: 11.5 }}>{purposeLabel(r.request.purpose)}</Text> : null}
+                  {r.request.term_months ? `, ${r.request.term_months} tháng` : ''}
+                  {r.request.purpose ? <span className={styles.sub}>{purposeLabel(r.request.purpose)}</span> : null}
                 </span>
               ),
             },
-            { title: 'Trạng thái', dataIndex: 'state', key: 'state', render: (s: string) => <Tag color={STATE_COLOR[s] ?? 'default'}>{stateLabel(s)}</Tag> },
-            { title: 'Công cụ', dataIndex: 'tool_calls', key: 'tool_calls', align: 'right', render: (n: number) => fmtInt(n) },
+            { title: 'Trạng thái', dataIndex: 'state', key: 'state', render: (s: string) => <StatusPill tone={STATE_TONE[s] ?? 'neutral'}>{stateLabel(s)}</StatusPill> },
+            { title: 'Công cụ', dataIndex: 'tool_calls', key: 'tool_calls', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
             {
-              title: 'Thời gian', key: 'dur', align: 'right',
+              title: 'Thời gian', key: 'dur', align: 'right', className: ledgerNum,
               render: (_: unknown, r) => (r.updated_at > r.created_at ? fmtSeconds(r.updated_at - r.created_at) : '—'),
             },
             {
               title: 'Bắt đầu', dataIndex: 'created_at', key: 'created_at',
-              render: (t: number) => <Text type="secondary" style={{ fontSize: 12 }}>{fmtDayTime(t)}</Text>,
+              render: (t: number) => <span className={styles.sub}>{fmtDayTime(t)}</span>,
             },
           ]}
         />
       )}
       <CaseTrace caseId={open} onClose={() => setOpen(null)} />
-    </Card>
+    </section>
   );
 }

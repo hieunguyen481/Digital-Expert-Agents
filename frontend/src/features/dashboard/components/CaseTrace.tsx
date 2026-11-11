@@ -1,28 +1,28 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Drawer, Empty, Skeleton, Tag, Typography } from 'antd';
+import { Drawer, Skeleton } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { TERMINAL_STATES, getAgentCase, getAgentCaseEvents, getApproverNames, streamAgentCase, type AgentCaseEvent } from '@/services/agentCaseService';
 import {
-  DECISION_LABEL, STATE_COLOR, agentName, collaboration, dagLevels, decisions, latestPlan,
+  DECISION_LABEL, STATE_TONE, agentName, fmtSeconds, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
   BOARD_LABEL, approverLevelLabel, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
 } from '../agentTrace';
 import { ProposalChain } from '@/features/agent-actions/ActionProposals';
 import { statusLabel } from '@/features/my-work/format';
+import { AiBlock, AiTag, HumanBlock, StateBlock, StatusPill } from '@/components/ui';
 import { fmtInt, fmtUsd } from '@/utils/format';
 import { TERM } from '@/utils/glossary';
+import styles from './CaseTrace.module.css';
 
-const { Text } = Typography;
-const TASK_TAG: Record<TaskState, { color: string; label: string }> = {
-  waiting: { color: 'default', label: 'Chờ' },
-  running: { color: 'processing', label: 'Đang chạy' },
-  done: { color: 'green', label: 'Xong' },
-  error: { color: 'red', label: 'Lỗi' },
+const TASK_TAG: Record<TaskState, { tone: 'neutral' | 'ai' | 'ok' | 'bad'; label: string }> = {
+  waiting: { tone: 'neutral', label: 'Chờ' },
+  running: { tone: 'ai', label: 'Đang chạy' },
+  done: { tone: 'ok', label: 'Xong' },
+  error: { tone: 'bad', label: 'Lỗi' },
 };
-const AI_TAG = <Tag color="purple" style={{ marginInlineStart: 6 }}>AI đề xuất</Tag>;
-const SYSTEM_TAG = <Tag color="blue" style={{ marginInlineStart: 6 }}>Hệ thống tính</Tag>;
-const section: React.CSSProperties = { marginTop: 20 };
-const h: React.CSSProperties = { margin: '0 0 8px', fontSize: 14, fontWeight: 650, color: 'var(--shb-navy-800)' };
+const SYSTEM_TAG = <StatusPill tone="info">Hệ thống tính</StatusPill>;
+const FLOW_KIND: Record<string, string> = { challenge: 'phản biện', 'điều chỉnh sau challenge': 'điều chỉnh sau phản biện' };
+const DECISION_TONE = { ok: 'ok', error: 'bad' } as const;
 
 /** Chi tiết một case: DAG planner, task, luồng phối hợp, công cụ MCP, quyết định, nguồn. Case đang chạy cập nhật qua SSE. */
 export function CaseTrace({ caseId, onClose }: { caseId: string | null; onClose: () => void }) {
@@ -39,9 +39,9 @@ function ClampText({ text, secondary }: { text: string; secondary?: boolean }) {
   const clean = scrubInternal(text);
   const long = clean.length > 160;
   return (
-    <span style={secondary ? { color: 'var(--text-3)', fontSize: 12.5 } : undefined}>
-      <span style={!full && long ? { display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' } : undefined}>{clean}</span>
-      {long && <button type="button" onClick={() => setFull(!full)} style={{ border: 0, background: 'none', color: 'var(--info)', cursor: 'pointer', padding: 0, fontSize: 12 }}>{full ? 'Thu gọn' : 'Xem đầy đủ'}</button>}
+    <span className={secondary ? styles.dim : styles.text}>
+      <span className={!full && long ? styles.clamp : undefined}>{clean}</span>
+      {long && <button type="button" className={styles.linkBtn} aria-expanded={full} onClick={() => setFull(!full)}>{full ? 'Thu gọn' : 'Xem đầy đủ'}</button>}
     </span>
   );
 }
@@ -91,7 +91,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
   });
 
   if (caseQ.isError) {
-    return <Alert type="warning" showIcon message="Không tải được lượt phân tích này" description="Bạn có thể không có quyền xem hồ sơ phân tích này." />;
+    return <StateBlock kind="forbidden" compact title="Không tải được lượt phân tích này" description="Bạn có thể không có quyền xem lượt phân tích này." />;
   }
   if (!caseQ.data) return <Skeleton active />;
 
@@ -118,122 +118,147 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
       ? stopEvent.payload.reason
       : undefined;
   const sources = verdicts.flatMap((v) => (v.evidence ?? []).map((e) => ({ agent: v.agent, ...e })));
+  // Thời gian từng task = từ sự kiện task_started đến task_finished (giây, ts của engine).
+  const taskSeconds = (taskId: string): number | null => {
+    const mine = events.filter((e) => e.payload?.task_id === taskId);
+    const a = mine.find((e) => e.type === 'task_started');
+    const b = [...mine].reverse().find((e) => e.type === 'task_finished');
+    return a && b && b.ts >= a.ts ? b.ts - a.ts : null;
+  };
+  const decidedHuman = decided.some((d) => d.label !== 'Nhắc/chuyển cấp do quá hạn');
+  const deciderName = (caseQ.data.approver && namesQ.data?.[caseQ.data.approver])
+    || (pkg?.required_approver_level ? `cấp ${approverLevelLabel(pkg.required_approver_level)}` : 'người có thẩm quyền theo cấp phê duyệt');
 
   return (
-    <div data-testid="case-trace">
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-        <Tag color={STATE_COLOR[state] ?? 'default'} data-testid="case-state">{stateLabel(state)}</Tag>
-        {streaming && <Text type="secondary" style={{ fontSize: 12 }}>● Đang nhận cập nhật trực tiếp</Text>}
-        <Text type="secondary" style={{ fontSize: 12 }}>{events.length} sự kiện</Text>
+    <div className={styles.body} data-testid="case-trace">
+      <div className={styles.head}>
+        <span data-testid="case-state"><StatusPill tone={STATE_TONE[state] ?? 'neutral'}>{stateLabel(state)}</StatusPill></span>
+        {streaming && <span className={styles.live}>Đang nhận cập nhật trực tiếp</span>}
+        <span>{events.length} sự kiện</span>
         {usage && (
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            LLM: {usage.calls} lượt · {fmtInt(usage.tokens)} token
-            {usage.cost !== null && ` · ${fmtUsd(usage.cost)}`}
-          </Text>
+          <span>
+            LLM: {usage.calls} lượt, {fmtInt(usage.tokens)} token
+            {usage.cost !== null && `, ${fmtUsd(usage.cost)}`}
+          </span>
         )}
       </div>
 
-      <section style={section} data-testid="trace-dag">
-        <h3 style={h}>{TERM.plannerAssign}{AI_TAG}</h3>
-        {plan ? (
-          <>
-            {plan.rationale && <ClampText text={plan.rationale} secondary />}
-            <div style={{ display: 'flex', gap: 24, alignItems: 'stretch', marginTop: 8, overflowX: 'auto' }}>
-              {dagLevels(plan.tasks).map((col, i) => (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 200 }}>
-                  {col.map((t) => {
-                    const st = states[t.task_id];
-                    const tag = TASK_TAG[st?.state ?? 'waiting'];
-                    return (
-                      <div key={t.task_id} data-testid={`dag-task-${t.task_id}`}
-                        style={{ border: '1px solid var(--shb-border)', borderRadius: 8, padding: '8px 10px', background: 'var(--shb-surface)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                          <b>{agentName(t.agent)}</b>
-                          <Tag color={tag.color} style={{ marginInlineEnd: 0 }}>{tag.label}</Tag>
-                        </div>
-                        <div style={{ fontSize: 12.5, margin: '4px 0' }}><ClampText text={t.objective} /></div>
-                        {t.depends_on.length > 0 && (
-                          <Text type="secondary" style={{ fontSize: 11.5 }}>
-                            Chờ kết quả của: {t.depends_on.map((d) => { const dep = plan.tasks.find((x) => x.task_id === d); return dep ? agentName(dep.agent) : d; }).join(', ')}
-                          </Text>
-                        )}
-                        {st?.verdict && (
-                          <div style={{ fontSize: 12, marginTop: 4 }}>
-                            {DECISION_LABEL[st.verdict.decision] ?? st.verdict.decision} — {scrubInternal(st.verdict.summary)}
-                          </div>
-                        )}
+      <div data-testid="trace-dag">
+        <AiBlock title={TERM.plannerAssign}>
+          {plan ? (
+            <div className={styles.sec}>
+              {plan.rationale && <ClampText text={plan.rationale} secondary />}
+              <div className={styles.flowWrap}>
+                <div className={styles.frame}>
+                  <div className={styles.node + ' ' + styles.done} style={{ alignSelf: 'center' }}>
+                    <b style={{ fontSize: 13 }}>Planner</b>
+                    <span className={styles.nodeSum}>Lập kế hoạch, giao việc</span>
+                  </div>
+                  {dagLevels(plan.tasks).map((col, i) => (
+                    <div key={i} style={{ display: 'contents' }}>
+                      <span className={styles.arr} aria-hidden>→</span>
+                      <div className={styles.col}>
+                        {col.map((t) => {
+                          const st = states[t.task_id];
+                          const tag = TASK_TAG[st?.state ?? 'waiting'];
+                          const sec = st?.state === 'done' ? taskSeconds(t.task_id) : null;
+                          return (
+                            <div key={t.task_id} data-testid={`dag-task-${t.task_id}`}
+                              className={`${styles.node} ${st?.state === 'done' ? styles.done : ''} ${st?.state === 'running' ? styles.running : ''} ${st?.state === 'error' ? styles.error : ''}`}>
+                              <div className={styles.nodeHead}>
+                                <b>{agentName(t.agent)}</b>
+                                <StatusPill tone={tag.tone}>{tag.label}</StatusPill>
+                              </div>
+                              <div className={styles.nodeSum}><ClampText text={t.objective} /></div>
+                              {t.depends_on.length > 0 && (
+                                <span className={styles.nodeDep}>
+                                  Chờ kết quả của: {t.depends_on.map((d) => { const dep = plan.tasks.find((x) => x.task_id === d); return dep ? agentName(dep.agent) : d; }).join(', ')}
+                                </span>
+                              )}
+                              {st?.verdict && (
+                                <span className={styles.nodeSum}>
+                                  <b>{DECISION_LABEL[st.verdict.decision] ?? st.verdict.decision}</b>: {scrubInternal(st.verdict.summary)}
+                                </span>
+                              )}
+                              {sec != null && <span className={styles.tm}>{fmtSeconds(sec)}</span>}
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
-              ))}
+                <span className={styles.arrHm} aria-hidden>→</span>
+                <div className={styles.hm}><b>{TERM.decider}</b>Ngoài khung AI, quyết định cuối cùng</div>
+              </div>
             </div>
-          </>
-        ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Planner chưa lập kế hoạch cho lượt phân tích này." />
-        )}
-      </section>
+          ) : (
+            <span className={styles.text}>Planner chưa lập kế hoạch cho lượt phân tích này.</span>
+          )}
+        </AiBlock>
+      </div>
 
-      <section style={section} data-testid="trace-flow">
-        <h3 style={h}>Luồng phối hợp giữa các agent</h3>
+      <section className={styles.sec} data-testid="trace-flow">
+        <h3>Luồng phối hợp giữa các agent</h3>
         {flow.length ? (
-          <ol style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <ol className={styles.flowList}>
             {flow.map((f) => (
-              <li key={f.id} style={{ fontSize: 13 }}>
-                <b>{agentName(f.from)}</b> → <b>{agentName(f.to)}</b>{' '}
-                <Tag bordered={false} color={f.kind === 'challenge' ? 'volcano' : 'default'}>{f.kind}</Tag>
-                {f.text && <Text type="secondary">{f.text}</Text>}
+              <li key={f.id}>
+                <b>{agentName(f.from)}</b> → <b>{agentName(f.to)}</b>
+                <StatusPill tone={f.kind === 'challenge' ? 'warn' : 'neutral'}>{FLOW_KIND[f.kind] ?? f.kind}</StatusPill>
+                {f.text && <span className={styles.dim}>{f.text}</span>}
               </li>
             ))}
           </ol>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có trao đổi giữa các agent." />
+          <span className={styles.text}>Chưa có trao đổi giữa các agent.</span>
         )}
         {!flow.some((f) => f.kind === 'challenge') && flow.length > 0 && (
-          <Text type="secondary" style={{ fontSize: 12 }}>Validation không phát phản biện nào: các kết luận không mâu thuẫn.</Text>
+          <span className={styles.dim}>Validation không phát phản biện nào: các kết luận không mâu thuẫn.</span>
         )}
       </section>
 
-      <section style={section} data-testid="trace-tools">
-        <h3 style={h}>Công cụ: agent nào đã gọi ({calls.length})</h3>
+      <section className={styles.sec} data-testid="trace-tools">
+        <h3>Công cụ: agent nào đã gọi ({calls.length})</h3>
         {calls.length ? (
-          <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
+          <table className={styles.tbl}>
+            <thead><tr><th scope="col">Agent</th><th scope="col">Công cụ</th><th scope="col">Người gọi</th><th scope="col">Kết quả</th><th scope="col" className={styles.r}>Thời gian</th></tr></thead>
             <tbody>
               {calls.map((c) => (
-                <tr key={c.id} style={{ borderBottom: '1px solid var(--shb-border)' }}>
-                  <td style={{ padding: '4px 0' }}>{agentName(c.agent)}</td>
-                  <td>{toolLabel(c.tool)} <Typography.Text code>{c.tool}</Typography.Text></td>
+                <tr key={c.id}>
+                  <td>{agentName(c.agent)}</td>
+                  <td>{toolLabel(c.tool)} <span className={styles.mono}>{c.tool}</span></td>
                   <td>
                     {c.initiatedBy === 'system_compensation'
-                      ? <Tag color="blue" bordered={false} data-testid="tool-compensated">Hệ thống gọi bù</Tag>
-                      : <Tag bordered={false} data-testid="tool-by-agent">Agent tự gọi</Tag>}
+                      ? <span data-testid="tool-compensated"><StatusPill tone="info">Hệ thống gọi bù</StatusPill></span>
+                      : <span data-testid="tool-by-agent"><StatusPill>Agent tự gọi</StatusPill></span>}
                   </td>
-                  <td><Tag bordered={false} color={c.outcome === 'ok' ? 'green' : 'red'}>{c.outcome === 'ok' ? 'Thành công' : c.outcome === 'denied' ? 'Bị từ chối' : 'Lỗi'}</Tag></td>
-                  <td style={{ textAlign: 'right' }}>{c.durationMs} ms</td>
+                  <td><StatusPill tone={c.outcome === 'ok' ? 'ok' : 'bad'}>{c.outcome === 'ok' ? 'Thành công' : c.outcome === 'denied' ? 'Bị từ chối' : 'Lỗi'}</StatusPill></td>
+                  <td className={styles.r}>{c.durationMs} ms</td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Lượt phân tích này chưa ghi nhận lời gọi công cụ." />
+          <span className={styles.text}>Lượt phân tích này chưa ghi nhận lời gọi công cụ.</span>
         )}
       </section>
 
-      <section style={section} data-testid="trace-board">
-        <h3 style={h}>Bảng chung của đội agent</h3>
+      <section className={styles.sec} data-testid="trace-board">
+        <h3>Bảng chung của đội agent</h3>
         {boards.length ? (
-          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
+          <ul className={styles.plainList}>
             {boards.map((b) => (
-              <li key={b.id}>
+              <li key={b.id} className={styles.text}>
                 <b>{agentName(b.scope)}</b> gom {b.keys.length} mục: {b.keys.map((k) => BOARD_LABEL[k] ?? k).join(', ')}
                 {b.compensated.length > 0 && (
-                  <> — <Tag color="blue" bordered={false}>Hệ thống gọi bù</Tag>{b.compensated.map((k) => BOARD_LABEL[k] ?? k).join(', ')} (agent bỏ sót mục bắt buộc)</>
+                  <> <StatusPill tone="info">Hệ thống gọi bù</StatusPill> {b.compensated.map((k) => BOARD_LABEL[k] ?? k).join(', ')} (agent bỏ sót mục bắt buộc)</>
                 )}
                 {b.choices.length > 0 && (
-                  <ul data-testid="tool-choices" style={{ margin: '2px 0 4px', paddingLeft: 16 }}>
+                  <ul data-testid="tool-choices" className={styles.sub}>
                     {b.choices.map((c) => (
                       <li key={c.tool}>
-                        {toolLabel(c.tool)}: <Text type="secondary">{c.how === 'agent' ? 'agent tự chọn' : c.how === 'system' ? 'hệ thống gọi bù' : 'không gọi'} — {c.reason}</Text>
+                        {toolLabel(c.tool)}: {c.how === 'agent' ? 'agent tự chọn' : c.how === 'system' ? 'hệ thống gọi bù' : 'không gọi'}, {c.reason}
                       </li>
                     ))}
                   </ul>
@@ -242,97 +267,97 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             ))}
           </ul>
         ) : (
-          <Text type="secondary" style={{ fontSize: 13 }}>Chưa có dữ liệu gom lên bảng chung (ca chạy không dùng công cụ động).</Text>
+          <span className={styles.dim}>Chưa có dữ liệu gom lên bảng chung (lượt chạy không dùng công cụ động).</span>
         )}
       </section>
 
-      <section style={section} data-testid="trace-validation">
-        <h3 style={h}>Validation kiểm chứng</h3>
+      <section className={styles.sec} data-testid="trace-validation">
+        <h3>Validation kiểm chứng</h3>
         {validation ? (
           <>
-            <div style={{ fontSize: 13, marginBottom: 4 }}>
+            <span className={styles.text}>
               Phản biện: {validation.challenges} lần, đã xử lý {validation.handled}.
               {validation.challenges === 0 && ' Các kết luận chuyên gia không mâu thuẫn.'}
-            </div>
+            </span>
             {validation.lines.length > 0 && (
               <>
-                <div style={{ fontSize: 13 }}><b>Số liệu tính lại từ dữ liệu công cụ</b>{SYSTEM_TAG}</div>
-                <ul style={{ margin: '4px 0', paddingLeft: 18, fontSize: 13 }} data-testid="validation-lines">
+                <span className={styles.text}><b>Số liệu tính lại từ dữ liệu công cụ</b> {SYSTEM_TAG}</span>
+                <ul className={styles.sub} data-testid="validation-lines">
                   {validation.lines.map((l, i) => <li key={i}>{l}</li>)}
                 </ul>
               </>
             )}
             {validation.issues.length > 0 && (
-              <ul style={{ margin: '4px 0', paddingLeft: 18, fontSize: 13 }}>
+              <ul className={styles.sub}>
                 {validation.issues.map((l, i) => <li key={i}>{l}</li>)}
               </ul>
             )}
             {validation.narrative && (
-              <div style={{ fontSize: 13 }}><b>Diễn giải cho người duyệt</b>{AI_TAG}<div>{validation.narrative}</div></div>
+              <span className={styles.text}><b>Diễn giải cho người duyệt</b> <AiTag />
+                <span style={{ display: 'block' }}>{validation.narrative}</span></span>
             )}
           </>
         ) : (
-          <Text type="secondary" style={{ fontSize: 13 }}>Validation chưa kiểm chứng lượt phân tích này.</Text>
+          <span className={styles.dim}>Validation chưa kiểm chứng lượt phân tích này.</span>
         )}
       </section>
 
-      <section style={section} data-testid="trace-decisions">
-        <h3 style={h}>Quyết định của người duyệt và hành động thật</h3>
+      <section className={styles.sec} data-testid="trace-decisions">
+        <h3>Quyết định của người duyệt và hành động thật</h3>
         {pkg?.recommendation && (
-          <div style={{ fontSize: 13, marginBottom: 6 }}>
-            Đề xuất của đội agent{AI_TAG}: <b>{pkg.recommendation}</b>
-            {pkg.proposed_limit != null && ` · Hạn mức ${fmtInt(pkg.proposed_limit)} VND`}
-            {pkg.required_approver_level && ` · Cấp xác nhận: ${approverLevelLabel(pkg.required_approver_level)}`}
+          <div className={styles.dec}>
+            <span>Đề xuất của đội agent</span><AiTag /><b>{pkg.recommendation}</b>
+            {pkg.proposed_limit != null && <span>, hạn mức {fmtInt(pkg.proposed_limit)} VND</span>}
+            {pkg.required_approver_level && <span>, cấp xác nhận: {approverLevelLabel(pkg.required_approver_level)}</span>}
           </div>
         )}
         {stopReason && (
-          <div style={{ fontSize: 13, marginBottom: 6 }} data-testid="trace-stop-reason">
+          <div className={styles.dec} data-testid="trace-stop-reason">
             {state === 'Rejected' ? 'Đội agent đề xuất từ chối' : 'Đội agent đề nghị bổ sung hồ sơ'}: <b>{stopReason}</b>
           </div>
         )}
         {verdicts.map((v) => (
-          <div key={v.agent + v.summary} style={{ fontSize: 13 }}>
-            <b>{agentName(v.agent)}</b>: {DECISION_LABEL[v.decision] ?? v.decision} — {scrubInternal(v.summary)}
+          <div key={v.agent + v.summary} className={styles.dec}>
+            <b>{agentName(v.agent)}</b>: {DECISION_LABEL[v.decision] ?? v.decision}, {scrubInternal(v.summary)}
           </div>
         ))}
         {decided.map((d) => (
-          <div key={d.id} style={{ fontSize: 13, marginTop: 6 }}>
-            <Tag color={d.tone === 'ok' ? 'green' : d.tone === 'error' ? 'red' : 'gold'}>{d.label}</Tag>
-            {d.who && <Text type="secondary">Người xác nhận: {namesQ.data?.[d.who] ?? 'Không rõ'}</Text>} {d.text}
+          <div key={d.id} className={styles.dec}>
+            <StatusPill tone={DECISION_TONE[d.tone as 'ok' | 'error'] ?? 'warn'}>{d.label}</StatusPill>
+            {d.who && <span className={styles.dim}>Người xác nhận: {namesQ.data?.[d.who] ?? 'Không rõ'}</span>} {d.text}
           </div>
         ))}
         {actions.map((a) => (
-          <div key={a.id} style={{ fontSize: 13, marginTop: 6 }} data-testid="trace-real-action">
-            <Tag color="green">Hành động thật</Tag>
+          <div key={a.id} className={styles.dec} data-testid="trace-real-action">
+            <StatusPill tone="ok">Hành động thật</StatusPill>
             Hồ sơ vay đã chuyển sang <b>{statusLabel(a.workflowStatus)}</b> qua bước quyết định của quy trình (có ghi nhật ký kiểm toán).
           </div>
         ))}
         <ProposalChain events={events} />
-        {state === 'Pending Approval' && !decided.some((d) => d.label !== 'Nhắc/chuyển cấp do quá hạn') && (
-          <Text type="secondary" style={{ fontSize: 13 }}>Đang chờ người có thẩm quyền xác nhận; agent không tự phê duyệt.</Text>
+        {state === 'Pending Approval' && !decidedHuman && (
+          <span className={styles.dim}>Đang chờ người có thẩm quyền xác nhận; agent không tự phê duyệt.</span>
         )}
         {!pkg && !stopReason && verdicts.length === 0 && decided.length === 0 && state !== 'Pending Approval' && (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có quyết định cho lượt phân tích này." />
+          <span className={styles.dim}>Chưa có quyết định cho lượt phân tích này.</span>
         )}
       </section>
 
-      <div data-testid="trace-decider" style={{ ...section, fontSize: 13 }}>
-        <b>{TERM.decider}:</b>{' '}
-        {(caseQ.data.approver && namesQ.data?.[caseQ.data.approver])
-          || (pkg?.required_approver_level ? `cấp ${approverLevelLabel(pkg.required_approver_level)}` : 'người có thẩm quyền theo cấp phê duyệt')}
-        . Đội agent chỉ đề xuất, không tự phê duyệt.
+      <div data-testid="trace-decider">
+        <HumanBlock title={TERM.decider}>
+          <span className={styles.text}><b>{deciderName}</b>. Đội agent chỉ đề xuất, không tự phê duyệt.</span>
+        </HumanBlock>
       </div>
 
       {sources.length > 0 && (
-        <section style={section} data-testid="trace-sources">
-          <h3 style={h}>Nguồn trích dẫn ({sources.length})</h3>
-          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
+        <section className={styles.sec} data-testid="trace-sources">
+          <h3>Nguồn trích dẫn ({sources.length})</h3>
+          <ul className={styles.plainList}>
             {sources.map((s, i) => (
-              <li key={i}><Typography.Text code>{sourceLabel(s.source)}</Typography.Text> {s.quote} <Text type="secondary">({agentName(s.agent)})</Text></li>
+              <li key={i} className={styles.text}><span className={styles.mono}>{sourceLabel(s.source)}</span> {s.quote} <span className={styles.dim}>({agentName(s.agent)})</span></li>
             ))}
           </ul>
-          <details style={{ fontSize: 12, marginTop: 6 }}><summary>Chi tiết kỹ thuật (kiểm toán)</summary>
-            {sources.map((s, i) => <div key={i}>{s.source}: {s.raw_quote ?? s.quote}</div>)}
+          <details className={styles.det}><summary>Chi tiết kỹ thuật (kiểm toán)</summary>
+            {sources.map((s, i) => <div key={i} className={styles.mono}>{s.source}: {s.raw_quote ?? s.quote}</div>)}
           </details>
         </section>
       )}
