@@ -55,7 +55,7 @@ export const STATUS_LABEL: Record<string, string> = {
   RETURNED_TO_RM: 'Trả về QHKH',
   APPRAISAL: 'Đang thẩm định',
   APPRAISAL_PENDING_INFO: 'Thẩm định – chờ bổ sung',
-  RISK_REVIEW: 'Đang cho ý kiến rủi ro',
+  RISK_REVIEW: 'Chờ ý kiến rủi ro',
   RISK_PENDING_INFO: 'Rủi ro – chờ bổ sung',
   RISK_HOLD_FRAUD: 'Tạm dừng nghi gian lận',
   APPROVAL: 'Chờ phê duyệt',

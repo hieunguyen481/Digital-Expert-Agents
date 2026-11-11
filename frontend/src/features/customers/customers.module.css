@@ -19,3 +19,8 @@
 .meta dt { color: var(--ink-3); font-size: var(--fs-13); }
 .meta dd { margin: 0; color: var(--ink); font-size: var(--fs-13); text-align: right; }
 @media (max-width: 1100px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-1); }
+.kpi { display: flex; align-items: center; gap: var(--s3); min-height: 64px; padding: 0 var(--s5); border-left: 1px solid var(--rule); }
+.kpi:first-child { border-left: 0; }
+.kpiValue { font: 500 var(--fs-26)/1 var(--font-num); letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
+.kpiLabel { font-size: var(--fs-13); color: var(--ink-2); }

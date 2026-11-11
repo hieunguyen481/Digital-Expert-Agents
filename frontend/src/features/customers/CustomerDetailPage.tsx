@@ -7,6 +7,7 @@ import { statusLabel } from '@/features/my-work/format';
 import { PageHead } from '@/features/shell/PageHead';
 import apiClient from '@/services/apiClient';
 import type { ApiError } from '@/types/api';
+import { formatBillion } from '@/features/my-work/format';
 import { fmtInt } from '@/utils/format';
 import { formatDate } from '@/utils/formatDate';
 import { customerName, customerStatusLabel, kycInfo, riskInfo, segmentLabel, type CustomerRow } from './customerFormat';
@@ -71,6 +72,13 @@ export default function CustomerDetailPage() {
         actions={role === 'qhkh' ? <ActionButton variant="primary" onClick={() => navigate('/de-xuat-vay')}>Tạo đề xuất vay</ActionButton> : undefined}
       />
       <div className={styles.page}>
+        {loans.data && loans.data.length > 0 && (
+          <div className={styles.strip} role="group" aria-label="Tóm tắt hồ sơ vay">
+            <div className={styles.kpi}><span className={styles.kpiValue}>{loans.data.length}</span><span className={styles.kpiLabel}>Hồ sơ vay</span></div>
+            <div className={styles.kpi}><span className={styles.kpiValue}>{loans.data.filter((l) => !['APPROVED', 'APPROVED_WITH_CONDITIONS', 'REJECTED', 'WITHDRAWN'].includes(l.status)).length}</span><span className={styles.kpiLabel}>Đang xử lý</span></div>
+            <div className={styles.kpi}><span className={styles.kpiValue}>{formatBillion(String(loans.data.reduce((n, l) => n + Number(l.requested_amount), 0)))}</span><span className={styles.kpiLabel}>Tổng số tiền đề nghị</span></div>
+          </div>
+        )}
         <div className={styles.cols}>
           <section className={styles.card} aria-labelledby="kh-hs">
             <div className={styles.cardHead}><h2 id="kh-hs">Hồ sơ vay của khách hàng</h2></div>
