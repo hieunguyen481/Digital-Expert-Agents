@@ -1,6 +1,7 @@
 import { useRef } from 'react';
-import { Alert, Button, Space, Table, Tag, Typography } from 'antd';
+import { Alert, Button, Space, Table, Typography } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { StatusPill } from '@/components/ui';
 import { getErrorMessage } from '@/services/apiClient';
 import { fetchDraft, fetchSubmitConditions, submitProposal } from './proposalService';
 import type { SubmitCondition } from './types';
@@ -61,7 +62,7 @@ export function SummarySection({ loanId, blocked, saveNow, onGoto, onSubmitted }
             title: 'Kết quả',
             width: 160,
             render: (_, r) =>
-              r.kind === 'CARRIED' ? <Tag color="warning">Chuyển kèm cờ</Tag> : r.met ? <Tag color="success">Đạt</Tag> : <Tag color="error">Chưa đạt</Tag>,
+              r.kind === 'CARRIED' ? <StatusPill tone="warn">Chuyển kèm cờ</StatusPill> : r.met ? <StatusPill tone="ok">Đạt</StatusPill> : <StatusPill tone="bad">Chưa đạt</StatusPill>,
           },
           {
             title: '',

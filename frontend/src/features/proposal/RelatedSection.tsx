@@ -1,7 +1,8 @@
 import { fmtInt } from '@/utils/format';
-import { Alert, Button, Input, Radio, Space, Tag, Typography } from 'antd';
+import { Alert, Button, Input, Radio, Space, Typography } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { StatusPill } from '@/components/ui';
 import { getErrorMessage } from '@/services/apiClient';
 import {
   chooseLeasePayment,
@@ -11,6 +12,7 @@ import {
 } from './proposalService';
 import type { ExposureLine } from './types';
 
+const TONE: Record<string, 'ok' | 'warn' | 'bad' | 'ai' | 'neutral'> = { success: 'ok', warning: 'warn', error: 'bad', processing: 'ai', default: 'neutral' };
 const vnd = (v: string) => `${fmtInt(Number(v))} VND`;
 const STATUS: Record<string, { text: string; color: string }> = {
   PROPOSED: { text: 'Chờ xác nhận', color: 'warning' },
@@ -28,11 +30,11 @@ function PartyRow({ loanId, line, editable, onDone }: { loanId: string; line: Ex
   });
   const s = line.status ? STATUS[line.status] : null;
   return (
-    <li data-testid={`party-${line.party_id}`} style={{ padding: '10px 0', borderBottom: '1px solid var(--ant-color-border-secondary)' }}>
+    <li data-testid={`party-${line.party_id}`} style={{ padding: '10px 0', borderBottom: '1px solid var(--rule)' }}>
       <Space wrap>
         <b>{line.name}</b>
-        {line.relation === 'PRIMARY' ? <Tag>Khách hàng vay</Tag> : s && <Tag color={s.color}>{s.text}</Tag>}
-        {line.proposed_by_ai && line.status === 'PROPOSED' && <Tag color="processing">AI gợi ý, cần bạn quyết định</Tag>}
+        {line.relation === 'PRIMARY' ? <StatusPill>Khách hàng vay</StatusPill> : s && <StatusPill tone={TONE[s.color] ?? 'neutral'}>{s.text}</StatusPill>}
+        {line.proposed_by_ai && line.status === 'PROPOSED' && <StatusPill tone="ai">AI gợi ý, cần bạn quyết định</StatusPill>}
         <span>Dư nợ {vnd(line.outstanding)} · ngoài bảng {vnd(line.off_balance)}</span>
       </Space>
       {line.status === 'NOT_IN_GROUP' && line.basis && <p style={{ margin: '4px 0 0' }}>Căn cứ: {line.basis}</p>}
@@ -114,7 +116,7 @@ export function RelatedSection({ loanId }: { loanId: string }) {
                   aria-label={`Cách trả tiền thuê đất: ${c.description ?? c.collateral_type}`}
                 />
               </div>
-              {c.land_lease_payment === 'ONE_TIME' && !c.has_lease_proof && <Tag color="warning">Chưa có chứng từ trả một lần</Tag>}
+              {c.land_lease_payment === 'ONE_TIME' && !c.has_lease_proof && <StatusPill tone="warn">Chưa có chứng từ trả một lần</StatusPill>}
             </div>
           ))}
           {lease.isError && <Alert type="error" showIcon message={getErrorMessage(lease.error)} />}

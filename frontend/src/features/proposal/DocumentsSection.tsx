@@ -1,7 +1,8 @@
-import { Alert, Button, Input, Space, Tag, Typography } from 'antd';
+import { Alert, Button, Input, Space, Typography } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { uploadToChecklist } from '@/services/attachmentService';
+import { StatusPill } from '@/components/ui';
 import { getErrorMessage } from '@/services/apiClient';
 import {
   confirmConsent,
@@ -14,6 +15,7 @@ import {
 } from './proposalService';
 import type { CicStatus, ExceptionItem, ProposalDocument } from './types';
 
+const TONE: Record<string, 'ok' | 'warn' | 'bad' | 'ai' | 'neutral'> = { success: 'ok', warning: 'warn', error: 'bad', processing: 'ai', default: 'neutral' };
 const fmt = (iso: string | null) => (iso ? iso.split('-').reverse().join('/') : '');
 
 const STATE_LABEL: Record<ProposalDocument['state'], { text: string; color: string }> = {
@@ -114,7 +116,7 @@ function CicBlock({ loanId, cic, consentDocId, onChanged }: { loanId: string; ci
   const lookup = useMutation({ mutationFn: () => lookupCic(loanId), onSuccess: onChanged });
   const locked = cic.lookup_locked;
   return (
-    <section aria-label="Tra cứu CIC" style={{ border: '1px solid var(--ant-color-border-secondary)', borderRadius: 10, padding: 16 }}>
+    <section aria-label="Tra cứu CIC" style={{ border: '1px solid var(--rule)', borderRadius: 10, padding: 16 }}>
       <Space align="center" style={{ justifyContent: 'space-between', width: '100%' }}>
         <Typography.Title level={5} style={{ margin: 0 }}>Tra cứu CIC</Typography.Title>
         <Button
@@ -132,10 +134,10 @@ function CicBlock({ loanId, cic, consentDocId, onChanged }: { loanId: string; ci
               cic.report_status === 'EXPIRED' ? 'đã hết hiệu lực từ' : 'hiệu lực đến hết'
             } ${fmt(cic.report.valid_until)}`
           : 'Chưa có kết quả tra cứu CIC.'}{' '}
-        {cic.report?.source === 'SIMULATED' && <Tag color="warning">{cic.report.source_label ?? 'Dữ liệu mô phỏng'}</Tag>}
+        {cic.report?.source === 'SIMULATED' && <StatusPill tone="warn">{cic.report.source_label ?? 'Dữ liệu mô phỏng'}</StatusPill>}
       </p>
-      {cic.report_status === 'EXPIRED' && <Tag color="error">Hết hiệu lực</Tag>}
-      {cic.relookup_flag_text && <Tag color="warning">{cic.relookup_flag_text}</Tag>}
+      {cic.report_status === 'EXPIRED' && <StatusPill tone="bad">Hết hiệu lực</StatusPill>}
+      {cic.relookup_flag_text && <StatusPill tone="warn">{cic.relookup_flag_text}</StatusPill>}
       <p style={{ margin: '8px 0 0' }}>
         Văn bản đồng ý:{' '}
         {cic.consent.usable
@@ -181,14 +183,14 @@ export function DocumentsSection({ loanId, customerId }: { loanId: string; custo
           .map((d) => {
             const s = STATE_LABEL[d.state];
             return (
-              <li key={d.item_id} data-testid={`doc-${d.code}`} style={{ padding: '10px 0', borderBottom: '1px solid var(--ant-color-border-secondary)' }}>
+              <li key={d.item_id} data-testid={`doc-${d.code}`} style={{ padding: '10px 0', borderBottom: '1px solid var(--rule)' }}>
                 <Space wrap>
-                  <Tag color={s.color}>{s.text}</Tag>
+                  <StatusPill tone={TONE[s.color] ?? 'neutral'}>{s.text}</StatusPill>
                   <b>{d.label ?? d.title ?? d.code}</b>
-                  {!d.mandatory && <Tag>Có điều kiện</Tag>}
+                  {!d.mandatory && <StatusPill>Có điều kiện</StatusPill>}
                   {d.note && <span>{d.note}</span>}
                   {d.valid_until && <span>hiệu lực đến {fmt(d.valid_until)}</span>}
-                  {d.has_exception && <Tag color="warning">Đã đề xuất ngoại lệ</Tag>}
+                  {d.has_exception && <StatusPill tone="warn">Đã đề xuất ngoại lệ</StatusPill>}
                   {cic.data.editable && !CIC_CODES.has(d.document_type ?? '') && (
                     <ItemUpload loanId={loanId} customerId={customerId} doc={d} onDone={refresh} />
                   )}

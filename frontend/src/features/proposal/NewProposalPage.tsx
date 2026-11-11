@@ -1,7 +1,8 @@
-import { Button, Form, Input, Select } from 'antd';
+import { Form, Input, Select } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { ActionButton } from '@/components/ui';
 import { RequireRole } from '@/auth/RequireRole';
 import { getErrorMessage } from '@/services/apiClient';
 import { PageHead } from '@/features/shell/PageHead';
@@ -48,17 +49,16 @@ function Content() {
       <PageHead
         title="Tạo đề xuất vay"
         crumbs={[{ label: 'Việc của tôi', to: '/viec-cua-toi' }, { label: 'Tạo đề xuất vay' }]}
+        facts={['Chọn khách hàng, sản phẩm, số tiền và kỳ hạn. Các mục còn lại điền ở bước soạn.']}
         actions={
-          <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-            <Button type="primary" disabled={!ready || busy} loading={busy} onClick={() => void create()}>
-              Tạo bản nháp
-            </Button>
-            {!ready && missing && <span data-testid="create-lock-reason" style={{ fontSize: 12, color: 'var(--text-3)' }}>{missing}</span>}
-          </span>
+          <ActionButton variant="primary" loading={busy} lockedReason={ready ? undefined : (missing ?? 'Điền đủ thông tin khoản vay.')} onClick={() => void create()}>
+            Tạo bản nháp
+          </ActionButton>
         }
       />
       <div className={styles.page}>
-        <Form layout="vertical" style={{ maxWidth: 560 }}>
+        <section className={styles.card} aria-label="Thông tin khoản vay">
+        <Form layout="vertical" className={styles.formNarrow}>
           <Form.Item label="Khách hàng" htmlFor="new-customer">
             <Select
               id="new-customer"
@@ -87,8 +87,9 @@ function Content() {
           <Form.Item label="Kỳ hạn (tháng)" htmlFor="new-term" validateStatus={termErr ? 'error' : undefined} help={termErr ?? undefined}>
             <Input id="new-term" inputMode="numeric" suffix="tháng" value={term} onChange={(e) => setTerm(e.target.value)} />
           </Form.Item>
-          {err && <div role="alert" style={{ color: 'var(--ant-color-error)' }}>{err}</div>}
+          {err && <div role="alert" className={styles.err}>{err}</div>}
         </Form>
+        </section>
       </div>
     </>
   );

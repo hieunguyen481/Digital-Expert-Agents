@@ -63,9 +63,9 @@ function Editor({ loanId }: { loanId: string }) {
             items={SECTIONS}
             onClick={(e) => setSection(e.key as SectionKey)}
             aria-label="Các bước soạn đề xuất"
-            className={styles.toc}
+            className={`${styles.toc} ${styles.steps}`}
           />
-          <div className={styles.content}>
+          <section className={`${styles.content} ${styles.card}`} aria-label="Nội dung đề xuất">
             {section === 'need' && (
               <NeedSection
                 form={form}
@@ -85,7 +85,7 @@ function Editor({ loanId }: { loanId: string }) {
                 onSubmitted={() => void reload()}
               />
             )}
-          </div>
+          </section>
         </div>
       </div>
     </>
