@@ -50,7 +50,7 @@ export function AppLayout() {
     // Khung ứng dụng và logo hiện ngay lúc tải đầu, nội dung là khung chờ.
     return (
       <div className={styles.layout} aria-busy>
-        <div className={styles.side}>
+        <div className={styles.side} style={{ gridRow: '1 / -1' }}>
           <div className={styles.brand}>
             <SHBLogo variant="white" showProductName />
           </div>

@@ -12,3 +12,8 @@
 .chip { background: var(--surface); border: 1px dashed var(--ai-500); color: var(--ai-700); margin: 0; }
 .error { margin: var(--s2) var(--s4) 0; color: var(--danger-700); font-size: var(--fs-13); }
 .body { flex: 1; min-height: 0; overflow: auto; }
+
+/* Dưới 1440px: phủ lên nội dung từ mép phải, không chiếm cột lưới. */
+@media (max-width: 1439px) {
+  .panel[data-open='true'] { position: fixed; top: 0; right: 0; bottom: 0; width: var(--ai-w); max-width: 100vw; z-index: 60; box-shadow: -12px 0 32px rgba(15, 28, 51, 0.18); }
+}

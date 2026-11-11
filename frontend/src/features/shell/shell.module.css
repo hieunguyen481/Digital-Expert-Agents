@@ -20,6 +20,8 @@
   --page-h: calc(100dvh - var(--topbar-h));
 }
 .layoutAiOpen { grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--ai-w); }
+/* Dưới 1440px panel AI phủ lên nội dung (overlay), không đẩy bảng xuống 2-3 dòng mỗi ô. */
+@media (max-width: 1439px) { .layoutAiOpen { grid-template-columns: var(--sidebar-w) minmax(0, 1fr) 0; } }
 .demoRow { grid-column: 1 / -1; }
 .mainCol { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .content { flex: 1; min-height: 0; overflow: auto; background: var(--paper); outline: none; }

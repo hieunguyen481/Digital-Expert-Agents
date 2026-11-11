@@ -23,7 +23,7 @@ export default function LoanDetailPage() {
   const q = useQuery({ queryKey: ['loan-overview', loanId], queryFn: () => fetchOverview(loanId) });
   const actions = useQuery({ queryKey: ['loan-actions', loanId], queryFn: () => fetchActionState(loanId) });
   const runs = useQuery({ queryKey: ['loan-agent-runs', loanId], queryFn: () => fetchAgentRuns(loanId) });
-  if (q.isError) return <PageError title="Không tải được hồ sơ" error={normalizeError(q.error)} onRetry={() => void q.refetch()} />;
+  if (q.isError) return <PageError title="Không tải được hồ sơ" headingLevel={1} error={normalizeError(q.error)} onRetry={() => void q.refetch()} />;
   if (!q.data) return <div className={styles.page} aria-busy><Skeleton active /></div>;
   const { loan, metrics, flags, collaterals, timeline, supplement_request } = q.data;
   const todos = buildTodos(q.data, actions.data, runs.data);

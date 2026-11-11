@@ -12,6 +12,8 @@ export interface PageErrorProps {
   onRetry?: () => void;
   retryLabel?: string;
   compact?: boolean;
+  /** Trang chỉ có lỗi (không có tiêu đề riêng) đặt 1 để lỗi là h1 của trang. */
+  headingLevel?: 1 | 2;
 }
 
 /**
@@ -25,6 +27,7 @@ export function PageError({
   onRetry,
   retryLabel = 'Thử lại',
   compact = false,
+  headingLevel,
 }: PageErrorProps) {
   const status = error ? normalizeError(error).status : undefined;
   // 403/404: thử lại vô ích; chỉ 5xx và lỗi mạng mới có nút "Thử lại".
@@ -34,6 +37,8 @@ export function PageError({
         kind="notfound"
         alert
         compact={compact}
+      headingLevel={headingLevel}
+        headingLevel={headingLevel}
         title="Hồ sơ đã chuyển cho người khác"
         description="Hồ sơ này không còn ở bước của bạn. Nếu cần xem, hãy nhờ người đang giữ hồ sơ hoặc Trưởng phòng."
         action={<Link to="/viec-cua-toi"><Button type="primary">Về Việc của tôi</Button></Link>}
@@ -46,6 +51,8 @@ export function PageError({
         kind={status === 403 ? 'forbidden' : 'notfound'}
         alert
         compact={compact}
+      headingLevel={headingLevel}
+        headingLevel={headingLevel}
         title={status === 403 ? 'Bạn không có quyền xem nội dung này' : 'Không tìm thấy nội dung'}
         description={description ?? (status === 403
           ? 'Hồ sơ ngoài phạm vi được xem của vai trò hoặc đơn vị bạn. Nếu cần xem, hãy nhờ người đang giữ hồ sơ.'
@@ -61,6 +68,7 @@ export function PageError({
       kind="error"
       alert
       compact={compact}
+      headingLevel={headingLevel}
       title={title}
       description={message}
       action={
