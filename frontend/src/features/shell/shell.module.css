@@ -137,3 +137,6 @@
 .bellItem:hover { background: var(--bg-2, #f5f6fa); }
 .bellItem small { color: var(--text-3); font-size: 11px; }
 .bellUnread b::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: var(--error); }
+.bellAll { border: 0; border-top: 1px solid var(--rule); background: transparent; color: var(--navy-700); cursor: pointer; font: 600 var(--fs-13) var(--font-body, inherit); padding: var(--s3) 4px 4px; text-align: center; }
+.bellAll:hover { text-decoration: underline; }
+.bellAll:focus-visible { outline: none; box-shadow: var(--focus); }

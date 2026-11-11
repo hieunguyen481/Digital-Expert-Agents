@@ -83,6 +83,9 @@ export function NotificationBell() {
           <small>{new Date(n.created_at).toLocaleString('vi-VN')}</small>
         </button>
       ))}
+      <button type="button" className={styles.bellAll} data-testid="notification-all" onClick={() => { setOpen(false); navigate('/thong-bao'); }}>
+        Xem tất cả thông báo
+      </button>
     </div>
   );
   return (

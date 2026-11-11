@@ -12,6 +12,7 @@ export interface RailItem {
 export const AI_PAGE = 10;
 export const MY_WORK_PATH = '/viec-cua-toi';
 export const AUDIT_PATH = '/nhat-ky-kiem-toan';
+export const CUSTOMERS_PATH = '/khach-hang';
 export const POLICY_PATH = '/tra-cuu-chinh-sach';
 
 const item = (page: number, label: string, icon: RailItem['icon'], path: string | null = null): RailItem => ({
@@ -30,7 +31,7 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
   qhkh: [
     item(2, 'Việc của tôi', 'inbox', MY_WORK_PATH),
     item(3, 'Tạo đề xuất vay', 'plus', '/de-xuat-vay'),
-    item(4, 'Khách hàng SME', 'building'),
+    item(4, 'Khách hàng SME', 'building', CUSTOMERS_PATH),
     item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
@@ -38,7 +39,7 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
   httd: [
     item(2, 'Việc của tôi', 'inbox', MY_WORK_PATH),
     item(5, 'Đối chiếu tài liệu', 'filecheck', '/doi-chieu'),
-    item(4, 'Khách hàng SME', 'building'),
+    item(4, 'Khách hàng SME', 'building', CUSTOMERS_PATH),
     item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
@@ -46,14 +47,14 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
   tdinh: [
     item(2, 'Việc của tôi', 'inbox', MY_WORK_PATH),
     item(5, 'Đối chiếu tài liệu', 'filecheck', '/doi-chieu'),
-    item(4, 'Khách hàng SME', 'building'),
+    item(4, 'Khách hàng SME', 'building', CUSTOMERS_PATH),
     item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
   ],
   ruiro: [
     item(2, 'Hồ sơ chờ ý kiến', 'inbox', MY_WORK_PATH),
-    item(4, 'Khách hàng SME', 'building'),
+    item(4, 'Khách hàng SME', 'building', CUSTOMERS_PATH),
     item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
@@ -75,12 +76,12 @@ export const RAIL_ITEMS: Record<UiRole, RailItem[]> = {
   ],
   truongphong: [
     item(2, 'Hồ sơ của phòng', 'inbox', MY_WORK_PATH),
-    item(4, 'Khách hàng SME', 'building'),
+    item(4, 'Khách hàng SME', 'building', CUSTOMERS_PATH),
     item(7, 'Tra cứu chính sách', 'book', POLICY_PATH),
     ...KEPT,
     AI,
   ],
-  quantri: [item(9, 'Quản trị', 'gear'), item(13, 'Thông báo', 'bell')],
+  quantri: [item(9, 'Quản trị', 'gear'), item(13, 'Thông báo', 'bell', '/thong-bao')],
 };
 
 /** Vai trò có Trợ lý AI (quantri không có). */
@@ -94,6 +95,6 @@ export type PageWidth = 'wide' | 'narrow' | 'full';
 /** Bề rộng vùng nội dung theo loại trang (§5.4): danh sách/dashboard 1480, đọc/biểu mẫu 1280, Chat tràn khung. */
 export function pageWidthFor(pathname: string): PageWidth {
   if (pathname === '/chat') return 'full';
-  if (pathname.startsWith('/ho-so-vay/') || pathname.startsWith('/de-xuat-vay/') || pathname === '/tra-cuu-chinh-sach') return 'narrow';
+  if (pathname.startsWith('/ho-so-vay/') || pathname.startsWith('/de-xuat-vay/') || pathname === '/tra-cuu-chinh-sach' || pathname === '/thong-bao' || pathname.startsWith('/customer/')) return 'narrow';
   return 'wide';
 }

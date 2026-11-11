@@ -36,7 +36,9 @@ const ReconciliationPage = lazy(() => import('@/features/reconciliation/Reconcil
 const ReconciliationIndexPage = lazy(() => import('@/features/reconciliation/ReconciliationIndexPage'));
 const AuditLogPage = lazy(() => import('@/features/audit/AuditLogPage'));
 const PolicyPage = lazy(() => import('@/features/policy/PolicyPage'));
-const CustomerDetailPage = lazy(() => import('@/pages/CustomerDetailPage'));
+const CustomerListPage = lazy(() => import('@/features/customers/CustomerListPage'));
+const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage'));
+const CustomerDetailPage = lazy(() => import('@/features/customers/CustomerDetailPage'));
 
 function withSuspense(node: React.ReactNode) {
   return <Suspense fallback={<LoadingScreen message="Đang tải trang" />}>{node}</Suspense>;
@@ -65,6 +67,8 @@ export const routeObjects: RouteObject[] = [
       { path: '/tra-cuu-chinh-sach', element: withSuspense(<PolicyPage />) },
       { path: '/chat', element: <ChatPage /> },
       { path: '/dashboard', element: withSuspense(<AgentDashboardPage />) },
+      { path: '/thong-bao', element: withSuspense(<NotificationsPage />) },
+      { path: '/khach-hang', element: withSuspense(<CustomerListPage />) },
       { path: '/customer/:id', element: withSuspense(<CustomerDetailPage />) },
       ...(import.meta.env.DEV ? [{ path: '/foundation', element: withSuspense(<FoundationPage />) }] : []),
     ],
