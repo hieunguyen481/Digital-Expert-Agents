@@ -4,9 +4,14 @@ from __future__ import annotations
 import re
 from typing import Any
 
+# Số tiền và chỉ số không được che: chỉ che chuỗi số có dấu hiệu là định danh.
 _PATTERNS = [
-    (re.compile(r"\b(\d{3})\d{6}(\d{3})\b"), r"\1******\2"),  # CCCD 12 số
-    (re.compile(r"\b(\d{2})\d{5,8}(\d{2})\b"), r"\1*****\2"),  # số TK/SĐT
+    # CCCD 12 số (đầu số tỉnh luôn bắt đầu bằng 0)
+    (re.compile(r"(?<![\d.,])(0\d{2})\d{6}(\d{3})(?![\d]|[.,]\d)"), r"\1******\2"),
+    # SĐT Việt Nam: 0xxxxxxxxx hoặc +84/84xxxxxxxxx
+    (re.compile(r"(?<![\d.,])(\+?84|0)(\d{2})\d{5,6}(\d{2})(?![\d]|[.,]\d)"), r"\1\2*****\3"),
+    # số tài khoản đi sau từ khóa
+    (re.compile(r"(?i)((?:số\s+tài\s+khoản|số\s+tk|stk|account(?:\s+number)?)\s*[:=]?\s*)(\d{2})\d{5,12}(\d{2})(?![\d]|[.,]\d)"), r"\1\2*****\3"),
 ]
 
 _SENSITIVE_KEYS = {"cccd", "id_number", "account_number", "phone", "so_cccd", "so_tai_khoan"}
