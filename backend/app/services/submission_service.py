@@ -10,6 +10,7 @@ from typing import Any, Protocol
 from uuid import UUID
 
 from app.exceptions import ConflictError
+from app.services.access import require_permission
 from app.services.cic_service import CicService
 from app.services.proposal_service import ProposalService
 from app.services.protocols import PrincipalLike
@@ -48,19 +49,32 @@ class SubmissionService:
         self._workflow = workflow
         self._cic = cic
 
+    async def _appraisal_review(self, principal: PrincipalLike, loan: dict[str, Any], loan_id: UUID) -> bool:
+        """F10: Thẩm định đang giữ hồ sơ ở bước Thẩm định được rà và xác nhận lại người liên quan."""
+        return (
+            loan.get("status") == "APPRAISAL"
+            and "credit_appraiser" in set(getattr(principal, "roles", ()))
+            and await self._repo.can_write(principal.employee_id, loan_id)
+        )
+
     async def related_parties(self, principal: PrincipalLike, loan_id: UUID) -> dict[str, Any]:
         loan = await self._proposals.get_draft(principal, loan_id)
+        editable = bool(loan["editable"]) or await self._appraisal_review(principal, loan, loan_id)
         lines = await self._repo.exposure_lines(loan_id)
         total, tier = await self._repo.total_exposure_and_tier(loan_id)
         return {
-            "editable": loan["editable"], "lines": [dict(r) for r in lines],
+            "editable": editable, "lines": [dict(r) for r in lines],
             "total_exposure": total, "required_tier": tier,
         }
 
     async def decide_related_party(
         self, principal: PrincipalLike, loan_id: UUID, party_id: UUID, *, status: str, basis: str | None
     ) -> dict[str, Any]:
-        await self._proposals.editable_loan(principal, loan_id)
+        current = await self._proposals.get_draft(principal, loan_id)
+        if await self._appraisal_review(principal, current, loan_id):
+            require_permission(principal, "loan:update")  # F10: Thẩm định rà lại nhóm liên quan ở bước của mình
+        else:
+            await self._proposals.editable_loan(principal, loan_id)
         if status == "NOT_IN_GROUP" and len((basis or "").strip()) < 10:
             raise ConflictError(
                 "BASIS_REQUIRED", "Cần ghi căn cứ (tối thiểu 10 ký tự) khi xác nhận bên này không thuộc nhóm."

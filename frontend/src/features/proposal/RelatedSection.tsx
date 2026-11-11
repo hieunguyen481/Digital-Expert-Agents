@@ -125,3 +125,28 @@ export function RelatedSection({ loanId }: { loanId: string }) {
     </Space>
   );
 }
+
+/** F10: Thẩm định rà lại nhóm liên quan ở hồ sơ đang giữ; đổi kết quả thì tổng và cấp tính lại, có thể hiện "Nâng cấp phê duyệt". */
+export function RelatedPartiesReview({ loanId }: { loanId: string }) {
+  const qc = useQueryClient();
+  const parties = useQuery({ queryKey: ['proposal-related', loanId], queryFn: () => fetchRelatedParties(loanId) });
+  const refresh = () => {
+    for (const key of ['proposal-related', 'loan-actions', 'loan-overview']) void qc.invalidateQueries({ queryKey: [key, loanId] });
+  };
+  if (parties.isError) return <Alert type="error" showIcon message={getErrorMessage(parties.error)} />;
+  if (!parties.data) return <div aria-busy>Đang tải nhóm khách hàng liên quan…</div>;
+  const p = parties.data;
+  return (
+    <section aria-label="Rà soát nhóm khách hàng liên quan" data-testid="related-review">
+      <Typography.Title level={5}>Rà soát nhóm khách hàng liên quan</Typography.Title>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        {p.lines.map((l) => (
+          <PartyRow key={l.party_id} loanId={loanId} line={l} editable={p.editable} onDone={refresh} />
+        ))}
+      </ul>
+      <p style={{ marginTop: 12 }}>
+        Tổng cấp tín dụng của nhóm (gồm đề xuất này): <b>{vnd(p.total_exposure)}</b> · cấp phê duyệt <b data-testid="review-required-tier">cấp {p.required_tier}</b>
+      </p>
+    </section>
+  );
+}

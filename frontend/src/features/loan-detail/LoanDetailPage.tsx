@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { PageError } from '@/components/common/PageError';
 import { normalizeError } from '@/services/apiClient';
+import { RelatedPartiesReview } from '@/features/proposal/RelatedSection';
 import { AgentTeamPanel } from './AgentTeamPanel';
 import { ActionsPanel } from './ActionsPanel';
 import { CollateralPanel, FlagsPanel, TimelinePanel } from './InfoPanels';
@@ -46,6 +47,7 @@ export default function LoanDetailPage() {
             <FlagsPanel flags={flags} />
             <PreDisbursementPanel loanId={loanId} status={loan.status} decisionConditions={loan.conditions} />
             <MemoPanel key={loan.status} loanId={loanId} />
+            {loan.status === 'APPRAISAL' && actions.data?.can_write && <RelatedPartiesReview loanId={loanId} />}
             <CollateralPanel items={collaterals} />
           </div>
           <aside className={styles.stack} aria-label="Việc và hành động">
