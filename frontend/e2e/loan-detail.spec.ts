@@ -123,7 +123,7 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await expect(page.getByRole('button', { name: 'Đã báo sớm' })).toBeVisible();
   await expect(page.getByText('Đang thẩm định').first()).toBeVisible(); // Báo sớm không đổi bước
   await page.getByRole('button', { name: 'Trình Rủi ro', exact: true }).click();
-  await expect(page.getByText('Đang cho ý kiến rủi ro').first()).toBeVisible();
+  await expect(page.getByText('Chờ ý kiến rủi ro').first()).toBeVisible();
   await expect(page.getByText('Bản đã chốt lúc trình')).toBeVisible();
   const [pdf] = await Promise.all([page.waitForEvent('download'), page.getByTestId('memo-pdf').click()]);
   expect(pdf.suggestedFilename()).toMatch(/^to-trinh-.*\.pdf$/);

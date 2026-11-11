@@ -55,7 +55,7 @@ test('L03 + giữ hồ sơ nghi gian lận + yêu cầu giải trình: Tuân th�
   await as(page, 'httd');
   await page.goto(`/ho-so-vay/${id}`);
   await page.getByRole('button', { name: 'Ghi nhận đã giải trình' }).click();
-  await expect(page.getByText('Đang cho ý kiến rủi ro').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText('Chờ ý kiến rủi ro').first()).toBeVisible({ timeout: 30_000 });
 
   await as(page, 'tuanthu');
   await page.goto(`/ho-so-vay/${id}`);

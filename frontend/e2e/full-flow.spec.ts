@@ -49,7 +49,7 @@ test('luồng 1: Thẩm định viết Tờ trình, trình Rủi ro; Rủi ro v�
   await expect(page.getByTestId('memo-save-status')).toContainText('7/7 mục đã điền');
   await shot(page, 'f1', '09-to-trinh');
   await page.getByRole('button', { name: 'Trình Rủi ro' }).click();
-  await expect(page.getByText('Đang cho ý kiến rủi ro').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText('Chờ ý kiến rủi ro').first()).toBeVisible({ timeout: 30_000 });
   await shot(page, 'f1', '10-trinh-rui-ro');
 
   await as(page, 'ruiro');

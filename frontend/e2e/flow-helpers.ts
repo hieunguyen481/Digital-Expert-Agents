@@ -126,7 +126,7 @@ export async function appraiserSubmitsToRisk(page: Page, id: string, flow: strin
   }
   await expect(page.getByTestId('memo-save-status')).toContainText('7/7 mục đã điền');
   await page.getByRole('button', { name: 'Trình Rủi ro' }).click();
-  await expect(page.getByText('Đang cho ý kiến rủi ro').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText('Chờ ý kiến rủi ro').first()).toBeVisible({ timeout: 30_000 });
   await shot(page, flow, `trinh-rui-ro-${round}`);
 }
 
