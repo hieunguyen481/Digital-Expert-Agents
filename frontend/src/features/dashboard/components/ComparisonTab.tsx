@@ -126,14 +126,26 @@ export function hasBothModes(m: { modes?: string[] }): boolean {
   return !!m.modes && m.modes.includes('single') && m.modes.includes('multi');
 }
 
-/** Mặc định: lượt hai chế độ chính thức (không chấm lại, không kiểm thử) mới nhất; chưa có thì lượt chính thức mới nhất. */
+/** Mặc định: trong các lượt chính thức (ưu tiên lượt có cả hai chế độ) chọn lượt có NHIỀU LẦN LẶP nhất, vì kết quả ổn định hơn; hòa thì bộ ca mới hơn, rồi lượt mới hơn. */
 export function defaultRunId(metas: BenchmarkRunMeta[]): string | null {
   const official = metas.filter((m) => !m.regrade_of && !isTestRun(m));
   const both = official.filter(hasBothModes);
   const ok = both.length ? both : official;
-  const set = ok.map((m) => m.cases_version).sort().pop();
-  const pick = ok.filter((m) => m.cases_version === set).sort((a, b) => a.created_at.localeCompare(b.created_at)).pop();
+  const pick = [...ok].sort((a, b) =>
+    (a.runs_per_case ?? 0) - (b.runs_per_case ?? 0)
+    || String(a.cases_version).localeCompare(String(b.cases_version))
+    || a.created_at.localeCompare(b.created_at)).pop();
   return pick?.run_id ?? null;
+}
+
+/** Mô tả lượt đo bằng ngôn ngữ nghiệp vụ (không dùng nhãn dòng lệnh nội bộ). */
+export function runDescription(m: Pick<BenchmarkRunMeta, 'runs_per_case' | 'cases_version' | 'modes' | 'regrade_of'>): string {
+  if (m.regrade_of) return 'Chấm lại dữ liệu của một lượt đo cũ bằng bộ chấm mới; không chạy lại agent.';
+  const n = m.runs_per_case;
+  const how = n > 1
+    ? `Đo lặp ${n} lần mỗi ca để lấy trung bình, kết quả ổn định hơn.`
+    : 'Đo một lần mỗi ca, dùng để kiểm hồi quy nhanh sau khi sửa hệ thống; ít lần lặp nên dao động hơn.';
+  return `${hasBothModes(m) ? 'So sánh đội agent với mô hình đơn lẻ' : 'Chỉ đo đội agent'} trên bộ ca ${m.cases_version}. ${how}`;
 }
 
 export function runOptionLabel(m: BenchmarkRunMeta): string {
@@ -221,6 +233,7 @@ export function ComparisonTab() {
           </div>
           <span className={styles.tech} data-testid="cmp-label">
             {runOptionLabel(run)}
+            <span style={{ display: 'block' }} data-testid="cmp-desc">{runDescription(run)}</span>
             <span style={{ display: 'block' }} data-testid="cmp-tech">{runTechnicalNote(run)}</span>
           </span>
         </div>
@@ -235,6 +248,7 @@ export function ComparisonTab() {
           <b>Cách đo. </b>
           Bộ ca đánh giá <strong>{run.cases_version}</strong>, {cases.length} ca × {run.runs_per_case} lượt × {modeCount(run)}, đo ngày {fmtDay(run.created_at)}.
           Planner <strong>{modelName(run.planner_model)}</strong>; chuyên gia và mô hình đơn lẻ <strong>{singleModel}</strong>.
+          Cách chấm: bộ chấm tự động, không dùng mô hình AI và không có người chấm; so từng phát hiện, điều khoản và công cụ kỳ vọng của mỗi ca với kết luận, cùng một thước cho hai chế độ.
           Chi phí đo thật <strong>{run.total_cost_usd === null ? '—' : fmtUsd(run.total_cost_usd)}</strong>.
           <details style={{ display: 'inline', marginLeft: 6 }}><summary style={{ display: 'inline', cursor: 'pointer' }}>Mã kỹ thuật</summary> <code>{run.run_id}</code>, bộ chấm {run.grader_version}, chế độ LLM {run.llm_mode}</details>
         </p>
@@ -254,6 +268,16 @@ export function ComparisonTab() {
           </section>
         </div>
       )}
+
+      <div className={styles.banner} data-testid="cmp-coverage-note" role="note">
+        <p className={styles.bannerNote}>
+          <b>Vì sao độ phủ khác nhau giữa các lượt đo. </b>
+          Từ 11/11/2026 hệ thống tính tổng cấp tín dụng theo đúng quy định (dư nợ tại ngân hàng cộng khoản vay mới, không cộng dư nợ ở tổ chức tín dụng khác).
+          Đáp án đăng ký trước của hai loại phát hiện về tổng cấp tín dụng và yêu cầu BCTC kiểm toán được viết theo cách tính cũ nên cả hai chế độ đều không còn khớp,
+          làm độ phủ ở các lượt đo sau lần sửa thấp hơn lượt trước đó. Đáp án không được viết lại; xem mục 14 của tài liệu nghiên cứu benchmark.
+          Số lần lặp mỗi ca cũng khác nhau giữa các lượt, nên đừng so trực tiếp lượt một lần với lượt nhiều lần.
+        </p>
+      </div>
 
       <section className={styles.card} aria-labelledby="cmp-detail">
         <div className={styles.cardHead}><h2 id="cmp-detail">Chênh lệch chi tiết</h2><span className={styles.cardNote}>Trung bình ± độ lệch chuẩn</span></div>

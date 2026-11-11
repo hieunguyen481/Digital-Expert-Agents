@@ -46,3 +46,11 @@ describe('kết luận khi lượt chỉ có một chế độ (B3)', () => {
     expect(text).not.toContain('hơn ở 0');
   });
 });
+
+describe('lượt đo mặc định có nhiều lần lặp nhất', () => {
+  const rr = (run_id: string, runs_per_case: number, created_at: string) =>
+    ({ run_id, cases_version: 'v7', created_at, label: 'x', regrade_of: null, modes: ['multi', 'single'], runs_per_case }) as unknown as BenchmarkRunMeta;
+  it('chọn lượt 3 lần dù lượt 1 lần mới hơn', () => {
+    expect(defaultRunId([rr('three', 3, '2026-11-09T09:00:00Z'), rr('one', 1, '2026-11-11T09:00:00Z')])).toBe('three');
+  });
+});

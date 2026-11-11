@@ -7,7 +7,7 @@ import { fmtDayTime } from '../src/utils/format';
 /**
  * Đối chiếu số hiện trên tab "So sánh" với MỌI file kết quả đã lưu
  * (agent_engine/benchmark_results/*.json, bản đã nạp vào agent.benchmark_run), chọn qua danh sách lượt đo.
- * Mặc định phải là lượt đo thật của bộ ca mới nhất (v3), lượt mới nhất trong bộ đó. Cần stack thật và kết quả đã nạp: `run.py --import-file <file>`.
+ * Mặc định phải là lượt chính thức hai chế độ có nhiều lần lặp nhất. Cần stack thật và kết quả đã nạp: `run.py --import-file <file>`.
  */
 const DIR = resolve(process.cwd(), '../agent_engine/benchmark_results');
 const all = readdirSync(DIR)
@@ -44,8 +44,11 @@ async function expectRun(page: Page, stored: any) {
 test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ ca mới nhất và chọn được mọi lượt đã lưu', async ({ page }) => {
   test.setTimeout(240_000); // duyệt từng lượt qua danh sách ảo: càng nhiều lượt càng lâu
   const measured = all.filter((r) => !r.regrade_of && !/kiểm thoái lui|bỏ cờ|kiểm thử|\babl\b|smoke|\btest\b/i.test(r.label ?? ''));
-  const newestSet = measured.map((r) => r.cases_version).sort().pop();
-  const defaultRun = measured.filter((r) => r.cases_version === newestSet).sort((a, b) => a.created_at.localeCompare(b.created_at)).pop();
+  const both = measured.filter((r) => r.summary?.single && r.summary?.multi);
+  const pool = both.length ? both : measured;
+  // mặc định: lượt chính thức có nhiều lần lặp nhất; hòa thì bộ ca mới hơn, rồi lượt mới hơn
+  const defaultRun = [...pool].sort((a, b) => (a.runs_per_case ?? 0) - (b.runs_per_case ?? 0)
+    || String(a.cases_version).localeCompare(String(b.cases_version)) || a.created_at.localeCompare(b.created_at)).pop();
   test.skip(!defaultRun, 'Chưa có file kết quả benchmark đo thật');
   await loginAs(page, 'qhkh');
   await page.goto('/dashboard');
