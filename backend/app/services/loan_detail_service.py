@@ -57,6 +57,9 @@ class LoanDetailService:
     async def overview(self, principal: PrincipalLike, loan_id: UUID) -> dict[str, Any]:
         loan = await self._repo.loan(loan_id)
         if loan is None:
+            # C-N5: chuông cũ trỏ tới hồ sơ đã chuyển đi; chỉ cho biết đã chuyển, không lộ nội dung.
+            if await self._repo.had_notification(loan_id):
+                raise NotFoundError("LOAN_REASSIGNED", "Hồ sơ đã chuyển cho người khác.")
             raise NotFoundError("LOAN_NOT_FOUND", "Không tìm thấy hồ sơ hoặc ngoài phạm vi được xem.")
         names = list(METRICS) + list(RECOMPUTED.values())
         fields = [dict(r) for r in await self._repo.metric_fields(loan_id, names)]
@@ -124,6 +127,26 @@ def supplement_request(status: Any, timeline: list[dict[str, Any]]) -> dict[str,
             (s for s in reversed(timeline) if s["step_code"] in _SUPPLEMENT_STEPS and not s["completed_at"]), None
         )
         kind = "SUPPLEMENT"
+    elif status_text == "APPRAISAL":
+        # C-N6: Rủi ro/Phê duyệt trả lại bổ sung về Thẩm định; lý do nằm ở bước vừa bị trả.
+        opened = next((s for s in reversed(timeline) if s["step_code"] == "APPRAISAL" and not s["completed_at"]), None)
+        returned = None
+        if opened is not None:
+            closed = [
+                s for s in timeline
+                if s["completed_at"] and s["completed_at"] <= opened["received_at"]
+                and s["step_code"] not in _SUPPLEMENT_STEPS
+            ]
+            closed.sort(key=lambda s: s["completed_at"])
+            returned = closed[-1] if closed else None
+        if opened is None or returned is None or returned.get("result") not in {"RETURNED", "RETURN_FOR_SUPPLEMENT"}:
+            return None
+        return {
+            "kind": "RETURNED_TO_APPRAISAL",
+            "reason": returned.get("reason"),
+            "requested_at": opened["received_at"],
+            "due_at": opened["due_at"],
+        }
     else:
         return None
     if opened is None:

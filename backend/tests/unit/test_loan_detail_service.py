@@ -132,3 +132,45 @@ def test_loan_overview_schema_accepts_supplement_request():
     assert LoanOverview.model_validate({**base, "supplement_request": None}).supplement_request is None
     got = LoanOverview.model_validate({**base, "supplement_request": {"reason": "x", "requested_at": "t", "due_at": None}})
     assert got.supplement_request["reason"] == "x"
+
+
+def test_supplement_request_after_approval_returns_for_supplement() -> None:
+    """C-N6: Phê duyệt trả lại bổ sung về Thẩm định, lý do hiện ở khung việc cần làm."""
+    from datetime import UTC, datetime, timedelta
+
+    from app.services.loan_detail_service import supplement_request
+
+    t0 = datetime(2026, 11, 5, tzinfo=UTC)
+    steps = [
+        {"step_code": "APPROVAL", "received_at": t0, "completed_at": t0 + timedelta(days=1),
+         "due_at": None, "reason": "Cần thêm báo cáo thẩm định tài sản", "result": "RETURN_FOR_SUPPLEMENT"},
+        {"step_code": "APPRAISAL", "received_at": t0 + timedelta(days=1), "completed_at": None,
+         "due_at": t0 + timedelta(days=4), "reason": None, "result": None},
+    ]
+    got = supplement_request("APPRAISAL", steps)
+    assert got is not None
+    assert got["kind"] == "RETURNED_TO_APPRAISAL"
+    assert got["reason"] == "Cần thêm báo cáo thẩm định tài sản"
+
+
+class _GoneRepo:
+    def __init__(self, notified: bool) -> None:
+        self.notified = notified
+
+    async def loan(self, loan_id: UUID) -> None:
+        return None
+
+    async def had_notification(self, loan_id: UUID) -> bool:
+        return self.notified
+
+
+async def test_reassigned_loan_says_moved_without_content() -> None:
+    """C-N5: người từng nhận thông báo về hồ sơ nhưng không còn đọc được nhận thông điệp "đã chuyển"."""
+    from app.exceptions import NotFoundError
+
+    with pytest.raises(NotFoundError) as moved:
+        await LoanDetailService(_GoneRepo(True)).overview(P("credit_appraiser"), LOAN)  # type: ignore[arg-type]
+    assert moved.value.code == "LOAN_REASSIGNED"
+    with pytest.raises(NotFoundError) as unknown:
+        await LoanDetailService(_GoneRepo(False)).overview(P("credit_appraiser"), LOAN)  # type: ignore[arg-type]
+    assert unknown.value.code == "LOAN_NOT_FOUND"

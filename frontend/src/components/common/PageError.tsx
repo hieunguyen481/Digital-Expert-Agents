@@ -28,6 +28,18 @@ export function PageError({
 }: PageErrorProps) {
   const status = error ? normalizeError(error).status : undefined;
   // 403/404: thử lại vô ích; chỉ 5xx và lỗi mạng mới có nút "Thử lại".
+  if (status === 404 && error && normalizeError(error).code === 'LOAN_REASSIGNED') {
+    return (
+      <StateBlock
+        kind="notfound"
+        alert
+        compact={compact}
+        title="Hồ sơ đã chuyển cho người khác"
+        description="Hồ sơ này không còn ở bước của bạn. Nếu cần xem, hãy nhờ người đang giữ hồ sơ hoặc Trưởng phòng."
+        action={<Link to="/viec-cua-toi"><Button type="primary">Về Việc của tôi</Button></Link>}
+      />
+    );
+  }
   if (status === 403 || status === 404) {
     return (
       <StateBlock
