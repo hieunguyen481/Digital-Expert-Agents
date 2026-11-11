@@ -23,6 +23,13 @@ STALE_AFTER_SECONDS = 20 * 60  # lượt treo (engine sập) không khóa hồ s
 ROLE_STATUSES: dict[str, frozenset[str]] = {
     "credit_officer": frozenset({"DRAFT", "RETURNED_TO_RM", "APPRAISAL_PENDING_INFO"}),
     "credit_appraiser": frozenset({"APPRAISAL"}),
+    # C-N2 (ma-tran-phan-quyen.md: Rủi ro, Tuân thủ, Trưởng phòng chạy được đội agent).
+    "risk_officer": frozenset({"RISK_REVIEW", "RISK_PENDING_INFO", "RISK_HOLD_FRAUD"}),
+    "compliance_officer": frozenset({"COMPLIANCE_REVIEW"}),
+    "credit_manager": frozenset({
+        "DRAFT", "CHECKING", "RETURNED_TO_RM", "APPRAISAL", "APPRAISAL_PENDING_INFO", "RISK_REVIEW",
+        "RISK_PENDING_INFO", "RISK_HOLD_FRAUD", "COMPLIANCE_REVIEW", "APPROVAL",
+    }),
 }
 
 
@@ -48,10 +55,10 @@ def denial_reason(principal: PrincipalLike, status: str, holds: bool) -> str | N
         return "Quản trị hệ thống không chạy đội agent trên hồ sơ."
     allowed = [r for r in ROLE_STATUSES if r in roles]
     if not allowed:
-        return "Chỉ Quan hệ khách hàng hoặc Thẩm định đang giữ hồ sơ mới được chạy đội agent."
+        return "Chỉ Quan hệ khách hàng, Thẩm định, Rủi ro, Tuân thủ hoặc Trưởng phòng mới được chạy đội agent."
     if not any(status in ROLE_STATUSES[r] for r in allowed):
         return f"Hồ sơ đang ở trạng thái “{_STATUS_VI.get(status, status)}”, vai trò của bạn không được chạy đội agent ở bước này."
-    if not holds:
+    if not holds and "credit_manager" not in roles:  # Trưởng phòng chạy trên hồ sơ của phòng, không cần giữ bước
         return "Bạn không phải người đang giữ hồ sơ này."
     return None
 

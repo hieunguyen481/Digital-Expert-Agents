@@ -91,7 +91,8 @@ def svc(repo: FakeRepo, engine: FakeEngine | None) -> LoanAgentRunService:
         (("credit_officer",), False, "DRAFT", False, False),  # không giữ hồ sơ
         (("credit_officer",), False, "APPRAISAL", True, False),  # sai bước với vai trò
         (("credit_appraiser",), False, "DRAFT", True, False),
-        (("risk_officer",), False, "RISK_REVIEW", True, False),
+        (("risk_officer",), False, "RISK_REVIEW", True, True),  # C-N2
+        (("risk_officer",), False, "APPRAISAL", True, False),
         (("loan_approver",), False, "APPROVAL", True, False),
         (("auditor",), False, "APPRAISAL", True, False),
         (("credit_officer",), True, "DRAFT", True, False),  # quản trị không chạy
@@ -107,7 +108,7 @@ def test_denial_reason(roles: tuple[str, ...], admin: bool, status: str, holds: 
 async def test_forbidden_is_403_with_reason_and_creates_nothing() -> None:
     engine = FakeEngine()
     with pytest.raises(AuthorizationError) as exc:
-        await svc(FakeRepo("RISK_REVIEW"), engine).start(P(("risk_officer",)), LOAN)  # type: ignore[arg-type]
+        await svc(FakeRepo("APPROVAL"), engine).start(P(("loan_approver",)), LOAN)  # type: ignore[arg-type]
     assert exc.value.status_code == 403 and exc.value.code == "AGENT_RUN_NOT_ALLOWED" and exc.value.message
     assert engine.created == []
 
@@ -188,3 +189,14 @@ async def test_notify_decided_noop_without_engine() -> None:
     service = LoanAgentRunService(FakeRepo(), None)
     assert await service.open_case_ids(LOAN) == []
     await service.notify_decided("jwt", LOAN, ["c1"])
+
+
+def test_risk_compliance_manager_can_run_on_their_steps() -> None:
+    """C-N2: ma-tran-phan-quyen.md — Rủi ro, Tuân thủ, Trưởng phòng chạy đội agent."""
+    from app.services.loan_agent_run_service import denial_reason
+
+    assert denial_reason(P(("risk_officer",)), "RISK_REVIEW", True) is None
+    assert denial_reason(P(("compliance_officer",)), "COMPLIANCE_REVIEW", True) is None
+    assert denial_reason(P(("credit_manager",)), "APPRAISAL", False) is None  # không cần giữ bước
+    assert denial_reason(P(("risk_officer",)), "APPRAISAL", True) is not None
+    assert denial_reason(P(("risk_officer",)), "RISK_REVIEW", False) is not None
