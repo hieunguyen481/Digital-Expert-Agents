@@ -47,6 +47,7 @@
 .aibHead { display: flex; align-items: center; gap: var(--s2); padding: var(--s3) var(--s4); border-bottom: 1px dashed #BFB2E3; color: var(--ai-700); font-weight: 600; font-size: var(--fs-13); }
 .hmb { border: 1px solid var(--navy-700); border-left: 5px solid var(--navy-700); background: var(--surface); border-radius: var(--r-md); }
 .hmbHead { display: flex; align-items: center; gap: var(--s2); padding: var(--s3) var(--s4); border-bottom: 1px solid var(--rule); color: var(--navy-900); font-weight: 600; font-size: var(--fs-13); }
+.blockAct { margin-left: auto; display: inline-flex; gap: var(--s2); align-items: center; }
 .blockBody { padding: var(--s4); }
 
 /* ---- Stepper hồ sơ ---- */

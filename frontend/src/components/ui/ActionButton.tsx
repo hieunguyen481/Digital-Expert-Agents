@@ -18,6 +18,9 @@ export interface ActionButtonProps {
   lockedReason?: string;
   disabled?: boolean;
   block?: boolean;
+  testId?: string;
+  /** Gợi ý khi di chuột (nút không khóa). */
+  title?: string;
 }
 
 /**
@@ -35,6 +38,8 @@ export function ActionButton({
   lockedReason,
   disabled,
   block,
+  testId,
+  title,
 }: ActionButtonProps) {
   const whyId = useId();
   const type = variant === 'primary' ? 'primary' : 'default';
@@ -51,6 +56,8 @@ export function ActionButton({
       size={size}
       block={block}
       htmlType={htmlType}
+      data-testid={testId}
+      title={title}
       disabled={disabled && !lockedReason}
       aria-disabled={lockedReason ? true : undefined}
       aria-describedby={lockedReason ? whyId : undefined}
