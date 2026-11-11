@@ -99,6 +99,11 @@ class ConversationRepository:
                   CAST(:status AS varchar) IS NULL
                   OR status = CAST(:status AS varchar)
               )
+              -- cuộc chưa có tin nhắn nào không hiện trong lịch sử; chỉ giữ cuộc vừa mở (chọn khách rồi chưa kịp gõ)
+              AND (
+                  EXISTS (SELECT 1 FROM ai.message AS m WHERE m.conversation_id = ai.conversation.id)
+                  OR started_at > now() - interval '30 minutes'
+              )
             ORDER BY started_at DESC, id DESC
             """,
             {
