@@ -1,6 +1,7 @@
 import { paginationItemRender } from '@/utils/paginationRender';
 import { useState } from 'react';
 import { Button, Checkbox, Input, Select, Skeleton } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
@@ -52,7 +53,7 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
       <p className={styles.scopeNote}>Tổng quan đếm toàn hệ thống; ở đây bạn chỉ xem được lượt trên hồ sơ trong phạm vi của mình.</p>
       <div className={styles.filters}>
         <Input.Search allowClear aria-label="Tìm lượt phân tích" placeholder="Tìm theo khách hàng, mã hồ sơ, mã lượt hoặc mục đích vay"
-          data-testid="trace-search" onChange={(e) => setText(e.target.value)} />
+          enterButton={<Button aria-label="Tìm" icon={<SearchOutlined />} />} data-testid="trace-search" onChange={(e) => setText(e.target.value)} />
         <Select allowClear aria-label="Lọc theo trạng thái" placeholder="Mọi trạng thái" style={{ width: 200 }} data-testid="trace-state-filter"
           value={stateFilter} onChange={setStateFilter}
           options={states.map((s) => ({ value: s, label: stateLabel(s) }))} />
