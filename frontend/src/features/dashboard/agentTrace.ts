@@ -292,6 +292,8 @@ const FIELD_LABEL: Record<string, string> = {
 /** Che mã nội bộ trong văn bản do Planner/agent sinh: UUID, tên trường kỹ thuật. Không đổi nghĩa câu. */
 export function scrubInternal(text: string): string {
   return text
+    .replace(/\bAI_OCR\b/g, 'AI trích xuất')
+    .replace(/\bcompliance[_ ]policy\b/gi, 'Chính sách tuân thủ')
     .replace(/\b([a-z]+(?:_[a-z]+)*_id)\s+[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, (_m, f: string) => FIELD_LABEL[f] ?? f.replace(/_/g, ' '))
     .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '(mã nội bộ)')
     .replace(/\b[a-z]+(?:_[a-z]+)+\b/g, (f) => FIELD_LABEL[f] ?? f.replace(/_/g, ' '));
@@ -351,4 +353,69 @@ export function realActions(events: AgentCaseEvent[]): RealAction[] {
   return events
     .filter((e) => e.type === 'state_changed' && typeof e.payload?.workflow_status === 'string')
     .map((e) => ({ id: e.id, workflowStatus: str(e.payload?.workflow_status), state: str(e.payload?.state) }));
+}
+
+const CAPS_TAG = /^([A-ZÀ-ỴĐ][A-ZÀ-ỴĐ/ ]{3,}[A-ZÀ-ỴĐ]):\s+([\s\S]*)$/;
+const sentenceCase = (t: string) => { const l = t.toLowerCase(); return l.charAt(0).toUpperCase() + l.slice(1); };
+
+/** Tách theo dấu phân cách ở ngoài ngoặc đơn. */
+function splitTop(t: string, sep: string): string[] {
+  const out: string[] = [];
+  let depth = 0; let cur = '';
+  for (const ch of t) {
+    if (ch === '(') depth += 1;
+    if (ch === ')') depth = Math.max(0, depth - 1);
+    if (ch === sep && depth === 0) { out.push(cur); cur = ''; } else cur += ch;
+  }
+  out.push(cur);
+  return out.map((x) => x.trim()).filter(Boolean);
+}
+
+export interface AiTextParts {
+  /** Nhãn chữ hoa ở đầu ("CẦN BỔ SUNG:") đã hạ thành câu thường, dùng làm chip. */
+  tag?: string;
+  /** Mệnh đề dẫn trước danh sách ("thiếu dữ liệu chặn"). */
+  lead?: string;
+  /** Các ý tách bằng ";" hoặc "—"; một ý thì là câu thường. */
+  items: string[];
+}
+const dash = (x: string) => x.replace(/\s+[—–]\s+/g, ', ').replace(/^[\s—–-]+/, '').replace(/[\s.;:,]+$/, '').trim();
+
+/** Văn bản do agent sinh: bỏ "— " đầu, đổi nhãn chữ hoa thành chip, tách "A — B; C" thành gạch đầu dòng. */
+export function parseAiText(raw: string): AiTextParts {
+  let t = scrubInternal(raw ?? '').replace(/^[\s—–-]+/, '').trim();
+  let tag: string | undefined;
+  const m = t.match(CAPS_TAG);
+  if (m) { tag = sentenceCase(m[1]); t = m[2]; }
+  const segs = splitTop(t, ';');
+  let lead: string | undefined;
+  if (segs.length > 1) {
+    const i = segs[0].indexOf(' — ');
+    if (i > 0 && i <= 40) { lead = segs[0].slice(0, i).trim(); segs[0] = segs[0].slice(i + 3); }
+  }
+  const items = segs.map(dash).filter(Boolean);
+  if (items.length === 1 && !lead) return { tag, items: [items[0]] };
+  return { tag, lead, items };
+}
+
+const fold = (x: string) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+const cite = (x: string) => (x.match(/\(([^()]*§[^()]*)\)/)?.[1] ?? '').replace(/\s+/g, '');
+const tokens = (x: string) => new Set(fold(x.replace(/\([^()]*\)/g, ' ')).split(/[^a-z0-9]+/).filter((w) => w.length > 2));
+/** Gộp điều kiện trùng ý: cùng trích dẫn điều khoản, hoặc phần lớn từ khóa của ý ngắn nằm trong ý dài. Giữ ý đầu tiên. */
+export function dedupeConditions(list: string[]): string[] {
+  const kept: { text: string; cite: string; tok: Set<string> }[] = [];
+  for (const raw of list) {
+    const text = raw.trim();
+    const cur = { text, cite: cite(text), tok: tokens(text) };
+    const dup = kept.some((k) => {
+      if (fold(k.text) === fold(text)) return true;
+      if (cur.cite && cur.cite === k.cite) return true;
+      const [a, b] = k.tok.size <= cur.tok.size ? [k.tok, cur.tok] : [cur.tok, k.tok];
+      if (a.size < 3) return false;
+      let hit = 0; a.forEach((w) => { if (b.has(w)) hit += 1; });
+      return hit / a.size >= 0.75;
+    });
+    if (!dup) kept.push(cur);
+  }
+  return kept.map((k) => k.text);
 }

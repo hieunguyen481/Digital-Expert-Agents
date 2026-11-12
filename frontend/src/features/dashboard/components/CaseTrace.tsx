@@ -1,3 +1,4 @@
+import { AiText } from './AiText';
 import { useEffect, useMemo, useState } from 'react';
 import { conclusionHeadline } from '@/features/loan-detail/AgentTeamPanel';
 import { Drawer, Skeleton } from 'antd';
@@ -178,7 +179,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                               )}
                               {st?.verdict && (
                                 <span className={styles.nodeSum}>
-                                  <b>{DECISION_LABEL[st.verdict.decision] ?? st.verdict.decision}</b>: {scrubInternal(st.verdict.summary)}
+                                  <b>{DECISION_LABEL[st.verdict.decision] ?? st.verdict.decision}</b>: <AiText text={st.verdict.summary} />
                                 </span>
                               )}
                               {sec != null && <span className={styles.tm}>{fmtSeconds(sec)}</span>}
@@ -319,7 +320,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         )}
         {verdicts.map((v) => (
           <div key={v.agent + v.summary} className={styles.dec}>
-            <b>{agentName(v.agent)}</b>: {DECISION_LABEL[v.decision] ?? v.decision}, {scrubInternal(v.summary)}
+            <b>{agentName(v.agent)}</b> · {DECISION_LABEL[v.decision] ?? v.decision}: <AiText text={v.summary} />
           </div>
         ))}
         {decided.map((d) => (

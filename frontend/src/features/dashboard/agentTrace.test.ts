@@ -60,3 +60,23 @@ describe('sourceLabel (L07)', () => {
     expect(sourceLabel('CS-TD-SME/2025 §3.1')).toBe('CS-TD-SME/2025 §3.1');
   });
 });
+
+describe('parseAiText và dedupeConditions', () => {
+  it('hạ nhãn chữ hoa, tách ý, bỏ "— " đầu, đổi mã kỹ thuật', async () => {
+    const { parseAiText } = await import('./agentTrace');
+    const r = parseAiText('CẦN BỔ SUNG: thiếu dữ liệu chặn — Chưa có CIC — phải tra cứu trước khi trình (CS-TD-SME/2025 §6.1); Chưa có AML (công cụ tra; compliance_policy Điều 6)');
+    expect(r.tag).toBe('Cần bổ sung');
+    expect(r.lead).toBe('thiếu dữ liệu chặn');
+    expect(r.items).toEqual(['Chưa có CIC, phải tra cứu trước khi trình (CS-TD-SME/2025 §6.1)', 'Chưa có AML (công cụ tra; Chính sách tuân thủ Điều 6)']);
+    expect(parseAiText('— Phần còn thiếu BCTC AI_OCR').items).toEqual(['Phần còn thiếu BCTC AI trích xuất']);
+  });
+  it('gộp điều kiện trùng', async () => {
+    const { dedupeConditions } = await import('./agentTrace');
+    const out = dedupeConditions([
+      'Phải có BCTC kiểm toán trước khi trình (CS-TD-SME/2025 §4.1, §6.1)',
+      'Điều kiện tiên quyết: BCTC kiểm toán bắt buộc (CS-TD-SME/2025 §4.1, §6.1)',
+      'Bổ sung thông tin người đại diện',
+    ]);
+    expect(out).toHaveLength(2);
+  });
+});

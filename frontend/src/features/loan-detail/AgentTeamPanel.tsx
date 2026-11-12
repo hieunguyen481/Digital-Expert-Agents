@@ -9,9 +9,10 @@ import {
   TERMINAL_STATES, getAgentCase, getAgentCaseEvents, streamAgentCase, type AgentCaseEvent,
 } from '@/services/agentCaseService';
 import {
-  DECISION_LABEL, agentName, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
+  DECISION_LABEL, agentName, dedupeConditions, scrubInternal, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
 } from '@/features/dashboard/agentTrace';
 import { ActionProposals } from '@/features/agent-actions/ActionProposals';
+import { AiText } from '@/features/dashboard/components/AiText';
 import { fetchAgentRuns, startAgentRun } from './loanDetailService';
 import { fmtDate, fmtMoney } from './format';
 import styles from './loan-detail.module.css';
@@ -226,12 +227,12 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
       )}
       {(pkg?.recommendation || pkg?.proposed_limit != null) && (
         <div className={styles.stackTight} data-testid="agent-recommendation">
-          {pkg?.recommendation && <p className={styles.concl}>{aiLead(conclusionHeadline(pkg.recommendation))}</p>}
+          {pkg?.recommendation && <p className={styles.concl}>{aiLead(conclusionHeadline(scrubInternal(pkg.recommendation)))}</p>}
           {pkg?.proposed_limit != null && <span>Hạn mức đề xuất: <b className={styles.num}>{fmtMoney(String(pkg.proposed_limit), currency)}</b></span>}
           {pkg?.required_approver_level && <span className={styles.note}>Cấp phê duyệt đề xuất: {approverLevelLabel(pkg.required_approver_level)}</span>}
           {!!pkg?.conditions?.length && (
             <div><b className={styles.sub}>Yêu cầu bổ sung và điều kiện đội agent đề xuất</b>
-              <ul className={styles.condOl}>{pkg.conditions.map((x) => <li key={x}>{cleanCondition(x)}</li>)}</ul></div>
+              <ul className={styles.condOl}>{dedupeConditions(pkg.conditions.map((x) => cleanCondition(scrubInternal(x)))).map((x) => <li key={x}>{x}</li>)}</ul></div>
           )}
           <span className={styles.note}>Đề xuất của đội agent chưa có hiệu lực.</span>
         </div>
@@ -245,7 +246,7 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
           {verdicts.map((v, i) => (
             <span key={`${v.agent}-${i}`} className={styles.finding}>
               {findings.includes(v) ? <FlagMark level={level(v)}>{DECISION_LABEL[v.decision] ?? v.decision}</FlagMark> : <StatusPill tone="ok">{DECISION_LABEL[v.decision] ?? v.decision}</StatusPill>}
-              <b>{agentName(v.agent)}</b> — {v.summary}
+              <b>{agentName(v.agent)}</b><AiText text={v.summary} />
             </span>
           ))}
         </div>
