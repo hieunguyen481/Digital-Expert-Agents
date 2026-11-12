@@ -29,12 +29,17 @@
 #kc-page-title, .pf-v5-c-login__main .pf-v5-c-title { font: 600 26px/1.2 'Newsreader', Georgia, serif; color: var(--sk-ink); }
 .pf-v5-c-form__label-text { color: var(--sk-ink); font-weight: 500; font-size: 13px; }
 .pf-v5-c-form-control { background: #fff; border-radius: 6px; --pf-v5-c-form-control--BorderColor: var(--sk-control); }
-.pf-v5-c-form-control:focus-within { box-shadow: 0 0 0 2px #fff, 0 0 0 5px var(--sk-navy); }
 .pf-v5-c-button.pf-m-primary { background-color: var(--sk-navy); border-radius: 6px; font-weight: 600; min-height: 44px; }
 .pf-v5-c-button.pf-m-primary:hover { background-color: var(--sk-navy-900); }
 .pf-v5-c-button:focus-visible, a:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 5px var(--sk-navy); }
 .pf-v5-c-alert.pf-m-danger, .pf-v5-c-alert.pf-m-warning, .pf-v5-c-alert.pf-m-info { border-radius: 6px; }
 .pf-v5-c-helper-text__item.pf-m-error, .kc-feedback-text { color: var(--sk-danger); }
+
+/* Focus ô nhập: viền navy 3px; nút con mắt không gạch chân. */
+.pf-v5-c-form-control:focus-within, .pf-v5-c-input-group:focus-within { box-shadow: 0 0 0 3px var(--sk-navy); border-color: var(--sk-navy); outline: none; }
+.pf-v5-c-input-group .pf-v5-c-form-control:focus-within { box-shadow: none; }
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control, .pf-v5-c-input-group .pf-v5-c-button.pf-m-control:hover, .pf-v5-c-input-group .pf-v5-c-button.pf-m-control:focus { text-decoration: none; }
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control::before, .pf-v5-c-input-group .pf-v5-c-button.pf-m-control::after { display: none !important; }
 
 /* Một tiêu đề duy nhất: tên sản phẩm ở đầu thẻ, "Đăng nhập" là h1; logo và tên cùng trục trái. */
 #kc-header-wrapper::after { content: 'Tín dụng doanh nghiệp'; display: block; margin-top: 2px; font: 400 13px 'Be Vietnam Pro', system-ui, sans-serif; color: var(--sk-ink-3); }
@@ -48,5 +53,4 @@
 .pf-v5-c-input-group { border: 1px solid var(--sk-control); border-radius: 6px; background: #fff; align-items: stretch; }
 .pf-v5-c-input-group .pf-v5-c-form-control { border: 0; }
 .pf-v5-c-input-group .pf-v5-c-button.pf-m-control { border: 0; background: transparent; border-radius: 0 6px 6px 0; }
-.pf-v5-c-input-group:focus-within { box-shadow: 0 0 0 2px #fff, 0 0 0 5px var(--sk-navy); }
 .pf-v5-c-form-control.pf-m-error, .pf-v5-c-form-control[aria-invalid='true'] { border-color: var(--sk-danger); }

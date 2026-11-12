@@ -6,6 +6,7 @@ import { StateBlock, StatusPill, ledgerNum, ledgerTable } from '@/components/ui'
 import { UI_ROLE_LABEL, uiRoleFromRoles } from '@/auth/roleFromMe';
 import { PageHead } from '@/features/shell/PageHead';
 import apiClient from '@/services/apiClient';
+import { paginationItemRender } from '@/utils/paginationRender';
 import styles from './admin.module.css';
 
 export interface AdminUser {
@@ -92,7 +93,7 @@ function Users() {
     <Section title="Người dùng và vai" hint="Tài khoản nhân viên và vai đang có hiệu lực. Thêm, khóa hoặc đổi vai thực hiện ở Keycloak và dữ liệu nhân sự.">
       {q.isLoading && <Skeleton active />}
       {q.isError && <StateBlock kind="error" title="Không tải được người dùng" description="Thử lại sau ít phút." />}
-      {q.data && <Table rowKey="employee_id" size="small" pagination={{ pageSize: 10, hideOnSinglePage: true }} className={ledgerTable} columns={columns} dataSource={q.data} />}
+      {q.data && <Table rowKey="employee_id" size="small" pagination={{ pageSize: 10, hideOnSinglePage: true, itemRender: paginationItemRender }} className={ledgerTable} columns={columns} dataSource={q.data} />}
     </Section>
   );
 }
@@ -131,7 +132,7 @@ function Thresholds() {
     { title: 'Áp dụng từ', dataIndex: 'valid_from', key: 'from' },
   ];
   return (
-    <Section title="Ngưỡng cấp phê duyệt" hint="Ngưỡng đang áp dụng khi hệ thống định tuyến hồ sơ. Đổi ngưỡng bằng migration (bảng credit.authority_tier), chưa sửa được trên web.">
+    <Section title="Ngưỡng cấp phê duyệt" hint="Ngưỡng đang áp dụng khi hệ thống định tuyến hồ sơ. Đổi ngưỡng bằng migration, chưa sửa được trên web.">
       {q.isLoading && <Skeleton active />}
       {q.isError && <StateBlock kind="error" title="Không tải được ngưỡng" description="Thử lại sau ít phút." />}
       {q.data && <Table rowKey="tier" size="small" pagination={false} className={ledgerTable} columns={columns} dataSource={q.data} />}
