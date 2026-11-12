@@ -163,6 +163,8 @@ def supplement_request(status: Any, timeline: list[dict[str, Any]]) -> dict[str,
             and s.get("reason")
         ]
         reason = before[-1]["reason"] if before else None
+    if kind == "SUPPLEMENT" and opened["step_code"] == "RISK_PENDING_INFO":
+        kind = "EXPLANATION"  # Q05: Tuân thủ yêu cầu giải trình, khác với yêu cầu bổ sung tài liệu
     return {
         "kind": kind,
         "reason": reason,

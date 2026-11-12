@@ -36,7 +36,7 @@ export default function LoanDetailPage() {
       <LoanHeader overview={q.data} todoCount={todos.length} />
       <div className={styles.page}>
         {supplement_request && (
-          <Alert type="warning" showIcon data-testid="supplement-request" message={supplement_request.kind === 'RETURNED' ? 'Hồ sơ bị trả lại, cần chỉnh sửa' : supplement_request.kind === 'RETURNED_TO_APPRAISAL' ? 'Hồ sơ bị trả lại để bổ sung' : 'Hồ sơ đang chờ bổ sung'}
+          <Alert type="warning" showIcon data-testid="supplement-request" message={supplement_request.kind === 'RETURNED' ? 'Hồ sơ bị trả lại, cần chỉnh sửa' : supplement_request.kind === 'RETURNED_TO_APPRAISAL' ? 'Hồ sơ bị trả lại để bổ sung' : supplement_request.kind === 'EXPLANATION' ? 'Hồ sơ đang chờ giải trình' : 'Hồ sơ đang chờ bổ sung'}
             description={<>
               <div>{supplement_request.reason ?? 'Người xử lý chưa ghi nội dung cụ thể.'}</div>
               <div>Hạn bổ sung: {supplement_request.due_at ? fmtDay(supplement_request.due_at) : '—'}</div>

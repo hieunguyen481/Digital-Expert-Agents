@@ -73,6 +73,14 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
   const termInvalid = approving && !(term > 0);
   const exceptionsDecided = state.pending_exceptions.every((e) => choice[e.id] && reasons[e.id]?.trim());
   const ready = !!text.trim() && exceptionsDecided && !amountInvalid && !termInvalid;
+  // Q06: nút khóa nói rõ còn thiếu gì
+  const missing = [
+    !text.trim() ? (type === 'RETURN' ? 'lý do trả lại' : 'lý do quyết định') : '',
+    amountInvalid ? 'số tiền phê duyệt' : '',
+    termInvalid ? 'thời hạn phê duyệt' : '',
+    !exceptionsDecided ? 'quyết định và lý do cho từng ngoại lệ chưa xử lý' : '',
+  ].filter(Boolean);
+  const lockHint = missing.length ? `Cần nhập: ${missing.join(', ')}.` : '';
   const exceptions = state.pending_exceptions.map((e) => ({ id: e.id, decision: choice[e.id], reason: reasons[e.id]?.trim() }));
   const condList = conditions.split('\n').map((c) => c.trim()).filter(Boolean);
   const targetLabel = type === 'RETURN' && target === 'RETURNED_TO_RM' ? 'QHKH' : 'Thẩm định';
@@ -95,8 +103,9 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
     </>
   ) : (
     <>
+      {lockHint && <span key="hint" data-testid="decision-lock-hint" style={{ marginRight: 'var(--s3)', fontSize: 'var(--fs-13)', color: 'var(--ink-2)' }}>{lockHint}</span>}
       <Button key="cancel" onClick={onCancel}>Hủy</Button>
-      <Button key="submit" type="primary" className={styles.goldBtn} disabled={!ready} onClick={() => setConfirming(true)}>{submitLabel}</Button>
+      <Button key="submit" type="primary" className={styles.goldBtn} disabled={!ready} title={lockHint || undefined} onClick={() => setConfirming(true)}>{submitLabel}</Button>
     </>
   );
 

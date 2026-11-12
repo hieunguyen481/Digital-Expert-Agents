@@ -49,7 +49,7 @@ export interface LoanOverview {
   flags: Flag[];
   collaterals: Collateral[];
   timeline: TimelineStep[];
-  supplement_request?: { kind?: 'SUPPLEMENT' | 'RETURNED' | 'RETURNED_TO_APPRAISAL'; reason: string | null; requested_at: string; due_at: string | null } | null;
+  supplement_request?: { kind?: 'SUPPLEMENT' | 'EXPLANATION' | 'RETURNED' | 'RETURNED_TO_APPRAISAL'; reason: string | null; requested_at: string; due_at: string | null } | null;
 }
 
 export interface AiBlock {

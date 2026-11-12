@@ -203,4 +203,4 @@ def test_explanation_reason_visible_to_recipient_and_privileged() -> None:
     from app.services.loan_detail_service import supplement_request
 
     got = supplement_request("RISK_PENDING_INFO", _explanation_steps("Giải trình nguồn tiền quý 2.", False))
-    assert got is not None and got["reason"] == "Giải trình nguồn tiền quý 2."
+    assert got is not None and got["reason"] == "Giải trình nguồn tiền quý 2." and got["kind"] == "EXPLANATION"  # Q05
