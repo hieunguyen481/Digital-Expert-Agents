@@ -3,11 +3,12 @@ import { ThunderboltOutlined } from '@ant-design/icons';
 import { Button, Segmented, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { Link, useNavigate } from 'react-router-dom';
-import { Flag, StateBlock, StatusPill, ledgerNum, ledgerTable, type PillTone } from '@/components/ui';
+import { Flag, StateBlock, StatusPill, ledgerNum, ledgerTable } from '@/components/ui';
 import { useAiPanel } from '@/features/ai-panel/AiPanelContext';
-import { customerLabel, formatBillion, slaText, statusLabel, stepLabel } from './format';
+import { customerLabel, formatBillion, statusLabel, stepLabel } from './format';
+import { DeadlineChip, isEndedStatus } from './DeadlineChip';
 import styles from './my-work.module.css';
-import { QUEUE_FILTERS, type QueueFilter, type SlaLevel, type WorkItem } from './types';
+import { QUEUE_FILTERS, type QueueFilter, type WorkItem } from './types';
 
 interface QueueTableProps {
   title: string;
@@ -23,7 +24,6 @@ interface QueueTableProps {
   readOnly?: boolean;
 }
 
-const SLA_TONE: Record<SlaLevel, PillTone> = { over: 'bad', today: 'warn', soon: 'info', ok: 'info', pause: 'neutral', none: 'neutral' };
 
 function dueDate(item: WorkItem): string | null {
   return item.due_at ? new Intl.DateTimeFormat('vi-VN').format(new Date(item.due_at)) : null;
@@ -96,8 +96,9 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
       key: 'sla',
       render: (_, r) => (
         <div>
-          <StatusPill tone={SLA_TONE[r.sla_level]}>{r.due_at || r.paused ? slaText(r, today) : 'Chưa có hạn'}</StatusPill>
-          {dueDate(r) && <div className={styles.sub}>{dueDate(r)}</div>}
+          <DeadlineChip item={r} today={today} />
+          {dueDate(r) && !isEndedStatus(r.status) && <div className={styles.sub}>{dueDate(r)}</div>}
+          {isEndedStatus(r.status) && <span className={styles.none}>Đã kết thúc</span>}
         </div>
       ),
     },

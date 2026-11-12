@@ -2,10 +2,11 @@ import { LoanCode } from '@/components/common/CodeText';
 import { Alert, Skeleton, Table } from 'antd';
 import { Link } from 'react-router-dom';
 import { RequireRole } from '@/auth/RequireRole';
-import { StateBlock, StatusPill, ledgerTable } from '@/components/ui';
+import { StateBlock, ledgerTable } from '@/components/ui';
 import { PageHead } from '@/features/shell/PageHead';
 import { useWorkItems } from '@/features/my-work/useWorkItems';
-import { customerLabel, slaText, stepLabel, workdaysBetween } from '@/features/my-work/format';
+import { customerLabel, stepLabel } from '@/features/my-work/format';
+import { DeadlineChip } from '@/features/my-work/DeadlineChip';
 import type { WorkItem } from '@/features/my-work/types';
 import { fmtDay } from '@/utils/format';
 import styles from './reconciliation.module.css';
@@ -33,9 +34,7 @@ export default function ReconciliationIndexPage() {
               { title: 'Bước', render: (_, r) => stepLabel(r.step_code) },
               { title: 'Hạn', render: (_, r) => {
                 if (!r.due_at) return <span className={styles.note}>Không đặt hạn</span>;
-                // Một ngưỡng chung theo số ngày làm việc còn lại, không theo SLA riêng từng hồ sơ.
-                const n = workdaysBetween(new Date(), new Date(r.due_at));
-                return <StatusPill tone={r.paused || r.sla_level === 'pause' ? 'neutral' : n < 0 ? 'bad' : n <= 1 ? 'warn' : 'ok'}>{fmtDay(r.due_at)} · {slaText({ ...r, sla_level: n < 0 ? 'over' : n === 0 ? 'today' : 'ok' }, new Date())}</StatusPill>;
+                return <DeadlineChip item={r} prefix={fmtDay(r.due_at)} />;
               } },
             ]}
           />
