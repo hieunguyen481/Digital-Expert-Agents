@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { loginAs } from './helpers';
-import { fmtDayTime } from '../src/utils/format';
+import { fmtDayTime, fmtSec } from '../src/utils/format';
 
 /**
  * Đối chiếu số hiện trên tab "So sánh" với MỌI file kết quả đã lưu
@@ -33,7 +33,7 @@ async function expectRun(page: Page, stored: any) {
     await expect(page.getByTestId(`cmp-finding_recall-${mode}`)).toHaveText(withSd(s.finding_recall, pct));
     await expect(page.getByTestId(`cmp-false_findings-${mode}`)).toHaveText(withSd(s.false_findings, (v) => nf(v, 2)));
     await expect(page.getByTestId(`cmp-gate_ok-${mode}`)).toHaveText(withSd(s.gate_ok, pct));
-    await expect(page.getByTestId(`cmp-latency_s-${mode}`)).toHaveText(withSd(s.latency_s, (v) => (v < 60 ? `${nf(v, 1)} giây` : `${nf(v / 60, 1)} phút`)));
+    await expect(page.getByTestId(`cmp-latency_s-${mode}`)).toHaveText(withSd(s.latency_s, fmtSec));
     await expect(page.getByTestId(`cmp-cost_usd-${mode}`)).toHaveText(withSd(s.cost_usd, (v) => `${nf(v, 4)} USD`));
     for (const id of Object.keys(stored.per_case)) {
       await expect(page.getByTestId(`cmp-case-${id}-${mode}`)).toHaveText(withSd(stored.per_case[id][mode].finding_recall, pct));
