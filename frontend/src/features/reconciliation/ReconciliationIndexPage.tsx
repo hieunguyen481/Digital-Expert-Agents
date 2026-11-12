@@ -1,4 +1,4 @@
-import { LoanCode, loanCodeLabel } from '@/components/common/CodeText';
+import { LoanCode } from '@/components/common/CodeText';
 import { Alert, Skeleton, Table } from 'antd';
 import { Link } from 'react-router-dom';
 import { RequireRole } from '@/auth/RequireRole';

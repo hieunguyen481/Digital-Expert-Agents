@@ -1,4 +1,4 @@
-import { LoanCode, loanCodeLabel } from '@/components/common/CodeText';
+import { LoanCode } from '@/components/common/CodeText';
 import { paginationItemRender } from '@/utils/paginationRender';
 import { useQuery } from '@tanstack/react-query';
 import { Button, DatePicker, Input, Select, Table } from 'antd';

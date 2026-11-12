@@ -165,7 +165,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   return (
     <section id="hanh-dong" aria-label="Hành động trên hồ sơ" data-testid="actions-panel">
       {slot && headNode && createPortal(headNode, slot)}
-      <HumanBlock title="Hành động" tag={decider ? 'Người quyết định' : 'Việc của bạn'}>
+      <HumanBlock title="Hành động" tag={decider ? 'Người quyết định' : uiRoleFromRoles(me.roles) === 'kiemtoan' ? 'Chỉ đọc' : 'Việc của bạn'}>
       <div className={styles.stackTight}>
       <Typography.Text type="secondary">AI chỉ đề xuất; người có thẩm quyền quyết định. Mọi hành động đều kiểm lại ở máy chủ.</Typography.Text>
       {state.blockers.length > 0 && totalActions > 0 && (
