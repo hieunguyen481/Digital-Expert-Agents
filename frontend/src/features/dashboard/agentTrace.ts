@@ -337,10 +337,12 @@ export function validationView(events: AgentCaseEvent[]): ValidationView | null 
   const data = v.data ?? {};
   const strs = (x: unknown) => (Array.isArray(x) ? x.filter((i): i is string => typeof i === 'string') : []);
   const verified = (data.verified ?? {}) as { lines?: unknown };
+  const numeric = typeof data.numeric_challenges === 'number' ? data.numeric_challenges : 0;
   return {
     lines: strs(verified.lines), issues: strs(data.issues), narrative: str(data.narrative),
-    challenges: events.filter((e) => e.type === 'a2a_challenge').length,
-    handled: events.filter((e) => e.type === 'challenge_handled').length,
+    // đối chất giữa chuyên gia + phản biện số liệu (số chuyên gia nêu lệch số Validation tính lại)
+    challenges: events.filter((e) => e.type === 'a2a_challenge').length + numeric,
+    handled: events.filter((e) => e.type === 'challenge_handled').length + numeric,
   };
 }
 

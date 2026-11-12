@@ -254,6 +254,7 @@ async def handle_task(env: Envelope) -> Verdict:
             "final_verdicts": {k: v.model_dump(mode="json") for k, v in verdicts.items()},
             "challenge_rounds": challenge_rounds,
             "issues": issues,
+            "numeric_challenges": len(numeric_notes),  # phản biện số liệu (chuyên gia nêu số lệch số tính lại)
             "narrative": narrative,
             "report": report,
             "verified": verified,

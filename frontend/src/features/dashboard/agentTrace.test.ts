@@ -31,6 +31,13 @@ describe('agentTrace: dữ liệu cho trace đội agent', () => {
     expect(validationView([])).toBeNull();
   });
 
+  it('Validation: phản biện số liệu (numeric_challenges) tính vào bộ đếm', () => {
+    const v = validationView([
+      ev(6, 'validation', 'task_finished', { verdict: { data: { verified: { lines: [] }, issues: [], numeric_challenges: 2 } } }),
+    ]);
+    expect(v).toMatchObject({ challenges: 2, handled: 2 });
+  });
+
   it('quyết định trên hồ sơ và hành động thật', () => {
     const events = [
       ev(7, 'hitl', 'decided_on_loan', { approver: 'u1' }),
