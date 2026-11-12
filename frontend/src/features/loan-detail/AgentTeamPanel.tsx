@@ -174,7 +174,9 @@ function RunBody({ caseId, currency, decider, startedAt, isDecider, retry, retry
   const [streaming, setStreaming] = useState(false);
   const [streamError, setStreamError] = useState(false);
 
+  // Luồng SSE của engine không tự đóng khi ca đã kết thúc: chỉ giữ luồng khi ca còn chạy, kẻo trang giữ một kết nối mở mãi.
   useEffect(() => {
+    if (finishedNow) return undefined;
     const ctrl = new AbortController();
     setStreaming(true);
     setStreamError(false);
@@ -185,7 +187,7 @@ function RunBody({ caseId, currency, decider, startedAt, isDecider, retry, retry
       .catch(() => { if (!ctrl.signal.aborted) setStreamError(true); })
       .finally(() => setStreaming(false));
     return () => ctrl.abort();
-  }, [caseId, qc]);
+  }, [caseId, qc, finishedNow]);
 
   const events = useMemo(() => {
     const byId = new Map<number, AgentCaseEvent>();

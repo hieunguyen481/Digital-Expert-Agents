@@ -69,6 +69,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
 
   // SSE: phát lại lịch sử rồi nhận sự kiện mới; token ở header, không ở URL.
   useEffect(() => {
+    if (!running) return undefined; // engine không tự đóng luồng khi ca đã kết thúc
     const ctrl = new AbortController();
     setStreaming(true);
     streamAgentCase(caseId, (e) => {
@@ -79,7 +80,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
       .catch(() => undefined)
       .finally(() => setStreaming(false));
     return () => ctrl.abort();
-  }, [caseId, qc]);
+  }, [caseId, qc, running]);
 
   const events = useMemo(() => {
     const byId = new Map<number, AgentCaseEvent>();
