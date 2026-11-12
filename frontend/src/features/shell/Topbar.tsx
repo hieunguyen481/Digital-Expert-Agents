@@ -3,11 +3,12 @@ import { Avatar, Dropdown } from 'antd';
 import { UI_ROLE_LABEL, type UiRole } from '@/auth/roleFromMe';
 import { logout } from '@/auth/keycloak';
 import type { Me } from '@/types/me';
+import type { PageWidth } from './navigation';
 import { SearchBox } from './SearchBox';
 import { NotificationBell } from './NotificationBell';
 import styles from './shell.module.css';
 
-export function Topbar({ me, role }: { me: Me; role: UiRole }) {
+export function Topbar({ me, role, width = 'wide' }: { me: Me; role: UiRole; width?: PageWidth }) {
   const initials = me.full_name
     .split(/\s+/)
     .slice(-2)
@@ -17,6 +18,7 @@ export function Topbar({ me, role }: { me: Me; role: UiRole }) {
 
   return (
     <div className={styles.topbar}>
+      <div className={`${styles.topbarIn} ${width === 'narrow' ? styles.topbarNarrow : width === 'full' ? styles.topbarFull : ''}`}>
       <SearchBox />
       <span className={styles.spacer} />
       <NotificationBell />
@@ -43,6 +45,7 @@ export function Topbar({ me, role }: { me: Me; role: UiRole }) {
           </span>
         </button>
       </Dropdown>
+      </div>
     </div>
   );
 }

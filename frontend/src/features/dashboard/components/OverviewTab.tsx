@@ -1,4 +1,5 @@
-import { Button, Skeleton } from 'antd';
+import { Button } from 'antd';
+import { PageSkeleton } from '@/components/common/PageSkeleton';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
 import { AgentTeam, AGENTS, KpiCard, StateBlock, StatusPill, ledgerNum, ledgerTable } from '@/components/ui';
@@ -13,7 +14,7 @@ const ROLES = Object.fromEntries(AGENTS.map((a) => [a.key, a.role]));
 /** Tổng quan: mọi số liệu tính từ trace thật trong Postgres, chỉ trên các lượt vai trò này được xem. */
 export function OverviewTab() {
   const q = useQuery({ queryKey: ['agent-case-stats'], queryFn: getAgentCaseStats, refetchInterval: 10_000 });
-  if (q.isLoading) return <Skeleton active />;
+  if (q.isLoading) return <PageSkeleton bare kpis={5} blocks={2} testId="overview-skeleton" />;
   if (q.isError) {
     return (
       <StateBlock kind="error" alert title="Không tải được số liệu tổng quan"
@@ -71,16 +72,16 @@ export function OverviewTab() {
       <section className={styles.card} aria-labelledby="ov-agent">
         <div className={styles.cardHead}><h2 id="ov-agent">Theo từng agent</h2></div>
         <div className={`${styles.cardBody} ${styles.flush}`}>
-          <DataTable<(typeof s.agents)[number]> rowKey="agent" dataSource={s.agents} size="small" className={ledgerTable}
+          <DataTable<(typeof s.agents)[number]> rowKey="agent" dataSource={s.agents.filter((a) => a.tasks + a.errors + a.tool_calls > 0 || a.agent === 'planner')} size="small" className={ledgerTable}
             emptyTitle="Chưa có tác vụ nào hoàn tất"
             columns={[
               { title: 'Agent', dataIndex: 'agent', key: 'agent', render: (a: string) => <b>{agentName(a)}</b> },
-              { title: 'Lượt tham gia', dataIndex: 'tasks', key: 'tasks', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
+              { title: 'Lượt tham gia', dataIndex: 'tasks', key: 'tasks', align: 'right', className: ledgerNum, render: (n: number, row) => (row.agent === 'planner' && n === 0 ? <span className={styles.muted}>điều phối</span> : fmtInt(n)) },
               { title: 'Lỗi', dataIndex: 'errors', key: 'errors', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
               { title: 'Công cụ gọi', dataIndex: 'tool_calls', key: 'tool_calls', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
             ]}
           />
-          <p className={styles.muted} style={{ padding: '8px 16px' }}>Planner điều phối nên không nhận việc riêng. Số lượt tham gia của mỗi agent là số tác vụ nó đã xử lý.</p>
+          <p className={styles.muted} style={{ padding: '8px 16px' }}>Planner điều phối nên không nhận việc riêng. Số lượt tham gia của mỗi agent là số tác vụ nó đã xử lý.{s.agents.some((a) => a.agent === 'document' && a.tasks === 0 && a.errors > 0) && ' Lỗi của Document là lỗi đọc tài liệu khi hồ sơ không có tệp.'}</p>
         </div>
       </section>
 

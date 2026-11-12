@@ -57,9 +57,12 @@
 .navSep { height: 1px; background: rgba(255, 255, 255, .14); margin: var(--s3) var(--s2); }
 
 .topbar {
-  height: var(--topbar-h); flex: none; display: flex; align-items: center; gap: var(--s4); padding: 0 var(--s8);
-  background: var(--paper); border-bottom: 1px solid var(--rule);
+  height: var(--topbar-h); flex: none; background: var(--paper); border-bottom: 1px solid var(--rule);
 }
+/* Cùng bề rộng và lề với vùng nội dung để ô tìm kiếm thẳng mép trái trang ở màn rộng. */
+.topbarIn { height: 100%; max-width: 1480px; margin-inline: auto; display: flex; align-items: center; gap: var(--s4); padding: 0 var(--s8); }
+.topbarNarrow { max-width: 1280px; }
+.topbarFull { max-width: none; }
 .search {
   flex: 1; max-width: 460px; display: flex; align-items: center; gap: var(--s2); background: var(--surface);
   border: 1px solid var(--control); border-radius: var(--r-md); padding: 0 var(--s3); height: 34px;

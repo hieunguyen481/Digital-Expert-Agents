@@ -1,0 +1,13 @@
+.wrap { display: grid; gap: var(--s5); padding: var(--s6) var(--s8) 0; }
+.bare { padding: 0; }
+.title { height: 32px; width: 280px; max-width: 60%; }
+.kpis { display: grid; gap: var(--s4); }
+.kpi { height: 92px; }
+.block { height: 200px; }
+.title, .kpi, .block {
+  background: linear-gradient(90deg, var(--rule) 0%, var(--surface) 50%, var(--rule) 100%);
+  background-size: 200% 100%; border-radius: var(--r-md); animation: shimmer 1.4s ease-in-out infinite;
+}
+.kpi, .block { border: 1px solid var(--rule); }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .title, .kpi, .block { animation: none; } }

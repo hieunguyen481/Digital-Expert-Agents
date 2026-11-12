@@ -1,7 +1,8 @@
-import { Skeleton } from 'antd';
 import { Outlet, useLocation } from 'react-router-dom';
 import { uiRoleFromRoles } from '@/auth/roleFromMe';
 import { useMe } from '@/auth/session';
+import { getAuthenticatedClaims, getDemoSession } from '@/auth/keycloak';
+import { PageSkeleton } from '@/components/common/PageSkeleton';
 import { SHBLogo } from '@/components/common/SHBLogo';
 import { PageError } from '@/components/common/PageError';
 import { AiPanel } from '@/features/ai-panel/AiPanel';
@@ -28,7 +29,7 @@ function Frame({ me, role }: { me: NonNullable<ReturnType<typeof useMe>['data']>
       <DemoStrip isAdmin={me.roles.includes('admin')} />
       <Rail role={role} badge={role === 'quantri' ? undefined : work.data?.badge} onOpenAi={() => openWith()} />
       <div className={styles.mainCol}>
-        <Topbar me={me} role={role} />
+        <Topbar me={me} role={role} width={width} />
         <main id="main-content" tabIndex={-1} className={styles.content}>
           <div className={width === 'narrow' ? styles.pageNarrow : width === 'full' ? styles.pageFull : styles.pageWide}>
             <Outlet />
@@ -47,20 +48,26 @@ export function AppLayout() {
     return <PageError title="Không tải được hồ sơ người dùng" error={me.error} onRetry={() => void me.refetch()} />;
   }
   if (!me.data) {
-    // Khung ứng dụng và logo hiện ngay lúc tải đầu, nội dung là khung chờ.
+    // Khung ứng dụng hiện ngay lúc tải đầu: menu theo vai trong token, thanh trên và khung xương ở vùng nội dung.
+    const early = uiRoleFromRoles(getDemoSession()?.roles ?? (getAuthenticatedClaims()?.realm_access?.roles ?? []));
     return (
-      <div className={styles.layout} aria-busy>
-        <div className={styles.side} style={{ gridRow: '1 / -1' }}>
-          <div className={styles.brand}>
-            <SHBLogo variant="white" showProductName />
+      <div className={styles.layout} aria-busy data-testid="shell-loading">
+        {early ? (
+          <Rail role={early} onOpenAi={() => undefined} />
+        ) : (
+          <div className={styles.side} style={{ gridRow: '1 / -1' }}>
+            <div className={styles.brand}>
+              <SHBLogo variant="white" showProductName />
+            </div>
           </div>
-        </div>
+        )}
         <div className={styles.mainCol}>
-          <div className={styles.topbar} />
+          <div className={styles.topbar}>
+            <div className={styles.topbarIn}><div className={styles.search} aria-hidden /></div>
+          </div>
           <main id="main-content" className={styles.content}>
-            <div className={styles.skeletonWrap}>
-              <h1 className="sr-only">Đang tải</h1>
-              <Skeleton active />
+            <div className={styles.pageWide}>
+              <PageSkeleton />
             </div>
           </main>
         </div>

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
+import { PageSkeleton } from '@/components/common/PageSkeleton';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import { RequireAuth } from '@/auth/RequireAuth';
 import { Navigate } from 'react-router-dom';
@@ -45,12 +46,18 @@ const CustomerDetailPage = lazy(() => import('@/features/customers/CustomerDetai
 
 function HomeRedirect() {
   const me = useMe();
-  if (!me.data) return <LoadingScreen message="Đang tải" />;
+  if (!me.data) return <PageSkeleton />;
   return <Navigate to={uiRoleFromRoles(me.data.roles) === 'quantri' ? '/quan-tri' : '/viec-cua-toi'} replace />;
 }
 
+/** Trang đăng nhập (ngoài khung): màn khởi tạo đầy đủ. */
 function withSuspense(node: React.ReactNode) {
   return <Suspense fallback={<LoadingScreen message="Đang tải trang" />}>{node}</Suspense>;
+}
+
+/** Trang trong khung ứng dụng: thanh trên và menu giữ nguyên, chỉ vùng nội dung là khung xương. */
+function inShell(node: React.ReactNode) {
+  return <Suspense fallback={<PageSkeleton />}>{node}</Suspense>;
 }
 
 function protectedPage(node: React.ReactNode) {
@@ -66,22 +73,22 @@ export const routeObjects: RouteObject[] = [
     element: protectedPage(<AppLayout />),
     children: [
       { path: '/', element: <HomeRedirect /> },
-      { path: '/viec-cua-toi', element: withSuspense(<MyWorkPage />) },
-      { path: '/quan-tri', element: withSuspense(<AdminPage />) },
-      { path: '/de-xuat-vay', element: withSuspense(<NewProposalPage />) },
-      { path: '/de-xuat-vay/:loanId', element: withSuspense(<ProposalPage />) },
-      { path: '/ho-so-vay/:loanId', element: withSuspense(<LoanDetailPage />) },
-      { path: '/doi-chieu', element: withSuspense(<ReconciliationIndexPage />) },
-      { path: '/doi-chieu/:loanId', element: withSuspense(<ReconciliationPage />) },
-      { path: '/nhat-ky-kiem-toan', element: withSuspense(<AuditLogPage />) },
-      { path: '/tra-cuu-chinh-sach', element: withSuspense(<PolicyPage />) },
+      { path: '/viec-cua-toi', element: inShell(<MyWorkPage />) },
+      { path: '/quan-tri', element: inShell(<AdminPage />) },
+      { path: '/de-xuat-vay', element: inShell(<NewProposalPage />) },
+      { path: '/de-xuat-vay/:loanId', element: inShell(<ProposalPage />) },
+      { path: '/ho-so-vay/:loanId', element: inShell(<LoanDetailPage />) },
+      { path: '/doi-chieu', element: inShell(<ReconciliationIndexPage />) },
+      { path: '/doi-chieu/:loanId', element: inShell(<ReconciliationPage />) },
+      { path: '/nhat-ky-kiem-toan', element: inShell(<AuditLogPage />) },
+      { path: '/tra-cuu-chinh-sach', element: inShell(<PolicyPage />) },
       { path: '/chat', element: <ChatPage /> },
-      { path: '/dashboard', element: withSuspense(<AgentDashboardPage />) },
-      { path: '/thong-bao', element: withSuspense(<NotificationsPage />) },
-      { path: '/khach-hang', element: withSuspense(<CustomerListPage />) },
-      { path: '/customer/:id', element: withSuspense(<CustomerDetailPage />) },
-      ...(import.meta.env.DEV ? [{ path: '/foundation', element: withSuspense(<FoundationPage />) }] : []),
-      { path: '*', element: withSuspense(<NotFoundPage />) },
+      { path: '/dashboard', element: inShell(<AgentDashboardPage />) },
+      { path: '/thong-bao', element: inShell(<NotificationsPage />) },
+      { path: '/khach-hang', element: inShell(<CustomerListPage />) },
+      { path: '/customer/:id', element: inShell(<CustomerDetailPage />) },
+      ...(import.meta.env.DEV ? [{ path: '/foundation', element: inShell(<FoundationPage />) }] : []),
+      { path: '*', element: inShell(<NotFoundPage />) },
     ],
   },
 ];
