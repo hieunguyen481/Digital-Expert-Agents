@@ -413,7 +413,7 @@ export function dedupeConditions(list: string[]): string[] {
       const [a, b] = k.tok.size <= cur.tok.size ? [k.tok, cur.tok] : [cur.tok, k.tok];
       if (a.size < 3) return false;
       let hit = 0; a.forEach((w) => { if (b.has(w)) hit += 1; });
-      return hit / a.size >= 0.75;
+      return hit / a.size >= 0.5;
     });
     if (!dup) kept.push(cur);
   }
