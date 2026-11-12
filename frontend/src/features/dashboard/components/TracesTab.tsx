@@ -119,7 +119,12 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
           ]}
         />
       )}
-      <CaseTrace caseId={open} onClose={() => setOpen(null)} />
+      <CaseTrace caseId={open} onClose={() => {
+        const id = open;
+        setOpen(null);
+        // Esc/đóng trả focus về dòng đã mở thay vì để rơi ra BODY.
+        if (id) setTimeout(() => document.querySelector<HTMLElement>(`[data-testid="case-row-${id}"]`)?.focus(), 0);
+      }} />
     </section>
   );
 }

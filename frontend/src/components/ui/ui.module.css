@@ -31,7 +31,7 @@
 .info { background: var(--info-100); color: var(--info-700); }
 .ai { background: var(--ai-100); color: var(--ai-700); }
 .human { background: var(--navy-700); color: #fff; }
-.flag { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-12); font-weight: 600; }
+.flag { display: inline-flex; white-space: nowrap; align-items: center; gap: 6px; font-size: var(--fs-12); font-weight: 600; }
 .flag i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; transform: rotate(45deg); background: currentColor; }
 .flagG { color: var(--ok-700); }
 .flagY { color: var(--warn-700); }

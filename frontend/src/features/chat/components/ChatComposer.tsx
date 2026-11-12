@@ -66,6 +66,9 @@ export function ChatComposer({
   const [slashIndex, setSlashIndex] = useState(0);
 
   // Huỷ mọi upload đang chạy khi composer unmount.
+  const shellRef = useRef<HTMLDivElement>(null);
+  // Sender chỉ đặt aria-label lên khung bọc; ô nhập thật cần tên riêng (4.1.2).
+  useEffect(() => { shellRef.current?.querySelector('textarea')?.setAttribute('aria-label', 'Câu hỏi cho trợ lý'); });
   const uploadControllersRef = useRef(new Map<string, AbortController>());
 
   useEffect(() => {
@@ -248,7 +251,7 @@ export function ChatComposer({
             )}
           </AnimatePresence>
 
-          <div className={styles.composerShell}>
+          <div className={styles.composerShell} ref={shellRef}>
           <Sender
             className={styles.sender}
             value={value}
