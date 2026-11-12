@@ -51,3 +51,8 @@ export function splitSourceCode(t: string): { text: string; code: string | null 
   if (suf) return { text: suf[1], code: suf[2] };
   return { text: t, code: null };
 }
+
+/** Tên tài liệu cho người đọc: bỏ tiền tố mã loại ("DKKD · Giấy phép" → "Giấy phép"). */
+export function docTitle(title: string | null | undefined, fallback: string): string {
+  return title ? splitSourceCode(title).text : fallback;
+}

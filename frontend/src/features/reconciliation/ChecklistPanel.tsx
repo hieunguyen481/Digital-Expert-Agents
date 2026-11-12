@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { StatusPill } from '@/components/ui';
 import { getErrorMessage } from '@/services/apiClient';
+import { docTitle } from './fieldLabels';
 import { checkItem, removeReconDocument } from './reconciliationService';
 import type { ReconView } from './types';
 import styles from './reconciliation.module.css';
@@ -21,7 +22,7 @@ interface Props {
 
 export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Props) {
   const qc = useQueryClient();
-  const titles = new Map(view.documents.map((d) => [d.document_id, d.title ?? d.document_type]));
+  const titles = new Map(view.documents.map((d) => [d.document_id, docTitle(d.title, d.document_type)]));
   const [failing, setFailing] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const check = useMutation({

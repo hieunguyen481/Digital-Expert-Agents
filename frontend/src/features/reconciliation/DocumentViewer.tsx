@@ -6,7 +6,7 @@ import { getErrorMessage } from '@/services/apiClient';
 import { confirmField, fetchPageImageUrl, fetchReconDocument } from './reconciliationService';
 import { fieldStatusLabel, highlightStyle, needsHuman } from './fieldStatus';
 import type { ReconField } from './types';
-import { fieldLabel, fieldValueText, splitSourceCode } from './fieldLabels';
+import { docTitle, fieldLabel, fieldValueText, splitSourceCode } from './fieldLabels';
 import styles from './reconciliation.module.css';
 
 interface Props {
@@ -79,7 +79,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
 
   return (
     <section className={styles.panel} aria-label="Tài liệu đang xem">
-      <h2>{doc.title ?? doc.document_type}</h2>
+      <h2>{docTitle(doc.title, doc.document_type)}</h2>
       {(q.data.warnings ?? []).map((w) => (
         <Alert key={w} type="warning" showIcon data-testid="customer-mismatch" style={{ marginBottom: 8 }}
           message="Tài liệu có thể không thuộc khách hàng của hồ sơ" description={w} />
@@ -116,7 +116,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
       ) : (
       <div className={styles.pageFrame} data-testid="page-frame" aria-label={`Trang ${page}`}
         data-source={doc.data_source} style={img.data ? { aspectRatio: 'auto' } : { aspectRatio: 'auto', minHeight: 240 }}>
-        {img.data && <img src={img.data} alt={`Trang ${page} của ${doc.title ?? 'tài liệu'}`} className={styles.pageImage} />}
+        {img.data && <img src={img.data} alt={`Trang ${page} của ${docTitle(doc.title, 'tài liệu')}`} className={styles.pageImage} />}
         {onPage.map((f) => {
           const style = highlightStyle(f);
           if (!style) return null;
