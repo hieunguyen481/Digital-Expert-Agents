@@ -101,6 +101,19 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
           ))}
         </Space>
       )}
+      {!hasImage && !img.data ? (
+        <div className={styles.pageEmpty} data-testid="page-frame" aria-label={`Trang ${page}`} data-source={doc.data_source}>
+          <span className={styles.note}>Chưa có ảnh trang. Chọn một trường trích xuất để xem giá trị và nguồn.</span>
+          <div className={styles.chipRow}>
+            {onPage.map((f) => (
+              <button key={f.field_id} type="button" className={styles.fieldChip} aria-pressed={f.field_id === selectedFieldId}
+                aria-label={`Vùng tô: ${fieldLabel(f.field_name)}`} data-testid={`region-${f.field_id}`} onClick={() => onSelect(f.field_id)}>
+                {fieldLabel(f.field_name)}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
       <div className={styles.pageFrame} data-testid="page-frame" aria-label={`Trang ${page}`}
         data-source={doc.data_source} style={img.data ? { aspectRatio: 'auto' } : { aspectRatio: 'auto', minHeight: 240 }}>
         {img.data && <img src={img.data} alt={`Trang ${page} của ${doc.title ?? 'tài liệu'}`} className={styles.pageImage} />}
@@ -127,6 +140,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
           );
         })}
       </div>
+      )}
       <p className={styles.note} data-testid="source-note">
         {doc.data_source === 'PIPELINE'
           ? 'Nguồn: tệp tải lên, trường do AI trích từ lớp chữ của PDF; vùng tô là vị trí dòng nguồn trên trang.'

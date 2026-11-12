@@ -34,3 +34,9 @@
 .noteBar { margin: 0; padding: var(--s2) var(--s4); border-left: 3px solid var(--navy-700); background: var(--surface); border-radius: var(--r-sm); color: var(--ink-2); font-size: var(--fs-13); }
 
 .srcCode { font: 400 var(--fs-12) var(--font-num); color: var(--ink-3); background: none; padding: 0; }
+.pageEmpty { display: flex; flex-direction: column; gap: var(--s2); padding: var(--s3); background: var(--paper-2); border: 1px solid var(--rule-strong); border-radius: var(--r-sm); }
+.chipRow { display: flex; flex-wrap: wrap; gap: var(--s1); }
+.fieldChip { font: inherit; font-size: var(--fs-13); padding: 2px 10px; border: 1px solid var(--rule-strong); border-radius: 999px; background: var(--paper); color: var(--ink); cursor: pointer; }
+.fieldChip:hover { border-color: var(--bronze-700); }
+.fieldChip[aria-pressed='true'] { border-color: var(--bronze-700); background: rgba(176, 138, 62, 0.22); font-weight: 600; }
+.fieldChip:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
