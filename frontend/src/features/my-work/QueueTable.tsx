@@ -1,3 +1,4 @@
+import { LoanCode, loanCodeLabel } from '@/components/common/CodeText';
 import { ThunderboltOutlined } from '@ant-design/icons';
 import { Button, Segmented, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -48,7 +49,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
             <Link to={`/ho-so-vay/${r.loan_application_id}`}>{customerLabel(r.customer_name)}</Link>
             {!r.mine && !showHolder && <StatusPill>Theo dõi</StatusPill>}
           </div>
-          <div className={styles.id}>{r.application_number}</div>
+          <div className={styles.id}><LoanCode code={r.application_number} status={r.status} /></div>
         </div>
       ),
     },
@@ -105,7 +106,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
         const a = rowAction(r);
         return (
           <div className={styles.rowAct}>
-            <Button size="small" type={r.loan_application_id === firstMine ? 'primary' : 'default'} onClick={() => navigate(a.to)} aria-label={`${a.label} ${r.application_number}`}>
+            <Button size="small" type={r.loan_application_id === firstMine ? 'primary' : 'default'} onClick={() => navigate(a.to)} aria-label={`${a.label} ${loanCodeLabel(r.application_number, r.status)}`}>
               {a.label}
             </Button>
             {hasAi && (
@@ -113,10 +114,10 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
                 size="small"
                 type="text"
                 icon={<ThunderboltOutlined />}
-                aria-label={`Hỏi trợ lý về ${r.application_number}`}
+                aria-label={`Hỏi trợ lý về ${loanCodeLabel(r.application_number, r.status)}`}
                 title="Hỏi trợ lý"
                 onClick={() =>
-                  openWith({ type: 'case', id: r.loan_application_id, label: `${r.application_number} · ${customerLabel(r.customer_name)}` })
+                  openWith({ type: 'case', id: r.loan_application_id, label: `${loanCodeLabel(r.application_number, r.status)} · ${customerLabel(r.customer_name)}` })
                 }
               />
             )}

@@ -163,6 +163,7 @@ class AuditRepository:
             """
             SELECT ae.*, actor.full_name AS actor_name,
                    loan.application_number AS loan_application_number,
+                   loan.status AS loan_status,
                    count(*) OVER () AS total_count
             FROM audit.audit_event AS ae
             LEFT JOIN identity.employee AS actor ON actor.id = ae.actor_id

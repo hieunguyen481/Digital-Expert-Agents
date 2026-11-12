@@ -1,3 +1,4 @@
+import { loanCodeLabel } from '@/components/common/CodeText';
 import { Alert, Button, Skeleton } from 'antd';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -34,9 +35,9 @@ function Editor({ loanId }: { loanId: string }) {
 
   const head = (
     <PageHead
-      title={draft ? `Đề xuất vay · ${draft.customer_name ?? draft.application_number}` : 'Đề xuất vay'}
-      facts={[`Bước ${SECTIONS.findIndex((s) => s.key === section) + 1} trên ${SECTIONS.length}: ${SECTIONS.find((s) => s.key === section)?.label}`, draft?.application_number, draft ? (draft.status === 'DRAFT' ? 'Bản nháp' : statusLabel(draft.status)) : null]}
-      crumbs={[{ label: 'Việc của tôi', to: '/viec-cua-toi' }, { label: draft?.application_number ?? 'Đề xuất' }, { label: 'Soạn đề xuất' }]}
+      title={draft ? `Đề xuất vay · ${draft.customer_name ?? loanCodeLabel(draft.application_number, draft.status)}` : 'Đề xuất vay'}
+      facts={[`Bước ${SECTIONS.findIndex((s) => s.key === section) + 1} trên ${SECTIONS.length}: ${SECTIONS.find((s) => s.key === section)?.label}`, draft ? loanCodeLabel(draft.application_number, draft.status) : null, draft ? (draft.status === 'DRAFT' ? 'Bản nháp' : statusLabel(draft.status)) : null]}
+      crumbs={[{ label: 'Việc của tôi', to: '/viec-cua-toi' }, { label: draft ? loanCodeLabel(draft.application_number, draft.status) : 'Đề xuất' }, { label: 'Soạn đề xuất' }]}
       onAskAi={() => openWith({ type: 'session', id: 'proposal', label: 'Đề xuất đang soạn' })}
       actions={
         <>

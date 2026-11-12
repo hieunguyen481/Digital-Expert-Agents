@@ -1,3 +1,4 @@
+import { LoanCode, loanCodeLabel } from '@/components/common/CodeText';
 import { Alert, Skeleton, Table } from 'antd';
 import { Link } from 'react-router-dom';
 import { RequireRole } from '@/auth/RequireRole';
@@ -27,7 +28,7 @@ export default function ReconciliationIndexPage() {
             className={ledgerTable} rowKey="loan_application_id" pagination={false} aria-label="Hồ sơ cần đối chiếu"
             dataSource={[...q.data.items].sort((a, b) => (a.due_at ?? '9').localeCompare(b.due_at ?? '9'))}
             columns={[
-              { title: 'Hồ sơ', render: (_, r) => <Link className={styles.ledgerLink} to={`/doi-chieu/${r.loan_application_id}`}>{r.application_number}</Link> },
+              { title: 'Hồ sơ', render: (_, r) => <Link className={styles.ledgerLink} to={`/doi-chieu/${r.loan_application_id}`}><LoanCode code={r.application_number} status={r.status} /></Link> },
               { title: 'Khách hàng', render: (_, r) => customerLabel(r.customer_name) },
               { title: 'Bước', render: (_, r) => stepLabel(r.step_code) },
               { title: 'Hạn', render: (_, r) => {

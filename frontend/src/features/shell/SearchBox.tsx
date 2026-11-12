@@ -1,3 +1,4 @@
+import { loanCodeLabel } from '@/components/common/CodeText';
 import { SearchOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
@@ -76,7 +77,7 @@ export function SearchBox() {
           {data && data.loans.length > 0 && <div className={styles.searchGroup} role="presentation">Hồ sơ vay</div>}
           {data?.loans.map((l) => (
             <Link key={l.loan_application_id} id={`search-opt-l-${l.loan_application_id}`} role="option" aria-selected={activeId === `search-opt-l-${l.loan_application_id}`} tabIndex={-1} to={`/ho-so-vay/${l.loan_application_id}`} className={styles.searchItem} onClick={close}>
-              <b className={styles.searchCode}>{l.application_number}</b> <span>{l.customer_name}</span>
+              <b className={styles.searchCode}>{loanCodeLabel(l.application_number, l.status)}</b> <span>{l.customer_name}</span>
             </Link>
           ))}
           {data && data.customers.length > 0 && <div className={styles.searchGroup} role="presentation">Khách hàng</div>}

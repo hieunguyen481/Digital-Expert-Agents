@@ -10,7 +10,7 @@ import type { ApiError } from '@/types/api';
 import { formatBillion } from '@/features/my-work/format';
 import { formatDate } from '@/utils/formatDate';
 import { customerName, customerStatusLabel, kycInfo, riskInfo, segmentLabel, type CustomerRow } from './customerFormat';
-import { CodeText } from '@/components/common/CodeText';
+import { LoanCode } from '@/components/common/CodeText';
 import styles from './customers.module.css';
 
 interface LoanRow {
@@ -93,7 +93,7 @@ export default function CustomerDetailPage() {
                 dataSource={loans.data}
                 aria-label="Hồ sơ vay của khách hàng"
                 columns={[
-                  { title: 'Mã hồ sơ', render: (_, r) => <Link className={styles.link} to={`/ho-so-vay/${r.id}`}><CodeText>{r.application_number}</CodeText></Link> },
+                  { title: 'Mã hồ sơ', render: (_, r) => <Link className={styles.link} to={`/ho-so-vay/${r.id}`}><LoanCode code={r.application_number} status={r.status} /></Link> },
                   { title: 'Số tiền', align: 'right', className: ledgerNum, render: (_, r) => formatBillion(r.requested_amount) },
                   { title: 'Kỳ hạn', align: 'right', className: ledgerNum, render: (_, r) => `${r.requested_term_months} tháng` },
                   { title: 'Trạng thái', render: (_, r) => <StatusPill>{statusLabel(r.status)}</StatusPill> },

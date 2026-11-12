@@ -1,3 +1,4 @@
+import { loanCodeLabel } from '@/components/common/CodeText';
 import { Alert, Skeleton } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
@@ -31,15 +32,16 @@ function Workspace({ loanId }: { loanId: string }) {
   if (q.isError) return <PageError title="Không tải được hồ sơ" error={normalizeError(q.error)} onRetry={() => void q.refetch()} />;
   if (!q.data) return <div className={styles.page} aria-busy><Skeleton active /></div>;
   const view = q.data;
+  const code = loanCodeLabel(view.application_number, view.status);
   const openDocument = (id: string) => { setDocumentId(id); setFieldId(null); };
   const current = documentId ?? view.documents[0]?.document_id ?? null;
 
   return (
     <>
       <PageHead
-        title={`Đối chiếu tài liệu · ${view.customer_name ?? view.application_number}`}
-        facts={[view.application_number, statusLabel(view.status)]}
-        crumbs={[{ label: 'Việc của tôi', to: '/viec-cua-toi' }, { label: view.application_number, to: `/ho-so-vay/${loanId}` }, { label: 'Đối chiếu tài liệu' }]}
+        title={`Đối chiếu tài liệu · ${view.customer_name ?? code}`}
+        facts={[code, statusLabel(view.status)]}
+        crumbs={[{ label: 'Việc của tôi', to: '/viec-cua-toi' }, { label: code, to: `/ho-so-vay/${loanId}` }, { label: 'Đối chiếu tài liệu' }]}
       />
       <div className={styles.page}>
         <p className={styles.noteBar} data-testid="recon-note">

@@ -1,3 +1,4 @@
+import { loanCodeLabel } from '@/components/common/CodeText';
 import { Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import { CaseStepper, StatusPill } from '@/components/ui';
@@ -70,7 +71,7 @@ export function LoanHeader({ overview, todoCount }: { overview: LoanOverview; to
   const returnedFrom = loan.status === 'RETURNED_TO_RM' ? reachedStage(timeline) : 0;
   const approved = loan.decision_type !== 'REJECTED' && loan.approved_amount != null && Number(loan.approved_amount) > 0;
   const facts: Array<[string, string, boolean?]> = [
-    ['Mã hồ sơ', loan.application_number, true],
+    ['Mã hồ sơ', loanCodeLabel(loan.application_number, loan.status), !/^LA-/.test(loan.application_number) || loan.status !== 'DRAFT'],
     ['Số tiền', `${fmtNum(Number(loan.requested_amount) / 1e9)} tỷ ${currencyWord(loan.currency)}`, true],
   ];
   if (loan.requested_term_months) facts.push(['Kỳ hạn', `${loan.requested_term_months} tháng`, true]);
@@ -79,11 +80,11 @@ export function LoanHeader({ overview, todoCount }: { overview: LoanOverview; to
   return (
     <div data-testid="loan-header">
       <nav aria-label="Đường dẫn" className={styles.crumb}>
-        <Link to="/viec-cua-toi">Việc của tôi</Link> / <span aria-current="page">Hồ sơ {loan.application_number}</span>
+        <Link to="/viec-cua-toi">Việc của tôi</Link> / <span aria-current="page">Hồ sơ {loanCodeLabel(loan.application_number, loan.status)}</span>
       </nav>
       <div className={styles.headRow}>
         <div className={styles.headTitle}>
-          <Typography.Title level={1}>{loan.customer_name ?? loan.application_number}</Typography.Title>
+          <Typography.Title level={1}>{loan.customer_name ?? loanCodeLabel(loan.application_number, loan.status)}</Typography.Title>
           <dl className={styles.meta}>
             {facts.map(([k, v, mono]) => (
               <div key={k}><dt>{k}: </dt><dd className={mono ? styles.num : undefined}>{v}</dd></div>
