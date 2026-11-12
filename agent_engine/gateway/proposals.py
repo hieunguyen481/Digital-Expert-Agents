@@ -49,7 +49,9 @@ def is_pre_decision(text: str) -> bool:
 
 
 _STOP = {"và", "của", "các", "cho", "khi", "là", "có", "được", "theo", "bổ", "sung", "cung", "cấp", "hoàn", "thiện", "nộp",
-         "xác", "minh", "đối", "soát", "chiếu", "trước", "giải", "ngân"}
+         "xác", "minh", "đối", "soát", "chiếu", "trước", "giải", "ngân",
+         # chữ khung của câu điều kiện (không nói về đối tượng): "thông tin ... hoàn tất", "(không chặn trình)", "chưa có trong hồ sơ"
+         "thông", "tin", "tất", "không", "chặn", "chưa", "trong", "hồ", "sơ"}
 
 
 def _tokens(t: str) -> set[str]:

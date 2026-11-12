@@ -139,3 +139,16 @@ def test_dedupe_items_one_card_per_content():
     out = dedupe_items([mk("request_documents", "t", documents=["Giấy phép kinh doanh", "Hợp đồng thuê"])], have)
     assert out[0]["params"]["documents"] == ["Hợp đồng thuê"]
     assert dedupe_items([mk("request_documents", "t", documents=["Giấy phép kinh doanh"])], have) == []
+
+
+def test_dedupe_dieu_kien_nguoi_dai_dien_khac_chu():
+    from gateway.proposals import dedupe_items
+
+    def cond(t):
+        return {"kind": "add_disbursement_condition", "title": t, "params": {"text": t}}
+
+    out = dedupe_items([
+        cond("Bổ sung thông tin người đại diện và hoàn tất xác minh trước giải ngân"),
+        cond("Bổ sung trước giải ngân (không chặn trình): người đại diện pháp luật chưa có trong hồ sơ"),
+    ])
+    assert len(out) == 1
