@@ -98,7 +98,7 @@ describe('parseAiText và dedupeConditions', () => {
     const v = (decision: string, summary: string) => ({ agent: 'x', decision, summary });
     const out = fallbackConclusion('Needs Info', [
       v('pass', 'Điều kiện vận hành đạt.'),
-      v('need_more_info', 'Chưa có kết quả CIC cho khách hàng này; cần tra cứu'),
+      v('need_more_info', 'Chưa có kết quả CIC cho khách hàng này, cần tra cứu'),
       v('need_more_info', 'Chưa có BCTC kiểm toán bắt buộc vì tổng dư nợ vượt 20 tỷ'),
       v('need_more_info', 'Chưa có kết quả sàng lọc AML của khách hàng'),
       v('need_more_info', 'Thông tin thứ tư không nên hiện ra'),
