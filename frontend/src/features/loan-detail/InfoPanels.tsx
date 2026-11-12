@@ -47,7 +47,6 @@ export function CollateralPanel({ items }: { items: Collateral[] }) {
       <div className={styles.cardH}><h2>Tài sản bảo đảm</h2></div>
       <Table<Collateral>
         className={ledgerTable} rowKey="id" size="small" pagination={false} dataSource={items} locale={{ emptyText: 'Chưa có tài sản bảo đảm' }}
-        scroll={{ x: 'max-content' }}
         columns={[
           { title: 'Tài sản', render: (_, r) => <div>{r.description ?? r.collateral_type}<span className={styles.src}>Chủ sở hữu: {r.owner_name}</span></div> },
           { title: 'Giá trị khai báo', align: 'right', className: ledgerNum, render: (_, r) => fmtMoney(r.declared_value, r.currency) },

@@ -1,5 +1,5 @@
 .noAccessWrap { padding: 12px 32px; }
-.noAccessHead { margin: 0 0 24px; font: 600 var(--fs-20)/1.3 var(--font-display) !important; }
+.noAccessHead { margin: 0 0 24px; font: 600 var(--fs-20)/1.3 var(--font-display); }
 .noAccess {
   max-width: 520px;
   margin: 48px auto;

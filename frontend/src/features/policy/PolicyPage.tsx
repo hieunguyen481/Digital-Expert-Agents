@@ -1,3 +1,4 @@
+import { CloseCircleFilled } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Input, Table } from 'antd';
 import { useState } from 'react';
@@ -38,7 +39,7 @@ function PolicyContent() {
         <div className={styles.card}>
           <label className={styles.searchLabel} htmlFor="policy-q">Từ khóa</label>
           <Input.Search
-            id="policy-q" aria-label="Tìm điều khoản" placeholder="Ví dụ: DSCR, tài sản bảo đảm" allowClear enterButton="Tìm"
+            id="policy-q" aria-label="Tìm điều khoản" placeholder="Ví dụ: DSCR, tài sản bảo đảm" allowClear={{ clearIcon: <CloseCircleFilled aria-label="Xóa từ khóa" /> }} enterButton="Tìm"
             value={term} onChange={(e) => { setTerm(e.target.value); if (!e.target.value) setQuery(''); }}
             onSearch={(v) => setQuery(v.trim())}
           />

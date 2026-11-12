@@ -1,5 +1,5 @@
 import { InboxOutlined, SettingOutlined } from '@ant-design/icons';
-import { Button, Typography } from 'antd';
+import { Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import type { UiRole } from '@/auth/roleFromMe';
 import { StateBlock } from '@/components/ui/StateBlock';
@@ -23,12 +23,11 @@ export function NoAccess({ role, pageName = 'Việc của tôi' }: NoAccessProps
 
   return (
     <div className={styles.noAccessWrap}>
-      <Typography.Title level={1} className={styles.noAccessHead}>
-        {pageName}
-      </Typography.Title>
+      <p className={styles.noAccessHead}>{pageName}</p>
       <StateBlock
         kind="forbidden"
         alert
+        headingLevel={1}
         title={title}
         description={reason}
         action={

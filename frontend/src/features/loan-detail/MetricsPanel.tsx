@@ -40,7 +40,7 @@ export function KpiStrip({ amountBillion, currency, termMonths, metrics }: { amo
   const ltv = pick('ltv');
   return (
     <div className={styles.strip} role="group" aria-label="Chỉ số chính">
-      <KpiCard hero label={`Đề nghị, tỷ ${currencyWord(currency)}`} value={fmtNum(amountBillion)} />
+      <KpiCard label={`Đề nghị, tỷ ${currencyWord(currency)}`} value={fmtNum(amountBillion)} />
       {termMonths != null && <KpiCard label="Kỳ hạn, tháng" value={String(termMonths)} />}
       {[dscr, ltv].map((x) => x && <KpiCard key={x.m.code} label={`${x.m.label}${x.m.unit ? `, ${x.m.unit}` : ''}`} value={`${x.v.kind === 'RECOMPUTED' ? '≈ ' : ''}${fmtNum(x.v.value_number)}`} />)}
     </div>

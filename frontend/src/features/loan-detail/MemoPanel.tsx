@@ -63,7 +63,7 @@ function PdfButton({ loanId, revision }: { loanId: string; revision: number | nu
       <Button data-testid="memo-pdf" disabled={locked} loading={busy} onClick={() => void click()}>
         {locked ? 'Tải PDF' : 'Tải PDF bản chốt mới nhất'}
       </Button>
-      {locked && <span className={styles.note} data-testid="memo-pdf-reason"> Chưa xuất được: Tờ trình chưa được chốt khi trình.</span>}
+      {locked && <div className={styles.note} data-testid="memo-pdf-reason" style={{ fontSize: 'var(--fs-13)', marginTop: 'var(--s2)' }}>Chưa xuất được: Tờ trình chưa được chốt khi trình.</div>}
       {error && <span role="alert" className={styles.note}> {error}</span>}
     </div>
   );
