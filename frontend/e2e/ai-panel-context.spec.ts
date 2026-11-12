@@ -33,7 +33,7 @@ for (const role of ['tdinh', 'pheduyet'] as RoleKey[]) {
       const token = name.split(/\s+/).pop()!.replace(/[^\p{L}\p{N}]/gu, '');
       const box = page.getByPlaceholder(/Hỏi về hồ sơ, chính sách/).last();
       const resp = page.waitForResponse((r) => /\/conversations\/[^/]+\/messages$/.test(r.url()) && r.request().method() === 'POST', { timeout: 120_000 });
-      await box.fill('EBITDA năm 2025 của khách hàng trong hồ sơ này là bao nhiêu?');
+      await box.fill('Hồ sơ này của doanh nghiệp nào, đề nghị vay bao nhiêu?');
       await page.getByRole('button', { name: 'Gửi' }).last().click();
       const r = await resp;
       expect(r.ok(), await r.text()).toBe(true);
