@@ -82,7 +82,7 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   for (const code of ['dscr', 'debt', 'cfo']) {
     const conflict = page.getByTestId(`conflict-${code}`);
     await conflict.locator('input[type="radio"]').first().check({ force: true });
-    await conflict.getByLabel('Lý do chốt nguồn').fill(`Chốt nguồn ${code} (e2e 11)`);
+    await conflict.getByLabel('Lý do chốt nguồn').fill(`Chốt nguồn ${code}: số liệu khớp báo cáo đã kiểm toán`);
     await conflict.getByRole('button', { name: 'Chốt nguồn này' }).click();
     await expect(conflict).toContainText('Đã chốt nguồn');
   }
@@ -95,7 +95,7 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
       const detail = await svc.fetchReconDocument(loanId, d.document_id);
       for (const f of detail.fields) {
         if (f.verification_status === 'AI_PROPOSED' || f.verification_status === 'NEEDS_VERIFICATION') {
-          await svc.confirmField(f.field_id, 'Đã đối chiếu với tài liệu gốc (e2e 11)');
+          await svc.confirmField(f.field_id, 'Đã đối chiếu với tài liệu gốc');
           n++;
         }
       }

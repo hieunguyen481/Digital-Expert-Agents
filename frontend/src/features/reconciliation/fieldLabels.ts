@@ -1,3 +1,4 @@
+import { stripSampleMark } from '@/utils/sampleMark';
 /** Nhãn tiếng Việt cho khóa trường trích xuất (L06). Dùng chung cho vùng tô, danh sách trường, thẻ trường, xung đột. */
 const FIELD_LABEL: Record<string, string> = {
   company_name: 'Tên doanh nghiệp', tax_code: 'Mã số thuế', legal_representative: 'Người đại diện pháp luật',
@@ -55,6 +56,7 @@ export function splitSourceCode(t: string): { text: string; code: string | null 
 /** Tên tài liệu cho người đọc: bỏ tiền tố mã loại ("DKKD · Giấy phép" → "Giấy phép"). */
 export function docTitle(title: string | null | undefined, fallback: string): string {
   if (!title) return fallback;
+  title = stripSampleMark(title);
   const m = title.match(/^[A-Z0-9][A-Z0-9-]+\s·\s(.+)$/);
   return m ? m[1] : splitSourceCode(title).text;
 }
@@ -63,6 +65,8 @@ const norm = (t: string) => t.toLowerCase().replace(/\([^)]*\)/g, '').replace(/[
 
 /** Nút mở tài liệu trong một mục danh mục: tên trùng tên mục (chỉ khác hậu tố "(minh họa)") thì không lặp lại, ghi việc nút làm. */
 export function docButtonLabel(title: string, itemLabel: string): string {
-  const clean = title.replace(/\s*\((?:minh họa|mẫu)\)\s*$/i, '').trim();
+  const clean = stripSampleMark(title);
   return norm(clean) === norm(itemLabel) ? 'Xem tài liệu đã nộp' : clean;
 }
+
+export { stripSampleMark };

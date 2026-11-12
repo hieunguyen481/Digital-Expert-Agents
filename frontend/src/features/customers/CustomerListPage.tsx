@@ -68,7 +68,7 @@ export default function CustomerListPage() {
                 { title: 'Phân khúc', render: (_, r) => segmentLabel(r.customer_segment) ?? <span className={styles.muted}>Chưa có</span> },
                 { title: 'Xác minh KYC', render: (_, r) => { const [l, t] = kycInfo(r.kyc_status); return <StatusPill tone={t}>{l}</StatusPill>; } },
                 ...(q.data.items.some((r) => riskInfo(r.risk_rating))
-                  ? [{ title: 'Mức rủi ro', render: (_: unknown, r: CustomerRow) => { const k = riskInfo(r.risk_rating); return k ? <StatusPill tone={k[1]}>{k[0]}</StatusPill> : <span className={styles.muted}>Chưa xếp hạng</span>; } }]
+                  ? [{ title: 'Mức rủi ro', render: (_: unknown, r: CustomerRow) => { const k = riskInfo(r.risk_rating); return k ? <StatusPill tone={k[1]}>{k[0]}</StatusPill> : <span className={styles.muted} role="img" aria-label="Chưa xếp hạng">—</span>; } }]
                   : []),
                 { title: 'Cập nhật', render: (_, r) => <span className={styles.id}>{formatDate(r.updated_at)}</span> },
               ]}

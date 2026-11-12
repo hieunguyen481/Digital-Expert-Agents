@@ -1,3 +1,4 @@
+import { stripSampleMark } from '@/utils/sampleMark';
 import { Table } from 'antd';
 import { AiBlock, Flag as FlagMark, Timeline, ledgerNum, ledgerTable, type TimelineEntry } from '@/components/ui';
 import { conclusionLabel, flagSourceLabel, flagStatusLabel, fmtDate, fmtMoney, ownershipLabel, severityLabel, stepResultLabel, valuationLabel } from './format';
@@ -49,7 +50,7 @@ export function CollateralPanel({ items }: { items: Collateral[] }) {
       <Table<Collateral>
         className={ledgerTable} rowKey="id" size="small" pagination={false} dataSource={items} locale={{ emptyText: 'Chưa có tài sản bảo đảm' }}
         columns={[
-          { title: 'Tài sản', render: (_, r) => <div>{r.description ?? r.collateral_type}<span className={styles.src}>Chủ sở hữu: {r.owner_name}</span></div> },
+          { title: 'Tài sản', render: (_, r) => <div>{r.description ? stripSampleMark(r.description) : r.collateral_type}<span className={styles.src}>Chủ sở hữu: {r.owner_name}</span></div> },
           { title: 'Giá trị khai báo', align: 'right', className: ledgerNum, render: (_, r) => fmtMoney(r.declared_value, r.currency) },
           { title: 'Giá trị thẩm định', align: 'right', className: ledgerNum, render: (_, r) => fmtMoney(r.appraised_value, r.currency) },
           { title: 'Định giá', render: (_, r) => <div>{valuationLabel(r.valuation_status)}<span className={styles.src}>{fmtDate(r.valuation_date)} · sở hữu: {ownershipLabel(r.ownership_verification_status)}</span></div> },

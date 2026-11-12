@@ -64,7 +64,7 @@ test('tdinh: mâu thuẫn DSCR hiện cả hai nguồn, chốt nguồn có lý d
   await conflict.getByRole('button', { name: 'Xem vùng tô trong tài liệu' }).first().click();
   await expect(page.locator('[aria-pressed="true"][data-testid^="region-"]')).toHaveCount(1);
 
-  const reason = `Dùng EBITDA đã kiểm toán (e2e ${Date.now()})`;
+  const reason = `Dùng EBITDA đã kiểm toán, đối chiếu lúc ${new Date().toLocaleTimeString("vi-VN")}`;
   const save = conflict.getByRole('button', { name: 'Chốt nguồn này' });
   await expect(save).toBeDisabled();
   await conflict.getByText('1,76').first().click();

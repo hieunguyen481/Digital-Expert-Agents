@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { docButtonLabel, fieldLabel, fieldValueText } from './fieldLabels';
+import { docButtonLabel, docTitle, stripSampleMark, fieldLabel, fieldValueText } from './fieldLabels';
 
 describe('fieldLabel (L06)', () => {
   it('trả nhãn tiếng Việt, không lộ khóa tiếng Anh', () => {
@@ -22,5 +22,13 @@ describe('docButtonLabel', () => {
   });
   it('tên khác tên mục thì giữ tên, bỏ hậu tố minh họa', () => {
     expect(docButtonLabel('Báo cáo tài chính 2025 (minh họa)', 'BCTC kiểm toán')).toBe('Báo cáo tài chính 2025');
+  });
+});
+
+describe('stripSampleMark', () => {
+  it('bỏ "(minh họa)" nhưng giữ phần thông tin còn lại', () => {
+    expect(docTitle('Điều lệ công ty (minh họa)', 'x')).toBe('Điều lệ công ty');
+    expect(stripSampleMark('Nhà xưởng, tách từ dòng 78 tỷ, số minh họa')).toBe('Nhà xưởng, tách từ dòng 78 tỷ');
+    expect(stripSampleMark('Văn bản đồng ý tra cứu CIC (minh họa, ký 03/11/2026)')).toBe('Văn bản đồng ý tra cứu CIC (ký 03/11/2026)');
   });
 });
