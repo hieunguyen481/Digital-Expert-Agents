@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, Button, Input } from 'antd';
 import { AiTag, StatusPill, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { quoteText, sourceLabel } from '@/features/dashboard/agentTrace';
 import { useMe } from '@/auth/session';
 import { normalizeError } from '@/services/apiClient';
 import {
@@ -64,7 +65,7 @@ function ProposalCard({ proposal: p, caseId, loanId }: { proposal: ActionProposa
       {docs.length > 0 && <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-13)' }}>{docs.map((d) => <li key={d}>{d}</li>)}</ul>}
       {p.evidence.length > 0 && (
         <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>
-          {p.evidence.map((e, i) => <li key={i}><code>{e.source}</code> {e.quote}</li>)}
+          {p.evidence.map((e, i) => <li key={i}><b>{sourceLabel(e.source)}</b>: {quoteText(e.quote)}</li>)}
         </ul>
       )}
       {p.status !== 'PROPOSED' && p.decided_reason && <div style={{ fontSize: 'var(--fs-12)' }}>Lý do của người xử lý: {p.decided_reason}</div>}

@@ -8,6 +8,7 @@ import {
   DECISION_LABEL, STATE_TONE, agentName, fmtSeconds, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
   BOARD_LABEL, approverLevelLabel, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
+  quoteText,
 } from '../agentTrace';
 import { ProposalChain } from '@/features/agent-actions/ActionProposals';
 import { statusLabel } from '@/features/my-work/format';
@@ -355,7 +356,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
           <h3>Nguồn trích dẫn ({sources.length})</h3>
           <ul className={styles.plainList}>
             {sources.map((s, i) => (
-              <li key={i} className={styles.text}><span className={styles.mono}>{sourceLabel(s.source)}</span> {s.quote} <span className={styles.dim}>({agentName(s.agent)})</span></li>
+              <li key={i} className={styles.text}><span className={styles.mono}>{sourceLabel(s.source)}</span> {quoteText(s.quote)} <span className={styles.dim}>({agentName(s.agent)})</span></li>
             ))}
           </ul>
           <details className={styles.det}><summary>Chi tiết kỹ thuật (kiểm toán)</summary>

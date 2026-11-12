@@ -10,6 +10,7 @@ import {
 } from '@/services/agentCaseService';
 import {
   DECISION_LABEL, agentName, dedupeConditions, scrubInternal, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
+  quoteText,
 } from '@/features/dashboard/agentTrace';
 import { ActionProposals } from '@/features/agent-actions/ActionProposals';
 import { AiText } from '@/features/dashboard/components/AiText';
@@ -281,7 +282,7 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
         <div className={styles.stackTight} data-testid="agent-sources">
           <b className={styles.sub}>Trích nguồn</b>
           {sources.map((s, i) => (
-            <span key={i} className={styles.note}>{agentName(s.agent)} · {sourceLabel(s.source)}: “{s.quote}”</span>
+            <span key={i} className={styles.note}>{agentName(s.agent)} · {sourceLabel(s.source)}: “{quoteText(s.quote)}”</span>
           ))}
         </div>
       )}

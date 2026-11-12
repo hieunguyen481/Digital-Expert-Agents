@@ -381,6 +381,8 @@ export interface AiTextParts {
 }
 const dash = (x: string) => x.replace(/\s+[—–]\s+/g, ', ').replace(/^[\s—–-]+/, '').replace(/[\s.;:,]+$/, '').trim();
 
+/** Trích nguồn hiển thị: bỏ mã kỹ thuật, "— " thành dấu phẩy. */
+export const quoteText = (q: string): string => scrubInternal(q ?? '').replace(/\s+[—–]\s+/g, ', ').trim();
 const upFirst = (x: string) => (x ? x.charAt(0).toLocaleUpperCase('vi') + x.slice(1) : x);
 const NEED_INFO = /^Cần bổ sung\s+([^:;]{3,60}):\s*([\s\S]*)$/i;
 const wordCount = (x: string) => x.split(/\s+/).filter(Boolean).length;
