@@ -83,8 +83,8 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
             blockers.append(f"Bản CIC tra cứu ngày {d.isoformat()} đã quá {CIC_VALID_DAYS} ngày, hết hiệu lực — "
                             "phải tra lại trước khi trình (CS-TD-SME/2025 §6.3, §6.4)")
     if bl and not bl.get("screened", True):
-        blockers.append("Chưa có kết quả sàng lọc AML/trừng phạt — phải hoàn tất trước khi trình (công cụ check_blacklist; "
-                        "compliance_policy Điều 6)")
+        blockers.append("Chưa có kết quả sàng lọc AML/trừng phạt — phải hoàn tất trước khi trình (tra cứu danh sách đen/trừng phạt; "
+                        "chính sách tuân thủ Điều 6)")
     if not fin:
         blockers.append("Chưa có BCTC/số liệu tài chính — chưa tính được Nợ vay/EBITDA (CS-TD-SME/2025 §4.2, §6.1)")
     if biz and not biz.get("account_number"):

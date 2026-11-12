@@ -98,8 +98,10 @@ async def _rules_task(env: Envelope) -> Verdict:
                 max_secured = chk["max_secured_limit"]
                 evidence.append(Evidence(
                     source="core-banking:get_collateral",
-                    quote=f"{chk['eligible_assets']}/{chk['assets']} TSĐB đủ điều kiện pháp lý, tổng định giá "
-                          f"{chk['eligible_value']:,.0f}. Giới hạn bảo đảm (LTV {config.LTV_MAX:.0%}): "
+                    quote=f"{chk['eligible_assets']}/{chk['assets']} TSĐB đủ điều kiện pháp lý, tổng "
+                          + ("giá khai (chưa có chứng thư định giá, cần xác minh) " if chk["valuation_unverified"]
+                             else "định giá ")
+                          + f"{chk['eligible_value']:,.0f}. Giới hạn bảo đảm (LTV {config.LTV_MAX:.0%}): "
                           f"{max_secured:,.0f} VND"))
                 conditions.append("Hoàn thiện đăng ký giao dịch bảo đảm trước giải ngân")
 

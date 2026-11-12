@@ -27,7 +27,12 @@ def collateral_check(collaterals: list[dict], amount: float, ltv_max: float | No
     eligible = [c for c in collaterals if c.get("legal_status") == "clear" and _num(c.get("valuation")) > 0]
     excluded = [c for c in collaterals if c not in eligible]
     value = sum(_num(c["valuation"]) for c in eligible)
+    # F3 (rules.md): giá lấy từ giá khai, chưa có chứng thư định giá -> LTV chỉ là tạm tính, "Cần xác minh"
+    unverified = [c for c in eligible if c.get("valuation_basis") == "declared"
+                  or c.get("valuation_status") == "NEEDS_VERIFICATION"]
+    unverified_value = sum(_num(c["valuation"]) for c in unverified)
     return {
+        "valuation_unverified": bool(unverified), "unverified_value": unverified_value,
         "assets": len(collaterals), "eligible_assets": len(eligible),
         "eligible_value": value, "max_secured_limit": ltv_max * value,
         "ltv": (amount / value) if value else None, "ltv_max": ltv_max,
@@ -100,7 +105,11 @@ def describe(col: dict | None, exp: dict, lev: dict | None, amount: float) -> li
         out.append(f"Căn cứ cấp phê duyệt: tổng tại ngân hàng {_bn(exp['total'])}; dư nợ {_bn(exp['other_lenders'])} tại tổ "
                    "chức tín dụng khác không tính vào cấp phê duyệt theo Q4, nhưng vẫn tính vào khả năng trả nợ")
     if col is not None and col["assets"]:
-        if col["eligible_value"]:
+        if col["eligible_value"] and col.get("valuation_unverified"):
+            out.append(f"LTV tạm tính {col['ltv']:.1%} (đề xuất {_bn(amount)} / {_bn(col['eligible_value'])}, "
+                       f"trong đó {_bn(col['unverified_value'])} là giá khai), chưa có chứng thư định giá: cần xác minh "
+                       f"(CS-TD-SME/2025 §7.1)")
+        elif col["eligible_value"]:
             out.append(f"Tính lại LTV: đề xuất {_bn(amount)} / TSĐB đủ điều kiện {_bn(col['eligible_value'])} "
                        f"= {col['ltv']:.1%} (tối đa {col['ltv_max']:.0%}, tương ứng {_bn(col['max_secured_limit'])})"
                        + ("; VƯỢT ngưỡng LTV" if col["ltv_over"] else "; trong ngưỡng LTV") + " (CS-TD-SME/2025 §7.1)")
