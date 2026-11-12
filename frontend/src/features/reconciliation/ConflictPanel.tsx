@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { getErrorMessage } from '@/services/apiClient';
 import { resolveConflict } from './reconciliationService';
 import type { ReconConflict } from './types';
-import { fieldLabel, fieldLabelOr, fieldValueText, sourceTypeLabel } from './fieldLabels';
+import { docTitle, fieldLabel, fieldLabelOr, fieldValueText, sourceTypeLabel } from './fieldLabels';
 import styles from './reconciliation.module.css';
 
 interface Props {
@@ -61,7 +61,7 @@ function ConflictCard({ loanId, conflict, canResolve, onOpenField }: Omit<Props,
               <b>{fieldValueText(s)}</b> · {fieldLabel(s.field_name)}
             </Radio>
             <span className={styles.note}>
-              {s.document_title ?? ''} {s.page_number ? `· trang ${s.page_number}` : ''} · {sourceTypeLabel(s.source_type)}
+              {docTitle(s.document_title, '')} {s.page_number ? `· trang ${s.page_number}` : ''} · {sourceTypeLabel(s.source_type)}
             </span>
             <Button type="link" size="small" style={{ padding: 0, width: 'fit-content' }}
               onClick={() => onOpenField(s.document_id, s.field_id)}>Xem vùng tô trong tài liệu</Button>

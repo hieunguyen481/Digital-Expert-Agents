@@ -112,3 +112,35 @@ test('Kiểm toán: không có nút "Sửa đề xuất" và không có "Việc 
   await expect(page.getByText('Việc của bạn')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /^Sửa đề xuất/ })).toHaveCount(0);
 });
+
+test('lưới 1920: ô tìm kiếm thẳng mép trái nội dung ở trang rộng và trang hẹp', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await loginAs(page, 'httd');
+  for (const path of ['/doi-chieu', '/thong-bao']) {
+    await page.goto(path);
+    const h1 = page.getByRole('heading', { level: 1 });
+    await expect(h1).toBeVisible();
+    const search = await page.getByRole('combobox', { name: 'Tìm kiếm' }).evaluate((el) => el.closest('[role=search]')!.getBoundingClientRect().left);
+    const head = await h1.evaluate((el) => el.getBoundingClientRect().left);
+    expect(Math.abs(search - head), `${path}: ô tìm ${search}, tiêu đề ${head}`).toBeLessThanOrEqual(2);
+  }
+});
+
+test('khung tải giữ menu và thanh trên khi hồ sơ người dùng chưa về', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  await page.route('**/api/v1/me', async (route) => { await new Promise((r) => setTimeout(r, 2500)); await route.continue(); });
+  await page.reload();
+  await expect(page.getByTestId('shell-loading')).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Điều hướng chính' }).getByRole('link').first()).toBeVisible();
+  await expect(page.locator('[role=search]')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 });
+});
+
+test('OCR: tên tài liệu không còn tiền tố mã loại chữ hoa', async ({ page }) => {
+  await loginAs(page, 'tdinh');
+  await page.goto('/doi-chieu/75000000-0000-4000-8000-000000000001');
+  await expect(page.getByRole('region', { name: 'Danh mục tài liệu' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Tài liệu đang xem' })).toBeVisible();
+  const raw = await page.locator('main').innerText();
+  expect(raw).not.toMatch(/\b[A-Z]{3,6} ·/);
+});

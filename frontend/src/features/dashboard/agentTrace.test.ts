@@ -87,6 +87,7 @@ describe('parseAiText và dedupeConditions', () => {
     expect(parseAiText(real[1]).items).toHaveLength(1);
     expect(parseAiText(real[2]).items.join(' ')).not.toMatch(/hiện tính được/);
     expect(parseAiText(real[5]).items[0]).toContain('so với');
+    expect(parseAiText('Chưa thể kết luận đủ điều kiện vì chưa sàng lọc cảnh báo và chưa có kết quả CIC; TSĐB đủ điều kiện hiện ghi nhận là 0 đồng').items.join(' ')).not.toMatch(/0 đồng/);
     expect(parseAiText(real[3]).items).toHaveLength(1);
     const n = parseAiText('Cần bổ sung thiếu dữ liệu chặn: Chưa có kết quả CIC cho khách hàng này; Chưa có kết quả sàng lọc AML của khách hàng');
     expect(n.tag).toBe('Cần bổ sung');

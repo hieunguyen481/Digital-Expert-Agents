@@ -54,5 +54,7 @@ export function splitSourceCode(t: string): { text: string; code: string | null 
 
 /** Tên tài liệu cho người đọc: bỏ tiền tố mã loại ("DKKD · Giấy phép" → "Giấy phép"). */
 export function docTitle(title: string | null | undefined, fallback: string): string {
-  return title ? splitSourceCode(title).text : fallback;
+  if (!title) return fallback;
+  const m = title.match(/^[A-Z0-9][A-Z0-9-]+\s·\s(.+)$/);
+  return m ? m[1] : splitSourceCode(title).text;
 }

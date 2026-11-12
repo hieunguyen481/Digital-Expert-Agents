@@ -42,7 +42,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
     enabled: hasImage && versionId !== null,
     staleTime: 5 * 60_000,
   });
-  const [showOthers, setShowOthers] = useState(false);
+  const [showOthers, setShowOthers] = useState<boolean | null>(null);
   const regionRefs = useRef(new Map<string, HTMLButtonElement>());
 
   const fields = q.data?.fields ?? [];
@@ -75,6 +75,8 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
   if (q.isError) return <Alert type="error" showIcon message={getErrorMessage(q.error)} />;
   if (!q.data) return <div aria-busy>Đang tải tài liệu…</div>;
   const doc = q.data.document;
+  // Chưa có ảnh trang thì mở sẵn danh sách trường để cột giữa không trống.
+  const othersOpen = showOthers ?? (!hasImage && !img.data);
   const others = onPage.filter((f) => f.field_id !== selected?.field_id);
 
   return (
@@ -160,10 +162,10 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
       )}
       {others.length > 0 && (
         <>
-          <Button type="link" style={{ padding: 0 }} onClick={() => setShowOthers((v) => !v)} aria-expanded={showOthers}>
+          <Button type="link" style={{ padding: 0 }} onClick={() => setShowOthers(!othersOpen)} aria-expanded={othersOpen}>
             {others.length} trường khác trên trang này
           </Button>
-          {showOthers && (
+          {othersOpen && (
             <div role="list" aria-label="Các trường khác trên trang">
               {others.map((f) => (
                 <button

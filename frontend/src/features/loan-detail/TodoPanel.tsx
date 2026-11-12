@@ -19,8 +19,12 @@ export function buildTodos(overview: LoanOverview, state: CaseActionState | unde
   const items: TodoItem[] = [];
   // L14: hồ sơ đã kết thúc (rút, quyết định) thì không còn việc.
   if (TERMINAL.has(overview.loan.status)) return items;
-  if (overview.supplement_request) items.push({ key: 'supplement', text: overview.supplement_request.kind === 'RETURNED' ? 'Hồ sơ bị trả lại, cần chỉnh sửa và gửi lại' : overview.supplement_request.kind === 'RETURNED_TO_APPRAISAL' ? `Hồ sơ bị trả lại để bổ sung${overview.supplement_request.reason ? `: ${overview.supplement_request.reason}` : ''}` : 'Hồ sơ đang chờ bổ sung tài liệu', to: overview.supplement_request.kind === 'RETURNED_TO_APPRAISAL' ? undefined : `/doi-chieu/${overview.loan.id}` });
-  state?.blockers.forEach((b) => items.push({ key: `b-${b}`, text: BLOCKERS[b] ?? b, anchor: b === 'FLAGS_OPEN' ? 'co' : b === 'REPORT_MISSING' ? 'to-trinh' : undefined }));
+  if (overview.supplement_request) items.push({ key: 'supplement', text: overview.supplement_request.kind === 'RETURNED' ? 'Hồ sơ bị trả lại, cần chỉnh sửa và gửi lại' : overview.supplement_request.kind === 'RETURNED_TO_APPRAISAL' ? `Hồ sơ bị trả lại để bổ sung${overview.supplement_request.reason ? `: ${overview.supplement_request.reason}` : ''}` : 'Hồ sơ đang chờ bổ sung tài liệu', to: overview.supplement_request.kind === 'RETURNED_TO_APPRAISAL' ? undefined : `/doi-chieu/${overview.loan.id}`, anchor: overview.supplement_request.kind === 'RETURNED_TO_APPRAISAL' ? 'hanh-dong' : undefined });
+  state?.blockers.forEach((b) => items.push({
+    key: `b-${b}`, text: BLOCKERS[b] ?? b,
+    anchor: b === 'FLAGS_OPEN' ? 'co' : b === 'REPORT_MISSING' ? 'to-trinh' : b === 'OPINIONS_MISSING' ? 'hanh-dong' : undefined,
+    to: ['FIELDS_UNCONFIRMED', 'CHECK_FAILED', 'VALIDITY_AT_APPROVAL'].includes(b) ? `/doi-chieu/${overview.loan.id}` : undefined,
+  }));
   const conflicts = overview.metrics.filter((m) => m.conflict_id && !m.chosen).length;
   if (conflicts > 0) items.push({ key: 'conflicts', text: `${conflicts} chỉ số còn mâu thuẫn giữa các nguồn, chưa chốt`, to: `/doi-chieu/${overview.loan.id}` });
   if (runs?.can_run && !runs.latest) items.push({ key: 'agent', text: 'Chưa có đề xuất AI. Chạy đội agent để có ý kiến tham khảo.', anchor: 'doi-agent' });

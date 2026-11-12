@@ -61,7 +61,7 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
       {view.items.map((it) => (
         <div key={it.item_id} className={styles.item} data-testid={`item-${it.code}`}>
           <Space wrap>
-            <b>{it.label ?? it.code}</b>
+            <b>{(it.label ?? it.code).replace(/\.$/, '')}</b>
             {!it.mandatory && <StatusPill>Có điều kiện</StatusPill>}
             <StatusPill tone={it.status === 'VALID' ? 'ok' : it.status === 'REQUIRED' ? 'bad' : 'warn'}>
               {STATUS_TEXT[it.status] ?? it.status}

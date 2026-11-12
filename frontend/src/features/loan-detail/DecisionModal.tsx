@@ -133,7 +133,7 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
             <>
               <div className={styles.field}>
                 <label htmlFor="decision-amount">Hạn mức phê duyệt, đồng <span className={styles.req}>(bắt buộc)</span></label>
-                <InputNumber id="decision-amount" className={styles.numIn} style={{ width: '100%' }} addonAfter="đồng" aria-describedby="decision-amount-h"
+                <InputNumber controls={false} id="decision-amount" className={styles.numIn} style={{ width: '100%' }} addonAfter="đồng" aria-describedby="decision-amount-h"
                   formatter={(v) => (v == null ? '' : vnd(Number(v)))} parser={(v) => Number((v ?? '').replace(/[^0-9]/g, ''))}
                   status={amountInvalid ? 'error' : undefined} value={amount} onChange={(v) => setAmount(Number(v ?? 0))} />
                 <span id="decision-amount-h" className={styles.hint}>{amount > 0 ? `= ${fmtNum(amount / 1e9)} tỷ đồng. ` : ''}Đề nghị {fmtNum(requestedAmount / 1e9)} tỷ đồng.</span>
@@ -141,7 +141,7 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
               </div>
               <div className={styles.field}>
                 <label htmlFor="decision-term">Kỳ hạn, tháng <span className={styles.req}>(bắt buộc)</span></label>
-                <InputNumber id="decision-term" className={styles.numIn} style={{ width: '100%' }} addonAfter="tháng" status={termInvalid ? 'error' : undefined} value={term} onChange={(v) => setTerm(Number(v ?? 0))} />
+                <InputNumber controls={false} id="decision-term" className={styles.numIn} style={{ width: '100%' }} addonAfter="tháng" status={termInvalid ? 'error' : undefined} value={term} onChange={(v) => setTerm(Number(v ?? 0))} />
                 {termInvalid && <Typography.Text type="danger" role="alert">Kỳ hạn duyệt phải lớn hơn 0.</Typography.Text>}
               </div>
               {type === 'APPROVED_WITH_CONDITIONS' && (

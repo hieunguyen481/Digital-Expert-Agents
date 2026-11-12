@@ -392,8 +392,8 @@ const wordCount = (x: string) => x.split(/\s+/).filter(Boolean).length;
 export function parseAiText(raw: string): AiTextParts {
   let t = scrubInternal(raw ?? '').replace(/^[\s—–-]+/, '').trim();
   t = t.replace(/\s+vs\.?\s+/gi, ' so với ');
-  // Câu "… hiện tính được: 0 đồng" là số máy móc khi chưa đủ điều kiện, không nói thêm gì.
-  t = t.replace(/\s*[A-ZÀ-Ỵa-zà-ỵ][^.;:]*hiện tính được:\s*0\s*(?:đồng|VND|₫)?\.?\s*$/u, '').trim();
+  // Câu "… hiện tính được/ghi nhận (là) 0 đồng" là số máy móc khi chưa đủ điều kiện, không nói thêm gì.
+  t = t.replace(/\s*[A-ZÀ-Ỵa-zà-ỵ][^.;:]*hiện (?:tính được|ghi nhận)(?: là)?:?\s*0\s*(?:đồng|VND|₫)?\.?\s*$/u, '').trim();
   let tag: string | undefined;
   let lead: string | undefined;
   const m = t.match(CAPS_TAG);

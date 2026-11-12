@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -62,7 +62,9 @@ describe('ActionsPanel – QA3-01 người không giữ bước', () => {
     me.roles = ['credit_officer'];
     svc.fetchActionState.mockResolvedValue(state({ can_write: true }));
     mount('CHECKING');
-    await screen.findByTestId('actions-panel');
+    await waitFor(() => expect(svc.fetchActionState).toHaveBeenCalled());
+    // Không còn hành động nào cho vai này: thẻ Hành động ẩn hẳn, không hiện thẻ trống.
+    await waitFor(() => expect(screen.queryByTestId('actions-panel')).toBeNull());
     expect(screen.queryByRole('button', { name: 'Trả lại QHKH' })).toBeNull();
   });
 
