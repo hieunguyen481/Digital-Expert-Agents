@@ -19,7 +19,7 @@ export const ACTION_LABELS: Record<string, string> = {
   WORKFLOW_REASSIGN: 'Chuyển người xử lý',
   CASE_FLAG_HANDLE: 'Xử lý cờ',
   CASE_FLAG_CONCLUDE: 'Kết luận cờ',
-  CASE_RISK_OPINION: 'Ghi ý kiến Rủi ro/Tuân thủ',
+  CASE_RISK_OPINION: 'Ghi ý kiến rủi ro, tuân thủ',
   CASE_EARLY_WARNING: 'Báo sớm Tuân thủ',
   CASE_DISBURSEMENT_CONDITION_ADD: 'Thêm điều kiện giải ngân',
   CASE_AGENT_FLAG_ADD: 'Ghi cờ từ đề xuất agent',

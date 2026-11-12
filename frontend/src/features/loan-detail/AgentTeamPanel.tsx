@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Button, Skeleton } from 'antd';
+import { Alert, Button, Skeleton, Tooltip } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
 import { ActionButton, AGENTS, AgentTeam, AiBlock, Flag as FlagMark, StatusPill, type AgentKey, type AgentState, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -81,9 +81,12 @@ export function AgentTeamPanel({ loanId, currency, status }: { loanId: string; c
           )}
           {runsQ.isLoading && <Skeleton active paragraph={{ rows: 2 }} />}
           {data && !data.can_run && data.deny_reason && (
-            <span className={styles.note} data-testid="agent-team-lock">
-              <LockOutlined /> {data.deny_reason}
-            </span>
+            <Tooltip title={data.deny_reason}>
+              <span className={styles.note} data-testid="agent-team-lock" tabIndex={0}>
+                <LockOutlined /> Chỉ xem
+                <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' }}>: {data.deny_reason}</span>
+              </span>
+            </Tooltip>
           )}
           {run.isError && (
             <Alert type="error" showIcon data-testid="agent-run-error" message={normalizeError(run.error).message} />
@@ -133,6 +136,9 @@ export function conclusionHeadline(t: string): string {
   const head = t.split(/\s*(?:Điều kiện chính\s*:|—\s*lưu ý)/i)[0];
   return softCaps(head.replace(/[\s.;:,]+$/, '').trim());
 }
+
+/** Câu kết luận luôn mở bằng "AI đề xuất" (trừ khi chính câu đã nói "Đề xuất …"). */
+export const aiLead = (h: string): string => (/^(AI\s+)?đề xuất/i.test(h) ? h : `AI đề xuất: ${h.charAt(0).toLowerCase()}${h.slice(1)}`);
 
 /** Một ý điều kiện: bỏ tiền tố "Điều kiện:", dấu câu đầu/cuối thừa. */
 export const cleanCondition = (x: string): string => x.replace(/^[\s—–-]*(?:Điều kiện:\s*)?/i, '').replace(/[\s.;:,]+$/, '').replace(/\.{2,}/g, '.');
@@ -220,7 +226,7 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
       )}
       {(pkg?.recommendation || pkg?.proposed_limit != null) && (
         <div className={styles.stackTight} data-testid="agent-recommendation">
-          {pkg?.recommendation && <p className={styles.concl}>{conclusionHeadline(pkg.recommendation)}</p>}
+          {pkg?.recommendation && <p className={styles.concl}>{aiLead(conclusionHeadline(pkg.recommendation))}</p>}
           {pkg?.proposed_limit != null && <span>Hạn mức đề xuất: <b className={styles.num}>{fmtMoney(String(pkg.proposed_limit), currency)}</b></span>}
           {pkg?.required_approver_level && <span className={styles.note}>Cấp phê duyệt đề xuất: {approverLevelLabel(pkg.required_approver_level)}</span>}
           {!!pkg?.conditions?.length && (

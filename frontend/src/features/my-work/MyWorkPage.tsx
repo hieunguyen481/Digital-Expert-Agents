@@ -44,7 +44,7 @@ function Content() {
 
   const facts = all.data
     ? [
-        all.data.facts.overdue > 0 && `${all.data.facts.overdue} quá hạn`,
+        (readOnly ? all.data.items.filter((i) => i.tags.includes('over')).length : all.data.facts.overdue) > 0 && `${readOnly ? all.data.items.filter((i) => i.tags.includes('over')).length : all.data.facts.overdue} quá hạn`,
         all.data.facts.returned > 0 && `${all.data.facts.returned} bị trả lại`,
         all.data.facts.waiting_supplement > 0 && `${all.data.facts.waiting_supplement} chờ bổ sung`,
       ]
@@ -96,9 +96,10 @@ function Content() {
   const strip = [
     { label: readOnly || role === 'truongphong' ? 'Hồ sơ đang mở' : 'Cần bạn xử lý', value: readOnly || role === 'truongphong' ? all.data.items.length : mine.length },
     { label: 'Hạn hôm nay', value: all.data.items.filter((i) => i.sla_level === 'today').length },
-    { label: readOnly || role === 'truongphong' ? 'Đã quá hạn' : 'Bạn đang giữ, quá hạn', value: all.data.facts.overdue },
+    { label: readOnly || role === 'truongphong' ? 'Đã quá hạn' : 'Bạn đang giữ, quá hạn', value: readOnly || role === 'truongphong' ? counts.over : all.data.facts.overdue },
     role === 'truongphong'
       ? { label: 'Chưa giao người', value: all.data.items.filter((i) => !i.holder_name).length }
+      : readOnly ? { label: 'Trong phạm vi kiểm toán', value: all.data.items.length }
       : { label: 'Đang chờ người khác', value: all.data.items.filter((i) => !i.mine).length },
   ];
   return (

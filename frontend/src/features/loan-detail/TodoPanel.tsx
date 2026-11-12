@@ -1,4 +1,7 @@
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { getAgentCase } from '@/services/agentCaseService';
+import { packageOf } from '@/features/dashboard/agentTrace';
 import { HumanBlock } from '@/components/ui';
 import { CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { BLOCKERS } from './ActionsPanel';
@@ -24,11 +27,15 @@ export function buildTodos(overview: LoanOverview, state: CaseActionState | unde
   return items;
 }
 
-export function TodoPanel({ items, ready }: { items: TodoItem[]; ready: boolean }) {
+export function TodoPanel({ items, ready, caseId }: { items: TodoItem[]; ready: boolean; caseId?: string | null }) {
+  // Cùng khóa với AgentTeamPanel nên dùng chung dữ liệu, không gọi thêm.
+  const caseQ = useQuery({ queryKey: ['agent-case', caseId], queryFn: () => getAgentCase(caseId!), enabled: !!caseId });
+  const aiConditions = caseQ.data ? (caseQ.data.package ?? packageOf([]))?.conditions?.length ?? 0 : 0;
   return (
     <div id="viec-can-lam" aria-label="Việc cần làm" data-testid="todo-panel">
       <HumanBlock tag="Việc của bạn" title={<>Việc cần làm {ready && items.length > 0 && <span className={styles.count}>{items.length}</span>}</>}>
-        {ready && items.length === 0 && <span className={styles.ok}><CheckCircleOutlined /> Không còn điều kiện nào đang chặn ở bước này.</span>}
+        {ready && items.length === 0 && aiConditions > 0 && <span className={styles.note}><ExclamationCircleOutlined /> AI ghi nhận {aiConditions} điều kiện cần bổ sung, người quyết định xem xét. Chưa có điều kiện hệ thống nào chặn bước này.</span>}
+        {ready && items.length === 0 && aiConditions === 0 && <span className={styles.ok}><CheckCircleOutlined /> Không còn điều kiện nào đang chặn ở bước này.</span>}
         {!ready && <span className={styles.note}>Đang kiểm tra điều kiện…</span>}
         {items.length > 0 && (
           <ul className={styles.todoList}>

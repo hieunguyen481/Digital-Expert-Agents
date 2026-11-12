@@ -51,7 +51,7 @@ export default function LoanDetailPage() {
             <CollateralPanel items={collaterals} />
           </div>
           <aside className={styles.stack} aria-label="Việc và hành động">
-            <TodoPanel items={todos} ready={!!actions.data} />
+            <TodoPanel items={todos} ready={!!actions.data} caseId={runs.data?.latest?.case_id} />
             <ActionsPanel loanId={loanId} overview={q.data} />
             <ReassignControl loanId={loanId} />
             <TimelinePanel steps={timeline} />
