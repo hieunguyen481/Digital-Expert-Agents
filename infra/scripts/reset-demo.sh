@@ -31,10 +31,11 @@ for line in open(os.environ["ENV_FILE"], encoding="utf-8"):
     if line and not line.startswith("#") and "=" in line:
         k, v = line.split("=", 1); env[k] = v.strip().strip('"').strip("'")
 kc = os.environ.get("KEYCLOAK_URL", "http://localhost:8080"); api = os.environ.get("API_URL", "http://localhost:8000/api/v1")
-# (ho so, tai khoan chay): canh 1 do Tham dinh; canh 5 (HSV-2026-00163, buoc Phe duyet) do Truong phong (khong giu buoc, V063).
+# (ho so, tai khoan chay): canh 1 do Tham dinh; canh 5 (HSV-2026-00163, buoc Phe duyet) va HSV-2026-00167 (hang dau Cho phe duyet cua Cap phe duyet) do Truong phong (khong giu buoc, V063).
 only = os.environ.get("WARM_ONLY")  # vd. WARM_ONLY=00163 de chi warm mot ho so
 targets = [("HSV-2026-00187", "75000000-0000-4000-8000-000000000001", "appraiser@example.local"),
-           ("HSV-2026-00163", "75000000-0000-4000-8000-000000000013", "credit.manager@example.local")]
+           ("HSV-2026-00163", "75000000-0000-4000-8000-000000000013", "credit.manager@example.local"),
+           ("HSV-2026-00167", "75000000-0000-4000-8000-000000000018", "credit.manager@example.local")]
 terminal = {"Pending Approval", "Needs Info", "Escalated", "Executing", "Completed", "Rejected"}
 def call(method, url, form=None, token=None, body=None):
     data = urllib.parse.urlencode(form).encode() if form else (json.dumps(body).encode() if body is not None else None)
