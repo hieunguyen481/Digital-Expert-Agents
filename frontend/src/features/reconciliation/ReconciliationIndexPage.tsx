@@ -34,7 +34,7 @@ export default function ReconciliationIndexPage() {
                 if (!r.due_at) return <span className={styles.note}>Không đặt hạn</span>;
                 // Một ngưỡng chung theo số ngày làm việc còn lại, không theo SLA riêng từng hồ sơ.
                 const n = workdaysBetween(new Date(), new Date(r.due_at));
-                return <StatusPill tone={n < 0 ? 'bad' : n <= 1 ? 'warn' : 'ok'}>{fmtDay(r.due_at)} · {slaText({ ...r, sla_level: n < 0 ? 'over' : n === 0 ? 'today' : 'ok' }, new Date())}</StatusPill>;
+                return <StatusPill tone={r.paused || r.sla_level === 'pause' ? 'neutral' : n < 0 ? 'bad' : n <= 1 ? 'warn' : 'ok'}>{fmtDay(r.due_at)} · {slaText({ ...r, sla_level: n < 0 ? 'over' : n === 0 ? 'today' : 'ok' }, new Date())}</StatusPill>;
               } },
             ]}
           />
