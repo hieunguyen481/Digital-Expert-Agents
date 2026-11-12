@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
 import { loginAs } from './helpers';
 
@@ -10,6 +11,14 @@ const API = `http://localhost:8000/api/v1/loan-applications/${LOAN}/agent-runs`;
 const FINAL = ['Pending Approval', 'Needs Info', 'Escalated', 'Rejected', 'Completed'];
 
 test.describe.configure({ mode: 'serial' });
+
+// Bắt đầu từ seed sạch: spec trước (đổi người giữ bước, trạng thái, lượt đang chạy) làm nút "Chạy đội agent" bị ẩn/khóa
+// (can_run sai hoặc lượt cũ chưa kết thúc) nên test chờ nút đến hết giờ. reset-demo.sh đưa người giữ/bước về seed, xóa lượt cũ.
+test.beforeAll(() => {
+  test.setTimeout(300_000);
+  const cmd = process.env.E2E_RESEED_CMD ?? fileURLToPath(new URL('../../infra/scripts/reset-demo.sh', import.meta.url));
+  execSync(cmd, { stdio: 'ignore', timeout: 240_000 });
+});
 
 test.afterAll(() => {
   const cmd = process.env.E2E_RESEED_CMD;

@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { loginAs } from './helpers';
 
@@ -9,10 +10,14 @@ const CHECKING = '/doi-chieu/75000000-0000-4000-8000-000000000009'; // HTTD đan
 
 test.describe.configure({ mode: 'serial' });
 
-test.afterAll(() => {
-  const cmd = process.env.E2E_RESEED_CMD;
-  if (cmd) execSync(cmd, { stdio: 'ignore', timeout: 240_000 });
-});
+// Chốt nguồn / chuyển bước là dữ liệu bền: lượt chạy trước để lại "Đã chốt nguồn" thì test "Chưa chốt" trượt.
+// Nên nạp lại seed (reset-demo.sh đưa mâu thuẫn về NULL, chạy nhiều lần cùng kết quả) cả trước lẫn sau bộ test.
+const reseed = () => {
+  const cmd = process.env.E2E_RESEED_CMD ?? fileURLToPath(new URL('../../infra/scripts/reset-demo.sh', import.meta.url));
+  execSync(cmd, { stdio: 'ignore', timeout: 240_000 });
+};
+test.beforeAll(() => { test.setTimeout(300_000); reseed(); });
+test.afterAll(() => reseed());
 
 test('tdinh: bấm trường tới đúng vùng tô và bấm vùng tô tới đúng trường (hai chiều)', async ({ page }) => {
   await loginAs(page, 'tdinh');

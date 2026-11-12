@@ -556,3 +556,46 @@ async def test_rerun_in_chat_denied_with_agent_run_reason() -> None:
     with pytest.raises(AuthorizationError, match="người đang giữ"):
         await service.add_message(principal, conversation["id"], content="Chạy lại đội agent", attachment_ids=[])
     assert repository.message_rows == [] and responder.calls == []
+
+
+class _MissingLoanRouter(FixedRouter):
+    """Hội thoại chưa gắn hồ sơ (người hỏi không giữ hồ sơ): router trả MISSING_CONTEXT."""
+
+    async def route(self, **kwargs: Any) -> dict[str, Any]:
+        return {"route_type": "DIRECT", "complexity_level": 2, "intent": "MISSING_CONTEXT",
+                "missing_context": ["loan_application_id"]}
+
+
+class _CustomerRerunGuard(RecordingProcessingGuard):
+    def __init__(self, deny: Exception | None = None) -> None:
+        super().__init__()
+        self.deny, self.customer_calls = deny, []
+
+    async def assert_can_rerun_for_customer(self, principal: Principal, customer_id: UUID) -> None:
+        self.customer_calls.append(customer_id)
+        if self.deny:
+            raise self.deny
+
+
+@pytest.mark.asyncio
+async def test_rerun_without_active_loan_is_checked_against_agent_run_rules() -> None:
+    from app.exceptions import AuthorizationError
+    responder = RecordingResponder(ConversationReply(content="lộ kết luận"))
+    guard = _CustomerRerunGuard(AuthorizationError("AGENT_RUN_NOT_ALLOWED", "Bạn không phải người đang giữ hồ sơ này."))
+    service = ConversationService(InMemoryConversationRepository(), _MissingLoanRouter(), responder, guard)
+    principal = _principal()
+    conversation = await _create_conversation(service, principal)
+    with pytest.raises(AuthorizationError, match="người đang giữ"):
+        await service.add_message(principal, conversation["id"], content="Phân tích lại hồ sơ vay VinaNova", attachment_ids=[])
+    assert len(guard.customer_calls) == 1 and responder.calls == []
+
+
+@pytest.mark.asyncio
+async def test_non_rerun_question_without_active_loan_is_not_checked() -> None:
+    responder = RecordingResponder(ConversationReply(content="ok"))
+    guard = _CustomerRerunGuard(PermissionError("không được gọi"))
+    service = ConversationService(InMemoryConversationRepository(), _MissingLoanRouter(), responder, guard)
+    principal = _principal()
+    conversation = await _create_conversation(service, principal)
+    await service.add_message(principal, conversation["id"], content="DSCR là gì", attachment_ids=[])
+    assert guard.customer_calls == [] and len(responder.calls) == 1

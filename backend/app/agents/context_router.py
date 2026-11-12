@@ -337,6 +337,11 @@ def _contains_any(message: str, terms: tuple[str, ...]) -> bool:
     return any(term in message for term in terms)
 
 
+def is_rerun_request(message: str) -> bool:
+    """Câu yêu cầu chạy lại cả đội agent (dùng chung với luật quyền chạy ở trang hồ sơ)."""
+    return _contains_any(" ".join(message.split()).casefold(), _RERUN_TERMS)
+
+
 def _domain_agents(message: str) -> tuple[str, ...]:
     """Return matched expert domains in canonical DAG order."""
 
