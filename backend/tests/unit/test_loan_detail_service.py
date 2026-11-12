@@ -174,3 +174,33 @@ async def test_reassigned_loan_says_moved_without_content() -> None:
     with pytest.raises(NotFoundError) as unknown:
         await LoanDetailService(_GoneRepo(False)).overview(P("credit_appraiser"), LOAN)  # type: ignore[arg-type]
     assert unknown.value.code == "LOAN_NOT_FOUND"
+
+
+def _explanation_steps(reason, restricted):
+    from datetime import UTC, datetime, timedelta
+
+    t0 = datetime(2026, 11, 5, tzinfo=UTC)
+    return [
+        {"step_code": "RISK_REVIEW", "received_at": t0, "completed_at": t0 + timedelta(days=1),
+         "due_at": None, "reason": "Lý do trả lại CŨ của bước khác"},
+        {"step_code": "RISK_PENDING_INFO", "received_at": t0 + timedelta(days=1), "completed_at": None,
+         "due_at": t0 + timedelta(days=3), "reason": reason, "reason_restricted": restricted},
+    ]
+
+
+def test_explanation_reason_hidden_viewer_gets_neutral_text_not_old_reason() -> None:
+    """P01: người bị che lý do không thấy lý do cũ của bước khác, chỉ thấy câu trung tính."""
+    from app.services.loan_detail_service import supplement_request
+
+    got = supplement_request("RISK_PENDING_INFO", _explanation_steps(None, True))
+    assert got is not None
+    assert got["reason"] == "Tuân thủ yêu cầu giải trình. Nội dung chi tiết do Tuân thủ trao đổi trực tiếp."
+    assert "CŨ" not in got["reason"]
+
+
+def test_explanation_reason_visible_roles_see_new_reason() -> None:
+    """P01: vai được xem (Tuân thủ, Rủi ro, Phê duyệt, Kiểm toán) thấy đúng lý do đã lưu ở bước."""
+    from app.services.loan_detail_service import supplement_request
+
+    got = supplement_request("RISK_PENDING_INFO", _explanation_steps("Giải trình nguồn tiền quý 2.", False))
+    assert got is not None and got["reason"] == "Giải trình nguồn tiền quý 2."

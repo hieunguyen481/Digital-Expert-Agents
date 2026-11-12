@@ -110,6 +110,7 @@ class LoanDetailService:
 
 
 _SUPPLEMENT_STEPS = {"PENDING_INFO", "RISK_PENDING_INFO"}
+_RESTRICTED_EXPLANATION_TEXT = "Tuân thủ yêu cầu giải trình. Nội dung chi tiết do Tuân thủ trao đổi trực tiếp."
 
 
 def supplement_request(status: Any, timeline: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -152,7 +153,10 @@ def supplement_request(status: Any, timeline: list[dict[str, Any]]) -> dict[str,
     if opened is None:
         return None
     reason = opened.get("reason")
-    if not reason:
+    if not reason and opened.get("reason_restricted"):
+        # Lý do bước này bị che với vai người xem (Q-M): không lùi về lý do cũ của bước khác, nói trung tính.
+        reason = _RESTRICTED_EXPLANATION_TEXT if opened["step_code"] == "RISK_PENDING_INFO" else None
+    elif not reason:
         before = [
             s for s in timeline
             if s["completed_at"] and s["step_code"] not in _SUPPLEMENT_STEPS and s["received_at"] <= opened["received_at"]

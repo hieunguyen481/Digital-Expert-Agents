@@ -7,7 +7,7 @@ async function withReason(page: Page, btn: string | RegExp, ok: string, text: st
   await page.getByRole('button', { name: ok, exact: true }).click();
 }
 
-// P01 + P08: lý do "Yêu cầu giải trình" của Rủi ro đến đúng HTTD; lý do khóa "Trình phê duyệt" nêu đúng mục còn thiếu.
+// P01 + P08: lý do "Yêu cầu giải trình" lưu ở bước; vai bị che thấy câu trung tính, vai được xem thấy lý do; lý do khóa "Trình phê duyệt" nêu đúng mục còn thiếu.
 test('Rủi ro yêu cầu giải trình: HTTD thấy đúng nội dung, không thấy lý do trả lại cũ', async ({ page }) => {
   test.setTimeout(520_000);
   const OLD = 'Cần bổ sung phân tích rủi ro tập trung ngành trước khi cho ý kiến.';
@@ -30,8 +30,13 @@ test('Rủi ro yêu cầu giải trình: HTTD thấy đúng nội dung, không t
   await withReason(page, 'Đóng xử lý nghi gian lận', 'Đóng xử lý', 'Đã đối chiếu, chữ ký hợp lệ.');
   await expect(page.getByRole('button', { name: 'Yêu cầu giải trình' }).first()).toBeVisible({ timeout: 15_000 });
   await withReason(page, 'Yêu cầu giải trình', 'Gửi yêu cầu', NEW);
+  // Vai bị che (Q-M): câu trung tính, không lùi về lý do trả lại cũ.
   await as(page, 'httd'); await page.goto(`/ho-so-vay/${id}`);
   const sup = page.getByTestId('supplement-request');
-  await expect(sup).toContainText(NEW, { timeout: 15_000 });
+  await expect(sup).toContainText('Tuân thủ yêu cầu giải trình', { timeout: 15_000 });
   await expect(sup).not.toContainText(OLD);
+  await expect(sup).not.toContainText(NEW);
+  // Vai được xem (Rủi ro) thấy đúng lý do mới.
+  await as(page, 'ruiro'); await page.goto(`/ho-so-vay/${id}`);
+  await expect(page.getByTestId('supplement-request')).toContainText(NEW, { timeout: 15_000 });
 });
