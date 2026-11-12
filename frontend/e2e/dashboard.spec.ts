@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { loginAs, type RoleKey } from './helpers';
 
+// "Phân tích lại" = chạy lại cả đội (tạo ca mới); câu "phân tích sâu" thường được trả lời từ lượt đã có nên không tạo ca.
 const REQUEST =
-  'Phân tích sâu hồ sơ vay VinaNova: thẩm định tín dụng, kiểm tra tuân thủ chính sách và đề xuất hạn mức';
+  'Phân tích lại hồ sơ vay VinaNova bằng cả đội agent: thẩm định tín dụng, kiểm tra tuân thủ chính sách và đề xuất hạn mức';
 
 async function openCases(page: import('@playwright/test').Page) {
   await page.getByRole('link', { name: 'Đội agent' }).click();

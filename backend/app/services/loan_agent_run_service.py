@@ -119,6 +119,13 @@ class LoanAgentRunService:
             raise AuthorizationError("AGENT_RUN_NOT_ALLOWED", reason, {"status": str(loan["status"])})
         return loan
 
+    async def assert_can_run_for_customer(self, principal: PrincipalLike, customer_id: UUID) -> None:
+        """Chat chưa gắn hồ sơ (người hỏi không phải người giữ): áp luật chạy lên hồ sơ mới nhất của khách mà họ xem được."""
+        loan_id = await self._repo.latest_loan_id_for_customer(customer_id)
+        if loan_id is None:
+            raise AuthorizationError("AGENT_RUN_NOT_ALLOWED", "Bạn không có hồ sơ vay nào của khách hàng này trong phạm vi được xem.")
+        await self.assert_can_run(principal, loan_id)
+
     async def start(self, principal: PrincipalLike, loan_id: UUID) -> dict[str, Any]:
         loan = await self.assert_can_run(principal, loan_id)
         if self._engine is None:

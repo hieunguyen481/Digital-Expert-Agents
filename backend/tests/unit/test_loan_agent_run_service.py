@@ -40,6 +40,9 @@ class FakeRepo:
     async def holds(self, loan_id: UUID) -> bool:
         return self._holds
 
+    async def latest_loan_id_for_customer(self, customer_id: UUID) -> UUID | None:
+        return LOAN if self._loan else None
+
     async def first_collateral_id(self, loan_id: UUID) -> str | None:
         return COLLATERAL
 
@@ -213,3 +216,16 @@ async def test_assert_can_run_is_the_single_rule_for_page_and_chat() -> None:
     wrong_step = LoanAgentRunService(FakeRepo(status="APPRAISAL", holds=True), None)
     with pytest.raises(AuthorizationError, match="không được chạy đội agent ở bước này"):
         await wrong_step.assert_can_run(risk, LOAN)
+
+
+async def test_run_for_customer_applies_same_rules_or_no_loan_reason() -> None:
+    from app.exceptions import AuthorizationError
+    # QHKH không giữ hồ sơ ở bước Thẩm định: nhận lý do bước, không phải câu chung chung
+    with pytest.raises(AuthorizationError) as exc:
+        await svc(FakeRepo(status="APPRAISAL", holds=False), FakeEngine()).assert_can_run_for_customer(P(("credit_officer",)), CUSTOMER)  # type: ignore[arg-type]
+    assert exc.value.code == "AGENT_RUN_NOT_ALLOWED" and "bước này" in str(exc.value)
+    # khách không có hồ sơ trong phạm vi xem
+    with pytest.raises(AuthorizationError, match="không có hồ sơ vay nào"):
+        await svc(FakeRepo(loan=False), FakeEngine()).assert_can_run_for_customer(P(("credit_officer",)), CUSTOMER)  # type: ignore[arg-type]
+    # người giữ hồ sơ đúng bước thì qua
+    await svc(FakeRepo(status="DRAFT", holds=True), FakeEngine()).assert_can_run_for_customer(P(("credit_officer",)), CUSTOMER)  # type: ignore[arg-type]

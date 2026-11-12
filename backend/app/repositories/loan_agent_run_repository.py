@@ -21,6 +21,17 @@ class LoanAgentRunRepository:
             {"loan_id": loan_id},
         )
 
+    async def latest_loan_id_for_customer(self, customer_id: UUID) -> UUID | None:
+        """Hồ sơ vay mới nhất của khách trong phạm vi RLS của người gọi (không tính hồ sơ đã rút)."""
+        row = await fetch_one(
+            self.session,
+            """SELECT id FROM credit.loan_application
+               WHERE primary_customer_id = :customer_id AND status <> 'WITHDRAWN'
+               ORDER BY created_at DESC, id LIMIT 1""",
+            {"customer_id": customer_id},
+        )
+        return UUID(str(row["id"])) if row else None
+
     async def holds(self, loan_id: UUID) -> bool:
         """Co dang giu ho so khong: dung chinh ham RLS cua workflow (nguoi nhan buoc mo hoac QHKH khi DRAFT/bo sung)."""
         row = await fetch_one(

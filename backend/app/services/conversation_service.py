@@ -6,6 +6,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Protocol
 from uuid import UUID
 
+from app.agents.context_router import is_rerun_request
 from app.schemas.conversation import ConversationReply
 from app.services.access import require_permission
 from app.services.protocols import PrincipalLike
@@ -150,6 +151,11 @@ class ConversationProcessingGuard:
         if self._run_guard is None:
             raise RuntimeError("Agent run guard is not configured")
         await self._run_guard.assert_can_run(principal, loan_application_id)
+
+    async def assert_can_rerun_for_customer(self, principal: PrincipalLike, customer_id: UUID) -> None:
+        if self._run_guard is None:
+            raise RuntimeError("Agent run guard is not configured")
+        await self._run_guard.assert_can_run_for_customer(principal, customer_id)
 
     async def assert_can_process(
         self,
@@ -326,6 +332,22 @@ class ConversationService:
         # Preserve the exact authorized selection even if an alternate router
         # implementation omits attachments from its semantic decision.
         route["attachment_ids"] = normalized_attachment_ids
+
+        # Yêu cầu chạy lại cả đội khi hội thoại chưa gắn hồ sơ (người hỏi không giữ hồ sơ): không để rơi vào trả lời
+        # thường (lộ kết luận cho người không được chạy); áp đúng luật chạy ở trang hồ sơ để nhận đúng lý do.
+        customer_for_rerun = route.get("customer_id") or conversation.get("active_customer_id")
+        if (
+            self._responder is not None
+            and not normalized_attachment_ids
+            and route.get("intent") == "MISSING_CONTEXT"
+            and "loan_application_id" in (route.get("missing_context") or ())
+            and customer_for_rerun
+            and is_rerun_request(clean_content)
+            and hasattr(self._processing_guard, "assert_can_rerun_for_customer")
+        ):
+            await self._processing_guard.assert_can_rerun_for_customer(
+                principal, _required_context_uuid(customer_for_rerun, "customer_id")
+            )
 
         protected_analysis_routes = {"SINGLE_AGENT", "ORCHESTRATED"}
         # Tin nhắn kèm hồ sơ đi đường đọc-tài-liệu (highlight) của responder,

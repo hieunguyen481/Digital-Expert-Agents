@@ -1,8 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { loginAs } from './helpers';
 
+// "Phân tích lại" là yêu cầu CHẠY LẠI cả đội (đúng luật loan_agent_run_service); câu hỏi "phân tích sâu" thường được
+// trả lời từ lượt đã có, không chạy lại đội, nên không dùng để kiểm nhánh chạy thật.
 const REQUEST =
-  'Phân tích sâu hồ sơ vay VinaNova: thẩm định tín dụng, kiểm tra tuân thủ chính sách và đề xuất hạn mức';
+  'Phân tích lại hồ sơ vay VinaNova bằng cả đội agent: thẩm định tín dụng, kiểm tra tuân thủ chính sách và đề xuất hạn mức';
 
 async function pickVinaNova(page: import('@playwright/test').Page) {
   await page.goto('/chat');
@@ -50,6 +52,6 @@ test('QHKH gửi phân tích sâu bị từ chối với thông báo dễ hiểu
   // Câu hỏi phân tích thường được trả lời từ kết quả đã có; chỉ yêu cầu CHẠY LẠI cả đội mới cần quyền phân tích.
   await page.getByPlaceholder(/Hỏi Trợ lý AI/).fill('Phân tích lại hồ sơ vay VinaNova bằng cả đội agent');
   await page.getByRole('button', { name: 'Gửi' }).click();
-  await expect(page.locator('#main-content').getByText(/không có quyền thực hiện thao tác này/).last()).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator('#main-content').getByText(/không có quyền thực hiện thao tác này|không được chạy đội agent ở bước này|không phải người đang giữ|không có hồ sơ vay nào/).last()).toBeVisible({ timeout: 60_000 });
   await expect(page.locator('#main-content').getByTestId('engine-panel')).toHaveCount(0);
 });
