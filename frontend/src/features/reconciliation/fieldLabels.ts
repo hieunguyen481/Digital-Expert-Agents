@@ -28,7 +28,12 @@ export const sourceTypeLabel = (t: string): string =>
 /** Giá trị trường kèm đơn vị theo loại: tiền lớn ghi "tỷ đồng", phần trăm ghi "%". Không biết loại thì giữ nguyên. */
 export function fieldValueText(f: { value: string | null; value_type?: string; value_number: number | null }): string {
   if (f.value == null) return '—';
-  if (f.value_type === 'MONEY' && f.value_number != null && Math.abs(f.value_number) >= 1e9) return `${f.value} tỷ đồng`;
+  if (f.value_type === 'MONEY') {
+    // Tệp OCR hay để sót đơn vị ("dong", "VND", "đồng"): bỏ phần chữ đuôi trước khi ghép đơn vị chuẩn.
+    const num = f.value.replace(/\s*(?:vn[dđ]|đồng|dong|d)\.?\s*$/i, '').trim();
+    if (f.value_number != null && Math.abs(f.value_number) >= 1e9) return `${num} tỷ đồng`;
+    return num;
+  }
   if (f.value_type === 'PERCENT') return `${f.value}%`;
   return f.value;
 }
