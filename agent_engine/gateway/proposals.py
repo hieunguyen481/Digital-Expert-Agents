@@ -71,6 +71,33 @@ def _evidence(v: Verdict, n: int = 4) -> list[dict]:
     return [{"source": e.source, "quote": e.quote[:300]} for e in v.evidence[:n]]
 
 
+_CAPS_LEAD = re.compile(r"^\s*([A-ZÀ-ỴĐ][A-ZÀ-ỴĐ/ ]{3,}[A-ZÀ-ỴĐ]):\s*")
+RATIONALE_MAX = 320
+
+
+def plain_rationale(text: str, limit: int = RATIONALE_MAX) -> str:
+    """Căn cứ viết như người: bỏ nhãn cổng viết hoa ("CẦN BỔ SUNG: thiếu dữ liệu chặn — ..."), gọn, cắt ở ranh giới vế."""
+    t = (text or "").strip()
+    m = _CAPS_LEAD.match(t)
+    if m:
+        t = t[m.end():]
+    t = t.replace(" — ", ": ", 1) if t[:1].islower() or t.startswith("thiếu") else t
+    t = (t[:1].upper() + t[1:]) if t else t
+    if len(t) <= limit:
+        return t
+    cut = t[:limit]
+    for sep in ("; ", ". "):
+        i = cut.rfind(sep)
+        if i > limit // 2:
+            return cut[:i].rstrip(" ;.") + " …"
+    return cut.rstrip() + " …"
+
+
+def _expert_evidence(v: Verdict, n: int = 3) -> list[dict]:
+    """Căn cứ của đề xuất do Validation đưa ra: bỏ các dòng nhật ký kiểm chứng chung (lặp ở mọi thẻ), giữ điều khoản/công cụ."""
+    return [{"source": e.source, "quote": e.quote[:300]} for e in v.evidence if e.source != "validation"][:n]
+
+
 def _texts(it: dict) -> list[str]:
     """Các nội dung độc lập của một đề xuất: từng tài liệu (request_documents), điều kiện, hoặc tiêu đề."""
     pr = it.get("params") or {}
@@ -121,7 +148,7 @@ def derive(validation: Verdict, final_verdicts: list[Verdict], report: dict) -> 
             continue  # không có căn cứ thì không đề xuất
         label = _LABEL.get(v.agent, v.agent)
         out.append({"kind": "add_risk_flag", "source_agent": v.agent, "evidence": evidence,
-                    "title": f"{label}: {v.summary[:200]}", "rationale": why[:1500],
+                    "title": f"{label}: {v.summary[:200]}", "rationale": plain_rationale(why),
                     "params": {"severity": "HIGH" if v.decision == VerdictDecision.REJECT else "MEDIUM"}})
 
     if validation.decision == VerdictDecision.NEED_MORE_INFO:
@@ -135,7 +162,7 @@ def derive(validation: Verdict, final_verdicts: list[Verdict], report: dict) -> 
         if docs:
             out.append({"kind": "request_documents", "source_agent": "validation", "evidence": evidence[:6],
                         "title": f"Yêu cầu khách bổ sung {len(docs)} mục",
-                        "rationale": validation.summary[:1500], "params": {"documents": docs}})
+                        "rationale": plain_rationale(validation.summary), "params": {"documents": docs}})
 
     if validation.decision == VerdictDecision.APPROVE:
         # điều kiện bắt buộc (vd. Q-V thiếu TK thanh toán) không bị cắt: mỗi điều kiện khác nhau là một đề xuất
@@ -146,13 +173,13 @@ def derive(validation: Verdict, final_verdicts: list[Verdict], report: dict) -> 
                 conds.append(c)
         pre = [c for c in conds if is_pre_decision(c)]  # chưa gộp với yêu cầu bổ sung của chuyên gia: dedupe_items lo
         if pre:  # việc phải làm trước quyết định: yêu cầu bổ sung (người dùng xác nhận gửi khách), không phải điều kiện giải ngân
-            out.append({"kind": "request_documents", "source_agent": "validation", "evidence": _evidence(validation, 3),
+            out.append({"kind": "request_documents", "source_agent": "validation", "evidence": _expert_evidence(validation, 3),
                         "title": f"Yêu cầu khách bổ sung {len(pre[:MAX_DOCUMENTS])} mục",
                         "rationale": "Điều kiện tiên quyết: phải hoàn tất trước khi trình cấp phê duyệt (khác điều kiện trước giải ngân); nêu trong báo cáo cuối của đội agent.",
                         "params": {"documents": pre[:MAX_DOCUMENTS]}})
         for cond in (c for c in conds if c not in pre):
             out.append({"kind": "add_disbursement_condition", "source_agent": "validation",
-                        "evidence": _evidence(validation, 3),
+                        "evidence": _expert_evidence(validation, 3),
                         "title": f"Điều kiện trước giải ngân: {cond[:140]}",
                         "rationale": "Điều kiện nêu trong báo cáo cuối của đội agent khi đề xuất phê duyệt.",
                         "params": {"text": cond}})

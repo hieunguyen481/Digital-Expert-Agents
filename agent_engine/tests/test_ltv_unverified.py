@@ -34,3 +34,12 @@ def test_aml_blocker_has_no_tool_codes():
     from common import facts
     src = inspect.getsource(facts)
     assert "check_blacklist; " not in src and "compliance_policy Điều" not in src
+
+
+def test_proposal_rationale_is_plain_sentence_case_and_short():
+    from gateway.proposals import plain_rationale, RATIONALE_MAX
+    t = plain_rationale("CẦN BỔ SUNG: thiếu dữ liệu chặn — Chưa có kết quả tra cứu CIC — phải tra cứu trước khi trình; "
+                        + "Chưa có BCTC " * 40)
+    assert t.startswith("Thiếu dữ liệu chặn: Chưa có kết quả tra cứu CIC")
+    assert "CẦN BỔ SUNG" not in t and len(t) <= RATIONALE_MAX + 2
+    assert plain_rationale("Điều kiện đã gọn.") == "Điều kiện đã gọn."
