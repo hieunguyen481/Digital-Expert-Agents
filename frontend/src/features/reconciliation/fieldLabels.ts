@@ -31,7 +31,12 @@ export function fieldValueText(f: { value: string | null; value_type?: string; v
   if (f.value_type === 'MONEY') {
     // Tệp OCR hay để sót đơn vị ("dong", "VND", "đồng"): bỏ phần chữ đuôi trước khi ghép đơn vị chuẩn.
     const num = f.value.replace(/\s*(?:vn[dđ]|đồng|dong|d)\.?\s*$/i, '').trim();
-    if (f.value_number != null && Math.abs(f.value_number) >= 1e9) return `${num} tỷ đồng`;
+    if (f.value_number != null && Math.abs(f.value_number) >= 1e9) {
+      // Giá trị thô là số đồng đầy đủ (5.000.000.000) thì đổi sang tỷ; còn lại (đã là "80") chỉ thêm đơn vị.
+      const digits = Number(num.replace(/[.,\s]/g, ''));
+      if (digits === f.value_number) return `${(f.value_number / 1e9).toLocaleString('vi-VN', { maximumFractionDigits: 2 })} tỷ đồng`;
+      return `${num} tỷ đồng`;
+    }
     return num;
   }
   if (f.value_type === 'PERCENT') return `${f.value}%`;

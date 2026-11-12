@@ -154,7 +154,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
       if (f.code === 'cickh') {
         out.push(<Button key="warn" size="small" disabled={!!f.early_warned_at} onClick={() => reasonAction('Báo sớm Tuân thủ', 'Ghi chú (không bắt buộc)', 'Gửi báo sớm', (t) => earlyWarning(loanId, f.id, t), false)}>{f.early_warned_at ? 'Đã báo sớm' : 'Báo sớm Tuân thủ'}</Button>);
       } else {
-        out.push(<Button key="handle" size="small" aria-label={`Xử lý cờ: ${f.title}`} onClick={() => reasonAction(`Xử lý cờ: ${f.title}`, 'Ghi chú xử lý', 'Đã xử lý', (t) => handleFlag(loanId, f.id, t))}>Xử lý cờ</Button>);
+        out.push(<Button key="handle" size="small" aria-label={`Xử lý cờ: ${f.title}`} onClick={() => reasonAction(`Xử lý cờ: ${f.title}`, 'Ghi chú xử lý', 'Đã xử lý', (t) => handleFlag(loanId, f.id, t))}>{`Xử lý cờ: ${f.title.length > 36 ? `${f.title.slice(0, 35)}…` : f.title}`}</Button>);
       }
     }
     if (status === 'RISK_REVIEW' && has('compliance_officer') && f.code === 'cickh' && f.status !== 'CONCLUDED') {

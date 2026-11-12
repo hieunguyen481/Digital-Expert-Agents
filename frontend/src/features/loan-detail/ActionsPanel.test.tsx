@@ -94,7 +94,7 @@ describe('ActionsPanel – QA3-01 người không giữ bước', () => {
 });
 
 describe('ActionsPanel – N12 nút Xử lý cờ phân biệt được theo tên cờ', () => {
-  it('mỗi nút "Xử lý cờ" có tên truy cập nêu rõ cờ nào, chữ hiển thị giữ ngắn', async () => {
+  it('mỗi nút "Xử lý cờ" có tên truy cập nêu rõ cờ nào, chữ hiển thị cũng phân biệt', async () => {
     me.roles = ['credit_appraiser'];
     svc.fetchActionState.mockResolvedValue(state({ can_write: true }));
     const ov = overview('APPRAISAL');
@@ -106,7 +106,7 @@ describe('ActionsPanel – N12 nút Xử lý cờ phân biệt được theo tê
     render(<MemoryRouter><QueryClientProvider client={qc}><ActionsPanel loanId="L" overview={ov} /></QueryClientProvider></MemoryRouter>);
     const a = await screen.findByRole('button', { name: 'Xử lý cờ: LTV vượt trần' });
     const b = screen.getByRole('button', { name: 'Xử lý cờ: DSCR thấp' });
-    expect(a.textContent).toBe('Xử lý cờ');
-    expect(b.textContent).toBe('Xử lý cờ');
+    expect(a.textContent).toBe('Xử lý cờ: LTV vượt trần');
+    expect(b.textContent).toBe('Xử lý cờ: DSCR thấp');
   });
 });
