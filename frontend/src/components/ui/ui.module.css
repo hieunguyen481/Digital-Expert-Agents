@@ -127,7 +127,7 @@
 @keyframes ui-pulse { 50% { box-shadow: 0 0 0 6px rgba(107, 79, 184, .08); } }
 
 /* ---- Bảng kiểu sổ cái: dùng className trên Table của Ant Design ---- */
-.ledger :global(.ant-table-thead > tr > th) { border-bottom: 3px double var(--rule-strong) !important; font-size: var(--fs-12); white-space: nowrap; }
+.ledger :global(.ant-table-thead > tr > th) { font-family: var(--font-body); font-variant-numeric: normal; border-bottom: 3px double var(--rule-strong) !important; font-size: var(--fs-12); white-space: nowrap; }
 .ledger :global(.ant-table-tbody > tr:hover > td) { background: var(--surface-2) !important; }
 .ledger :global(.ant-table-tbody > tr.ant-table-row-selected > td) { background: var(--navy-50) !important; }
 .ledger :global(.ant-table-tbody > tr.ant-table-row-selected > td:first-child) { box-shadow: inset 3px 0 0 var(--navy-700); }
