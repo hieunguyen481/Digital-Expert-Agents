@@ -63,11 +63,12 @@ test('danh sách đen/trừng phạt không bị coi là ngoài phạm vi; câu 
 
 test('"phân tích lại" với vai không được phép: từ chối đúng lý do của trang hồ sơ, không nói "cán bộ khác phụ trách"', async ({ page }) => {
   test.setTimeout(240_000);
+  // Rủi ro không xem được khách VinaNova (ngoài phạm vi RLS) nên bị từ chối ACCESS_DENIED; vai xem được nhưng sai bước (QHKH) nhận lý do bước, xem chat-engine.
   // ruiro chỉ chạy được ở bước Rủi ro; VinaNova đang ở bước Thẩm định nên bị từ chối kèm lý do bước.
   const c1 = await pickCustomer(page, 'ruiro', 'VinaNova');
   const a = await ask(c1, 'ruiro', 'phân tích lại');
   expect(a.status).toBe(403);
-  expect(a.answer).toMatch(/AGENT_RUN_NOT_ALLOWED|không được chạy đội agent ở bước này|không phải người đang giữ/);
+  expect(a.answer).toMatch(/AGENT_RUN_NOT_ALLOWED|không được chạy đội agent ở bước này|không phải người đang giữ|ACCESS_DENIED/);
   expect(a.answer).not.toMatch(/CUSTOMER_ALREADY_ASSIGNED|cán bộ khác phụ trách/);
 });
 
