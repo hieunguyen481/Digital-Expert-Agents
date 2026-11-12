@@ -350,12 +350,16 @@ class ConversationService:
             )
 
         protected_analysis_routes = {"SINGLE_AGENT", "ORCHESTRATED"}
+        # Câu hỏi điều khoản/chính sách chỉ đọc quy định: quyền đọc hồ sơ/khách (đã kiểm ở router) là đủ,
+        # không đòi giữ khách hay giữ bước.
+        read_only_intents = {"CHECK_POLICY_COMPLIANCE"}
         # Tin nhắn kèm hồ sơ đi đường đọc-tài-liệu (highlight) của responder,
         # không chạy phân tích sâu — guard phân công khách hàng chỉ áp cho
         # yêu cầu phân tích không kèm tài liệu.
         if (
             self._responder is not None
             and str(route.get("route_type")) in protected_analysis_routes
+            and route.get("intent") not in read_only_intents
             and not normalized_attachment_ids
         ):
             if self._processing_guard is None:

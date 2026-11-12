@@ -249,3 +249,25 @@ async def test_reused_result_time_is_vietnam_time() -> None:
     engine.cases = [_prior(updated_at=1_700_000_000.0)]  # 22:13 UTC 14/11/2023 = 05:13 15/11 giờ Việt Nam
     reply = await _ask(EngineConversationResponder(_Inner(), engine), message="DSCR bao nhiêu?")
     assert "05:13 15/11/2023" in reply.content
+
+
+def test_rerun_reply_without_package_carries_conclusion_and_key_points() -> None:
+    # P07: lượt phân tích mới chưa có gói phê duyệt (cần bổ sung) vẫn trả kết luận và các điểm chính, không chỉ dòng trạng thái
+    events = [{"type": "state_changed", "payload": {"report_text": "Báo cáo", "reason": "Thiếu BCTC 2025",
+                                                    "findings": ["Chưa có BCTC 2025"], "conditions": ["Bổ sung BCTC"]}}]
+    text = mod.compose_engine_reply({"state": "Needs Info", "package": {}}, events)
+    assert "Thiếu BCTC 2025" in text and "Chưa có BCTC 2025" in text and "Bổ sung BCTC" in text
+
+
+@pytest.mark.asyncio
+async def test_leverage_question_without_result_labels_existing_vs_post_grant() -> None:
+    seen = {}
+
+    class Inner(_Inner):
+        async def respond(self, **kwargs):
+            seen["message"] = kwargs["message"]
+            return await super().respond(**kwargs)
+
+    await _ask(EngineConversationResponder(Inner(), _Engine()), route={"route_type": "DIRECT", "intent": "DIRECT_QUERY"},
+               message="Nợ vay/EBITDA của hồ sơ này bao nhiêu?")
+    assert "sau cấp" in seen["message"] and "hiện hữu" in seen["message"]

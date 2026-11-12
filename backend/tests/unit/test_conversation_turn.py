@@ -599,3 +599,33 @@ async def test_non_rerun_question_without_active_loan_is_not_checked() -> None:
     conversation = await _create_conversation(service, principal)
     await service.add_message(principal, conversation["id"], content="DSCR là gì", attachment_ids=[])
     assert guard.customer_calls == [] and len(responder.calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_policy_question_needs_read_access_only_not_ownership() -> None:
+    # N07: vai không giữ khách (thẩm định…) hỏi điều khoản chính sách: không qua guard phân công, không đòi loan:analyze
+    repository = InMemoryConversationRepository()
+    responder = RecordingResponder(ConversationReply(content="Điều 4.1 …"))
+    guard = RecordingProcessingGuard()
+    router = FixedRouter(route_type="SINGLE_AGENT")
+    router.intent = "CHECK_POLICY_COMPLIANCE"
+    service = ConversationService(repository, router, responder, guard)
+    principal = _principal(can_analyze=False)
+    conversation = await _create_conversation(service, principal)
+    await service.add_message(principal, conversation["id"], content="Điều 4.1 chính sách yêu cầu gì?", attachment_ids=[])
+    assert guard.calls == [] and len(responder.calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_other_single_agent_analysis_still_requires_ownership() -> None:
+    repository = InMemoryConversationRepository()
+    responder = RecordingResponder(ConversationReply(content="no"))
+    guard = RecordingProcessingGuard()
+    router = FixedRouter(route_type="SINGLE_AGENT")
+    router.intent = "REVIEW_FINANCIAL_INFORMATION"
+    service = ConversationService(repository, router, responder, guard)
+    principal = _principal(can_analyze=False)
+    conversation = await _create_conversation(service, principal)
+    with pytest.raises(PermissionError, match="loan:analyze"):
+        await service.add_message(principal, conversation["id"], content="Phân tích tài chính", attachment_ids=[])
+    assert responder.calls == []

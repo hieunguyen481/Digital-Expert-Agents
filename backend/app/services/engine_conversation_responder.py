@@ -65,7 +65,14 @@ def collect_sources(package: Mapping[str, Any]) -> list[dict[str, str]]:
     return out
 
 
-def compose_engine_reply(case: Mapping[str, Any]) -> str:
+def _final_payload(events: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
+    return next((e.get("payload") or {} for e in reversed(events) if e.get("type") == "state_changed"
+                 and (e.get("payload") or {}).get("report_text")), {})
+
+
+def compose_engine_reply(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]] = ()) -> str:
+    """Trả lời cho lượt phân tích mới: kết luận + các điểm chính; hồ sơ chưa có gói phê duyệt (cần bổ sung/từ chối)
+    thì lấy lý do, phát hiện, điều kiện từ báo cáo cuối của lượt, không chỉ một dòng trạng thái."""
     package = case.get("package") or {}
     state = str(case.get("state") or "")
     lines: list[str] = []
@@ -87,6 +94,16 @@ def compose_engine_reply(case: Mapping[str, Any]) -> str:
     if package.get("conditions"):
         lines.append("\n**Điều kiện kèm theo:**")
         lines.extend(f"- {c}" for c in package["conditions"])
+    if not package.get("recommendation"):
+        final = _final_payload(events)
+        if final.get("reason"):
+            lines.append(f"**Kết luận:** {final['reason']}")
+        for key, label in (("findings", "Các điểm chính"), ("conditions", "Điều kiện / việc cần làm")):
+            if final.get(key) and not verdicts:
+                lines.append(f"\n**{label}:**")
+                lines.extend(f"- {x}" for x in list(final[key])[:8])
+        if final.get("report_text") and not final.get("reason") and not final.get("findings"):
+            lines.append(str(final["report_text"])[:1500])
     if state == "Pending Approval":
         lines.append("\nĐang chờ người có thẩm quyền xác nhận; agent không tự phê duyệt.")
     if not lines:
@@ -107,6 +124,10 @@ _POLICY_NOTE = ("\n\nĐIỀU KHOẢN CHÍNH SÁCH LIÊN QUAN (CS-TD-SME/2025; tr
                 "không có trong đây thì nói rõ là chưa tra được):\n")
 _METRIC_Q = re.compile(r"dscr|ebitda|\bltv\b|nợ vay|đòn bẩy|hạn mức|tài sản bảo đảm|tsđb|định giá|kết luận|đề xuất|cấp phê duyệt|"
                        r"điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|phê duyệt|quyết định|thẩm quyền", re.I)
+_LEVERAGE_Q = re.compile(r"nợ vay\s*/\s*ebitda|đòn bẩy|nợ/ebitda|debt\s*/\s*ebitda", re.I)
+_LEVERAGE_NOTE = ("\n\nLƯU Ý VỀ NỢ VAY/EBITDA: có hai cách tính, phải nêu rõ nhãn: 'hiện hữu' (chỉ nợ đang có, trước khi cấp khoản này) "
+                  "và 'sau cấp' (đã cộng khoản vay đề xuất; là số đội agent và cổng quyết định dùng). Chỉ nêu số có trong dữ liệu, "
+                  "ghi nhãn cho từng số; nếu chỉ có số hiện hữu thì nói rõ là số trước khi cấp và chưa có số sau cấp từ đội agent.")
 _RERUN = re.compile(r"phân tích lại|chạy lại|đánh giá lại|thẩm định lại|làm mới|phân tích mới|tính lại từ đầu", re.I)
 _PII = re.compile(r"\b(cccd|cmnd|căn cước|số điện thoại|sđt|email|địa chỉ nhà|ngày sinh)\b", re.I)
 _FINAL_STATES = {"Pending Approval", "Needs Info", "Rejected", "Completed", "Executing"}
@@ -178,6 +199,10 @@ class EngineConversationResponder:
         self._engine = engine
         self._wait = wait_seconds
 
+    @staticmethod
+    def _leverage_note(message: str) -> str:
+        return _LEVERAGE_NOTE if _LEVERAGE_Q.search(message) else ""
+
     async def _policy_block(self, message: str) -> str:
         """Câu hỏi về chính sách: kèm điều khoản liên quan trong corpus để trả lời có căn cứ (lỗi thì bỏ qua, không chặn chat)."""
         if not _POLICY_Q.search(message):
@@ -206,7 +231,7 @@ class EngineConversationResponder:
                 if reused is not None:
                     return reused
             return await self._inner.respond(principal=principal, conversation=conversation,
-                                             message=message + await self._policy_block(message), route=route,
+                                             message=message + await self._policy_block(message) + self._leverage_note(message), route=route,
                                              attachment_ids=attachment_ids)
         meta: dict[str, Any] = {"responder": "agent_engine"}
         if _PII.search(message):  # xin dữ liệu cá nhân: từ chối rõ ràng, không chạy lại phân tích
@@ -253,6 +278,10 @@ class EngineConversationResponder:
                              f"{case.get('state', '?')}). Mở lại hội thoại sau ít phút.",
                              engine_case_id=case_id, engine_state=case.get("state"), **ids)
             case = await self._engine.get_case(case_id)
+            try:
+                events = await self._engine.get_events(case_id)
+            except AgentEngineError:
+                events = []
         except AgentEngineError as e:
             logger.warning("AGENT_ENGINE_ERROR", status=e.status)
             return reply(f"Agent engine không xử lý được yêu cầu (HTTP {e.status or 'không kết nối'}): "
@@ -270,7 +299,7 @@ class EngineConversationResponder:
                 "term_months": request["term_months"], "conditions": package.get("conditions") or [],
                 "can_decide": "loan_approver" in getattr(principal, "roles", ()),
             }
-        return reply(compose_engine_reply(case), engine="agent_engine", engine_case_id=case_id,
+        return reply(compose_engine_reply(case, events), engine="agent_engine", engine_case_id=case_id,
                      engine_state=state, plan_version=package.get("plan_version"),
                      policy_version=package.get("policy_version"),
                      verdicts=package.get("verdicts") or [], sources=collect_sources(package),
@@ -322,7 +351,7 @@ class EngineConversationResponder:
         kind = question_kind(message)
         grounded = (f"{message}\n\nKẾT QUẢ PHÂN TÍCH GẦN NHẤT CỦA ĐỘI AGENT CHO HỒ SƠ NÀY (nguồn chính để trả lời; "
                     f"{_KIND_GUIDE[kind]}):\n"
-                    f"{result_context(case, events, kind)}{await self._policy_block(message)}")
+                    f"{result_context(case, events, kind)}{await self._policy_block(message)}{self._leverage_note(message)}")
         t2 = time.perf_counter()
         inner = await self._inner.respond(principal=principal, conversation=conversation, message=grounded,
                                           route={**route, "route_type": "DIRECT"}, attachment_ids=attachment_ids)
