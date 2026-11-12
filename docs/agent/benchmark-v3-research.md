@@ -360,3 +360,13 @@ Ghi trước mọi lượt đo v8. Không sửa `cases_v7.json`, `cases_v8.json`
 - **Hệ quả với bộ đo.** Đáp án đã đăng ký của v7 và v8 cho hai loại phát hiện `total_exposure` và `audit_required` được viết theo cách tính cũ (có cộng dư nợ TCTD khác): 12/33 phát hiện ở v7, 17/48 ở v8. Sau khi sửa, cả single lẫn multi đều không còn khớp hai loại này. Kiểm hồi quy v7 một lượt mỗi ca: multi độ phủ 0,969 → 0,690; single 0,533 (mốc 3 lượt trước đó 0,883); cổng multi 1,000, single 0,750; trích nguồn multi 1,000, single 0,884.
 - **Cách báo cáo v8, chốt trước khi đo.** Đo đúng một lượt (3 lần × 2 chế độ). Báo hai dòng số cạnh nhau cho cả hai chế độ: (a) độ phủ theo đáp án đã đăng ký, nguyên vẹn; (b) độ phủ không tính hai loại phát hiện `total_exposure` và `audit_required`, vì đáp án của chúng mâu thuẫn `rules.md`. Các chỉ số khác (trích nguồn, độ chính xác, cổng, sai, độ trễ, chi phí) giữ nguyên cách chấm. Không viết lại đáp án, không thêm ca, không chọn dòng nào đẹp hơn để nêu riêng.
 - **Giới hạn.** Dòng (b) được định nghĩa sau khi đã thấy số v7 giảm, nên nó là số tham khảo có giải thích, không phải kết quả mù thuần túy. Số v7 đã công bố ở §13 đo trên engine trước khi sửa và vẫn giữ nguyên.
+
+## 15. Đo v8 (13/11/2026)
+
+### 15.1 Đầu mục: ghi trước khi đo (commit trước lượt đo)
+- **Commit khóa:** `735f9a7` (engine và backend; HEAD `9f2f604` chỉ thêm frontend). Container engine và backend trên stack chung đang chạy đúng mã này. Không sửa engine, single-agent, `grade.py`, `cases_v8.json`, prompt, cờ trong lúc đo.
+- **Đăng ký:** §12 (cơ cấu, cách đo, giả thuyết) và §14 (hai dòng (a) nguyên vẹn, (b) không tính `total_exposure`, `audit_required`).
+- **Lệnh sẽ chạy (đúng một lượt):** `python3 agent_engine/scripts/benchmark/run.py --cases all --runs 3 --modes single,multi --cases-file agent_engine/scripts/benchmark/cases_v8.json --grader v3 --max-cost 1.5 --label "v8 mù trên bản khóa 735f9a7"`. Tuần tự, engine `bank-ai-workbench-engine-1`, nạp `agent.benchmark_run` tự động.
+- **Seed khách v8:** có trong DB (10 hồ sơ `benchmark v8` trong `customer.organization_profile`).
+- **Số dư OpenRouter trước đo:** còn 4,2599 USD (đã dùng 5,7401 / hạn mức 10).
+- Lỗi hạ tầng (nếu có) chỉ chạy lại đúng phần lỗi và ghi rõ; không chạy lại để chọn điểm.
