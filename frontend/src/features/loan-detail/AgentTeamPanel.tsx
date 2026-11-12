@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Button, Skeleton, Tooltip } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
-import { ActionButton, AGENTS, AgentTeam, AiBlock, Flag as FlagMark, StatusPill, type AgentKey, type AgentState, type PillTone } from '@/components/ui';
+import { ActionButton, AGENTS, AgentTeam, AiBlock, StatusPill, type AgentKey, type AgentState, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { normalizeError } from '@/services/apiClient';
@@ -9,11 +9,12 @@ import {
   TERMINAL_STATES, getAgentCase, getAgentCaseEvents, streamAgentCase, type AgentCaseEvent,
 } from '@/services/agentCaseService';
 import {
-  DECISION_LABEL, agentName, dedupeConditions, scrubInternal, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
+  agentName, cleanAiLine, dedupeConditions, scrubInternal, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
   quoteText, fallbackConclusion,
 } from '@/features/dashboard/agentTrace';
 import { ActionProposals } from '@/features/agent-actions/ActionProposals';
 import { AiText } from '@/features/dashboard/components/AiText';
+import { VerdictChip } from '@/features/dashboard/components/VerdictChip';
 import { fetchAgentRuns, startAgentRun } from './loanDetailService';
 import { fmtDate, fmtMoney } from './format';
 import styles from './loan-detail.module.css';
@@ -214,7 +215,6 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
   const startMs = Date.parse(startedAt);
   const fallback = finished && !pkg?.recommendation ? fallbackConclusion(c.state, verdicts) : null;
   const stateTone: Record<string, PillTone> = { Completed: 'ok', Rejected: 'bad', Escalated: 'bad', 'Pending Approval': 'human', 'Needs Info': 'warn' };
-  const level = (v: TraceVerdict) => (v.decision === 'reject' || v.decision === 'fail' ? 'r' : 'y') as 'r' | 'y';
   return (
     <div className={styles.run} data-testid="agent-run" data-state={c.state}>
       {failed.length > 0 && (
@@ -229,9 +229,12 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
       )}
       {(pkg?.recommendation || pkg?.proposed_limit != null || fallback) && (
         <div className={styles.stackTight} data-testid="agent-recommendation">
-          {pkg?.recommendation ? <p className={styles.concl}>{aiLead(conclusionHeadline(scrubInternal(pkg.recommendation)))}</p> : fallback && <p className={styles.concl} data-testid="agent-fallback-conclusion">{fallback}</p>}
+          {pkg?.recommendation ? <p className={styles.concl}>{aiLead(conclusionHeadline(scrubInternal(pkg.recommendation)))}</p> : fallback && <p className={styles.concl} data-testid="agent-fallback-conclusion">{fallback.headline}</p>}
           {pkg?.proposed_limit != null && <span>Hạn mức đề xuất: <b className={styles.num}>{fmtMoney(String(pkg.proposed_limit), currency)}</b></span>}
           {pkg?.required_approver_level && <span className={styles.note}>Cấp phê duyệt đề xuất: {approverLevelLabel(pkg.required_approver_level)}</span>}
+          {!pkg?.recommendation && !!fallback?.items.length && (
+            <ul className={styles.condOl} data-testid="agent-fallback-items">{fallback.items.map((x) => <li key={x}>{x}</li>)}</ul>
+          )}
           {!!pkg?.conditions?.length && (
             <div><b className={styles.sub}>Yêu cầu bổ sung và điều kiện đội agent đề xuất</b>
               <ul className={styles.condOl}>{dedupeConditions(pkg.conditions.map((x) => cleanCondition(scrubInternal(x)))).map((x) => <li key={x}>{x}</li>)}</ul></div>
@@ -247,8 +250,8 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
           <b className={styles.sub}>{finished ? `Phát hiện của từng chuyên gia (${findings.length} cần chú ý)` : `${verdicts.length}/4 chuyên gia đã xong`}</b>
           {verdicts.map((v, i) => (
             <span key={`${v.agent}-${i}`} className={styles.finding}>
-              {findings.includes(v) ? <FlagMark level={level(v)}>{DECISION_LABEL[v.decision] ?? v.decision}</FlagMark> : v.conditions?.length ? <StatusPill tone="warn">{`${DECISION_LABEL[v.decision] ?? v.decision}, có điều kiện`}</StatusPill> : <StatusPill tone="ok">{DECISION_LABEL[v.decision] ?? v.decision}</StatusPill>}
-              <b>{agentName(v.agent)}</b><AiText text={v.summary} />
+              <VerdictChip v={v} />
+              <b>{agentName(v.agent)}</b> <AiText text={v.summary} />
             </span>
           ))}
         </div>
@@ -283,7 +286,7 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
         <div className={styles.stackTight} data-testid="agent-sources">
           <b className={styles.sub}>Trích nguồn</b>
           {sources.map((s, i) => (
-            <span key={i} className={styles.note}>{agentName(s.agent)} · {sourceLabel(s.source)}: “{quoteText(s.quote)}”</span>
+            <span key={i} className={styles.note}>{agentName(s.agent)} · {cleanAiLine(sourceLabel(s.source)).replace(/[\s:]+$/, '')}: “{quoteText(s.quote)}”</span>
           ))}
         </div>
       )}

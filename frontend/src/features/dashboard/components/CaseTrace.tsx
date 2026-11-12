@@ -1,14 +1,15 @@
 import { AiText } from './AiText';
+import { VerdictChip } from './VerdictChip';
 import { useEffect, useMemo, useState } from 'react';
 import { conclusionHeadline } from '@/features/loan-detail/AgentTeamPanel';
 import { Drawer, Skeleton } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { TERMINAL_STATES, getAgentCase, getAgentCaseEvents, getApproverNames, streamAgentCase, type AgentCaseEvent } from '@/services/agentCaseService';
 import {
-  DECISION_LABEL, STATE_TONE, agentName, fmtSeconds, collaboration, dagLevels, decisions, latestPlan,
+  STATE_TONE, agentName, fmtSeconds, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
   BOARD_LABEL, approverLevelLabel, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
-  quoteText,
+  quoteText, cleanAiLine,
 } from '../agentTrace';
 import { ProposalChain } from '@/features/agent-actions/ActionProposals';
 import { statusLabel } from '@/features/my-work/format';
@@ -180,7 +181,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                               )}
                               {st?.verdict && (
                                 <span className={styles.nodeSum}>
-                                  <b>{DECISION_LABEL[st.verdict.decision] ?? st.verdict.decision}</b>: <AiText text={st.verdict.summary} />
+                                  <VerdictChip v={st.verdict} /> <AiText text={st.verdict.summary} />
                                 </span>
                               )}
                               {sec != null && <span className={styles.tm}>{fmtSeconds(sec)}</span>}
@@ -321,7 +322,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         )}
         {verdicts.map((v) => (
           <div key={v.agent + v.summary} className={styles.dec}>
-            <b>{agentName(v.agent)}</b> · {DECISION_LABEL[v.decision] ?? v.decision}: <AiText text={v.summary} />
+            <b>{agentName(v.agent)}</b> <VerdictChip v={v} /> <AiText text={v.summary} />
           </div>
         ))}
         {decided.map((d) => (
@@ -356,7 +357,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
           <h3>Nguồn trích dẫn ({sources.length})</h3>
           <ul className={styles.plainList}>
             {sources.map((s, i) => (
-              <li key={i} className={styles.text}><span className={styles.mono}>{sourceLabel(s.source)}</span> {quoteText(s.quote)} <span className={styles.dim}>({agentName(s.agent)})</span></li>
+              <li key={i} className={styles.text}><span className={styles.mono}>{cleanAiLine(sourceLabel(s.source)).replace(/[\s:]+$/, '')}</span> {quoteText(s.quote)} <span className={styles.dim}>({agentName(s.agent)})</span></li>
             ))}
           </ul>
           <details className={styles.det}><summary>Chi tiết kỹ thuật (kiểm toán)</summary>
