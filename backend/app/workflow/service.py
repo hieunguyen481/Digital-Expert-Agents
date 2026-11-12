@@ -31,6 +31,12 @@ from app.workflow.transitions import (
     Transition,
 )
 
+_ROLE_VI = {
+    "credit_officer": "QHKH", "document_reviewer": "Hỗ trợ tín dụng", "credit_appraiser": "Thẩm định",
+    "credit_manager": "Trưởng phòng", "risk_officer": "Rủi ro", "compliance_officer": "Tuân thủ",
+    "loan_approver": "Phê duyệt", "auditor": "Kiểm toán", "admin": "Quản trị",
+}
+
 
 @dataclass(frozen=True)
 class TransitionResult:
@@ -153,7 +159,7 @@ class WorkflowService:
     ) -> datetime:
         """Q11: QHKH gia han han bo sung 1 lan, co ly do, them SLA ``CUSTOMER_SUPPLEMENT`` ngay lam viec."""
         if "credit_officer" not in set(getattr(principal, "roles", ())) or getattr(principal, "is_admin", False):
-            raise PermissionError("Action extend_deadline requires role credit_officer")
+            raise PermissionError("Chỉ QHKH được gia hạn hạn bổ sung.")
         clean = (reason or "").strip()
         if not clean:
             raise ValueError("Cần nhập lý do gia hạn.")
@@ -195,7 +201,7 @@ class WorkflowService:
     ) -> None:
         """Q-D: trưởng phòng chuyển người xử lý bước đang mở, bắt buộc lý do."""
         if "credit_manager" not in set(getattr(principal, "roles", ())) or getattr(principal, "is_admin", False):
-            raise PermissionError("Action reassign requires role credit_manager")
+            raise PermissionError("Chỉ Trưởng phòng được chuyển người xử lý.")
         clean = (reason or "").strip()
         if not clean:
             raise ValueError("Cần nhập lý do chuyển người xử lý.")
@@ -227,7 +233,8 @@ class WorkflowService:
         # 1. Vai tro (Quan tri khong bao gio chuyen buoc, Q-J).
         roles = set(getattr(principal, "roles", ()))
         if getattr(principal, "is_admin", False) or not roles & transition.roles:
-            raise PermissionError(f"Action {action} requires one of roles {sorted(transition.roles)}")
+            allowed = ", ".join(_ROLE_VI.get(r, r) for r in sorted(transition.roles))
+            raise PermissionError(f"Vai trò của bạn không được thực hiện thao tác này. Vai trò được phép: {allowed}.")
         # 2. Trang thai nguon.
         loan = await self._repo.get_loan(loan_id)
         if loan is None:
@@ -277,7 +284,7 @@ class WorkflowService:
         if action in {"decide", "return_for_supplement"} and await self._repo.is_excluded(
             principal.employee_id, loan_id
         ):
-            raise PermissionError("Employee is excluded from deciding this case (E8)")
+            raise PermissionError("Bạn đã tham gia xử lý hồ sơ này ở bước trước nên không được tham gia quyết định.")
         exception_decisions: dict[UUID, tuple[str, str]] = {}
         if action in {"decide", "return_for_supplement"}:
             exception_decisions = await self._exception_decisions(loan_id, plan, params or {})
@@ -488,7 +495,7 @@ def _resumed_due(remaining: int | None, now: datetime, holidays: frozenset[date]
 
 def _require_permission(principal: PrincipalLike, permission: str) -> None:
     if permission not in principal.permissions:
-        raise PermissionError(f"Missing permission: {permission}")
+        raise PermissionError("Bạn chưa được cấp quyền cho thao tác này.")
 
 
 def _validate_params(
