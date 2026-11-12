@@ -188,8 +188,8 @@ def _explanation_steps(reason, restricted):
     ]
 
 
-def test_explanation_reason_hidden_viewer_gets_neutral_text_not_old_reason() -> None:
-    """P01: người bị che lý do không thấy lý do cũ của bước khác, chỉ thấy câu trung tính."""
+def test_hidden_step_reason_gets_neutral_text_not_old_reason() -> None:
+    """P01: bước còn bị che (reason_restricted) không lùi về lý do cũ của bước khác, chỉ câu trung tính."""
     from app.services.loan_detail_service import supplement_request
 
     got = supplement_request("RISK_PENDING_INFO", _explanation_steps(None, True))
@@ -198,8 +198,8 @@ def test_explanation_reason_hidden_viewer_gets_neutral_text_not_old_reason() -> 
     assert "CŨ" not in got["reason"]
 
 
-def test_explanation_reason_visible_roles_see_new_reason() -> None:
-    """P01: vai được xem (Tuân thủ, Rủi ro, Phê duyệt, Kiểm toán) thấy đúng lý do đã lưu ở bước."""
+def test_explanation_reason_visible_to_recipient_and_privileged() -> None:
+    """P01 + V067: lý do giải trình không bị che nên HTTD và vai được xem đều thấy đúng lý do đã lưu."""
     from app.services.loan_detail_service import supplement_request
 
     got = supplement_request("RISK_PENDING_INFO", _explanation_steps("Giải trình nguồn tiền quý 2.", False))
