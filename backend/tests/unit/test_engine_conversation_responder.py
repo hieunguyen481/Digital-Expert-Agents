@@ -204,6 +204,8 @@ async def test_approval_level_question_gets_section_3_1_and_proposed_level() -> 
     assert "§3.1" in inner.message and "Cấp phê duyệt đề xuất" in inner.message
     assert "Giám đốc chi nhánh" in inner.message and "đề xuất của AI" in inner.message
     assert reply.metadata["decision_related"] is True
+    # Q02: có tên cấp theo bậc ngưỡng để chat nêu "Cấp 2 Hội sở", không chỉ khoảng tiền
+    assert "Cấp 2 Hội sở" in inner.message and "Hội đồng tín dụng" in inner.message
 
 
 @pytest.mark.asyncio

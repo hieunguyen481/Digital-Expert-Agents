@@ -122,6 +122,10 @@ _AUTHORITY_TOPIC = "thẩm quyền phê duyệt theo tổng cấp tín dụng"
 _BROAD_Q = re.compile(r"kết luận|đề xuất|điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|tổng quan|tóm tắt", re.I)
 _POLICY_NOTE = ("\n\nĐIỀU KHOẢN CHÍNH SÁCH LIÊN QUAN (CS-TD-SME/2025; trích đúng số điều khoản khi trả lời, "
                 "không có trong đây thì nói rõ là chưa tra được):\n")
+# Tên cấp theo bậc ngưỡng §3.1 (corpus chỉ có ngưỡng): cùng bảng `_LEVEL_LABEL` mà khung đội agent dùng, không đặt số ở đây.
+_LEVEL_NAMES_NOTE = ("\n\nTÊN CẤP PHÊ DUYỆT THEO BẬC NGƯỠNG §3.1 (theo tổng cấp tín dụng; trả lời bằng tên cấp, không chỉ nêu khoảng): "
+                     f"bậc ≤ ngưỡng thấp: {_LEVEL_LABEL['branch_director']}; bậc giữa (trên ngưỡng thấp đến ngưỡng cao): "
+                     f"{_LEVEL_LABEL['head_office_l2']}; bậc > ngưỡng cao: {_LEVEL_LABEL['council']}.")
 _METRIC_Q = re.compile(r"dscr|ebitda|\bltv\b|nợ vay|đòn bẩy|hạn mức|tài sản bảo đảm|tsđb|định giá|kết luận|đề xuất|cấp phê duyệt|"
                        r"điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|phê duyệt|quyết định|thẩm quyền", re.I)
 _LEVERAGE_Q = re.compile(r"nợ vay\s*/\s*ebitda|đòn bẩy|nợ/ebitda|debt\s*/\s*ebitda", re.I)
@@ -214,7 +218,10 @@ class EngineConversationResponder:
                 hits = [*topic, *(h for h in hits if h["source"] not in {t["source"] for t in topic})]
         except Exception:  # noqa: BLE001 - thiếu điều khoản không được làm hỏng câu trả lời
             return ""
-        return _POLICY_NOTE + "\n".join(f"- {h['source']}: {h['text']}" for h in hits) if hits else ""
+        if not hits:
+            return ""
+        note = _POLICY_NOTE + "\n".join(f"- {h['source']}: {h['text']}" for h in hits)
+        return note + _LEVEL_NAMES_NOTE if _AUTHORITY_Q.search(message) else note
 
     async def respond(self, *, principal: PrincipalLike, conversation: Mapping[str, Any],
                       message: str, route: Mapping[str, Any],
