@@ -102,7 +102,7 @@ export default function ChatPage() {
     (item) => item.id === activeConversationId,
   )?.customerId;
   useEffect(() => {
-    if (!activeConversationCustomerId) return;
+    if (!activeConversationCustomerId || user.role !== 'qhkh') return; // chỉ QHKH nhận phân công khách
     const customer = customers.find((item) => item.id === activeConversationCustomerId);
     if (!customer) return;
     let cancelled = false;
@@ -117,7 +117,7 @@ export default function ChatPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeConversationCustomerId, customers]);
+  }, [activeConversationCustomerId, customers, user.role]);
 
   const activeConversation = useMemo(
     () => conversations.find((item) => item.id === activeConversationId) ?? null,
@@ -263,24 +263,21 @@ export default function ChatPage() {
   const openCustomerConversation = useCallback(
     async (customer: Customer) => {
       try {
-        try {
-          const lease = await claimCustomerAssignment(
-            customer.id,
-            customer.assignmentVersion ?? 1,
-          );
-          setActiveAssignmentLeaseToken(lease?.lease_token);
-        } catch (error) {
-          // Không nhận được phân công: vẫn mở hội thoại có khách hàng để xem; quyền và
-          // phân công được backend kiểm khi phân tích nên người dùng nhận lý do rõ ràng.
+        if (user.role === 'qhkh') {
+          try {
+            const lease = await claimCustomerAssignment(
+              customer.id,
+              customer.assignmentVersion ?? 1,
+            );
+            setActiveAssignmentLeaseToken(lease?.lease_token);
+          } catch (error) {
+            // Không nhận được phân công: vẫn mở hội thoại có khách hàng để xem; quyền và
+            // phân công được backend kiểm khi phân tích nên người dùng nhận lý do rõ ràng.
+            setActiveAssignmentLeaseToken(undefined);
+            messageApi.warning(getErrorMessage(error));
+          }
+        } else {
           setActiveAssignmentLeaseToken(undefined);
-          messageApi.warning(getErrorMessage(error));
-        }
-
-        const existing = conversations.find((item) => item.customerId === customer.id);
-        if (existing) {
-          activeConversationIdRef.current = existing.id;
-          setActiveConversationId(existing.id);
-          return;
         }
 
         let loanApplicationId: string | undefined;
@@ -288,6 +285,17 @@ export default function ChatPage() {
           loanApplicationId = await getAssignedLoanApplicationId(customer.id);
         } catch {
           // A customer-only conversation remains useful for direct/document queries.
+        }
+        // Dùng lại hội thoại của khách chỉ khi cùng hồ sơ; hội thoại cũ chưa gắn hồ sơ thì tạo mới có hồ sơ.
+        const existing = conversations.find(
+          (item) =>
+            item.customerId === customer.id &&
+            (!loanApplicationId || item.activeLoanApplicationId === loanApplicationId),
+        );
+        if (existing) {
+          activeConversationIdRef.current = existing.id;
+          setActiveConversationId(existing.id);
+          return;
         }
         const created = await createConversation.mutateAsync({
           customerId: customer.id,
@@ -301,7 +309,7 @@ export default function ChatPage() {
         messageApi.error(getErrorMessage(error));
       }
     },
-    [conversations, createConversation, messageApi],
+    [conversations, createConversation, messageApi, user.role],
   );
 
   /** Chọn khách hàng (lệnh `/`) -> mở phiên chat của họ + panel hồ sơ nửa màn hình. */

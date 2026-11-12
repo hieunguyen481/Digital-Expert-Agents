@@ -21,7 +21,10 @@ export async function listCustomers(signal?: AbortSignal): Promise<Customer[]> {
   return response.data.items.map(toCustomer);
 }
 
-/** Select only a loan that the backend says is assigned to the current employee. */
+/**
+ * Chọn hồ sơ đang xử lý của khách để gắn vào chat: ưu tiên hồ sơ giao cho mình, nếu không thì
+ * hồ sơ mới nhất đọc được (backend đã lọc theo quyền đọc). Mọi vai đọc được hồ sơ đều hỏi được về hồ sơ đó.
+ */
 export async function getAssignedLoanApplicationId(customerId: string): Promise<string | undefined> {
   if (USE_MOCK_API) return undefined;
 
@@ -29,11 +32,10 @@ export async function getAssignedLoanApplicationId(customerId: string): Promise<
     apiClient.get<BackendMe>('/me'),
     apiClient.get<BackendLoanApplication[]>(`/customers/${customerId}/loan-applications`),
   ]);
-  return loans.data.find(
-    (loan) =>
-      loan.assigned_employee_id === me.data.employee_id &&
-      !['CLOSED', 'REJECTED', 'APPROVED'].includes(loan.status.toUpperCase()),
-  )?.id;
+  const open = loans.data.filter(
+    (loan) => !['CLOSED', 'REJECTED', 'APPROVED'].includes(loan.status.toUpperCase()),
+  );
+  return (open.find((loan) => loan.assigned_employee_id === me.data.employee_id) ?? open[0])?.id;
 }
 
 function toCustomer(value: BackendCustomer): Customer {

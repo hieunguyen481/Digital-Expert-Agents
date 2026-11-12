@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import apiClient from '@/services/apiClient';
 import { Avatar, Button, Empty, Tag, Tooltip } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -164,9 +167,7 @@ export function CustomerWorkspacePanel({
               />
             </>
           ) : (
-            <div className={styles.emptyWrap}>
-              <Empty description="Khách hàng chưa có hồ sơ nào" />
-            </div>
+            <BackendLoanList customerId={customer.id} />
           ))}
 
         {/* --- So sánh --- */}
@@ -267,5 +268,44 @@ export function CustomerWorkspacePanel({
         )}
       </div>
     </aside>
+  );
+}
+
+interface BackendLoanRow {
+  id: string;
+  application_number: string;
+  requested_amount: string;
+  status: string;
+}
+
+/** Hồ sơ vay thật của khách (GET /customers/:id/loan-applications); chỉ báo "chưa có" khi backend trả rỗng. */
+function BackendLoanList({ customerId }: { customerId: string }) {
+  const loans = useQuery({
+    queryKey: ['customers', 'loans', customerId],
+    queryFn: async () => (await apiClient.get<BackendLoanRow[]>(`/customers/${customerId}/loan-applications`)).data,
+  });
+  if (loans.isLoading) return <div className={styles.emptyWrap} role="status">Đang tải hồ sơ…</div>;
+  if (!loans.data?.length) {
+    return (
+      <div className={styles.emptyWrap}>
+        <Empty description="Khách hàng chưa có hồ sơ nào" />
+      </div>
+    );
+  }
+  return (
+    <>
+      <h3 className={styles.sectionTitle}>Hồ sơ vay</h3>
+      <ul data-testid="customer-loan-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {loans.data.map((loan) => (
+          <li key={loan.id} style={{ padding: '6px 0' }}>
+            <Link to={`/ho-so-vay/${loan.id}`}>{loan.application_number}</Link>
+            {' · '}
+            {formatCurrency(Number(loan.requested_amount))}
+            {' · '}
+            {loan.status}
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

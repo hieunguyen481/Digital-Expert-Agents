@@ -7,14 +7,14 @@ import { useConversationMessages } from '@/hooks/useConversationMessages';
 import { useConversations } from '@/hooks/useConversations';
 import { useCreateConversation } from '@/hooks/useCreateConversation';
 import { useSendMessage } from '@/hooks/useSendMessage';
-import { getErrorMessage } from '@/services/apiClient';
+import apiClient, { getErrorMessage } from '@/services/apiClient';
 import type { ChatAttachment } from '@/types/attachment';
 import { useAiPanel } from './AiPanelContext';
 import styles from './ai-panel.module.css';
 
 /**
  * Panel Trợ lý AI 408px, đẩy nội dung. Luôn mount (khi vai trò có AI) để giữ chữ đang gõ;
- * đóng thì `inert`. Ngữ cảnh chỉ hiển thị trên chip, chưa gửi về backend (Kế hoạch 6).
+ * đóng thì `inert`. Ngữ cảnh hồ sơ gắn vào hội thoại (active_loan_application_id + khách của hồ sơ).
  */
 export function AiPanel() {
   const { open, context, close } = useAiPanel();
@@ -28,9 +28,17 @@ export function AiPanel() {
   const create = useCreateConversation();
   const { streamingMessage, isStreaming, send, stop } = useSendMessage(conversationId);
 
+  // Hội thoại phải đúng đối tượng đang mở: hồ sơ -> hội thoại gắn hồ sơ đó (không dùng lại của khách khác);
+  // không có hồ sơ -> hội thoại chung (chưa gắn khách/hồ sơ).
+  const caseId = context?.type === 'case' ? context.id : null;
   useEffect(() => {
-    if (!conversationId && conversations.data?.length) setConversationId(conversations.data[0].id);
-  }, [conversationId, conversations.data]);
+    const list = conversations.data;
+    if (!list) return;
+    const match = caseId
+      ? list.find((c) => c.activeLoanApplicationId === caseId && c.status !== 'CLOSED')
+      : list.find((c) => !c.activeLoanApplicationId && !c.customerId && c.status !== 'CLOSED');
+    setConversationId(match?.id ?? null);
+  }, [caseId, conversations.data]);
 
   useEffect(() => {
     const el = ref.current;
@@ -59,7 +67,12 @@ export function AiPanel() {
       let id = conversationId;
       if (!id) {
         try {
-          id = (await create.mutateAsync({})).id;
+          let input: { customerId?: string; loanApplicationId?: string } = {};
+          if (caseId) {
+            const loan = await apiClient.get<{ primary_customer_id: string }>(`/loan-applications/${caseId}`);
+            input = { customerId: loan.data.primary_customer_id, loanApplicationId: caseId };
+          }
+          id = (await create.mutateAsync(input)).id;
           setConversationId(id);
         } catch (e) {
           setError(getErrorMessage(e));
@@ -70,7 +83,7 @@ export function AiPanel() {
       setValue('');
       await send({ conversationId: id, content, attachments });
     },
-    [conversationId, create, send],
+    [conversationId, caseId, create, send],
   );
 
   return (
