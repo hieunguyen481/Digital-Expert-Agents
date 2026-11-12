@@ -381,19 +381,31 @@ export interface AiTextParts {
 }
 const dash = (x: string) => x.replace(/\s+[—–]\s+/g, ', ').replace(/^[\s—–-]+/, '').replace(/[\s.;:,]+$/, '').trim();
 
-/** Văn bản do agent sinh: bỏ "— " đầu, đổi nhãn chữ hoa thành chip, tách "A — B; C" thành gạch đầu dòng. */
+const upFirst = (x: string) => (x ? x.charAt(0).toLocaleUpperCase('vi') + x.slice(1) : x);
+const NEED_INFO = /^Cần bổ sung\s+([^:;]{3,60}):\s*([\s\S]*)$/i;
+const wordCount = (x: string) => x.split(/\s+/).filter(Boolean).length;
+
+/** Văn bản do agent sinh: bỏ "— " đầu, đổi nhãn đầu câu thành chip, tách thành gạch đầu dòng chỉ khi các mảnh là ý độc lập. */
 export function parseAiText(raw: string): AiTextParts {
   let t = scrubInternal(raw ?? '').replace(/^[\s—–-]+/, '').trim();
+  t = t.replace(/\s+vs\.?\s+/gi, ' so với ');
+  // Câu "… hiện tính được: 0 đồng" là số máy móc khi chưa đủ điều kiện, không nói thêm gì.
+  t = t.replace(/\s*[A-ZÀ-Ỵa-zà-ỵ][^.;:]*hiện tính được:\s*0\s*(?:đồng|VND|₫)?\.?\s*$/u, '').trim();
   let tag: string | undefined;
+  let lead: string | undefined;
   const m = t.match(CAPS_TAG);
   if (m) { tag = sentenceCase(m[1]); t = m[2]; }
-  const segs = splitTop(t, ';');
-  let lead: string | undefined;
-  if (segs.length > 1) {
+  const n = !m ? t.match(NEED_INFO) : null;
+  if (n) { tag = 'Cần bổ sung'; lead = upFirst(n[1].trim()); t = n[2]; }
+  let segs = splitTop(t, ';');
+  // Chỉ tách ";" khi mỗi mảnh đủ dài và mảnh sau không phải phần nối tiếp ("chưa…", "cần…", "hoàn tất…").
+  const independent = segs.length > 1 && segs.every((x) => wordCount(x) >= 6) && segs.slice(1).every((x) => !/^\p{Ll}/u.test(x));
+  if (!independent) segs = [t.trim()].filter(Boolean);
+  if (independent && !lead) {
     const i = segs[0].indexOf(' — ');
-    if (i > 0 && i <= 40) { lead = segs[0].slice(0, i).trim(); segs[0] = segs[0].slice(i + 3); }
+    if (i > 0 && i <= 40) { lead = upFirst(segs[0].slice(0, i).trim()); segs[0] = segs[0].slice(i + 3); }
   }
-  const items = segs.map(dash).filter(Boolean);
+  const items = segs.map(dash).filter(Boolean).map(upFirst);
   if (items.length === 1 && !lead) return { tag, items: [items[0]] };
   return { tag, lead, items };
 }

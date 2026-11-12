@@ -66,9 +66,32 @@ describe('parseAiText và dedupeConditions', () => {
     const { parseAiText } = await import('./agentTrace');
     const r = parseAiText('CẦN BỔ SUNG: thiếu dữ liệu chặn — Chưa có CIC — phải tra cứu trước khi trình (CS-TD-SME/2025 §6.1); Chưa có AML (công cụ tra; compliance_policy Điều 6)');
     expect(r.tag).toBe('Cần bổ sung');
-    expect(r.lead).toBe('thiếu dữ liệu chặn');
+    expect(r.lead).toBe('Thiếu dữ liệu chặn');
     expect(r.items).toEqual(['Chưa có CIC, phải tra cứu trước khi trình (CS-TD-SME/2025 §6.1)', 'Chưa có AML (công cụ tra; Chính sách tuân thủ Điều 6)']);
     expect(parseAiText('— Phần còn thiếu BCTC AI_OCR').items).toEqual(['Phần còn thiếu BCTC AI trích xuất']);
+  });
+  it('câu thật của 00187/00163: chỉ tách ý độc lập, không có mục chữ thường, "vs" hay "— "', async () => {
+    const { parseAiText } = await import('./agentTrace');
+    const real = [
+      'Phần còn thiếu không chặn việc áp dụng chính sách, xử lý như điều kiện trước giải ngân: KYB, blacklist và CIC không cho thấy điểm dừng; chưa thể chấp thuận khoản vay có bảo đảm vì định giá TSĐB đang chờ xác minh.',
+      'Chấp thuận có điều kiện hạn mức 10 tỷ đồng; hoàn tất các điều kiện trước giải ngân.',
+      'Chưa thể kết luận cấp khoản vay có bảo đảm: dư nợ giữa các dữ liệu không khớp và tài sản chưa hoàn tất xác minh định giá. Hạn mức bảo đảm hiện tính được: 0 đồng.',
+      'Cần đối soát dư nợ hiện hữu do số liệu mâu thuẫn; chưa ghi nhận TSĐB đủ điều kiện.',
+      'KYB, blacklist, CIC và TSĐB đạt ngưỡng đã kiểm tra; cần bổ sung bằng chứng BCTC kiểm toán vì tổng dư nợ sau cấp vượt 20 tỷ.',
+      'Dư nợ 12 tỷ vs 9 tỷ trong CIC — chênh lệch cần đối soát',
+    ];
+    for (const t of real) {
+      const r = parseAiText(t);
+      for (const it of r.items) { expect(it).toMatch(/^\p{Lu}|^\d/u); expect(it).not.toMatch(/ vs |— /); }
+    }
+    expect(parseAiText(real[1]).items).toHaveLength(1);
+    expect(parseAiText(real[2]).items.join(' ')).not.toMatch(/hiện tính được/);
+    expect(parseAiText(real[5]).items[0]).toContain('so với');
+    expect(parseAiText(real[3]).items).toHaveLength(1);
+    const n = parseAiText('Cần bổ sung thiếu dữ liệu chặn: Chưa có kết quả CIC cho khách hàng này; Chưa có kết quả sàng lọc AML của khách hàng');
+    expect(n.tag).toBe('Cần bổ sung');
+    expect(n.lead).toBe('Thiếu dữ liệu chặn');
+    expect(n.items).toHaveLength(2);
   });
   it('gộp điều kiện trùng', async () => {
     const { dedupeConditions } = await import('./agentTrace');
