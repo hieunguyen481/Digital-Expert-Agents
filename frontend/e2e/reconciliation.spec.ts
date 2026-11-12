@@ -40,7 +40,9 @@ test('tdinh: bấm trường tới đúng vùng tô và bấm vùng tô tới đ
   await expect(page.getByTestId('field-card')).toContainText(firstName);
 
   // Trường -> vùng tô (qua liên kết "n trường khác trên trang này")
-  await page.getByRole('button', { name: /trường khác trên trang này/ }).click();
+  const others = page.getByRole('button', { name: /trường khác trên trang này/ });
+  // Khung không ảnh mở sẵn danh sách trường; có ảnh thì phải bấm mở.
+  if ((await others.getAttribute('aria-expanded')) !== 'true') await others.click();
   const row = page.locator('[data-testid^="field-row-"]').first();
   const rowId = (await row.getAttribute('data-testid'))!.replace('field-row-', '');
   const rowName = (await row.locator('span').first().textContent())!;
