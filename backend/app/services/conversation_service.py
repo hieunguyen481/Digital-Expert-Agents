@@ -7,6 +7,7 @@ from typing import Any, Protocol
 from uuid import UUID
 
 from app.agents.context_router import is_rerun_request
+from app.exceptions import AppError
 from app.schemas.conversation import ConversationReply
 from app.services.access import require_permission
 from app.services.protocols import PrincipalLike
@@ -376,22 +377,28 @@ class ConversationService:
                     ),
                 )
             else:
-                require_permission(principal, "loan:analyze")
-                customer_id = _required_context_uuid(
-                    route.get("customer_id") or conversation.get("active_customer_id"),
-                    "customer_id",
-                )
-                loan_application_id = _optional_context_uuid(
-                    route.get("loan_application_id")
-                    or conversation.get("active_loan_application_id"),
-                    "loan_application_id",
-                )
-                await self._processing_guard.assert_can_process(
-                    principal,
-                    customer_id=customer_id,
-                    loan_application_id=loan_application_id,
-                    lease_token=assignment_lease_token,
-                )
+                try:
+                    require_permission(principal, "loan:analyze")
+                    customer_id = _required_context_uuid(
+                        route.get("customer_id") or conversation.get("active_customer_id"),
+                        "customer_id",
+                    )
+                    loan_application_id = _optional_context_uuid(
+                        route.get("loan_application_id")
+                        or conversation.get("active_loan_application_id"),
+                        "loan_application_id",
+                    )
+                    await self._processing_guard.assert_can_process(
+                        principal,
+                        customer_id=customer_id,
+                        loan_application_id=loan_application_id,
+                        lease_token=assignment_lease_token,
+                    )
+                except (PermissionError, AppError):
+                    # Người không giữ hồ sơ/khách vẫn hỏi được về hồ sơ họ đọc được: trả lời từ kết quả đã có,
+                    # không chạy phân tích mới (chạy lại đội chỉ qua "phân tích lại" theo luật trang hồ sơ).
+                    route["route_type"] = "DIRECT"
+                    route["complexity_level"] = 2
 
         repository_options: dict[str, Any] = {}
         if normalized_attachment_ids:

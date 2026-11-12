@@ -327,7 +327,7 @@ async def test_responder_persists_parented_assistant_message_and_structured_repl
 
 
 @pytest.mark.asyncio
-async def test_orchestrated_responder_requires_loan_analyze_before_persistence() -> None:
+async def test_orchestrated_without_analyze_permission_is_downgraded_to_direct() -> None:
     repository = InMemoryConversationRepository()
     responder = RecordingResponder(ConversationReply(content="Should not run"))
     guard = RecordingProcessingGuard()
@@ -335,21 +335,21 @@ async def test_orchestrated_responder_requires_loan_analyze_before_persistence()
     principal = _principal(can_analyze=False)
     conversation = await _create_conversation(service, principal)
 
-    with pytest.raises(PermissionError, match="loan:analyze"):
-        await service.add_message(
-            principal,
-            conversation["id"],
-            content="Assess repayment capacity",
-            attachment_ids=[],
-        )
+    await service.add_message(
+        principal,
+        conversation["id"],
+        content="Assess repayment capacity",
+        attachment_ids=[],
+    )
 
-    assert repository.message_rows == []
-    assert responder.calls == []
+    # Không đủ quyền phân tích: hạ xuống trả lời từ kết quả đã có (DIRECT), không chạy phân tích mới.
     assert guard.calls == []
+    assert len(responder.calls) == 1
+    assert responder.calls[0]["route"]["route_type"] == "DIRECT"
 
 
 @pytest.mark.asyncio
-async def test_single_expert_responder_has_the_same_analysis_permission_gate() -> None:
+async def test_single_expert_without_analyze_permission_is_downgraded_to_direct() -> None:
     repository = InMemoryConversationRepository()
     responder = RecordingResponder(ConversationReply(content="Should not run"))
     guard = RecordingProcessingGuard()
@@ -362,17 +362,15 @@ async def test_single_expert_responder_has_the_same_analysis_permission_gate() -
     principal = _principal(can_analyze=False)
     conversation = await _create_conversation(service, principal)
 
-    with pytest.raises(PermissionError, match="loan:analyze"):
-        await service.add_message(
-            principal,
-            conversation["id"],
-            content="Review the documents",
-            attachment_ids=[],
-        )
+    await service.add_message(
+        principal,
+        conversation["id"],
+        content="Review the documents",
+        attachment_ids=[],
+    )
 
-    assert repository.message_rows == []
-    assert responder.calls == []
     assert guard.calls == []
+    assert responder.calls[0]["route"]["route_type"] == "DIRECT"
 
 
 @pytest.mark.asyncio
@@ -617,7 +615,7 @@ async def test_policy_question_needs_read_access_only_not_ownership() -> None:
 
 
 @pytest.mark.asyncio
-async def test_other_single_agent_analysis_still_requires_ownership() -> None:
+async def test_other_single_agent_analysis_without_ownership_is_downgraded() -> None:
     repository = InMemoryConversationRepository()
     responder = RecordingResponder(ConversationReply(content="no"))
     guard = RecordingProcessingGuard()
@@ -626,6 +624,5 @@ async def test_other_single_agent_analysis_still_requires_ownership() -> None:
     service = ConversationService(repository, router, responder, guard)
     principal = _principal(can_analyze=False)
     conversation = await _create_conversation(service, principal)
-    with pytest.raises(PermissionError, match="loan:analyze"):
-        await service.add_message(principal, conversation["id"], content="Phân tích tài chính", attachment_ids=[])
-    assert responder.calls == []
+    await service.add_message(principal, conversation["id"], content="Phân tích tài chính", attachment_ids=[])
+    assert responder.calls[0]["route"]["route_type"] == "DIRECT"
