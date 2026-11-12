@@ -36,6 +36,10 @@ test('Rủi ro yêu cầu giải trình: HTTD thấy đúng nội dung, không t
   const sup = page.getByTestId('supplement-request');
   await expect(sup).toContainText(NEW, { timeout: 15_000 });
   await expect(sup).not.toContainText(OLD);
+  // Q05: thông báo gửi HTTD nêu nội dung cần giải trình.
+  await page.goto('/thong-bao');
+  await expect(page.locator('main')).toContainText(`Nội dung cần giải trình: ${NEW}`, { timeout: 15_000 });
+  await page.goto(`/ho-so-vay/${id}`);
   await expect(page.locator('main')).not.toContainText('Chữ ký trên hợp đồng không khớp mẫu lưu');
   // Vai được xem (Rủi ro) cũng thấy lý do giải trình.
   await as(page, 'ruiro'); await page.goto(`/ho-so-vay/${id}`);
