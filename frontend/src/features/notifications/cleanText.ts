@@ -11,6 +11,7 @@ export function cleanNotificationText(text: string): { text: string; sample: boo
     .replace(/\.{2,}(?!\.)/g, '.')
     .replace(/\s{2,}/g, ' ')
     .replace(/\s+([.,;:])/g, '$1')
+    .replace(/:$/, '')
     .trim();
   return { text: out, sample };
 }

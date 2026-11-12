@@ -86,7 +86,6 @@ export default function NotificationsPage() {
             </ul>
           </section>
         )}
-        {groups.some((g) => g.sample) && <p className={styles.sampleNote}>Một số thông báo thuộc hồ sơ dữ liệu mẫu; không ảnh hưởng hồ sơ thật.</p>}
       </div>
     </>
   );

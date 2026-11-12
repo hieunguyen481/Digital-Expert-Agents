@@ -11,6 +11,5 @@
 .body:focus-visible { outline: none; box-shadow: var(--focus); border-radius: var(--r-sm, 4px); }
 .time { color: var(--ink-3); font: 400 var(--fs-12) var(--font-num); white-space: nowrap; }
 .count { font-weight: 400; color: var(--ink-3); }
-.sampleNote { margin: 0; color: var(--ink-3); font-size: var(--fs-12); }
 
 .code { font: 500 var(--fs-13) var(--font-num); }
