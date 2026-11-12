@@ -132,6 +132,8 @@ _EN = (
     (re.compile(r"\binflow\b", re.I), "tiền về"),
     (re.compile(r"\bDU_LIEU_MAU-?", re.I), ""),
 )
+# cụm từ lặp liền nhau do ghép nhãn với câu LLM: "trùng danh sách danh sách cảnh báo"
+_REPEAT = re.compile(r"\b(danh sách|tài sản bảo đảm|hồ sơ|khách hàng)(?:\s+\1\b)+", re.I)
 _DSCR = re.compile(r"(DSCR[^\d\n]{0,15}?)(\d+)\.(\d+)")
 
 
@@ -159,6 +161,7 @@ def humanize(text: str) -> str:
         t = rx.sub(rep, t)
     t = _MONEY.sub(lambda m: vn_money(float(m.group(1).replace(",", ""))), t)
     t = _DSCR.sub(lambda m: f"{m.group(1)}{m.group(2)},{m.group(3)}", t)
+    t = _REPEAT.sub(r"\1", t)
     return _DEC.sub(lambda m: f"{m.group(1)},{m.group(2)}", t)
 
 

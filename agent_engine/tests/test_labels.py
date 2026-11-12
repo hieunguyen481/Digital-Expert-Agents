@@ -55,3 +55,8 @@ def test_sources_use_business_names_and_keep_raw():
     assert out["source_label"] == "Đánh giá KYC của khách hàng" and out["source"] == "customer.kyc_assessment"
     assert out["quote"] == "tài sản bảo đảm: không có" and out["raw_quote"] == 'collateral: "[]"'
     assert "customer.kyc_assessment" not in humanize("theo bảng customer.kyc_assessment")
+
+
+def test_humanize_gop_cum_lap_danh_sach():
+    assert humanize("ghi nhận trùng danh sách danh sách cảnh báo, thuộc điều kiện dừng") == \
+        "ghi nhận trùng danh sách cảnh báo, thuộc điều kiện dừng"
