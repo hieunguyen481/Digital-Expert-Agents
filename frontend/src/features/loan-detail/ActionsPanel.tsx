@@ -164,6 +164,11 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   };
 
   const decider = (has('loan_approver') && status === 'APPROVAL') || status === 'COUNCIL_SESSION';
+  // Không có nút, ý kiến, cờ hay lý do khóa nào để hiển thị thì ẩn thẻ, tránh thẻ "Hành động" trống.
+  const nothingToShow = totalActions === 0 && state.opinions.length === 0 && lockNotes.length === 0 && !notHolderWhy
+    && state.blockers.length === 0 && !(state.excluded && has('loan_approver') && status === 'APPROVAL')
+    && !overview.flags.some((f) => flagButtons(f).length > 0) && !error;
+  if (nothingToShow) return null;
   return (
     <section id="hanh-dong" aria-label="Hành động trên hồ sơ" data-testid="actions-panel">
       {slot && headNode && createPortal(headNode, slot)}

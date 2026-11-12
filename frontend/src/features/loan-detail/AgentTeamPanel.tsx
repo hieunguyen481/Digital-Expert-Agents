@@ -247,7 +247,7 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
           <b className={styles.sub}>{finished ? `Phát hiện của từng chuyên gia (${findings.length} cần chú ý)` : `${verdicts.length}/4 chuyên gia đã xong`}</b>
           {verdicts.map((v, i) => (
             <span key={`${v.agent}-${i}`} className={styles.finding}>
-              {findings.includes(v) ? <FlagMark level={level(v)}>{DECISION_LABEL[v.decision] ?? v.decision}</FlagMark> : <StatusPill tone="ok">{DECISION_LABEL[v.decision] ?? v.decision}</StatusPill>}
+              {findings.includes(v) ? <FlagMark level={level(v)}>{DECISION_LABEL[v.decision] ?? v.decision}</FlagMark> : v.conditions?.length ? <StatusPill tone="warn">{`${DECISION_LABEL[v.decision] ?? v.decision}, có điều kiện`}</StatusPill> : <StatusPill tone="ok">{DECISION_LABEL[v.decision] ?? v.decision}</StatusPill>}
               <b>{agentName(v.agent)}</b><AiText text={v.summary} />
             </span>
           ))}
