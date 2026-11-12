@@ -157,3 +157,93 @@ for (const [no, id] of [['00187', '000000000001'], ['00163', '000000000013'], ['
     for (const l of lines) expect(l, `dòng chữ AI: ${l}`).not.toMatch(AI_BAD);
   });
 }
+
+/** Lượt hoàn thiện cuối (lần 6): các chỗ trình bày đo được. */
+test('403: không có nhãn tên trang mồ côi phía trên tiêu đề', async ({ page }) => {
+  await loginAs(page, 'quantri');
+  await page.goto('/viec-cua-toi');
+  const h1 = page.getByRole('heading', { level: 1 });
+  await expect(h1).toContainText('Không có quyền');
+  const stray = await page.locator('main p').filter({ hasText: /^Việc của tôi$/ }).count();
+  expect(stray).toBe(0);
+});
+
+test('khung tải có chữ gợi ý ở ô tìm và chỗ avatar', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  await page.route('**/api/v1/me', async (route) => { await new Promise((r) => setTimeout(r, 2500)); await route.continue(); });
+  await page.reload();
+  const skel = page.getByTestId('shell-search-skel');
+  await expect(skel).toContainText('Tìm hồ sơ');
+  await expect(page.getByTestId('shell-avatar-skel')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 });
+});
+
+test('Dashboard: ô lọc lượt nháp không xuống dòng; Document không ghi 0 trơ trọi', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  await page.goto('/dashboard');
+  const rows = page.getByRole('table').filter({ hasText: 'Lượt tham gia' }).locator('tbody tr:not(.ant-table-measure-row)');
+  await expect(rows.first()).toBeVisible({ timeout: 20_000 });
+  for (const r of await rows.all()) {
+    const cells = await r.locator('td').allInnerTexts();
+    if (/Document/.test(cells[0] ?? '') && Number(cells[2]?.replace(/\D/g, '') || 0) + Number(cells[3]?.replace(/\D/g, '') || 0) > 0) {
+      expect(cells[1].trim(), `Document: ${cells.join(' | ')}`).not.toBe('0');
+    }
+  }
+  await page.getByRole('tab', { name: 'Dấu vết' }).click();
+  const box = page.getByTestId('trace-show-empty');
+  if (await box.isVisible({ timeout: 10_000 }).catch(() => false)) {
+    const h = await box.evaluate((e) => e.getBoundingClientRect().height);
+    expect(h).toBeLessThan(40);
+  }
+});
+
+test('ngăn kéo trace: mỗi agent trong kế hoạch có heading h3', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  await page.goto('/dashboard');
+  await page.getByRole('tab', { name: 'Dấu vết' }).click();
+  const row = page.locator('[data-testid^="case-row-"]').first();
+  await expect(row).toBeVisible({ timeout: 20_000 });
+  await row.click();
+  const dlg = page.getByRole('dialog');
+  await expect(dlg.locator('[data-testid^="dag-task-"]').first()).toBeVisible({ timeout: 20_000 });
+  const tasks = await dlg.locator('[data-testid^="dag-task-"]').count();
+  expect(tasks).toBeGreaterThan(0);
+  expect(await dlg.locator('[data-testid^="dag-task-"] h3').count()).toBe(tasks);
+  await expect(dlg.getByText('Planner (điều phối)').first()).toBeVisible();
+});
+
+test('Phê duyệt: kết luận AI gập danh sách việc bổ sung; ô số của modal có vòng focus 3px', async ({ page }) => {
+  await loginAs(page, 'pheduyet');
+  await page.goto(DECIDE);
+  const cond = page.getByTestId('agent-conditions');
+  if (await cond.count()) {
+    expect(await cond.evaluate((e) => (e as HTMLDetailsElement).open)).toBe(false);
+  }
+  await page.getByRole('button', { name: 'Quyết định', exact: true }).click();
+  const amount = page.locator('#decision-amount');
+  await expect(amount).toBeVisible();
+  await amount.focus();
+  const w = await page.locator('.ant-input-number-focused').first().evaluate((e) => getComputedStyle(e).outlineWidth);
+  expect(w).toBe('3px');
+});
+
+test('đối chiếu: nút mở tài liệu không lặp tên mục và không còn "(minh họa)"', async ({ page }) => {
+  await loginAs(page, 'httd');
+  await page.goto('/doi-chieu/75000000-0000-4000-8000-000000000001');
+  const list = page.getByRole('region', { name: 'Danh mục tài liệu' });
+  await expect(list).toBeVisible();
+  expect(await list.innerText()).not.toMatch(/minh họa/);
+  for (const item of await list.locator('[data-testid^="item-"]').all()) {
+    const label = (await item.locator('b').first().innerText()).trim().toLowerCase();
+    for (const b of await item.locator('button[data-testid^="doc-"]').all()) {
+      expect((await b.innerText()).trim().toLowerCase()).not.toBe(label);
+    }
+  }
+});
+
+test('Khách hàng: cột rủi ro không lặp "Chưa xếp hạng" ở mọi dòng', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  await page.goto('/khach-hang');
+  await expect(page.getByRole('table', { name: 'Khách hàng' })).toBeVisible();
+  expect(await page.getByRole('table', { name: 'Khách hàng' }).getByText('Chưa xếp hạng', { exact: true }).count()).toBe(0);
+});
