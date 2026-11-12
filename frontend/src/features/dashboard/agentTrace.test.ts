@@ -111,8 +111,10 @@ describe('parseAiText và dedupeConditions', () => {
       v('need_more_info', 'Chưa có kết quả sàng lọc AML của khách hàng'),
       v('need_more_info', 'Thông tin thứ tư không nên hiện ra'),
     ]);
-    expect(out).toMatch(/^AI đề xuất: cần bổ sung trước khi quyết định: /);
-    expect((out ?? '').split('; ')).toHaveLength(3);
+    expect(out?.headline).toBe('AI đề xuất: cần bổ sung 3 việc trước khi quyết định');
+    expect(out?.headline).not.toContain(':\n');
+    expect(out?.items).toHaveLength(3);
+    expect(out?.items[0]).toMatch(/^Chưa có kết quả CIC/);
     expect(fallbackConclusion('Completed', [])).toBeNull();
   });
   it('gộp điều kiện trùng', async () => {
@@ -123,5 +125,25 @@ describe('parseAiText và dedupeConditions', () => {
       'Bổ sung thông tin người đại diện',
     ]);
     expect(out).toHaveLength(2);
+  });
+});
+
+describe('cleanAiLine và chip điều kiện', () => {
+  it('làm sạch một dòng chữ AI: vs, hit, #, từ lặp, (trang N), mã kỹ thuật, mảnh cuối bị cắt', async () => {
+    const { cleanAiLine, hasVerdictCondition } = await import('./agentTrace');
+    expect(cleanAiLine('Dòng tiền HĐKD 2025: 93,2 vs 81,0 tỷ')).toBe('Dòng tiền HĐKD 2025: 93,2 so với 81,0 tỷ');
+    expect(cleanAiLine('## CS-TD-SME/2025 §3.1')).toBe('CS-TD-SME/2025 §3.1');
+    expect(cleanAiLine('BCTC BCTC năm 2025 (trang 3)')).toBe('BCTC năm 2025, trang 3');
+    expect(cleanAiLine('nếu có hit thì từ chối, compliance_policy Điều 6')).toBe('nếu có kết quả trùng thì từ chối, Chính sách tuân thủ Điều 6');
+    expect(cleanAiLine('Bổ sung lịch trả nợ để xác nhận; kiểm tra căn cứ cấp phê duyệt dư n')).toBe('Bổ sung lịch trả nợ để xác nhận');
+    expect(cleanAiLine('Tổng dư nợ vượt ngưỡng')).toBe('Tổng dư nợ vượt ngưỡng');
+    expect(hasVerdictCondition({ summary: 'Điều kiện vận hành đạt. Điều kiện bổ sung trước giải ngân: mở tài khoản' })).toBe(true);
+    expect(hasVerdictCondition({ summary: 'Điều kiện vận hành đạt.' })).toBe(false);
+    expect(hasVerdictCondition({ summary: 'Đạt', conditions: ['x'] })).toBe(true);
+  });
+  it('luồng phối hợp: Planner giao việc, tên Planner đúng vai', async () => {
+    const { agentName } = await import('./agentTrace');
+    expect(agentName('planner')).toBe('Planner (điều phối)');
+    expect(agentName('orchestrator')).not.toMatch(/Bộ chạy/);
   });
 });

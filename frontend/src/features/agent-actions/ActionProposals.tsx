@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Alert, Button, Input } from 'antd';
+import { AiText } from '@/features/dashboard/components/AiText';
 import { AiTag, StatusPill, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { quoteText, sourceLabel } from '@/features/dashboard/agentTrace';
+import { cleanAiLine, quoteText, sourceLabel } from '@/features/dashboard/agentTrace';
 import { useMe } from '@/auth/session';
 import { normalizeError } from '@/services/apiClient';
 import {
@@ -60,9 +61,9 @@ function ProposalCard({ proposal: p, caseId, loanId }: { proposal: ActionProposa
   return (
     <div data-testid="action-proposal" data-kind={p.kind} data-status={p.status}
       style={{ background: 'var(--surface)', border: '1px solid var(--rule-strong)', borderRadius: 'var(--r-md)', padding: 'var(--s3) var(--s4)', display: 'grid', gap: 'var(--s2)' }}>
-      <div style={{ display: 'flex', gap: 'var(--s2)', alignItems: 'center', flexWrap: 'wrap' }}><AiTag>{KIND_LABEL[p.kind]}</AiTag><StatusPill tone={color}>{label}</StatusPill><b>{p.title}</b></div>
-      <div style={{ fontSize: 'var(--fs-13)' }}>Căn cứ: {p.rationale}</div>
-      {docs.length > 0 && <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-13)' }}>{docs.map((d) => <li key={d}>{d}</li>)}</ul>}
+      <div style={{ display: 'flex', gap: 'var(--s2)', alignItems: 'center', flexWrap: 'wrap' }}><AiTag>{KIND_LABEL[p.kind]}</AiTag><StatusPill tone={color}>{label}</StatusPill><b>{cleanAiLine(p.title)}</b></div>
+      <div style={{ fontSize: 'var(--fs-13)' }}>Căn cứ: <AiText text={p.rationale} /></div>
+      {docs.length > 0 && <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-13)' }}>{docs.map((d) => <li key={d}>{cleanAiLine(d)}</li>)}</ul>}
       {p.evidence.length > 0 && (
         <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>
           {p.evidence.map((e, i) => <li key={i}><b>{sourceLabel(e.source)}</b>: {quoteText(e.quote)}</li>)}
@@ -130,9 +131,9 @@ export function ProposalChain({ events }: { events: AgentCaseEvent[] }) {
       <h3 style={{ margin: '0 0 6px' }}>Hành động đề xuất và xác nhận</h3>
       {chains.map((c) => (
         <div key={c.id} data-testid="trace-proposal-chain" style={{ fontSize: 13, marginBottom: 8 }}>
-          <b>{KIND_LABEL[c.kind] ?? c.kind}</b>: {c.title}
+          <b>{KIND_LABEL[c.kind] ?? c.kind}</b>: {cleanAiLine(c.title)}
           {c.steps.map((s, i) => (
-            <div key={i} style={{ marginLeft: 12 }}><StatusPill tone={s.tone}>{i + 1}. {s.label}</StatusPill> {s.text}</div>
+            <div key={i} style={{ marginLeft: 12 }}><StatusPill tone={s.tone}>{i + 1}. {s.label}</StatusPill> {cleanAiLine(s.text)}</div>
           ))}
         </div>
       ))}

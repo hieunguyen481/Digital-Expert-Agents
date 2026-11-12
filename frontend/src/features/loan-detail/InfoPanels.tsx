@@ -1,6 +1,7 @@
 import { Table } from 'antd';
 import { AiBlock, Flag as FlagMark, Timeline, ledgerNum, ledgerTable, type TimelineEntry } from '@/components/ui';
 import { conclusionLabel, flagSourceLabel, flagStatusLabel, fmtDate, fmtMoney, ownershipLabel, severityLabel, stepResultLabel, valuationLabel } from './format';
+import { cleanAiLine } from '@/features/dashboard/agentTrace';
 import { stepLabel } from '@/features/my-work/format';
 import type { Collateral, Flag, TimelineStep } from './types';
 import styles from './loan-detail.module.css';
@@ -12,10 +13,10 @@ function FlagRow({ f }: { f: Flag }) {
     <div className={styles.item} data-testid="flag-row">
       <div>
         <FlagMark level={SEV[f.severity] ?? 'g'}>{severityLabel(f.severity)}</FlagMark>{' '}
-        <b>{f.title}</b> · {flagStatusLabel(f.status)}
+        <b>{cleanAiLine(f.title)}</b> · {flagStatusLabel(f.status)}
       </div>
       <span className={styles.note}>Nguồn: {flagSourceLabel(f.source)}{f.blocks_submission ? ' · chặn trình' : ''}</span>
-      {f.handling_note && <span>{f.handling_note}</span>}
+      {f.handling_note && <span>{cleanAiLine(f.handling_note)}</span>}
       {f.compliance_conclusion && <span>Kết luận Tuân thủ: {conclusionLabel(f.compliance_conclusion)}{f.compliance_reason ? ` — ${f.compliance_reason}` : ''}</span>}
     </div>
   );

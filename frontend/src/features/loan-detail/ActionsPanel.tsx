@@ -11,6 +11,7 @@ import { normalizeError } from '@/services/apiClient';
 import {
   addOpinion, concludeFlag, earlyWarning, extendDeadline, fetchActionState, handleFlag, runTransition, upgradeApproval,
 } from './loanDetailService';
+import { cleanAiLine } from '@/features/dashboard/agentTrace';
 import { DecisionModal } from './DecisionModal';
 import type { Flag, LoanOverview } from './types';
 import styles from './loan-detail.module.css';
@@ -154,7 +155,8 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
       if (f.code === 'cickh') {
         out.push(<Button key="warn" size="small" disabled={!!f.early_warned_at} onClick={() => reasonAction('Báo sớm Tuân thủ', 'Ghi chú (không bắt buộc)', 'Gửi báo sớm', (t) => earlyWarning(loanId, f.id, t), false)}>{f.early_warned_at ? 'Đã báo sớm' : 'Báo sớm Tuân thủ'}</Button>);
       } else {
-        out.push(<Button key="handle" size="small" aria-label={`Xử lý cờ: ${f.title}`} onClick={() => reasonAction(`Xử lý cờ: ${f.title}`, 'Ghi chú xử lý', 'Đã xử lý', (t) => handleFlag(loanId, f.id, t))}>{`Xử lý cờ: ${f.title.length > 36 ? `${f.title.slice(0, 35)}…` : f.title}`}</Button>);
+        const title = cleanAiLine(f.title);
+        out.push(<Button key="handle" size="small" aria-label={`Xử lý cờ: ${title}`} onClick={() => reasonAction(`Xử lý cờ: ${title}`, 'Ghi chú xử lý', 'Đã xử lý', (t) => handleFlag(loanId, f.id, t))}>Xử lý cờ này</Button>);
       }
     }
     if (status === 'RISK_REVIEW' && has('compliance_officer') && f.code === 'cickh' && f.status !== 'CONCLUDED') {
@@ -189,7 +191,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
       ))}
       {overview.flags.filter((f) => flagButtons(f).length > 0).map((f) => (
         <div key={f.id} className={styles.item} data-testid="flag-actions">
-          <b>{f.title}</b> <Space wrap>{flagButtons(f)}</Space>
+          <b>{cleanAiLine(f.title)}</b> <Space wrap>{flagButtons(f)}</Space>
         </div>
       ))}
       <Space wrap>{buttons}{!slot && headNode}</Space>

@@ -8,7 +8,7 @@ export const AGENT_NAME: Record<string, string> = {
   operations: 'Operations',
   validation: 'Validation',
   document: 'Document',
-  orchestrator: 'Bộ chạy tác vụ',
+  orchestrator: 'Hệ thống điều phối',
   system: 'Hệ thống',
   gateway: 'Cổng',
   hitl: 'Người xác nhận',
@@ -67,6 +67,11 @@ export const DECISION_LABEL: Record<string, string> = {
   need_more_info: 'Cần thêm thông tin',
   flag: 'Đồng ý có điều kiện',
 };
+
+const CONDITION_TEXT = /điều kiện bổ sung|trước giải ngân|kèm điều kiện|có điều kiện/i;
+/** Có điều kiện kèm theo: mảng `conditions` khác rỗng, hoặc câu tóm tắt nói điều kiện (Operations ghi điều kiện vào câu, không vào mảng). */
+export const hasVerdictCondition = (v: { conditions?: string[]; summary?: string }): boolean =>
+  !!v.conditions?.length || CONDITION_TEXT.test(v.summary ?? '');
 
 export interface PlanTask {
   task_id: string;
@@ -145,7 +150,7 @@ export function collaboration(events: AgentCaseEvent[]): FlowItem[] {
   for (const e of events) {
     const p = e.payload ?? {};
     if (e.type === 'task_started') {
-      items.push({ id: e.id, from: 'orchestrator', to: e.agent, kind: 'giao việc', text: str(p.objective) });
+      items.push({ id: e.id, from: 'planner', to: e.agent, kind: 'giao việc', text: str(p.objective) });
     } else if (e.type === 'task_finished') {
       const v = p.verdict as TraceVerdict | undefined;
       items.push({ id: e.id, from: e.agent, to: 'orchestrator', kind: 'trả kết quả', text: v?.summary ?? '' });
@@ -384,8 +389,26 @@ export interface AiTextParts {
 }
 const dash = (x: string) => x.replace(/\s+[—–]\s+/g, ', ').replace(/^[\s—–-]+/, '').replace(/[\s.;:,]+$/, '').trim();
 
-/** Trích nguồn hiển thị: bỏ mã kỹ thuật, "— " thành dấu phẩy. */
-export const quoteText = (q: string): string => scrubInternal(q ?? '').replace(/\s+[—–]\s+/g, ', ').trim();
+/** Chuỗi bị cắt giữa chữ ("… dư n"): bỏ mảnh cuối một chữ cái rồi lùi về ranh giới câu hoặc ý gần nhất. */
+export function trimDangling(t: string): string {
+  if (!/\s[a-zà-ỵđ]$/u.test(t) || /\s[aàáạoôơeéêiíuúưyý]$/u.test(t)) return t;
+  const base = t.replace(/\s[a-zà-ỵđ]$/u, '').replace(/[\s,;:]+$/, '');
+  const cut = Math.max(base.lastIndexOf('. '), base.lastIndexOf('; '));
+  return (cut > 20 ? base.slice(0, cut) : base).replace(/[\s.;:,]+$/, '');
+}
+/** Một dòng chữ AI (tiêu đề cờ, căn cứ, trích nguồn): bỏ mã kỹ thuật, "vs", "hit", "#", từ lặp liền nhau, "(trang N)" gộp vào nguồn đứng trước. */
+export function cleanAiLine(raw: string): string {
+  let t = scrubInternal(raw ?? '')
+    .replace(/^[\s#]+/, '').replace(/\s+#{1,6}\s+/g, ' ')
+    .replace(/\s+vs\.?\s+/gi, ' so với ')
+    .replace(/\bhit\b/gi, 'kết quả trùng')
+    .replace(/\s+[—–]\s+/g, ', ')
+    .replace(/\s*\(\s*(trang\s+\d+)\s*\)/gi, ', $1');
+  for (let i = 0; i < 3; i += 1) t = t.replace(/(^|[\s(])(\p{L}{2,})\s+\2(?=[\s.,;:)]|$)/giu, '$1$2');
+  return trimDangling(t.replace(/\s{2,}/g, ' ').trim());
+}
+/** Trích nguồn hiển thị. */
+export const quoteText = (q: string): string => cleanAiLine(q);
 const upFirst = (x: string) => (x ? x.charAt(0).toLocaleUpperCase('vi') + x.slice(1) : x);
 const NEED_INFO = /^Cần bổ sung\s+([^:;]{3,60}):\s*([\s\S]*)$/i;
 const wordCount = (x: string) => x.split(/\s+/).filter(Boolean).length;
@@ -393,7 +416,8 @@ const wordCount = (x: string) => x.split(/\s+/).filter(Boolean).length;
 /** Văn bản do agent sinh: bỏ "— " đầu, đổi nhãn đầu câu thành chip, tách thành gạch đầu dòng chỉ khi các mảnh là ý độc lập. */
 export function parseAiText(raw: string): AiTextParts {
   let t = scrubInternal(raw ?? '').replace(/^[\s—–-]+/, '').trim();
-  t = t.replace(/\s+vs\.?\s+/gi, ' so với ');
+  t = t.replace(/\s+vs\.?\s+/gi, ' so với ').replace(/\bhit\b/gi, 'kết quả trùng').replace(/^#+\s*/, '');
+  t = trimDangling(t);
   // Câu "… hiện tính được/ghi nhận (là) 0 đồng" là số máy móc khi chưa đủ điều kiện, không nói thêm gì.
   t = t.replace(/\s*[A-ZÀ-Ỵa-zà-ỵ][^.;:]*hiện (?:tính được|ghi nhận)(?: là)?:?\s*0\s*(?:đồng|VND|₫)?\.?\s*$/u, '').trim();
   let tag: string | undefined;
@@ -437,20 +461,22 @@ export function dedupeConditions(list: string[]): string[] {
   return kept.map((k) => k.text);
 }
 
-/** Câu kết luận khi gói đề xuất không có `recommendation` (lượt dừng ở "Cần bổ sung", bị từ chối, chuyển cấp): dựng từ trạng thái lượt và ý các chuyên gia cần thêm thông tin, tối đa 3 ý. */
-export function fallbackConclusion(state: string, verdicts: TraceVerdict[]): string | null {
+/** Kết luận khi gói đề xuất không có `recommendation` (lượt dừng ở "Cần bổ sung", bị từ chối, chuyển cấp): một dòng tiêu đề, kèm tối đa 3 việc cần bổ sung dựng từ ý các chuyên gia cần thêm thông tin. */
+export function fallbackConclusion(state: string, verdicts: TraceVerdict[]): { headline: string; items: string[] } | null {
   if (state === 'Needs Info') {
     const items: string[] = [];
     for (const v of verdicts.filter((x) => x.decision === 'need_more_info')) {
       const raw = v.conditions?.length ? v.conditions[0] : v.summary;
       const first = parseAiText(raw).items[0] ?? '';
-      const one = first.split(/\.\s+/)[0].replace(/[\s.;:,]+$/, '').trim();
+      const one = cleanAiLine(first.split(/\.\s+/)[0]).replace(/[\s.;:,]+$/, '').trim();
       if (one && !items.some((x) => x.toLowerCase() === one.toLowerCase())) items.push(one);
     }
-    const shown = dedupeConditions(items).slice(0, 3);
-    return shown.length ? `AI đề xuất: cần bổ sung trước khi quyết định: ${shown.map((x) => x.charAt(0).toLocaleLowerCase('vi') + x.slice(1)).join('; ')}.` : 'AI đề xuất: cần bổ sung thông tin trước khi quyết định.';
+    const shown = dedupeConditions(items).slice(0, 3).map(upFirst);
+    return shown.length
+      ? { headline: `AI đề xuất: cần bổ sung ${shown.length} việc trước khi quyết định`, items: shown }
+      : { headline: 'AI đề xuất: cần bổ sung thông tin trước khi quyết định', items: [] };
   }
-  if (state === 'Rejected') return 'AI đề xuất: từ chối hồ sơ.';
-  if (state === 'Escalated') return 'AI đề xuất: chuyển cấp có thẩm quyền cao hơn xem xét.';
+  if (state === 'Rejected') return { headline: 'AI đề xuất: từ chối hồ sơ', items: [] };
+  if (state === 'Escalated') return { headline: 'AI đề xuất: chuyển cấp có thẩm quyền cao hơn xem xét', items: [] };
   return null;
 }
