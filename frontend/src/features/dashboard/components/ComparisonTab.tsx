@@ -150,13 +150,13 @@ export function runDescription(m: Pick<BenchmarkRunMeta, 'runs_per_case' | 'case
 
 export function runOptionLabel(m: BenchmarkRunMeta): string {
   const kind = m.regrade_of ? ' · chấm lại dữ liệu cũ' : '';
-  const modes = hasBothModes(m) ? 'So sánh single và multi' : 'Chỉ đo đội agent';
+  const modes = hasBothModes(m) ? 'So sánh đội agent và mô hình đơn lẻ' : 'Chỉ đo đội agent';
   return `${fmtDayTime(m.created_at)} · Bộ ca ${m.cases_version} · ${modes} · ${m.runs_per_case} lượt mỗi ca${kind}${isTestRun(m) ? ' · [Kiểm thử]' : ''}`;
 }
 
 /** Mã kỹ thuật của lượt đo (bộ chấm, chế độ LLM, nhãn dòng lệnh): chỉ là chú thích phụ cho người kiểm tra. */
-export function runTechnicalNote(m: Pick<BenchmarkRunMeta, 'grader_version' | 'llm_mode' | 'label'>): string {
-  return `Mã kỹ thuật: bộ chấm ${m.grader_version} · chế độ LLM ${m.llm_mode}${m.label ? ` · nhãn: ${m.label}` : ''}`;
+export function runTechnicalNote(m: Pick<BenchmarkRunMeta, 'grader_version' | 'llm_mode' | 'label'> & { run_id?: string }): string {
+  return `${m.run_id ? `Lượt đo ${m.run_id} · ` : ''}Bộ chấm ${m.grader_version} · chế độ LLM ${m.llm_mode}${m.label ? ` · nhãn: ${m.label}` : ''}`;
 }
 
 /** Select có hai nhóm: lượt đo chính thức, và nhóm riêng cho ablation/kiểm thoái lui (không xóa lượt nào). */
@@ -253,7 +253,6 @@ export function ComparisonTab() {
           Planner <strong>{modelName(run.planner_model)}</strong>; chuyên gia và mô hình đơn lẻ <strong>{singleModel}</strong>.
           Cách chấm: bộ chấm tự động, không dùng mô hình AI và không có người chấm; so từng phát hiện, điều khoản và công cụ kỳ vọng của mỗi ca với kết luận, cùng một thước cho hai chế độ.
           Chi phí đo thật <strong>{run.total_cost_usd === null ? '—' : fmtUsd(run.total_cost_usd)}</strong>.
-          <details style={{ display: 'inline', marginLeft: 6 }}><summary style={{ display: 'inline', cursor: 'pointer' }}>Mã kỹ thuật</summary> <code>{run.run_id}</code>, bộ chấm {run.grader_version}, chế độ LLM {run.llm_mode}</details>
         </p>
       </div>
 

@@ -57,7 +57,7 @@ export default function AuditLogPage() {
       <div className={styles.page}>
         <form className={`${styles.card} ${styles.filters}`} onSubmit={(e) => { e.preventDefault(); apply(); }} aria-label="Bộ lọc nhật ký">
           <label className={styles.field}><span>Số hồ sơ</span>
-            <Input aria-label="Số hồ sơ" placeholder="HSV-2026-…" value={draft.loan_number} onChange={(e) => setDraft({ ...draft, loan_number: e.target.value })} /></label>
+            <Input aria-label="Số hồ sơ" placeholder="Mã hồ sơ, ví dụ HSV-2026-00187" value={draft.loan_number} onChange={(e) => setDraft({ ...draft, loan_number: e.target.value })} /></label>
           <label className={styles.field}><span>Hành động</span>
             <Select aria-label="Hành động" placeholder="Tất cả" allowClear showSearch optionFilterProp="label" value={draft.action || undefined}
               options={Object.entries(ACTION_LABELS).map(([code, label]) => ({ value: code, label }))}

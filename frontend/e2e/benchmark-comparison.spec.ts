@@ -57,7 +57,7 @@ test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ
   await expectRun(page, defaultRun); // mặc định
   // Nhãn lựa chọn viết cho người đọc nghiệp vụ (runOptionLabel): giờ đo · bộ ca · so sánh/đa agent · số lượt mỗi ca.
   // Vài lượt cùng giờ/bộ ca/số lượt có cùng nhãn: gom theo nhãn, chọn lần lượt từng mục khớp và đối chiếu theo mã lượt hiện ở chú thích.
-  const labelOf = (r: any) => `${fmtDayTime(r.created_at)} · Bộ ca ${r.cases_version} · ${r.summary.single && r.summary.multi ? 'So sánh single và multi' : 'Chỉ đo đội agent'} · ${r.runs_per_case} lượt mỗi ca${r.regrade_of ? ' · chấm lại dữ liệu cũ' : ''}`;
+  const labelOf = (r: any) => `${fmtDayTime(r.created_at)} · Bộ ca ${r.cases_version} · ${r.summary.single && r.summary.multi ? 'So sánh đội agent và mô hình đơn lẻ' : 'Chỉ đo đội agent'} · ${r.runs_per_case} lượt mỗi ca${r.regrade_of ? ' · chấm lại dữ liệu cũ' : ''}`;
   const groups = new Map<string, any[]>();
   for (const r of all) groups.set(labelOf(r), [...(groups.get(labelOf(r)) ?? []), r]);
   for (const [expected, members] of groups) {

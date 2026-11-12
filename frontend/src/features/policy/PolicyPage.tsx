@@ -34,7 +34,7 @@ function PolicyContent() {
   });
   return (
     <>
-      <PageHead title="Tra cứu chính sách" facts={['Tìm điều khoản trong chính sách cho vay hiện hành. Chỉ đọc.', list.data ? `${list.data.length} chính sách` : null]} />
+      <PageHead title="Tra cứu chính sách" facts={['Tìm điều khoản trong chính sách cho vay hiện hành. Chỉ đọc.', list.data ? `${list.data.filter((p) => !/DEMO/i.test(p.policy_code)).length} chính sách` : null]} />
       <div className={styles.page}>
         <div className={styles.card}>
           <label className={styles.searchLabel} htmlFor="policy-q">Từ khóa</label>
@@ -77,7 +77,7 @@ function PolicyContent() {
         <section className={styles.card}>
         <h2 className={styles.h2}>Chính sách hiện hành</h2>
         <Table<Policy>
-          className={ledgerTable} rowKey="id" loading={list.isLoading} pagination={false} aria-label="Danh sách chính sách" dataSource={list.data ?? []}
+          className={ledgerTable} rowKey="id" loading={list.isLoading} pagination={false} aria-label="Danh sách chính sách" dataSource={(list.data ?? []).filter((p) => !/DEMO/i.test(p.policy_code))}
           columns={[
             { title: 'Mã', dataIndex: 'policy_code', render: (v: string) => <span className={styles.num}>{v}</span> },
             { title: 'Tên chính sách', dataIndex: 'policy_name' },
