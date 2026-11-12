@@ -197,7 +197,7 @@ async def test_appraisal_submit_blocks_unresolved_conflict() -> None:
 
 async def test_risk_submit_requires_compliance_conclusion_on_cickh() -> None:
     facts = ok_facts(flags=(FlagFact("cickh", "OPEN", None),))
-    assert (await run("risk_submit", facts)).blockers == ("OPINIONS_MISSING",)
+    assert (await run("risk_submit", facts)).blockers == ("CIC_FLAG_UNCONCLUDED",)
 
 
 async def test_risk_submit_requires_both_opinions() -> None:
