@@ -84,9 +84,9 @@ function Users() {
   const q = useQuery({ queryKey: ['admin', 'users'], queryFn: () => get<AdminUser[]>('users') });
   const columns: ColumnsType<AdminUser> = [
     { title: 'Họ tên', dataIndex: 'full_name', key: 'name' },
-    { title: 'Mã', dataIndex: 'employee_code', key: 'code' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Phòng', key: 'dept', render: (_, r) => r.department ?? '—' },
+    { title: 'Mã nhân viên', dataIndex: 'employee_code', key: 'code', render: (v: string) => <span style={{ color: 'var(--ink-3)', fontFamily: 'var(--font-num)', fontSize: 'var(--fs-12)' }}>{v}</span> },
     { title: 'Vai', key: 'roles', render: (_, r) => r.roles.map((x) => <StatusPill key={x}>{roleLabel(x)}</StatusPill>) },
   ];
   return (
@@ -163,7 +163,7 @@ function AiConfig() {
 export default function AdminPage() {
   return (
     <RequireRole allow={['quantri']} pageName="Quản trị">
-      <PageHead title="Quản trị" facts={['Chỉ đọc', 'Quản trị hệ thống không xem được hồ sơ vay']} />
+      <PageHead title="Quản trị người dùng" facts={['Chỉ đọc', 'Quản trị hệ thống không xem được hồ sơ vay']} />
       <div className={styles.page}>
         <Users />
         <Permissions />
