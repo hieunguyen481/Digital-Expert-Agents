@@ -201,9 +201,10 @@ async def test_risk_submit_requires_compliance_conclusion_on_cickh() -> None:
 
 
 async def test_risk_submit_requires_both_opinions() -> None:
-    for missing in ("risk_opinion_given", "compliance_opinion_given"):
+    for missing, code in (("risk_opinion_given", "RISK_OPINION_MISSING"),
+                          ("compliance_opinion_given", "COMPLIANCE_OPINION_MISSING")):
         result = await run("risk_submit", ok_facts(**{missing: False}))
-        assert result.blockers == ("OPINIONS_MISSING",)
+        assert result.blockers == (code,)
 
 
 async def test_risk_submit_carries_concluded_flags_and_exceptions() -> None:

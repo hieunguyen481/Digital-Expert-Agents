@@ -40,6 +40,11 @@ export function ReassignControl({ loanId }: { loanId: string }) {
           options={q.data.map((c) => ({ value: c.employee_id, label: `${c.full_name} · ${c.open_count} việc đang mở` }))} />
         <label htmlFor="reassign-reason">Lý do chuyển (bắt buộc)</label>
         <Input.TextArea id="reassign-reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
+        {(!target || !reason.trim()) && (
+          <div role="note" className={styles.note} style={{ marginTop: 8 }} data-testid="reassign-lock-reason">
+            {!target ? 'Chọn người nhận để bật nút Chuyển.' : 'Nhập lý do chuyển để bật nút Chuyển.'}
+          </div>
+        )}
         {error && <Alert type="error" showIcon role="alert" style={{ marginTop: 8 }} message={error} />}
       </Modal>
     </section>

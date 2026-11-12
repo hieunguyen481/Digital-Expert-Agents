@@ -15,7 +15,7 @@ repository.
 |   NOT_IN_GROUP, LEASE_ANNUAL, LEASE_ONE_TIME_NO_PROOF, CIC_OUTAGE |
 | checking_pass | CHECK_FAILED | EXCEPTION:<ma>, NEEDS_VERIFICATION |
 | appraisal_submit | FIELDS_UNCONFIRMED, FLAGS_OPEN (tru cickh), REPORT_MISSING | cickh |
-| risk_submit | OPINIONS_MISSING, VALIDITY_AT_APPROVAL (Q10, Q-O) | EXCEPTION:<ma>, FLAG:<ma> |
+| risk_submit | RISK_OPINION_MISSING, COMPLIANCE_OPINION_MISSING, CIC_FLAG_UNCONCLUDED, VALIDITY_AT_APPROVAL (Q10, Q-O) | EXCEPTION:<ma>, FLAG:<ma> |
 """
 
 from __future__ import annotations
@@ -40,7 +40,9 @@ BLOCKER_CODES = (
     "FIELDS_UNCONFIRMED",
     "FLAGS_OPEN",
     "REPORT_MISSING",
-    "OPINIONS_MISSING",
+    "RISK_OPINION_MISSING",
+    "COMPLIANCE_OPINION_MISSING",
+    "CIC_FLAG_UNCONCLUDED",
     "VALIDITY_AT_APPROVAL",
 )
 GATES = frozenset({"rm_submit", "checking_pass", "appraisal_submit", "risk_submit"})
@@ -218,8 +220,10 @@ def _appraisal_submit(facts: GateFacts, blockers: set[str], carried: list[str]) 
 
 
 def _risk_submit(facts: GateFacts, blockers: set[str], carried: list[str]) -> None:
-    if not (facts.risk_opinion_given and facts.compliance_opinion_given):
-        blockers.add("OPINIONS_MISSING")
+    if not facts.risk_opinion_given:
+        blockers.add("RISK_OPINION_MISSING")
+    if not facts.compliance_opinion_given:
+        blockers.add("COMPLIANCE_OPINION_MISSING")
     for flag in facts.flags:
         awaiting = flag.status == "FORWARDED_COMPLIANCE" or (
             flag.status == "OPEN" and flag.blocks_submission
@@ -228,7 +232,7 @@ def _risk_submit(facts: GateFacts, blockers: set[str], carried: list[str]) -> No
             flag.code == CIC_SELF_SUBMITTED_FLAG and flag.compliance_conclusion is None
         )
         if awaiting or needs_compliance:
-            blockers.add("OPINIONS_MISSING")
+            blockers.add("CIC_FLAG_UNCONCLUDED")
     # Q-O: CIC gian doan khong mien tra lai truoc khi trinh phe duyet.
     if not _cic_valid(facts):
         blockers.add("VALIDITY_AT_APPROVAL")

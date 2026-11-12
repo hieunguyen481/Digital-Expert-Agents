@@ -86,7 +86,7 @@ async def test_opinions_required_before_submit_and_reason_mandatory(
         await act(engine, risk, lambda s: s.add_opinion(risk, case.loan_id, "RISK", "lai"))
     with pytest.raises(GateBlockedError) as blocked:  # thieu y kien Tuan thu
         await transition(engine, risk, case.loan_id, "submit_to_approval", 2)
-    assert "OPINIONS_MISSING" in blocked.value.blockers
+    assert "COMPLIANCE_OPINION_MISSING" in blocked.value.blockers
     await act(engine, compliance, lambda s: s.add_opinion(compliance, case.loan_id, "COMPLIANCE", "Tuan thu on"))
     result = await transition(engine, risk, case.loan_id, "submit_to_approval", 2)
     assert result.status == "APPROVAL"

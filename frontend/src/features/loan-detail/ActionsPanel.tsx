@@ -19,7 +19,9 @@ export const BLOCKERS: Record<string, string> = {
   FIELDS_UNCONFIRMED: 'Còn trường dữ liệu hoặc mâu thuẫn chưa được xác nhận',
   FLAGS_OPEN: 'Còn cờ chặn trình chưa xử lý',
   REPORT_MISSING: 'Tờ trình chưa đủ 7 mục',
-  OPINIONS_MISSING: 'Thiếu Ý kiến Rủi ro, ý kiến Tuân thủ hoặc kết luận cờ CIC khách tự nộp',
+  RISK_OPINION_MISSING: 'Chưa có Ý kiến Rủi ro',
+  COMPLIANCE_OPINION_MISSING: 'Chưa có Ý kiến Tuân thủ',
+  CIC_FLAG_UNCONCLUDED: 'Cờ CIC khách tự nộp chưa có kết luận của Tuân thủ',
   VALIDITY_AT_APPROVAL: 'CIC hoặc sao kê hết hiệu lực tại ngày trình phê duyệt',
   CHECK_FAILED: 'Hồ sơ chưa qua kiểm tra: còn tài liệu thiếu, hết hạn hoặc trường dữ liệu chưa được xác nhận',
 };
