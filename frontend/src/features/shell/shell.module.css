@@ -1,5 +1,4 @@
 .noAccessWrap { padding: 12px 32px; }
-.noAccessHead { margin: 0 0 24px; font: 600 var(--fs-20)/1.3 var(--font-display); }
 .noAccess {
   max-width: 520px;
   margin: 48px auto;
@@ -81,6 +80,7 @@
 .bellDot { position: absolute; top: 5px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger-700); border: 2px solid var(--surface); box-sizing: content-box; }
 .user { display: flex; align-items: center; gap: var(--s3); border: 0; background: transparent; cursor: pointer; font: inherit; border-radius: var(--r-md); }
 .avatar { background: var(--navy-700) !important; color: #fff; font: 600 12px var(--font-body) !important; }
+.avatarSkel { width: 32px; height: 32px; border-radius: 50%; background: var(--navy-700); opacity: .18; flex: none; }
 .userText { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25; white-space: nowrap; }
 .userText b { font-size: var(--fs-13); font-weight: 600; color: var(--ink); }
 .userText small { font-size: var(--fs-12); color: var(--ink-3); }

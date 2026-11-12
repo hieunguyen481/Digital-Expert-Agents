@@ -23,7 +23,6 @@ export function NoAccess({ role, pageName = 'Việc của tôi' }: NoAccessProps
 
   return (
     <div className={styles.noAccessWrap}>
-      <p className={styles.noAccessHead}>{pageName}</p>
       <StateBlock
         kind="forbidden"
         alert

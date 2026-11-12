@@ -23,6 +23,7 @@
 .node.error { border: 1.5px solid var(--danger-700); background: var(--danger-100); }
 .nodeHead { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
 .nodeHead b { font-size: var(--fs-13); }
+.nodeTitle { margin: 0; font: 600 var(--fs-13)/1.3 var(--font-body); color: var(--ink); }
 .nodeSum { font-size: var(--fs-12); color: var(--ink-2); line-height: 1.4; }
 .nodeDep { font-size: var(--fs-12); color: var(--ink-3); }
 .tm { font: 400 var(--fs-12) var(--font-num); color: var(--ink-2); }

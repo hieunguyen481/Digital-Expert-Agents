@@ -58,3 +58,11 @@ export function docTitle(title: string | null | undefined, fallback: string): st
   const m = title.match(/^[A-Z0-9][A-Z0-9-]+\s·\s(.+)$/);
   return m ? m[1] : splitSourceCode(title).text;
 }
+
+const norm = (t: string) => t.toLowerCase().replace(/\([^)]*\)/g, '').replace(/[\s.]+$/g, '').trim();
+
+/** Nút mở tài liệu trong một mục danh mục: tên trùng tên mục (chỉ khác hậu tố "(minh họa)") thì không lặp lại, ghi việc nút làm. */
+export function docButtonLabel(title: string, itemLabel: string): string {
+  const clean = title.replace(/\s*\((?:minh họa|mẫu)\)\s*$/i, '').trim();
+  return norm(clean) === norm(itemLabel) ? 'Xem tài liệu đã nộp' : clean;
+}

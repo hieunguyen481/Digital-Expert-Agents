@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { StatusPill } from '@/components/ui';
 import { getErrorMessage } from '@/services/apiClient';
-import { docTitle } from './fieldLabels';
+import { docButtonLabel, docTitle } from './fieldLabels';
 import { checkItem, removeReconDocument } from './reconciliationService';
 import type { ReconView } from './types';
 import styles from './reconciliation.module.css';
@@ -40,10 +40,10 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
     mutationFn: (id: string) => removeReconDocument(loanId, id),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['reconciliation', loanId] }),
   });
-  const docRow = (id: string) => (
+  const docRow = (id: string, itemLabel: string) => (
     <span key={id} className={styles.docRow}>
       <button type="button" className={styles.docBtn} aria-current={id === documentId} data-testid={`doc-${id}`}
-        onClick={() => onOpenDocument(id)}>{titles.get(id) ?? id}</button>
+        onClick={() => onOpenDocument(id)}>{docButtonLabel(titles.get(id) ?? id, itemLabel)}</button>
       {failedIds.has(id) && <StatusPill tone="bad">Lỗi xử lý</StatusPill>}
       {failedIds.has(id) && canRemove && (
         <Popconfirm title="Gỡ tài liệu lỗi khỏi hồ sơ?" description="Bản gốc vẫn được lưu; tài liệu không còn tính vào danh mục."
@@ -69,7 +69,7 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
             {it.has_exception && <StatusPill tone="info">Có ngoại lệ</StatusPill>}
           </Space>
           {it.document_ids.length === 0 && <span className={styles.note}>Chưa có tài liệu gắn vào</span>}
-          {it.document_ids.map(docRow)}
+          {it.document_ids.map((id) => docRow(id, (it.label ?? it.code).replace(/\.$/, '')))}
           {it.check && (
             <span className={styles.note}>
               Hậu kiểm: {it.check.result === 'PASS' ? 'đạt' : 'không đạt'} · {it.check.actor_name ?? ''}
@@ -90,7 +90,7 @@ export function ChecklistPanel({ loanId, view, documentId, onOpenDocument }: Pro
       {view.extra_document_ids.length > 0 && (
         <div className={styles.item}>
           <b>Tài liệu ngoài danh mục</b>
-          {view.extra_document_ids.map(docRow)}
+          {view.extra_document_ids.map((id) => docRow(id, ""))}
         </div>
       )}
       <Modal

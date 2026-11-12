@@ -12,6 +12,13 @@ import styles from '@/pages/AgentDashboardPage.module.css';
 const ROLES = Object.fromEntries(AGENTS.map((a) => [a.key, a.role]));
 
 /** Tổng quan: mọi số liệu tính từ trace thật trong Postgres, chỉ trên các lượt vai trò này được xem. */
+/** Ô "Lượt tham gia": không để số 0 trơ trọi khi agent vẫn có công cụ hoặc lỗi; Planner là điều phối. */
+export function participationNote(row: { agent: string; tasks: number; errors: number; tool_calls: number }): string | null {
+  if (row.tasks > 0) return null;
+  if (row.agent === 'planner') return 'điều phối';
+  return row.errors + row.tool_calls > 0 ? 'chưa có tác vụ hoàn tất' : null;
+}
+
 export function OverviewTab() {
   const q = useQuery({ queryKey: ['agent-case-stats'], queryFn: getAgentCaseStats, refetchInterval: 10_000 });
   if (q.isLoading) return <PageSkeleton bare kpis={5} blocks={2} testId="overview-skeleton" />;
@@ -76,12 +83,15 @@ export function OverviewTab() {
             emptyTitle="Chưa có tác vụ nào hoàn tất"
             columns={[
               { title: 'Agent', dataIndex: 'agent', key: 'agent', render: (a: string) => <b>{agentName(a)}</b> },
-              { title: 'Lượt tham gia', dataIndex: 'tasks', key: 'tasks', align: 'right', className: ledgerNum, render: (n: number, row) => (row.agent === 'planner' && n === 0 ? <span className={styles.muted}>điều phối</span> : fmtInt(n)) },
+              { title: 'Lượt tham gia', dataIndex: 'tasks', key: 'tasks', align: 'right', className: ledgerNum, render: (n: number, row) => {
+                const note = participationNote(row);
+                return note ? <span className={styles.muted}>{note}</span> : fmtInt(n);
+              } },
               { title: 'Lỗi', dataIndex: 'errors', key: 'errors', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
               { title: 'Công cụ gọi', dataIndex: 'tool_calls', key: 'tool_calls', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
             ]}
           />
-          <p className={styles.muted} style={{ padding: '8px 16px' }}>Planner điều phối nên không nhận việc riêng. Số lượt tham gia của mỗi agent là số tác vụ nó đã xử lý.{s.agents.some((a) => a.agent === 'document' && a.tasks === 0 && a.errors > 0) && ' Lỗi của Document là lỗi đọc tài liệu khi hồ sơ không có tệp.'}</p>
+          <p className={styles.muted} style={{ padding: '8px 16px' }}>Planner điều phối nên không nhận việc riêng. Số lượt tham gia của mỗi agent là số tác vụ nó đã xử lý; “chưa có tác vụ hoàn tất” nghĩa là agent đã gọi công cụ hoặc gặp lỗi nhưng chưa có tác vụ nào xong.{s.agents.some((a) => a.agent === 'document' && a.tasks === 0 && a.errors > 0) && ' Lỗi của Document là lỗi đọc tài liệu khi hồ sơ không có tệp.'}</p>
         </div>
       </section>
 

@@ -170,7 +170,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                             <div key={t.task_id} data-testid={`dag-task-${t.task_id}`}
                               className={`${styles.node} ${st?.state === 'done' ? styles.done : ''} ${st?.state === 'running' ? styles.running : ''} ${st?.state === 'error' ? styles.error : ''}`}>
                               <div className={styles.nodeHead}>
-                                <b>{agentName(t.agent)}</b>
+                                <h3 className={styles.nodeTitle}>{agentName(t.agent)}</h3>
                                 <StatusPill tone={tag.tone}>{tag.label}</StatusPill>
                               </div>
                               <div className={styles.nodeSum}><ClampText text={t.objective} /></div>

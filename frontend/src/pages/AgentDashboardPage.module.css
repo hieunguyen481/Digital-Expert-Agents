@@ -21,6 +21,7 @@
 /* Dải lọc ở Dấu vết */
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3); padding: var(--s3) var(--s5); border-bottom: 1px solid var(--rule); background: var(--surface-2); }
 .filters :global(.ant-input-affix-wrapper), .filters :global(.ant-input-search) { width: 380px; max-width: 100%; }
+.filters :global(.ant-checkbox-wrapper) { white-space: nowrap; }
 .rowClick { cursor: pointer; }
 .mono { font: 400 var(--fs-12) var(--font-num); color: var(--ink-2); }
 .sub { display: block; font-size: var(--fs-12); color: var(--ink-3); }

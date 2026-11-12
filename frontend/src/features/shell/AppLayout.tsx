@@ -1,3 +1,4 @@
+import { SearchOutlined } from '@ant-design/icons';
 import { Outlet, useLocation } from 'react-router-dom';
 import { uiRoleFromRoles } from '@/auth/roleFromMe';
 import { useMe } from '@/auth/session';
@@ -63,7 +64,13 @@ export function AppLayout() {
         )}
         <div className={styles.mainCol}>
           <div className={styles.topbar}>
-            <div className={styles.topbarIn}><div className={styles.search} aria-hidden /></div>
+            <div className={styles.topbarIn}>
+              <div className={styles.searchWrap} aria-hidden>
+                <div className={styles.search} data-testid="shell-search-skel"><SearchOutlined /><span>Tìm hồ sơ, khách hàng, mã số thuế</span></div>
+              </div>
+              <span className={styles.spacer} />
+              <span className={styles.avatarSkel} data-testid="shell-avatar-skel" />
+            </div>
           </div>
           <main id="main-content" className={styles.content}>
             <div className={styles.pageWide}>

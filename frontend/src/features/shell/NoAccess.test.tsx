@@ -24,4 +24,14 @@ describe('NoAccess', () => {
     expect(buttons).toHaveLength(1);
     expect(buttons[0]).toBeEnabled();
   });
+
+  it('không có nhãn tên trang mồ côi phía trên tiêu đề', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <NoAccess role="quantri" pageName="Việc của tôi" />
+      </MemoryRouter>,
+    );
+    expect(container.querySelector('p')?.textContent ?? '').not.toBe('Việc của tôi');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/Không có quyền/);
+  });
 });

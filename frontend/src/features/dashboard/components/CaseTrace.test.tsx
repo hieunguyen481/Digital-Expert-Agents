@@ -26,3 +26,20 @@ describe('CaseTrace khi case đang chạy', () => {
     await waitFor(() => expect(screen.getByTestId('case-state').textContent).not.toContain('Đang phân tích'), { timeout: 6000 });
   }, 10000);
 });
+
+describe('CaseTrace: tiêu đề từng agent', () => {
+  it('mỗi agent trong kế hoạch có heading h3 với tên đúng vai', async () => {
+    vi.mocked(svc.getAgentCase).mockResolvedValue({ case_id: 'c2', state: 'Needs Info' } as never);
+    vi.mocked(svc.getAgentCaseEvents).mockResolvedValue([
+      { id: 1, ts: 1, type: 'plan_created', agent: 'planner', payload: { tasks: [
+        { task_id: 't1', agent: 'credit', objective: 'Phân tích', depends_on: [] },
+        { task_id: 't2', agent: 'operations', objective: 'Soạn nháp', depends_on: [] },
+      ] } },
+    ] as never);
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<QueryClientProvider client={qc}><CaseTrace caseId="c2" onClose={() => undefined} /></QueryClientProvider>);
+    const h = await screen.findByRole('heading', { level: 3, name: 'Credit' });
+    expect(h).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Operations' })).toBeInTheDocument();
+  });
+});

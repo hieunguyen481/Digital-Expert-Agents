@@ -54,6 +54,8 @@
 .ant-tabs .ant-tabs-tab-btn:focus-visible,
 .ant-segmented .ant-segmented-item-focused,
 .ant-select-focused,
+.ant-input-number.ant-input-number-focused,
+.ant-input-number-affix-wrapper.ant-input-number-affix-wrapper-focused,
 .ant-picker-focused,
 .ant-select.ant-select:focus-within,
 .ant-picker.ant-picker:focus-within {
