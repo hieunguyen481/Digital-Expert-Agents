@@ -33,7 +33,6 @@ export const componentOverrides: ThemeConfig['components'] = {
     defaultActiveBg: colors.navy100,
     defaultActiveBorderColor: colors.control,
     defaultActiveColor: colors.ink,
-    dangerColor: colors.danger700,
     colorBgContainerDisabled: colors.paper2,
     colorTextDisabled: colors.ink3,
     borderColorDisabled: colors.ruleStrong,

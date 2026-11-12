@@ -41,7 +41,13 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
   const [confirming, setConfirming] = useState(false);
   const backRef = useRef<HTMLButtonElement>(null);
   // Bước xác nhận không hoàn tác: focus mặc định ở "Quay lại", không ở nút cam kết.
-  useEffect(() => { if (confirming) backRef.current?.focus(); }, [confirming]);
+  useEffect(() => {
+    if (!confirming) return undefined;
+    // Chờ footer mới gắn xong và Modal trả focus xong rồi mới đặt focus vào "Quay lại".
+    const t = window.setTimeout(() => backRef.current?.focus(), 60);
+    backRef.current?.focus();
+    return () => window.clearTimeout(t);
+  }, [confirming]);
 
   const approving = type === 'APPROVED' || type === 'APPROVED_WITH_CONDITIONS';
   const amountInvalid = approving && !(amount > 0);
@@ -107,15 +113,15 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
           {approving && (
             <>
               <div className={styles.field}>
-                <label htmlFor="decision-amount">Hạn mức phê duyệt (đồng) <span className={styles.req}>(bắt buộc)</span></label>
+                <label htmlFor="decision-amount">Hạn mức phê duyệt, đồng <span className={styles.req}>(bắt buộc)</span></label>
                 <InputNumber id="decision-amount" className={styles.numIn} style={{ width: '100%' }} addonAfter="đồng" aria-describedby="decision-amount-h"
                   formatter={(v) => (v == null ? '' : vnd(Number(v)))} parser={(v) => Number((v ?? '').replace(/[^0-9]/g, ''))}
                   status={amountInvalid ? 'error' : undefined} value={amount} onChange={(v) => setAmount(Number(v ?? 0))} />
-                <span id="decision-amount-h" className={styles.hint}>Đề nghị {fmtNum(requestedAmount / 1e9)} tỷ đồng.</span>
+                <span id="decision-amount-h" className={styles.hint}>{amount > 0 ? `= ${fmtNum(amount / 1e9)} tỷ đồng. ` : ''}Đề nghị {fmtNum(requestedAmount / 1e9)} tỷ đồng.</span>
                 {amountInvalid && <Typography.Text type="danger" role="alert">Số tiền duyệt phải lớn hơn 0.</Typography.Text>}
               </div>
               <div className={styles.field}>
-                <label htmlFor="decision-term">Kỳ hạn (tháng) <span className={styles.req}>(bắt buộc)</span></label>
+                <label htmlFor="decision-term">Kỳ hạn, tháng <span className={styles.req}>(bắt buộc)</span></label>
                 <InputNumber id="decision-term" className={styles.numIn} style={{ width: '100%' }} addonAfter="tháng" status={termInvalid ? 'error' : undefined} value={term} onChange={(v) => setTerm(Number(v ?? 0))} />
                 {termInvalid && <Typography.Text type="danger" role="alert">Kỳ hạn duyệt phải lớn hơn 0.</Typography.Text>}
               </div>
