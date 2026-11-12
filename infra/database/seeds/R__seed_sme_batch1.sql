@@ -630,7 +630,7 @@ INSERT INTO sme_step VALUES
     (4, 1, 'RM_DRAFT', '10000000-0000-4000-8000-000000000001', -13, '09:00', -11, '09:00', 'SUBMITTED', NULL, NULL, NULL),
     (4, 2, 'CHECKING', '10000000-0000-4000-8000-000000000003', -11, '09:00', -9, '10:00', 'PASSED', NULL, NULL, NULL),
     (4, 3, 'APPRAISAL', '10000000-0000-4000-8000-000000000008', -9, '10:00', -4, '10:00', 'SUBMITTED', NULL, NULL, NULL),
-    (4, 4, 'RISK_REVIEW', '10000000-0000-4000-8000-000000000009', -4, '10:00', -1, '10:00', 'RETURNED', 'Đề nghị Thẩm định giải trình dòng tiền trả nợ (dữ liệu mẫu).', NULL, NULL),
+    (4, 4, 'RISK_REVIEW', '10000000-0000-4000-8000-000000000009', -4, '10:00', -1, '10:00', 'RETURNED', 'Đề nghị Thẩm định giải trình dòng tiền trả nợ.', NULL, NULL),
     (4, 5, 'APPRAISAL', '10000000-0000-4000-8000-000000000008', -1, '10:00', NULL, NULL, NULL, NULL, NULL, NULL),
     -- 5 Phu Dien (vi du Q6): Tham dinh nhan 30/10 (-4, han goc 06/11), yeu cau bo sung 03/11 (-2):
     --   SLA tam dung, con 3 ngay LV; HTTD giu buoc cho bo sung, QHKH tai len den 10/11 (+3).
@@ -640,7 +640,7 @@ INSERT INTO sme_step VALUES
     (5, 4, 'PENDING_INFO', '10000000-0000-4000-8000-000000000003', -2, '14:00', NULL, NULL, NULL, 'Bổ sung bảng kê công nợ và hợp đồng đầu ra còn hiệu lực (dữ liệu mẫu).', NULL, NULL),
     -- 6 Phuc Lam: HTTD tra lai 29/10 16:40 (-5) -> han bo sung 05/11 (0, "hôm nay", Q11).
     (6, 1, 'RM_DRAFT', '10000000-0000-4000-8000-000000000001', -9, '09:00', -7, '10:00', 'SUBMITTED', NULL, NULL, NULL),
-    (6, 2, 'CHECKING', '10000000-0000-4000-8000-000000000003', -7, '10:00', -5, '16:40', 'RETURNED', 'Thiếu BCTC 2025 bản đã nộp cơ quan thuế và sao kê 12 tháng gần nhất; giải trình tồn kho tăng 38% (dữ liệu mẫu).', NULL, NULL),
+    (6, 2, 'CHECKING', '10000000-0000-4000-8000-000000000003', -7, '10:00', -5, '16:40', 'RETURNED', 'Thiếu BCTC 2025 bản đã nộp cơ quan thuế và sao kê 12 tháng gần nhất; giải trình tồn kho tăng 38%.', NULL, NULL),
     (6, 3, 'RM_REWORK', '10000000-0000-4000-8000-000000000001', -5, '16:40', NULL, NULL, NULL, NULL, NULL, NULL),
     -- 7 Hung Phat: nhap, chua gui.
     (7, 1, 'RM_DRAFT', '10000000-0000-4000-8000-000000000001', -5, '14:00', NULL, NULL, NULL, NULL, NULL, NULL),
