@@ -31,10 +31,10 @@ test('tdinh: bấm trường tới đúng vùng tô và bấm vùng tô tới đ
   // Vùng tô -> trường
   const first = regions.nth(0);
   const firstName = (await first.getAttribute('aria-label'))!.replace('Vùng tô: ', '');
-  // L06: nhãn tiếng Việt, không lộ khóa tiếng Anh. M06: nhãn chỉ hiện khi rê vào vùng (không đè nhau); vùng nào cũng bấm được.
+  // L06: nhãn tiếng Việt, không lộ khóa tiếng Anh. M06: nhãn trên chip; vùng nào cũng bấm được.
   expect(firstName).not.toMatch(/^[a-z_0-9]+$/);
   await first.hover();
-  await expect(first.locator('span')).toBeVisible();
+  await expect(first).toContainText(firstName); // khung không ảnh: chip luôn hiện tên trường
   await first.click();
   await expect(first).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByTestId('field-card')).toContainText(firstName);
