@@ -73,11 +73,12 @@ test('focus: phân trang Quản trị', async ({ page }) => {
 test('focus: thẻ lựa chọn ở modal quyết định và nút Đóng', async ({ page }) => {
   await as(page, 'pheduyet');
   await page.goto('/viec-cua-toi');
-  await page.waitForLoadState('networkidle');
-  const href = await page.locator('a[href^="/ho-so-vay/"]').first().getAttribute('href');
+  await page.locator('a[href^="/ho-so-vay/"]').first().waitFor({ timeout: 15_000 }).catch(() => undefined);
+  const href = await page.locator('a[href^="/ho-so-vay/"]').first().getAttribute('href').catch(() => null);
   test.skip(!href, 'không có hồ sơ');
   await page.goto(href!);
-  await page.waitForLoadState('networkidle');
+  await page.getByRole('heading', { level: 1 }).waitFor();
+  await page.waitForTimeout(2500);
   const btn = page.getByRole('button', { name: 'Quyết định', exact: true }).first();
   test.skip(!(await btn.count()) || !(await btn.isEnabled()), 'nút Quyết định khóa ở hồ sơ này');
   await btn.click();

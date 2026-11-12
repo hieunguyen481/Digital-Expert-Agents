@@ -51,7 +51,7 @@ export function AppLayout() {
     // Khung ứng dụng hiện ngay lúc tải đầu: menu theo vai trong token, thanh trên và khung xương ở vùng nội dung.
     const early = uiRoleFromRoles(getDemoSession()?.roles ?? (getAuthenticatedClaims()?.realm_access?.roles ?? []));
     return (
-      <div className={styles.layout} aria-busy data-testid="shell-loading">
+      <div className={`${styles.layout} ${styles.layoutLoading}`} aria-busy data-testid="shell-loading">
         {early ? (
           <Rail role={early} onOpenAi={() => undefined} />
         ) : (

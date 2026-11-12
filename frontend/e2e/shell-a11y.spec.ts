@@ -55,7 +55,7 @@ test('trang lỗi hồ sơ có đúng 1 h1; thanh bên cao đủ màn khi tải'
   // Khung tải: chậm /me để thấy khung chờ, thanh bên phải cao bằng màn hình.
   await page.route('**/api/v1/me*', async (r) => { await new Promise((s) => setTimeout(s, 3000)); await r.continue(); });
   await page.goto('/viec-cua-toi');
-  const side = page.locator('[aria-busy] > div').first();
+  const side = page.getByTestId('shell-loading').locator('> :first-child');
   await expect(side).toBeVisible();
   const h = await side.evaluate((e) => e.getBoundingClientRect().height);
   console.log(`SIDEBAR-LOADING h=${h}`);
