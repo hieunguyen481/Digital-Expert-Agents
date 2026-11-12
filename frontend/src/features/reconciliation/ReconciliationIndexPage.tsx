@@ -4,7 +4,7 @@ import { RequireRole } from '@/auth/RequireRole';
 import { StateBlock, StatusPill, ledgerTable } from '@/components/ui';
 import { PageHead } from '@/features/shell/PageHead';
 import { useWorkItems } from '@/features/my-work/useWorkItems';
-import { customerLabel, stepLabel } from '@/features/my-work/format';
+import { customerLabel, slaText, stepLabel, workdaysBetween } from '@/features/my-work/format';
 import type { WorkItem } from '@/features/my-work/types';
 import { fmtDay } from '@/utils/format';
 import styles from './reconciliation.module.css';
@@ -30,7 +30,12 @@ export default function ReconciliationIndexPage() {
               { title: 'Hồ sơ', render: (_, r) => <Link className={styles.ledgerLink} to={`/doi-chieu/${r.loan_application_id}`}>{r.application_number}</Link> },
               { title: 'Khách hàng', render: (_, r) => customerLabel(r.customer_name) },
               { title: 'Bước', render: (_, r) => stepLabel(r.step_code) },
-              { title: 'Hạn', render: (_, r) => (r.due_at ? <StatusPill tone={r.sla_level === 'over' ? 'bad' : r.sla_level === 'today' || r.sla_level === 'soon' ? 'warn' : 'ok'}>{fmtDay(r.due_at)}</StatusPill> : <span className={styles.note}>Không đặt hạn</span>) },
+              { title: 'Hạn', render: (_, r) => {
+                if (!r.due_at) return <span className={styles.note}>Không đặt hạn</span>;
+                // Một ngưỡng chung theo số ngày làm việc còn lại, không theo SLA riêng từng hồ sơ.
+                const n = workdaysBetween(new Date(), new Date(r.due_at));
+                return <StatusPill tone={n < 0 ? 'bad' : n <= 1 ? 'warn' : 'ok'}>{fmtDay(r.due_at)} · {slaText({ ...r, sla_level: n < 0 ? 'over' : n === 0 ? 'today' : 'ok' }, new Date())}</StatusPill>;
+              } },
             ]}
           />
           </div>
