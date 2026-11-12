@@ -29,7 +29,7 @@ test('hạn đối chiếu: cùng ngày thì cùng ngưỡng màu, có ghi số 
   for (const r of await rows.all()) {
     const chip = r.locator('td').last().locator('span').first();
     const text = (await chip.innerText()).trim();
-    if (/tạm dừng/.test(text)) continue;
+    if (/tạm dừng|Không đặt hạn|Đã kết thúc/.test(text)) continue;
     expect(text).toMatch(/\d{2}\/\d{2}\/\d{4} · (còn \d+ ngày LV|hạn hôm nay|quá hạn \d+ ngày LV)/);
     const day = text.slice(0, 10);
     const cls = await chip.evaluate((e) => getComputedStyle(e).color);
@@ -144,3 +144,16 @@ test('OCR: tên tài liệu không còn tiền tố mã loại chữ hoa', async
   const raw = await page.locator('main').innerText();
   expect(raw).not.toMatch(/\b[A-Z]{3,6} ·/);
 });
+
+/** Văn phong: mọi khối chữ AI trên trang hồ sơ đi qua đường làm sạch chung, không lộ mã nội bộ hay viết tắt thô. */
+const AI_BAD = /\bvs\b|##|compliance_policy|\bVND\b|:\s*$/m;
+for (const [no, id] of [['00187', '000000000001'], ['00163', '000000000013'], ['00167', '000000000014']] as const) {
+  test(`chữ AI sạch trên hồ sơ HSV-2026-${no}`, async ({ page }) => {
+    await loginAs(page, 'truongphong');
+    await page.goto(`/ho-so-vay/75000000-0000-4000-8000-${id}`);
+    await expect(page.getByTestId('agent-team')).toBeVisible({ timeout: 20_000 });
+    const blocks = page.locator('[data-testid="agent-team"], [data-testid="actions-panel"]');
+    const lines = (await blocks.locator('p, li, b, span, h3').allInnerTexts()).flatMap((t) => t.split('\n').map((x) => x.trim())).filter(Boolean);
+    for (const l of lines) expect(l, `dòng chữ AI: ${l}`).not.toMatch(AI_BAD);
+  });
+}
