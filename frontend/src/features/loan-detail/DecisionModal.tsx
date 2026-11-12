@@ -49,6 +49,25 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
     return () => window.clearTimeout(t);
   }, [confirming]);
 
+  // Bẫy focus: Tab từ nút cuối quay về nút đầu (Đóng), Shift+Tab từ nút đầu về nút cuối; không rơi ra BODY.
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const dlg = document.querySelector<HTMLElement>('[role="dialog"]');
+      if (!dlg) return;
+      const items = [...dlg.querySelectorAll<HTMLElement>('button, input, textarea, select, a[href], [tabindex]')]
+        .filter((el) => !(el as HTMLButtonElement).disabled && el.tabIndex >= 0 && el.offsetParent !== null);
+      if (items.length === 0) return;
+      const first = items[0]; const last = items[items.length - 1]; const a = document.activeElement;
+      if (!dlg.contains(a)) { e.preventDefault(); first.focus(); }
+      else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && a === first) { e.preventDefault(); last.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
   const approving = type === 'APPROVED' || type === 'APPROVED_WITH_CONDITIONS';
   const amountInvalid = approving && !(amount > 0);
   const termInvalid = approving && !(term > 0);
@@ -71,13 +90,13 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
 
   const footer = confirming ? (
     <>
-      <Button ref={backRef} onClick={() => setConfirming(false)} disabled={busy}>Quay lại</Button>
-      <Button type="primary" danger={type === 'REJECTED'} className={approving ? styles.goldBtn : undefined} loading={busy} onClick={run}>{confirmText}</Button>
+      <Button key="back" ref={backRef} autoFocus onClick={() => setConfirming(false)} disabled={busy}>Quay lại</Button>
+      <Button key="commit" type="primary" danger={type === 'REJECTED'} className={approving ? styles.goldBtn : undefined} loading={busy} onClick={run}>{confirmText}</Button>
     </>
   ) : (
     <>
-      <Button onClick={onCancel}>Hủy</Button>
-      <Button type="primary" className={styles.goldBtn} disabled={!ready} onClick={() => setConfirming(true)}>{submitLabel}</Button>
+      <Button key="cancel" onClick={onCancel}>Hủy</Button>
+      <Button key="submit" type="primary" className={styles.goldBtn} disabled={!ready} onClick={() => setConfirming(true)}>{submitLabel}</Button>
     </>
   );
 
