@@ -13,7 +13,7 @@ export function loanCodeLabel(code: string | null | undefined, status?: string |
 /** Một hàm hiển thị mã hồ sơ cho mọi màn: mã thật in mono; nháp chưa đánh số in chữ thường xám. */
 export function LoanCode({ code, status }: { code: string | null | undefined; status?: string | null }): ReactNode {
   const label = loanCodeLabel(code, status);
-  return label === DRAFT_NO_CODE ? <span style={{ color: 'var(--ink-3, #6b7280)' }}>{label}</span> : <span style={mono}>{label}</span>;
+  return label === DRAFT_NO_CODE ? <span style={{ color: 'var(--ink-3, #6b7280)' }}>{label}</span> : <span style={{ ...mono, fontSize: 'inherit' }}>{label}</span>;
 }
 
 /** Văn bản có chứa mã hồ sơ: mã luôn mono (một kiểu mã hồ sơ trong toàn ứng dụng). */
