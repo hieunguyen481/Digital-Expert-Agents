@@ -50,6 +50,10 @@ Tổng 18: Chặn demo 1, Cao 4, Vừa 9, Nhẹ 4. Công: S <1h, M 1–3h, L >3h
 ## 3. Khả năng tiếp cận
 `lang=vi`, một `h1`/`main`, focus ring 3px thấy rõ. Thiếu skip link, input file không nhãn (UX-15). Tương phản badge (UX-08) và chữ phụ xám trên nền be chưa đo bằng công cụ. Màu trạng thái luôn kèm chữ (đạt). Đọc màn hình: chưa thử.
 
+**Kiểm cây tiếp cận (lần 5, thay trình đọc màn hình thật, vẫn chưa thử NVDA/Orca).** `locator.ariaSnapshot()` trên bản chạy thật, vai Phê duyệt và Trưởng phòng:
+- Modal "Quyết định của cấp phê duyệt": `dialog` có tên, `aria-modal=true`, nhóm `radiogroup "Loại quyết định"` với 4 `radio` có tên kèm mô tả, ô số và ô lý do có tên "(bắt buộc)", nút "Hủy" và "Ghi quyết định", tiêu điểm nằm trong hộp thoại khi mở. Lỗi cũ: hai ô số có nút tăng/giảm tên tiếng Anh "Increase/Decrease Value"; đã tắt (`controls={false}`).
+- Ngăn kéo trace "Lượt phân tích": `dialog` có tên, `aria-modal=true`, nút "Đóng", tóm tắt lượt, từng agent kèm nút "Xem đầy đủ", danh sách ý "Cần thêm thông tin" là `list`/`listitem`; Esc đóng và tiêu điểm về đúng dòng đã mở (ui-polish). Đọc được theo thứ tự agent, nhưng không có tiêu đề (`heading`) theo từng agent để nhảy nhanh.
+
 ## 4. Đội agent cho giám khảo
 Hiểu được AI đề xuất hay không: có (nhãn tím "AI đề xuất – chưa xác nhận", câu "AI chỉ đề xuất; người có thẩm quyền quyết định" ở Hành động). Chưa hiểu agent nào làm gì: trang hồ sơ không có sơ đồ vai (UX-02); trong trace có thẻ Credit/Compliance/Validation nhưng Anh–Việt lẫn (UX-09, UX-12). Dashboard bị nhiễu bởi dữ liệu kiểm thử (UX-03). Chat từ chối đúng câu ngoài phạm vi và câu bẻ khóa, hai lần trả lời giống hệt nhau (chủ ý bảo vệ, chấp nhận được). Benchmark có biểu đồ hai cột rõ nhưng thiếu kết luận (UX-11). Chưa rà trang hồ sơ khi đang chạy và sau khi chạy (cần hồ sơ mới + LLM).
 
