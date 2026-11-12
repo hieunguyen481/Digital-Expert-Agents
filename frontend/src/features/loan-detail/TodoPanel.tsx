@@ -22,7 +22,7 @@ export function buildTodos(overview: LoanOverview, state: CaseActionState | unde
   if (overview.supplement_request) items.push({ key: 'supplement', text: overview.supplement_request.kind === 'RETURNED' ? 'Hồ sơ bị trả lại, cần chỉnh sửa và gửi lại' : overview.supplement_request.kind === 'RETURNED_TO_APPRAISAL' ? `Hồ sơ bị trả lại để bổ sung${overview.supplement_request.reason ? `: ${overview.supplement_request.reason}` : ''}` : 'Hồ sơ đang chờ bổ sung tài liệu', to: overview.supplement_request.kind === 'RETURNED_TO_APPRAISAL' ? undefined : `/doi-chieu/${overview.loan.id}`, anchor: overview.supplement_request.kind === 'RETURNED_TO_APPRAISAL' ? 'hanh-dong' : undefined });
   state?.blockers.forEach((b) => items.push({
     key: `b-${b}`, text: BLOCKERS[b] ?? b,
-    anchor: b === 'FLAGS_OPEN' ? 'co' : b === 'REPORT_MISSING' ? 'to-trinh' : b === 'OPINIONS_MISSING' ? 'hanh-dong' : undefined,
+    anchor: b === 'FLAGS_OPEN' ? 'co' : b === 'REPORT_MISSING' ? 'to-trinh' : ['RISK_OPINION_MISSING', 'COMPLIANCE_OPINION_MISSING', 'CIC_FLAG_UNCONCLUDED'].includes(b) ? 'hanh-dong' : undefined,
     to: ['FIELDS_UNCONFIRMED', 'CHECK_FAILED', 'VALIDITY_AT_APPROVAL'].includes(b) ? `/doi-chieu/${overview.loan.id}` : undefined,
   }));
   const conflicts = overview.metrics.filter((m) => m.conflict_id && !m.chosen).length;
