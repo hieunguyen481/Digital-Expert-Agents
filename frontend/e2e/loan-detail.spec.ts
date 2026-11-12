@@ -137,7 +137,7 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await expect(page.getByTestId('opinion-RISK')).toBeVisible();
   const toApproval = page.getByRole('button', { name: 'Trình phê duyệt' });
   await expect(toApproval).toBeDisabled();
-  await expect(toApproval).toHaveAttribute('title', /Chưa có Ý kiến/);
+  await expect(toApproval).toHaveAttribute('title', /Chưa có ý kiến/);
 
   // 3. Tuân thủ: kết luận cờ CIC (3 lựa chọn, bắt buộc lý do, không gợi ý trước) và ghi ý kiến.
   page = await open('tuanthu');

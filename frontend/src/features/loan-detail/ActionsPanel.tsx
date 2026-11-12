@@ -12,6 +12,7 @@ import {
   addOpinion, concludeFlag, earlyWarning, extendDeadline, fetchActionState, handleFlag, runTransition, upgradeApproval,
 } from './loanDetailService';
 import { cleanAiLine } from '@/features/dashboard/agentTrace';
+import { statusLabel } from '@/features/my-work/format';
 import { DecisionModal } from './DecisionModal';
 import type { Flag, LoanOverview } from './types';
 import styles from './loan-detail.module.css';
@@ -20,8 +21,8 @@ export const BLOCKERS: Record<string, string> = {
   FIELDS_UNCONFIRMED: 'Còn trường dữ liệu hoặc mâu thuẫn chưa được xác nhận',
   FLAGS_OPEN: 'Còn cờ chặn trình chưa xử lý',
   REPORT_MISSING: 'Tờ trình chưa đủ 7 mục',
-  RISK_OPINION_MISSING: 'Chưa có Ý kiến Rủi ro',
-  COMPLIANCE_OPINION_MISSING: 'Chưa có Ý kiến Tuân thủ',
+  RISK_OPINION_MISSING: 'Chưa có ý kiến Rủi ro',
+  COMPLIANCE_OPINION_MISSING: 'Chưa có ý kiến Tuân thủ',
   CIC_FLAG_UNCONCLUDED: 'Cờ CIC khách tự nộp chưa có kết luận của Tuân thủ',
   VALIDITY_AT_APPROVAL: 'CIC hoặc sao kê hết hiệu lực tại ngày trình phê duyệt',
   CHECK_FAILED: 'Hồ sơ chưa qua kiểm tra: còn tài liệu thiếu, hết hạn hoặc trường dữ liệu chưa được xác nhận',
@@ -96,7 +97,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     totalActions += 1;
   };
   const rework = (status === 'RETURNED_TO_RM' || status === 'DRAFT') && has('credit_officer') && uiRoleFromRoles(me.roles) !== 'kiemtoan';
-  if (rework) { headNode = <ActionButton key="rework" variant="gold" onClick={() => navigate(`/de-xuat-vay/${loanId}`)}>Sửa đề xuất</ActionButton>; totalActions += 1; }
+  if (rework) { headNode = <ActionButton key="rework" variant="gold" onClick={() => navigate(`/de-xuat-vay/${loanId}`)}>{status === 'DRAFT' ? 'Tiếp tục soạn đề xuất' : 'Sửa đề xuất'}</ActionButton>; totalActions += 1; }
 
   if ((status === 'RETURNED_TO_RM' || status === 'APPRAISAL_PENDING_INFO') && state.supplement) {
     const sup = state.supplement;
@@ -194,9 +195,12 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
           <b>{cleanAiLine(f.title)}</b> <Space wrap>{flagButtons(f)}</Space>
         </div>
       ))}
+      {rework && status === 'DRAFT' && <span className={styles.note}>Đề xuất đang là bản nháp. Nút “Tiếp tục soạn đề xuất” ở đầu trang mở lại bản nháp để hoàn thiện và trình.</span>}
       <Space wrap>{buttons}{!slot && headNode}</Space>
       {lockNotes.map((n) => <span key={n.key} className={styles.note}><LockOutlined aria-hidden /> {n.label}: {n.why}</span>)}
-      {totalActions === 0 && <div><span className={styles.note}>Không có hành động nào cho vai trò của bạn ở bước này.</span></div>}
+      {totalActions === 0 && <div><span className={styles.note}>{['APPROVED', 'APPROVED_WITH_CONDITIONS', 'REJECTED', 'WITHDRAWN'].includes(status)
+        ? 'Hồ sơ đã kết thúc, không còn hành động nào.'
+        : `Hồ sơ đang ở trạng thái "${statusLabel(status).toLowerCase()}", chưa tới bước của vai trò bạn nên chỉ xem.`}</span></div>}
       {error && !dialog && <Alert type="error" showIcon role="alert" message={error} />}
       </div>
       </HumanBlock>

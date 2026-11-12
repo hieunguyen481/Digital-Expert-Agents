@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Button, Skeleton, Tooltip } from 'antd';
+import { Alert, Button, Skeleton } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
 import { ActionButton, AGENTS, AgentTeam, AiBlock, StatusPill, type AgentKey, type AgentState, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -84,12 +84,9 @@ export function AgentTeamPanel({ loanId, currency, status }: { loanId: string; c
           )}
           {runsQ.isLoading && <Skeleton active paragraph={{ rows: 2 }} />}
           {data && !data.can_run && data.deny_reason && (
-            <Tooltip title={data.deny_reason}>
-              <span className={styles.note} data-testid="agent-team-lock" tabIndex={0}>
-                <LockOutlined /> Chỉ xem
-                <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' }}>: {data.deny_reason}</span>
-              </span>
-            </Tooltip>
+            <span className={styles.note} data-testid="agent-team-lock">
+              <LockOutlined aria-hidden /> <b>Chỉ xem.</b> {data.deny_reason}
+            </span>
           )}
           {run.isError && (
             <Alert type="error" showIcon data-testid="agent-run-error" message={normalizeError(run.error).message} />

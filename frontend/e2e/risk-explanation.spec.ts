@@ -22,7 +22,7 @@ test('Rủi ro yêu cầu giải trình: HTTD thấy đúng nội dung, không t
   await as(page, 'ruiro'); await page.goto(`/ho-so-vay/${id}`);
   // P08: lý do khóa nói đúng mục còn thiếu, không nối "hoặc"
   const lock = (await page.getByTestId('todo-panel').innerText().catch(() => '')) + (await page.locator('main').innerText());
-  expect(lock).toMatch(/Chưa có Ý kiến (Rủi ro|Tuân thủ)/);
+  expect(lock).toMatch(/Chưa có ý kiến (Rủi ro|Tuân thủ)/);
   expect(lock).not.toMatch(/Ý kiến Rủi ro, ý kiến Tuân thủ hoặc/);
   await as(page, 'tuanthu'); await page.goto(`/ho-so-vay/${id}`);
   await withReason(page, 'Giữ hồ sơ nghi gian lận', 'Giữ hồ sơ', 'Chữ ký trên hợp đồng không khớp mẫu lưu.');
