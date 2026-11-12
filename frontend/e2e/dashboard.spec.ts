@@ -90,7 +90,11 @@ for (const role of NO_ACCESS) {
   test(`vai trò ${role} không thấy case của người khác`, async ({ page }) => {
     await loginAs(page, role);
     await openCases(page);
-    await expect(page.getByText(/Chưa có lượt phân tích nào trong phạm vi của bạn/)).toBeVisible();
-    await expect(page.locator('[data-testid^="case-row-"]')).toHaveCount(0);
+    // reset-demo.sh --warm tạo lượt thật trên HSV-2026-00163 (bước Phê duyệt) nên pheduyet có thể thấy ca đó: hợp lệ.
+    // Điều phải đúng: bảng đã tải xong (hàng hoặc thông báo rỗng) và không có ca nào của hồ sơ ngoài phạm vi (VinaNova của Thẩm định).
+    const rows = page.locator('[data-testid^="case-row-"]');
+    await expect(rows.first().or(page.getByText(/Chưa có lượt phân tích nào trong phạm vi của bạn/))).toBeVisible();
+    await expect(page.getByText(/VinaNova|HSV-2026-00187/)).toHaveCount(0);
+    for (const row of await rows.all()) await expect(row).not.toContainText(/VinaNova|HSV-2026-00187/);
   });
 }
