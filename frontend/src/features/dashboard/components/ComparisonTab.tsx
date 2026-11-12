@@ -14,6 +14,7 @@ import type {
   BenchmarkRunMeta,
   BenchmarkStat,
 } from '@/types/dashboard';
+import { BLIND_RUNS, LIMIT_NOTE, casesNotBetter } from '../blindRuns';
 import styles from '@/pages/AgentDashboardPage.module.css';
 
 type MetricKey = Exclude<keyof BenchmarkModeSummary, 'runs' | 'errors'>;
@@ -196,6 +197,7 @@ export function ComparisonTab() {
   }
 
   const rows = buildRows(run);
+  const notBetter = casesNotBetter(run.per_case);
   const cases = Object.keys(run.per_case).sort();
   const both = !!run.summary.single && !!run.summary.multi;
   const recall = METRICS[0];
@@ -271,6 +273,37 @@ export function ComparisonTab() {
         </div>
       )}
 
+      {BLIND_RUNS[run.run_id] && both && (
+        <section className={styles.card} aria-labelledby="cmp-blind" data-testid="cmp-blind">
+          <div className={styles.cardHead}>
+            <h2 id="cmp-blind">Số đo chính: đo mù trên bản đã khóa mã ({BLIND_RUNS[run.run_id].lockedCommit})</h2>
+            <span className={styles.cardNote}>Bộ ca và cách báo cáo đăng ký trước khi đo; trung bình ± độ lệch chuẩn</span>
+          </div>
+          <div className={`${styles.cardBody} ${styles.flush}`}>
+            <DataTable<{ id: 'a' | 'b'; label: string }>
+              rowKey="id"
+              size="small"
+              pagination={false}
+              className={ledgerTable}
+              dataSource={[
+                { id: 'a', label: '(a) Độ phủ phát hiện theo đáp án đăng ký nguyên vẹn' },
+                { id: 'b', label: '(b) Độ phủ không tính tổng cấp tín dụng và yêu cầu BCTC kiểm toán' },
+              ]}
+              columns={[
+                { title: 'Dòng', dataIndex: 'label', key: 'label' },
+                { title: 'Đội agent', key: 'multi', align: 'right', className: ledgerNum,
+                  render: (_: unknown, r) => <span data-testid={`cmp-blind-${r.id}-multi`}>{fmtPct(BLIND_RUNS[run.run_id][r.id].multi.mean)} ± {fmtPct(BLIND_RUNS[run.run_id][r.id].multi.sd)}</span> },
+                { title: 'Mô hình đơn lẻ', key: 'single', align: 'right', className: ledgerNum,
+                  render: (_: unknown, r) => <span data-testid={`cmp-blind-${r.id}-single`}>{fmtPct(BLIND_RUNS[run.run_id][r.id].single.mean)} ± {fmtPct(BLIND_RUNS[run.run_id][r.id].single.sd)}</span> },
+              ]}
+            />
+          </div>
+          <p className={styles.muted} style={{ padding: '0 var(--s5) var(--s4)' }}>
+            Dòng (a) là số đăng ký nguyên vẹn. Dòng (b) được định nghĩa sau khi thấy số của bộ đo cũ giảm (đáp án của hai loại phát hiện đó viết theo cách tính tổng cấp tín dụng cũ), nên là số tham khảo có giải thích, không phải kết quả mù thuần túy.
+          </p>
+        </section>
+      )}
+
       <div className={styles.note} data-testid="cmp-coverage-note" role="note">
         <p className={styles.bannerNote}>
           <b>Vì sao độ phủ khác nhau giữa các lượt đo. </b>
@@ -320,6 +353,14 @@ export function ComparisonTab() {
         <div className={styles.verdict}>
           <h3>Kết luận</h3>
           <p data-testid="cmp-conclusion">{conclusion(rows, run)}</p>
+          {both && (
+            <p data-testid="cmp-not-better">
+              {notBetter.length
+                ? `Ca đội agent không hơn mô hình đơn lẻ về độ phủ phát hiện (bằng hoặc thấp hơn): ${notBetter.map((c) => `${c.id} (${fmtPct(c.multi)} so với ${fmtPct(c.single)})`).join('; ')}.`
+                : 'Không có ca nào đội agent bằng hoặc thấp hơn mô hình đơn lẻ về độ phủ phát hiện.'}
+            </p>
+          )}
+          <p className={styles.muted} data-testid="cmp-limit">{LIMIT_NOTE}</p>
         </div>
       </section>
 

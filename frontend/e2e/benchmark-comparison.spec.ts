@@ -21,9 +21,32 @@ const withSd = (s: { mean: number; sd: number | null }, f: (v: number) => string
   `${f(s.mean)}${s.sd === null ? '' : ` ± ${f(s.sd)}`}`;
 
 async function expectRun(page: Page, stored: any) {
-  await expect(page.getByTestId('cmp-meta')).toContainText(stored.run_id); // nằm trong <details>, vẫn có trong DOM
+  await expect(page.getByTestId('cmp-tech')).toContainText(stored.run_id); // nằm trong <details>, vẫn có trong DOM
   await expect(page.getByTestId('cmp-headline')).toContainText(stored.summary.single && stored.summary.multi ? 'điểm phần trăm' : 'chỉ chạy một chế độ');
-  await expect(page.getByTestId('cmp-meta')).toContainText(`bộ chấm ${stored.grader_version ?? 'v1'}`);
+  await expect(page.getByTestId('cmp-tech')).toContainText(`Bộ chấm ${stored.grader_version ?? 'v1'}`);
+  await expect(page.getByTestId('cmp-limit')).toContainText('Giới hạn');
+  if (stored.summary.single && stored.summary.multi) {
+    // ca đội agent không hơn (bằng hoặc thấp hơn) phải thấy được; tính lại từ tệp
+    const notBetter = Object.keys(stored.per_case).filter((id) => stored.per_case[id].multi.finding_recall.mean <= stored.per_case[id].single.finding_recall.mean + 1e-9);
+    const el = page.getByTestId('cmp-not-better');
+    if (notBetter.length) for (const id of notBetter) await expect(el).toContainText(`${id} (`);
+    else await expect(el).toContainText('Không có ca nào');
+  }
+  const blind = stored.cases_version === 'v8' && /mù trên bản khóa/.test(stored.label ?? '');
+  if (blind) { // dòng (a)/(b) tính lại từ từng lượt trong tệp
+    const EX = new Set(['total_exposure', 'audit_required']);
+    const stat = (xs: number[]) => { const m = xs.reduce((p, c) => p + c, 0) / xs.length; return { mean: m, sd: Math.sqrt(xs.reduce((p, c) => p + (c - m) ** 2, 0) / (xs.length - 1)) }; };
+    const f = (v: number) => `${nf(Math.round(v * 1000) / 10, 1)}%`;
+    for (const mode of ['single', 'multi'] as const) {
+      const rs = stored.runs.filter((r: any) => r.mode === mode);
+      const a = stat(rs.map((r: any) => r.grade.findings_hit / r.grade.findings_total));
+      const b = stat(rs.map((r: any) => { const v = Object.entries(r.grade.findings).filter(([k]) => !EX.has(k)).map(([, x]) => (x ? 1 : 0) as number); return v.reduce((p, c) => p + c, 0) / v.length; }));
+      await expect(page.getByTestId(`cmp-blind-a-${mode}`)).toContainText(`${f(a.mean)} ± ${f(a.sd)}`);
+      await expect(page.getByTestId(`cmp-blind-b-${mode}`)).toContainText(`${f(b.mean)} ± ${f(b.sd)}`);
+    }
+  } else {
+    await expect(page.getByTestId('cmp-blind')).toHaveCount(0);
+  }
   for (const mode of ['single', 'multi'] as const) {
     const s = stored.summary[mode];
     if (!s) { // lượt chỉ đo một chế độ: chế độ còn lại hiện —
@@ -75,8 +98,8 @@ test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ
       }
       expect(found, `không thấy mục ${k + 1} của nhãn: ${expected}`).toBe(true);
       await page.keyboard.press('Enter');
-      await expect(page.getByTestId('cmp-meta')).toContainText(new RegExp(members.map((m) => m.run_id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')));
-      const meta = (await page.getByTestId('cmp-meta').textContent()) ?? '';
+      await expect(page.getByTestId('cmp-tech')).toContainText(new RegExp(members.map((m) => m.run_id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')));
+      const meta = (await page.getByTestId('cmp-tech').textContent()) ?? '';
       // mã lượt chấm lại chứa mã lượt gốc làm tiền tố: lấy mã khớp dài nhất.
       const stored = [...members].sort((a, b) => b.run_id.length - a.run_id.length).find((m) => meta.includes(m.run_id));
       expect(stored, `mục chọn không phải lượt nào trong nhóm: ${expected}`).toBeTruthy();
