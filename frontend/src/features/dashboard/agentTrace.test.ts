@@ -93,6 +93,20 @@ describe('parseAiText và dedupeConditions', () => {
     expect(n.lead).toBe('Thiếu dữ liệu chặn');
     expect(n.items).toHaveLength(2);
   });
+  it('câu kết luận dự phòng cho lượt Cần bổ sung', async () => {
+    const { fallbackConclusion } = await import('./agentTrace');
+    const v = (decision: string, summary: string) => ({ agent: 'x', decision, summary });
+    const out = fallbackConclusion('Needs Info', [
+      v('pass', 'Điều kiện vận hành đạt.'),
+      v('need_more_info', 'Chưa có kết quả CIC cho khách hàng này; cần tra cứu'),
+      v('need_more_info', 'Chưa có BCTC kiểm toán bắt buộc vì tổng dư nợ vượt 20 tỷ'),
+      v('need_more_info', 'Chưa có kết quả sàng lọc AML của khách hàng'),
+      v('need_more_info', 'Thông tin thứ tư không nên hiện ra'),
+    ]);
+    expect(out).toMatch(/^AI đề xuất: cần bổ sung trước khi quyết định: /);
+    expect((out ?? '').split('; ')).toHaveLength(3);
+    expect(fallbackConclusion('Completed', [])).toBeNull();
+  });
   it('gộp điều kiện trùng', async () => {
     const { dedupeConditions } = await import('./agentTrace');
     const out = dedupeConditions([

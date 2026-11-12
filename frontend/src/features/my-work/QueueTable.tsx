@@ -19,6 +19,8 @@ interface QueueTableProps {
   counts?: Record<QueueFilter, number>;
   hasAi: boolean;
   showHolder?: boolean;
+  /** Vai chỉ đọc: nút dòng là "Xem". */
+  readOnly?: boolean;
 }
 
 const SLA_TONE: Record<SlaLevel, PillTone> = { over: 'bad', today: 'warn', soon: 'info', ok: 'info', pause: 'neutral', none: 'neutral' };
@@ -28,12 +30,13 @@ function dueDate(item: WorkItem): string | null {
 }
 
 /** Hành động của hàng: sửa đề xuất khi bị trả lại, mở hồ sơ khi tới lượt bạn, theo dõi khi chỉ xem. */
-function rowAction(r: WorkItem): { label: string; to: string } {
+function rowAction(r: WorkItem, readOnly?: boolean): { label: string; to: string } {
+  if (readOnly) return { label: 'Xem', to: `/ho-so-vay/${r.loan_application_id}` };
   if (r.step_code === 'RM_REWORK') return { label: 'Sửa đề xuất', to: `/de-xuat-vay/${r.loan_application_id}` };
   return { label: r.mine ? 'Mở hồ sơ' : 'Xem hồ sơ', to: `/ho-so-vay/${r.loan_application_id}` };
 }
 
-export function QueueTable({ title, items, filter, onFilter, loading, counts, hasAi, showHolder }: QueueTableProps) {
+export function QueueTable({ title, items, filter, onFilter, loading, counts, hasAi, showHolder, readOnly }: QueueTableProps) {
   const { openWith } = useAiPanel();
   const navigate = useNavigate();
   const today = new Date();
@@ -103,7 +106,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
       key: 'act',
       align: 'right',
       render: (_, r) => {
-        const a = rowAction(r);
+        const a = rowAction(r, readOnly);
         return (
           <div className={styles.rowAct}>
             <Button size="small" type={r.loan_application_id === firstMine ? 'primary' : 'default'} onClick={() => navigate(a.to)} aria-label={`${a.label} ${loanCodeLabel(r.application_number, r.status)}`}>

@@ -1,3 +1,5 @@
+import { useMe } from '@/auth/session';
+import { uiRoleFromRoles } from '@/auth/roleFromMe';
 import { fmtDay } from '@/utils/format';
 import { Alert, Skeleton } from 'antd';
 import { useQuery } from '@tanstack/react-query';
@@ -22,6 +24,8 @@ export default function LoanDetailPage() {
   const { loanId = '' } = useParams();
   const q = useQuery({ queryKey: ['loan-overview', loanId], queryFn: () => fetchOverview(loanId) });
   const actions = useQuery({ queryKey: ['loan-actions', loanId], queryFn: () => fetchActionState(loanId) });
+  const { data: me } = useMe();
+  const readOnly = uiRoleFromRoles(me?.roles ?? []) === 'kiemtoan';
   const runs = useQuery({ queryKey: ['loan-agent-runs', loanId], queryFn: () => fetchAgentRuns(loanId) });
   if (q.isError) return <PageError title="Không tải được hồ sơ" headingLevel={1} error={normalizeError(q.error)} onRetry={() => void q.refetch()} />;
   if (!q.data) return <div className={styles.page} aria-busy><Skeleton active /></div>;
@@ -51,7 +55,7 @@ export default function LoanDetailPage() {
             <CollateralPanel items={collaterals} />
           </div>
           <aside className={styles.stack} aria-label="Việc và hành động">
-            <TodoPanel items={todos} ready={!!actions.data} caseId={runs.data?.latest?.case_id} />
+            {!readOnly && <TodoPanel items={todos} ready={!!actions.data} caseId={runs.data?.latest?.case_id} />}
             <ActionsPanel loanId={loanId} overview={q.data} />
             <ReassignControl loanId={loanId} />
             <TimelinePanel steps={timeline} />

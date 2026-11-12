@@ -36,6 +36,7 @@
 .item { display: grid; gap: 4px; padding: var(--s3) 0; border-top: 1px solid var(--rule); }
 .item:first-child { border-top: 0; padding-top: 0; }
 .ok { color: var(--ok-700); display: flex; gap: var(--s2); align-items: center; }
+.warnLine { color: var(--warn-700); display: flex; gap: var(--s2); align-items: center; font-size: var(--fs-13); }
 .errBox { border: 1px solid var(--danger-700); background: var(--danger-100); color: var(--danger-700); border-radius: var(--r-md); padding: var(--s3) var(--s4); display: flex; gap: var(--s3); align-items: center; }
 .errBox > :first-child { flex: 1; }
 

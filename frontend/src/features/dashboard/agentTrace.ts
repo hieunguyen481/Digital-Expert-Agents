@@ -80,6 +80,7 @@ export interface TraceVerdict {
   decision: string;
   summary: string;
   evidence?: { source: string; quote: string; raw_quote?: string }[];
+  conditions?: string[];
 }
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
@@ -432,4 +433,22 @@ export function dedupeConditions(list: string[]): string[] {
     if (!dup) kept.push(cur);
   }
   return kept.map((k) => k.text);
+}
+
+/** Câu kết luận khi gói đề xuất không có `recommendation` (lượt dừng ở "Cần bổ sung", bị từ chối, chuyển cấp): dựng từ trạng thái lượt và ý các chuyên gia cần thêm thông tin, tối đa 3 ý. */
+export function fallbackConclusion(state: string, verdicts: TraceVerdict[]): string | null {
+  if (state === 'Needs Info') {
+    const items: string[] = [];
+    for (const v of verdicts.filter((x) => x.decision === 'need_more_info')) {
+      const raw = v.conditions?.length ? v.conditions[0] : v.summary;
+      const first = parseAiText(raw).items[0] ?? '';
+      const one = first.split(/\.\s+/)[0].replace(/[\s.;:,]+$/, '').trim();
+      if (one && !items.some((x) => x.toLowerCase() === one.toLowerCase())) items.push(one);
+    }
+    const shown = dedupeConditions(items).slice(0, 3);
+    return shown.length ? `AI đề xuất: cần bổ sung trước khi quyết định: ${shown.map((x) => x.charAt(0).toLocaleLowerCase('vi') + x.slice(1)).join('; ')}.` : 'AI đề xuất: cần bổ sung thông tin trước khi quyết định.';
+  }
+  if (state === 'Rejected') return 'AI đề xuất: từ chối hồ sơ.';
+  if (state === 'Escalated') return 'AI đề xuất: chuyển cấp có thẩm quyền cao hơn xem xét.';
+  return null;
 }

@@ -99,7 +99,7 @@ function Content() {
     { label: readOnly || role === 'truongphong' ? 'Đã quá hạn' : 'Bạn đang giữ, quá hạn', value: readOnly || role === 'truongphong' ? counts.over : all.data.facts.overdue },
     role === 'truongphong'
       ? { label: 'Chưa giao người', value: all.data.items.filter((i) => !i.holder_name).length }
-      : readOnly ? { label: 'Trong phạm vi kiểm toán', value: all.data.items.length }
+      : readOnly ? { label: 'Có cờ cao', value: all.data.items.filter((i) => i.high_flags > 0).length }
       : { label: 'Đang chờ người khác', value: all.data.items.filter((i) => !i.mine).length },
   ];
   return (
@@ -129,6 +129,7 @@ function Content() {
             )}
             <div className={styles.cols}>
               <QueueTable
+                readOnly={readOnly}
                 title={QUEUE_TITLE[role]}
                 items={filtered.data?.items ?? []}
                 counts={counts}

@@ -10,7 +10,7 @@ import {
 } from '@/services/agentCaseService';
 import {
   DECISION_LABEL, agentName, dedupeConditions, scrubInternal, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
-  quoteText,
+  quoteText, fallbackConclusion,
 } from '@/features/dashboard/agentTrace';
 import { ActionProposals } from '@/features/agent-actions/ActionProposals';
 import { AiText } from '@/features/dashboard/components/AiText';
@@ -96,7 +96,7 @@ export function AgentTeamPanel({ loanId, currency, status }: { loanId: string; c
           {data && !latest && (
             <span className={styles.note} data-testid="agent-team-empty">
               {status && ['APPROVAL', 'COMMITTEE', 'COUNCIL_SESSION'].includes(status)
-                ? 'Hồ sơ này trình trước khi có đội agent nên chưa có kết luận AI. Người quyết định xem chỉ số và tài liệu bên dưới.'
+                ? 'Hồ sơ chưa có lượt chạy đội agent. Người quyết định xem chỉ số và tài liệu bên dưới.'
                 : 'Chưa chạy đội agent trên hồ sơ này.'}
             </span>
           )}
@@ -212,6 +212,7 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
   const failed = plan?.tasks.filter((t) => states[t.task_id]?.state === 'error') ?? [];
   const okAgents = plan?.tasks.filter((t) => states[t.task_id]?.state === 'done') ?? [];
   const startMs = Date.parse(startedAt);
+  const fallback = finished && !pkg?.recommendation ? fallbackConclusion(c.state, verdicts) : null;
   const stateTone: Record<string, PillTone> = { Completed: 'ok', Rejected: 'bad', Escalated: 'bad', 'Pending Approval': 'human', 'Needs Info': 'warn' };
   const level = (v: TraceVerdict) => (v.decision === 'reject' || v.decision === 'fail' ? 'r' : 'y') as 'r' | 'y';
   return (
@@ -226,9 +227,9 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
         <Alert type="info" showIcon role="status" data-testid="agent-run-elapsed"
           message={<>Đã chạy <b className={styles.num}>{fmtClock(tick - startMs)}</b>. Thường mất vài phút. Bạn có thể rời trang, kết quả vẫn được lưu.</>} />
       )}
-      {(pkg?.recommendation || pkg?.proposed_limit != null) && (
+      {(pkg?.recommendation || pkg?.proposed_limit != null || fallback) && (
         <div className={styles.stackTight} data-testid="agent-recommendation">
-          {pkg?.recommendation && <p className={styles.concl}>{aiLead(conclusionHeadline(scrubInternal(pkg.recommendation)))}</p>}
+          {pkg?.recommendation ? <p className={styles.concl}>{aiLead(conclusionHeadline(scrubInternal(pkg.recommendation)))}</p> : fallback && <p className={styles.concl} data-testid="agent-fallback-conclusion">{fallback}</p>}
           {pkg?.proposed_limit != null && <span>Hạn mức đề xuất: <b className={styles.num}>{fmtMoney(String(pkg.proposed_limit), currency)}</b></span>}
           {pkg?.required_approver_level && <span className={styles.note}>Cấp phê duyệt đề xuất: {approverLevelLabel(pkg.required_approver_level)}</span>}
           {!!pkg?.conditions?.length && (

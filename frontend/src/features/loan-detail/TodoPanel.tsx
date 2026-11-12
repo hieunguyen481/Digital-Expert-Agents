@@ -23,7 +23,7 @@ export function buildTodos(overview: LoanOverview, state: CaseActionState | unde
   state?.blockers.forEach((b) => items.push({ key: `b-${b}`, text: BLOCKERS[b] ?? b, anchor: b === 'FLAGS_OPEN' ? 'co' : b === 'REPORT_MISSING' ? 'to-trinh' : undefined }));
   const conflicts = overview.metrics.filter((m) => m.conflict_id && !m.chosen).length;
   if (conflicts > 0) items.push({ key: 'conflicts', text: `${conflicts} chỉ số còn mâu thuẫn giữa các nguồn, chưa chốt`, to: `/doi-chieu/${overview.loan.id}` });
-  if (runs?.can_run && !runs.latest) items.push({ key: 'agent', text: 'Chưa chạy đội agent: nên chạy để có đề xuất tham khảo', anchor: 'doi-agent' });
+  if (runs?.can_run && !runs.latest) items.push({ key: 'agent', text: 'Chưa có đề xuất AI. Chạy đội agent để có ý kiến tham khảo.', anchor: 'doi-agent' });
   return items;
 }
 
@@ -31,11 +31,12 @@ export function TodoPanel({ items, ready, caseId }: { items: TodoItem[]; ready: 
   // Cùng khóa với AgentTeamPanel nên dùng chung dữ liệu, không gọi thêm.
   const caseQ = useQuery({ queryKey: ['agent-case', caseId], queryFn: () => getAgentCase(caseId!), enabled: !!caseId });
   const aiConditions = caseQ.data ? (caseQ.data.package ?? packageOf([]))?.conditions?.length ?? 0 : 0;
+  const needsInfo = caseQ.data?.state === 'Needs Info';
   return (
     <div id="viec-can-lam" aria-label="Việc cần làm" data-testid="todo-panel">
       <HumanBlock tag="Việc của bạn" title={<>Việc cần làm {ready && items.length > 0 && <span className={styles.count}>{items.length}</span>}</>}>
-        {ready && items.length === 0 && aiConditions > 0 && <span className={styles.note}><ExclamationCircleOutlined /> AI ghi nhận {aiConditions} điều kiện cần bổ sung, người quyết định xem xét. Chưa có điều kiện hệ thống nào chặn bước này.</span>}
-        {ready && items.length === 0 && aiConditions === 0 && <span className={styles.ok}><CheckCircleOutlined /> Không còn điều kiện nào đang chặn ở bước này.</span>}
+        {ready && items.length === 0 && (aiConditions > 0 || needsInfo) && <span className={styles.warnLine} data-testid="todo-ai-needs"><ExclamationCircleOutlined /> {aiConditions > 0 ? `AI nêu ${aiConditions} điểm cần bổ sung` : 'AI nêu điểm cần bổ sung'}; xem khối Đội agent. Chưa có điều kiện hệ thống nào chặn bước này.</span>}
+        {ready && items.length === 0 && aiConditions === 0 && !needsInfo && <span className={styles.ok}><CheckCircleOutlined /> Không còn điều kiện nào đang chặn ở bước này.</span>}
         {!ready && <span className={styles.note}>Đang kiểm tra điều kiện…</span>}
         {items.length > 0 && (
           <ul className={styles.todoList}>

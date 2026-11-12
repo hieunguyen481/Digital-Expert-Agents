@@ -1,3 +1,4 @@
+import { uiRoleFromRoles } from '@/auth/roleFromMe';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -91,7 +92,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     if (isHead) headNode = node; else buttons.push(node);
     totalActions += 1;
   };
-  const rework = (status === 'RETURNED_TO_RM' || status === 'DRAFT') && has('credit_officer');
+  const rework = (status === 'RETURNED_TO_RM' || status === 'DRAFT') && has('credit_officer') && uiRoleFromRoles(me.roles) !== 'kiemtoan';
   if (rework) { headNode = <ActionButton key="rework" variant="gold" onClick={() => navigate(`/de-xuat-vay/${loanId}`)}>Sửa đề xuất</ActionButton>; totalActions += 1; }
 
   if ((status === 'RETURNED_TO_RM' || status === 'APPRAISAL_PENDING_INFO') && state.supplement) {
