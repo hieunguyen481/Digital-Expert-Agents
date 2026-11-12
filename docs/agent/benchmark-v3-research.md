@@ -370,3 +370,54 @@ Ghi trước mọi lượt đo v8. Không sửa `cases_v7.json`, `cases_v8.json`
 - **Seed khách v8:** có trong DB (10 hồ sơ `benchmark v8` trong `customer.organization_profile`).
 - **Số dư OpenRouter trước đo:** còn 4,2599 USD (đã dùng 5,7401 / hạn mức 10).
 - Lỗi hạ tầng (nếu có) chỉ chạy lại đúng phần lỗi và ghi rõ; không chạy lại để chọn điểm.
+
+### 15.2 Kết quả (đo mù trên bản khóa `735f9a7`, 3 lần × 10 ca × 2 chế độ)
+Tệp: `agent_engine/benchmark_results/20261112T220826Z-v8 mù trên bản khóa 735f9a7.json`, đã nạp `agent.benchmark_run` (30 lượt single + 30 lượt multi). Lệnh đúng như §15.1, đúng một lượt, 0 lỗi hạ tầng, không chạy lại phần nào. Chi phí $0,1776 (single $0,0731; multi $0,1045). Số dư OpenRouter: trước 4,2599 USD, sau 4,0823 USD.
+
+| chỉ số (30 lượt/chế độ) | single | multi |
+|---|---|---|
+| **(a) độ phủ phát hiện, đáp án nguyên vẹn** (TB ± sd, sai số chuẩn) | 0,520 ± 0,152 (se 0,028) | 0,707 ± 0,157 (se 0,029) |
+| **(b) độ phủ, không tính `total_exposure`, `audit_required`** | 0,675 ± 0,281 (se 0,051) | 0,983 ± 0,063 (se 0,012) |
+| trích nguồn (độ phủ) | 0,883 ± 0,157 | 0,942 ± 0,120 |
+| chính xác trích dẫn | 0,895 | 0,980 |
+| phát hiện sai (TB/lượt) | 0,033 (1 lượt, J8 #1) | 0 |
+| đúng cổng | 0,600 (18/30) | 1,000 (30/30) |
+| trễ s | 42,0 ± 9,9 | 38,0 ± 6,9 |
+| $/ca | 0,00244 | 0,00348 |
+
+Dòng (b) được định nghĩa sau khi thấy số v7 giảm (§14): số tham khảo có giải thích, không phải số mù thuần túy. Dòng (a) là số đăng ký nguyên vẹn. Sai số chuẩn tính trên 30 lượt (các lượt cùng ca không độc lập hoàn toàn).
+
+### 15.3 Theo từng ca (TB 3 lần; recall (a)/(b); trích nguồn; số lượt đúng cổng; trễ s; $/ca ×10⁻³)
+| ca | recall(a) S | recall(a) M | recall(b) S | recall(b) M | trích S | trích M | cổng S | cổng M | trễ S/M | $ S/M |
+|---|---|---|---|---|---|---|---|---|---|---|
+| J1 | 0,60 | 0,80 | 0,75 | 1,00 | 0,89 | 0,67 | 0/3 (NEEDS_INFO) | 3/3 | 37/38 | 2,29/3,65 |
+| J2 | 0,50 | 0,50 | 1,00 | 1,00 | 0,83 | 0,75 | 3/3 | 3/3 | 43/35 | 2,31/3,29 |
+| J3 | 0,40 | 0,80 | 0,33 | 1,00 | 1,00 | 1,00 | 3/3 (NEEDS_INFO) | 3/3 | 49/53 | 2,71/4,55 |
+| J4 | 0,53 | 0,60 | 0,89 | 1,00 | 0,78 | 1,00 | 3/3 | 3/3 | 28/34 | 1,60/2,90 |
+| J5 | 0,33 | 0,60 | 0,44 | 1,00 | 0,89 | 1,00 | 3/3 | 3/3 | 53/38 | 2,89/3,28 |
+| J6 | 0,80 | 0,80 | 1,00 | 1,00 | 0,89 | 1,00 | 3/3 | 3/3 | 40/35 | 2,26/3,15 |
+| J7 | 0,50 | 0,50 | 0,83 | 1,00 | 0,89 | 1,00 | 0/3 (NEEDS_INFO) | 3/3 | 41/39 | 2,54/3,53 |
+| J8 | 0,53 | 1,00 | 0,42 | 1,00 | 1,00 | 1,00 | 0/3 (NEEDS_INFO) | 3/3 | 37/31 | 2,33/3,12 |
+| J9 | 0,40 | 0,80 | 0,33 | 1,00 | 1,00 | 1,00 | 0/3 (NEEDS_INFO) | 3/3 | 46/40 | 2,84/3,78 |
+| J10 | 0,60 | 0,67 | 0,75 | 0,83 | 0,67 | 1,00 | 3/3 | 3/3 | 46/38 | 2,60/3,59 |
+
+### 15.4 Ca multi KHÔNG hơn single
+- **Recall (a) bằng nhau:** J2 (0,50/0,50), J6 (0,80/0,80), J7 (0,50/0,50). Không ca nào multi thấp hơn single ở recall (a); ở (b) cũng không.
+- **Trích nguồn multi thấp hơn:** J1 (0,67 so với 0,89) và J2 (0,75 so với 0,83). Đây là hai ca multi kém hơn single ở một chỉ số chính.
+- **Cổng bằng nhau:** 6/10 ca (J2, J4, J5, J6, J10 và J3 chỉ khi single chấp nhận NEEDS_INFO). Multi hơn ở J1, J7, J8, J9 (single chọn NEEDS_INFO).
+- **Chi phí:** multi đắt hơn ở cả 10 ca (TB +43%: $0,00348 so với $0,00244). Trễ: multi chậm hơn ở J1, J3, J4 (J1 +1 s, J3 +4 s, J4 +6 s).
+- Recall (a) của multi chỉ 0,707 vì hai loại `total_exposure`/`audit_required` gần như không khớp (đáp án viết theo cách tính cũ, §14).
+
+### 15.5 Đối chiếu giả thuyết đăng ký (§12.3)
+- "multi ≥ single về đúng cổng": **đúng**, 30/30 so với 18/30; single chọn NEEDS_INFO ở J1, J7, J8, J9 (J1 đúng dự đoán đăng ký).
+- "multi ≥ single về chính xác trích dẫn": **đúng** (0,980 so với 0,895).
+- "recall hai chế độ gần nhau": **sai**. Dòng (a) cách 0,19 (0,707 so với 0,520), dòng (b) cách 0,31. Chênh này lớn hơn nhiều sai số chuẩn.
+- Không đặt ngưỡng thắng/thua; số thật như trên.
+
+### 15.6 Giới hạn
+10 ca, 3 lần/ca, chấm bằng từ khóa/regex (không phải người chấm); các lượt cùng ca không độc lập; dòng (b) định nghĩa sau khi thấy v7 giảm; sai số chuẩn tính trên 30 lượt. Single là `single_agent_runner.py` (một agent, cùng công cụ) đã giữ nguyên, không làm yếu. Multi tốn thêm chi phí. Kết quả chỉ nói về bộ 10 ca này. Không tìm thấy lỗi engine trong lúc đo; chưa phát hiện lỗi regex sau đo (cũng chưa soát hết).
+
+### 15.7 Ví dụ chấm tay (lượt 1 của mỗi ca, trích từ file kết quả)
+1. **J1 single #1, cổng NEEDS_INFO (sai; đáp án PENDING_APPROVAL).** Trích: "Khuyến nghị chưa trình duyệt khoản vay 12 tỷ đồng… cần bổ sung và đối chiếu hồ sơ pháp lý/KYB… không có xác nhận dòng tiền vào tài khoản". Khớp: `no_account`, `ltv`, `leverage`; không khớp: `not_blocking` (không nói thiếu tài khoản không chặn trình), `total_exposure`. 3/5.
+2. **J1 multi #1, cổng PENDING_APPROVAL (đúng).** Trích: "doanh nghiệp chưa có tài khoản thanh toán — cần mở tài khoản (không chặn trình)… LTV đề xuất 40%, hạn mức tối đa 21 tỷ đồng theo CS-TD-SME/2025 §7.1". Khớp `no_account`, `not_blocking`, `ltv`, `leverage`; không khớp `total_exposure`. Thiếu trích dẫn `cite_ops` (không dẫn quy trình vận hành) nên trích nguồn 2/3: ví dụ multi thua single ở trích nguồn.
+3. **J7 multi #1, cổng đúng nhưng recall 2/4.** Trích: "Tổng cấp tín dụng sau đề xuất là 7 tỷ đồng, dưới ngưỡng 20 tỷ đồng". Đây là đúng theo `rules.md` Q4 (chỉ tính dư nợ tại ngân hàng), nhưng đáp án đăng ký tính 22 tỷ có kiểm toán bắt buộc, nên `total_exposure` và `audit_required` không khớp: loại phát hiện (b) loại ra. Không sửa đáp án.
