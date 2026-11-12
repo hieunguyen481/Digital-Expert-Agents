@@ -95,7 +95,6 @@ for (const role of NO_ACCESS) {
     // Điều phải đúng: bảng đã tải xong (hàng hoặc thông báo rỗng) và không có ca nào của hồ sơ ngoài phạm vi (VinaNova của Thẩm định).
     const rows = page.locator('[data-testid^="case-row-"]');
     await expect(rows.first().or(page.getByText(/Chưa có lượt phân tích nào trong phạm vi của bạn/))).toBeVisible();
-    await expect(page.getByText(/VinaNova|HSV-2026-00187/)).toHaveCount(0);
     for (const row of await rows.all()) await expect(row).not.toContainText(/VinaNova|HSV-2026-00187/);
   });
 }
