@@ -40,6 +40,10 @@ Quản trị chỉ có `admin:manage` (Q-J: không truy cập khẩn cấp, khô
 nào được đọc/ghi còn do RLS quyết định (Q-M): người được phân công đọc và ghi đúng bước của mình, người đã xong bước vẫn đọc, Kiểm toán
 đọc toàn hệ thống, Hội sở đọc hồ sơ được phân công, cùng chi nhánh không tự thấy nhau trừ giám đốc chi nhánh.
 
+Ngoại lệ về che lý do (captain chốt 13/11/2026, F8/Q-M): lý do bước `FRAUD_HOLD`, kết quả `FRAUD_HOLD`/`RELEASED` và lượt Rủi ro do Tuân thủ trả lại
+chỉ Tuân thủ, Rủi ro, Phê duyệt, Kiểm toán đọc. Lý do của `request_explanation` (bước `RISK_PENDING_INFO`) thì người xử lý bước Chờ giải trình
+(Hỗ trợ tín dụng) được đọc để biết cần giải trình gì; vai khác không thuộc bốn vai trên vẫn không thấy.
+
 ## 2. Hành động chuyển trạng thái × vai trò × trạng thái hồ sơ
 
 Một ô (vai trò, hành động, trạng thái) được phép khi vai trò có ✔ **và** trạng thái nằm trong cột "Từ trạng thái".
@@ -56,7 +60,7 @@ Mọi ô khác bị từ chối. Hành động ghi "Cần lý do: có" bị từ
 | accept_info | APPRAISAL_PENDING_INFO | không | — | ✔ | — | — | — | — | — | — | — | Q6, F7 |
 | submit_to_risk | APPRAISAL | không | — | — | ✔ | — | — | — | — | — | — | Q-L, Q4 |
 | risk_return | RISK_REVIEW | có | — | — | — | ✔ | ✔ | — | — | — | — | E3 |
-| request_explanation | RISK_REVIEW | có | — | — | — | — | ✔ | — | — | — | — | Q-N, F8 |
+| request_explanation | RISK_REVIEW | có | — | — | — | — | ✔ | — | — | — | — | Q-N, F8 (lý do hiện cho người xử lý bước Chờ giải trình, 13/11/2026) |
 | accept_explanation | RISK_PENDING_INFO | không | — | ✔ | — | — | — | — | — | — | — | Q-N, F7 |
 | fraud_hold | RISK_REVIEW | có | — | — | — | — | ✔ | — | — | — | — | Q-N, F8, Q3 |
 | fraud_release | RISK_HOLD_FRAUD | có | — | — | — | — | ✔ | — | — | — | — | Q-N |
