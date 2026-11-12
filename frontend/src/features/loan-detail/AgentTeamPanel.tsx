@@ -36,6 +36,9 @@ export function agentStates(tasks?: Array<{ task_id: string; agent: string }>, s
 
 const TASK_LABEL = { waiting: 'Chờ', running: 'Đang chạy', done: 'Xong', error: 'Lỗi' } as const;
 
+/** Trạng thái hồ sơ đang ở tay người quyết định cuối. */
+const DECIDER_STATUSES = ['APPROVAL', 'COMMITTEE', 'COUNCIL_SESSION'];
+
 export const AGENT_RUN_TIMEOUT_MS = 5 * 60_000;
 
 /** Đội agent trên hồ sơ thật: chạy, theo dõi qua SSE, xem đề xuất. AI chỉ đề xuất; người có thẩm quyền quyết định. */
@@ -93,7 +96,7 @@ export function AgentTeamPanel({ loanId, currency, status }: { loanId: string; c
           )}
           {data && !latest && (
             <span className={styles.note} data-testid="agent-team-empty">
-              {status && ['APPROVAL', 'COMMITTEE', 'COUNCIL_SESSION'].includes(status)
+              {status && DECIDER_STATUSES.includes(status)
                 ? 'Hồ sơ chưa có lượt chạy đội agent. Người quyết định xem chỉ số và tài liệu bên dưới.'
                 : 'Chưa chạy đội agent trên hồ sơ này.'}
             </span>
@@ -104,7 +107,7 @@ export function AgentTeamPanel({ loanId, currency, status }: { loanId: string; c
               description="Đội agent có thể đang xử lý chậm hoặc đã dừng giữa chừng. Bấm cập nhật để kiểm tra lại; nếu engine ngừng cập nhật, hệ thống tự mở khóa để chạy lại sau 20 phút kể từ cập nhật cuối."
               action={<Button size="small" onClick={() => void latestCaseQ.refetch()}>Cập nhật trạng thái</Button>} />
           )}
-          {latest && <RunBody key={latest.case_id} caseId={latest.case_id} currency={currency} decider={decider} startedAt={latest.created_at}
+          {latest && <RunBody key={latest.case_id} caseId={latest.case_id} currency={currency} decider={decider} startedAt={latest.created_at} isDecider={!!status && DECIDER_STATUSES.includes(status)}
             retry={data?.can_run && !inProgress ? () => run.mutate() : undefined} retrying={run.isPending} />}
           {latest && <ActionProposals caseId={latest.case_id} loanId={loanId} />}
           {data && data.runs.length > 1 && (
@@ -148,7 +151,7 @@ const fmtClock = (ms: number) => {
   return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
 };
 
-function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { caseId: string; currency: string; decider: string; startedAt: string; retry?: () => void; retrying?: boolean }) {
+function RunBody({ caseId, currency, decider, startedAt, isDecider, retry, retrying }: { caseId: string; currency: string; decider: string; startedAt: string; isDecider: boolean; retry?: () => void; retrying?: boolean }) {
   const [tick, setTick] = useState(() => Date.now());
   const qc = useQueryClient();
   const caseQ = useQuery({
@@ -232,10 +235,14 @@ function RunBody({ caseId, currency, decider, startedAt, retry, retrying }: { ca
           {!pkg?.recommendation && !!fallback?.items.length && (
             <ul className={styles.condOl} data-testid="agent-fallback-items">{fallback.items.map((x) => <li key={x}>{x}</li>)}</ul>
           )}
-          {!!pkg?.conditions?.length && (
-            <div><b className={styles.sub}>Yêu cầu bổ sung và điều kiện đội agent đề xuất</b>
-              <ul className={styles.condOl}>{dedupeConditions(pkg.conditions.map((x) => cleanCondition(scrubInternal(x)))).map((x) => <li key={x}>{x}</li>)}</ul></div>
-          )}
+          {!!pkg?.conditions?.length && (() => {
+            const items = dedupeConditions(pkg.conditions.map((x) => cleanCondition(scrubInternal(x))));
+            const list = <ul className={styles.condOl}>{items.map((x) => <li key={x}>{x}</li>)}</ul>;
+            // Người quyết định cần kết luận 1–2 dòng: danh sách việc bổ sung gập sẵn, mở khi cần đọc.
+            return isDecider
+              ? <details className={styles.det} data-testid="agent-conditions"><summary>Yêu cầu bổ sung và điều kiện ({items.length})</summary>{list}</details>
+              : <div data-testid="agent-conditions"><b className={styles.sub}>Yêu cầu bổ sung và điều kiện đội agent đề xuất</b>{list}</div>;
+          })()}
           <span className={styles.note}>Đề xuất của đội agent chưa có hiệu lực.</span>
         </div>
       )}

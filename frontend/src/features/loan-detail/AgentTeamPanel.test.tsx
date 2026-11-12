@@ -19,9 +19,9 @@ vi.mock('@/services/agentCaseService', () => ({
   streamAgentCase: vi.fn(() => new Promise(() => undefined)),
 }));
 
-function mount() {
+function mount(status?: string) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={qc}><MemoryRouter><AgentTeamPanel loanId="L1" currency="VND" /></MemoryRouter></QueryClientProvider>);
+  return render(<QueryClientProvider client={qc}><MemoryRouter><AgentTeamPanel loanId="L1" currency="VND" status={status} /></MemoryRouter></QueryClientProvider>);
 }
 const item = { id: 'r1', case_id: 'case_1', created_at: '2026-01-01T00:00:00Z', started_by: 'e', started_by_name: 'A' };
 
@@ -49,6 +49,23 @@ describe('AgentTeamPanel', () => {
     expect(screen.getByTestId('agent-findings').textContent).toContain('DSCR đạt');
     expect(screen.getByTestId('agent-sources').textContent).toContain('EBITDA 12 tỷ');
     expect(screen.getByTestId('agent-trace-link').getAttribute('href')).toBe('/dashboard?case=case_1');
+  });
+
+  it('người quyết định: danh sách việc bổ sung gập sẵn; vai khác thấy mở', async () => {
+    vi.mocked(agentCases.getAgentCase).mockResolvedValue({
+      case_id: 'case_1', state: 'Needs Info', package: {
+        recommendation: 'Cần bổ sung 2 việc', conditions: ['Bổ sung AML', 'Bổ sung BCTC'], verdicts: [],
+      },
+    } as never);
+    runs.fetchAgentRuns.mockResolvedValue({ can_run: false, deny_reason: 'x', latest: item, runs: [item] });
+    const a = mount('APPROVAL');
+    const folded = await screen.findByTestId('agent-conditions');
+    expect(folded.tagName).toBe('DETAILS');
+    expect((folded as HTMLDetailsElement).open).toBe(false);
+    a.unmount();
+    mount('APPRAISAL');
+    const open = await screen.findByTestId('agent-conditions');
+    expect(open.tagName).toBe('DIV');
   });
 
   it('lỗi khi chạy (409) hiện thông báo', async () => {
