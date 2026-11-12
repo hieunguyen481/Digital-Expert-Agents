@@ -21,3 +21,13 @@ describe('định dạng vi-VN dùng chung', () => {
     expect(modelName('local-model')).toBe('local-model');
   });
 });
+
+describe('fmtVnd', () => {
+  it('viết tiền đồng cho người đọc, không còn VND thô', async () => {
+    const { fmtVnd } = await import('./format');
+    expect(fmtVnd(80e9)).toBe('80 tỷ đồng');
+    expect(fmtVnd(145e9)).toBe('145 tỷ đồng');
+    expect(fmtVnd(250e6)).toBe('250 triệu đồng');
+    expect(fmtVnd(12500)).toBe('12.500 đồng');
+  });
+});

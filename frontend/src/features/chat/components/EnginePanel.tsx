@@ -1,3 +1,4 @@
+import { fmtVnd } from '@/utils/format';
 import { useEffect, useState } from 'react';
 import { Alert, Button, Input, Space } from 'antd';
 import { AiTag, HumanTag, StatusPill, type PillTone } from '@/components/ui';
@@ -14,7 +15,7 @@ import {
   streamAgentCase,
 } from '@/services/agentCaseService';
 
-const VND = (v: number) => `${v.toLocaleString('vi-VN')} VND`;
+const VND = fmtVnd;
 
 export interface EnginePanelProps {
   caseId: string;

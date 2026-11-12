@@ -1,4 +1,4 @@
-import { fmtDay } from '@/utils/format';
+import { fmtDay, fmtVnd } from '@/utils/format';
 export const fmtNum = (n: number | null | undefined, unit = ''): string =>
   n == null ? '—' : `${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 }).format(n)}${unit ? ` ${unit}` : ''}`;
 
@@ -9,7 +9,7 @@ export const fmtDate = (iso: string | null | undefined): string =>
 export const currencyWord = (c: string): string => (c === 'VND' ? 'đồng' : c);
 
 export const fmtMoney = (v: string | null, currency: string): string =>
-  v == null ? '—' : `${new Intl.NumberFormat('vi-VN').format(Number(v))} ${currency}`;
+  v == null ? '—' : currency === 'VND' ? fmtVnd(Number(v)) : `${new Intl.NumberFormat('vi-VN').format(Number(v))} ${currency}`;
 
 const SOURCE_TYPE: Record<string, string> = {
   OCR: 'OCR', AI: 'AI đề xuất', MANUAL: 'Nhập tay', HUMAN: 'Người nhập',

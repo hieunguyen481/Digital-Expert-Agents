@@ -13,7 +13,14 @@ export const fmtPct = (fraction: number, digits = 1): string => `${fmtDec(fracti
 /** Chi phí USD: "0,0032 USD" */
 export const fmtUsd = (n: number, digits = 4): string => `${fmtDec(n, digits)} USD`;
 
-export const fmtVnd = (n: number): string => `${fmtInt(n)} VND`;
+/** Số tiền đồng viết cho người đọc: "80 tỷ đồng", "250 triệu đồng", "12.500 đồng". Không để "VND" thô. */
+export const fmtVnd = (n: number): string => {
+  const a = Math.abs(n);
+  const d = (x: number) => new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 }).format(x);
+  if (a >= 1e9) return `${d(n / 1e9)} tỷ đồng`;
+  if (a >= 1e6) return `${d(n / 1e6)} triệu đồng`;
+  return `${fmtInt(n)} đồng`;
+};
 
 export const fmtSec = (s: number): string => {
   if (s < 0.05) return 'dưới 0,1 giây';

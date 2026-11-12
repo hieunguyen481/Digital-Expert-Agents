@@ -1,4 +1,4 @@
-import { fmtInt } from '@/utils/format';
+import { fmtVnd } from '@/utils/format';
 import { Alert, Button, Input, Radio, Space, Typography } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -13,7 +13,7 @@ import {
 import type { ExposureLine } from './types';
 
 const TONE: Record<string, 'ok' | 'warn' | 'bad' | 'ai' | 'neutral'> = { success: 'ok', warning: 'warn', error: 'bad', processing: 'ai', default: 'neutral' };
-const vnd = (v: string) => `${fmtInt(Number(v))} VND`;
+const vnd = (v: string) => fmtVnd(Number(v));
 const STATUS: Record<string, { text: string; color: string }> = {
   PROPOSED: { text: 'Chờ xác nhận', color: 'warning' },
   CONFIRMED: { text: 'Thuộc nhóm', color: 'success' },
@@ -35,7 +35,7 @@ function PartyRow({ loanId, line, editable, onDone }: { loanId: string; line: Ex
         <b>{line.name}</b>
         {line.relation === 'PRIMARY' ? <StatusPill>Khách hàng vay</StatusPill> : s && <StatusPill tone={TONE[s.color] ?? 'neutral'}>{s.text}</StatusPill>}
         {line.proposed_by_ai && line.status === 'PROPOSED' && <StatusPill tone="ai">AI gợi ý, cần bạn quyết định</StatusPill>}
-        <span>Dư nợ {vnd(line.outstanding)} · ngoài bảng {vnd(line.off_balance)}</span>
+        <span>{Number(line.outstanding) + Number(line.off_balance) === 0 ? 'Không có dư nợ' : `Dư nợ ${vnd(line.outstanding)} · ngoài bảng ${vnd(line.off_balance)}`}</span>
       </Space>
       {line.status === 'NOT_IN_GROUP' && line.basis && <p style={{ margin: '4px 0 0' }}>Căn cứ: {line.basis}</p>}
       {line.relation === 'RELATED' && editable && (

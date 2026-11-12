@@ -14,7 +14,7 @@ import {
 import { ProposalChain } from '@/features/agent-actions/ActionProposals';
 import { statusLabel } from '@/features/my-work/format';
 import { AiBlock, AiTag, HumanBlock, StateBlock, StatusPill } from '@/components/ui';
-import { fmtInt, fmtUsd } from '@/utils/format';
+import { fmtInt, fmtUsd, fmtVnd } from '@/utils/format';
 import { TERM } from '@/utils/glossary';
 import styles from './CaseTrace.module.css';
 
@@ -311,7 +311,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         {pkg?.recommendation && (
           <div className={styles.dec}>
             <span>Đề xuất của đội agent</span><AiTag /><b>{conclusionHeadline(pkg.recommendation)}</b>
-            {pkg.proposed_limit != null && <span>, hạn mức {fmtInt(pkg.proposed_limit)} VND</span>}
+            {pkg.proposed_limit != null && <span>, hạn mức {fmtVnd(pkg.proposed_limit)}</span>}
             {pkg.required_approver_level && <span>, cấp xác nhận: {approverLevelLabel(pkg.required_approver_level)}</span>}
           </div>
         )}
