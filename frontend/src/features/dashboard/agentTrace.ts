@@ -336,9 +336,28 @@ export function stripRuleCodes(text: string): string {
     .replace(/\(\s*,\s*/g, '(').replace(/\s+([.,;)])/g, '$1');
 }
 const TONED = /[ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸ]/;
-/** Chữ in hoa nhấn mạnh giữa câu ("VƯỢT ngưỡng", "KHÔNG ĐẠT") viết thường; từ viết tắt ASCII (DSCR, CIC) giữ nguyên. */
+/** Từ viết tắt hợp lệ trong chữ AI: không bao giờ hạ chữ thường. */
+const ACRONYMS = new Set(['CIC', 'AML', 'KYC', 'KYB', 'BCTC', 'DSCR', 'LTV', 'EBITDA', 'SME', 'TSĐB', 'TCTD', 'OCR', 'AI', 'VND', 'HSV', 'LA', 'CS', 'TD',
+  'DTI', 'ICR', 'KHDN', 'HĐQT', 'CCCD', 'CMND', 'PEP', 'NHNN', 'UBND', 'MST', 'TNHH', 'CP', 'VAT', 'NPL', 'ROE', 'ROA', 'CEO', 'HSTD', 'QHKH', 'HTTD', 'EMP', 'CIF', 'DEMO', 'PDF', 'API', 'SLA']);
+/** Cụm từ in hoa liền nhau (mỗi từ ≥ 2 chữ cái): không dính mã ("CS-TD-SME", "HSV-2026-00187"), không đứng trước nhãn có dấu hai chấm. */
+const SHOUT_RUN = /(?<![\p{L}\d_\-/.§])\p{Lu}{2,}(?:[ \t]+\p{Lu}{2,})*(?![\p{L}\d_/-]|\s+\p{Lu}|\s*[:—–])/gu;
+/** Chữ in hoa nhấn mạnh ("VƯỢT ngưỡng", "ĐỀ XUẤT PHÊ DUYỆT", "KHÔNG ĐẠT") viết thường, kể cả không dấu; chữ cái đầu câu viết hoa đúng một chữ.
+ *  Từ viết tắt hợp lệ (CIC, DSCR, TSĐB…) và một từ ASCII đứng riêng (có thể là từ viết tắt lạ) giữ nguyên. */
 export function lowerShouting(text: string): string {
-  return String(text ?? '').replace(/(?<=[\p{L}\d,;)]\s)\p{Lu}+(?:\s+\p{Lu}+)*(?![\p{L}]|\s+\p{Lu}|\s*[:—–])/gu, (run) => (TONED.test(run) ? run.toLowerCase() : run));
+  return String(text ?? '').replace(SHOUT_RUN, (run: string, off: number, whole: string) => {
+    const words = run.split(/[ \t]+/);
+    const loud = words.filter((w) => !ACRONYMS.has(w));
+    if (!loud.some((w) => TONED.test(w)) && loud.length < 2) return run;
+    const startOfSentence = /(^|[.;!?]\s+)$/.test(whole.slice(0, off));
+    let first = true;
+    return run.replace(/\p{Lu}{2,}/gu, (w) => {
+      if (ACRONYMS.has(w)) { first = false; return w; }
+      const l = w.toLowerCase();
+      const out = first && startOfSentence ? l.charAt(0).toLocaleUpperCase('vi') + l.slice(1) : l;
+      first = false;
+      return out;
+    });
+  });
 }
 function scrubStyle(text: string): string {
   return lowerShouting(stripRuleCodes(decimalVi(text)))

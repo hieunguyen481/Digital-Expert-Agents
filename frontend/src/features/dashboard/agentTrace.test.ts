@@ -246,3 +246,35 @@ describe('chữ AI: mã quy tắc nội bộ, chữ in hoa nhấn mạnh, số k
     expect(scrubAnswer('')).toBe('');
   });
 });
+
+describe('lowerShouting theo loại (hồi quy "ĐỀ xuất")', () => {
+  it('cụm in hoa đầu câu: hạ chữ thường, viết hoa đúng một chữ đầu câu', () => {
+    expect(lowerShouting('ĐỀ XUẤT PHÊ DUYỆT với điều kiện')).toBe('Đề xuất phê duyệt với điều kiện');
+    expect(scrubInternal('ĐỀ XUẤT PHÊ DUYỆT với điều kiện')).toBe('Đề xuất phê duyệt với điều kiện');
+    expect(lowerShouting('Đủ hồ sơ. KHÔNG ĐẠT yêu cầu')).toBe('Đủ hồ sơ. Không đạt yêu cầu');
+    expect(lowerShouting('Một ý; ĐỀ XUẤT PHÊ DUYỆT sau')).toBe('Một ý; Đề xuất phê duyệt sau');
+  });
+  it('giữa câu và nhiều từ: viết thường hết, kể cả không dấu', () => {
+    expect(lowerShouting('kết luận là ĐỀ XUẤT TỪ CHỐI hồ sơ')).toBe('kết luận là đề xuất từ chối hồ sơ');
+    expect(lowerShouting('ket qua KHONG DAT yeu cau')).toBe('ket qua khong dat yeu cau');
+  });
+  it('có dấu hai chấm: nhãn để humanizeGate xử lý, phần sau dấu hai chấm viết thường', () => {
+    expect(lowerShouting('CẦN BỔ SUNG: thiếu dữ liệu')).toBe('CẦN BỔ SUNG: thiếu dữ liệu');
+    expect(scrubInternal('CẦN BỔ SUNG: thiếu dữ liệu')).toBe('Cần bổ sung: thiếu dữ liệu');
+    expect(lowerShouting('Kết luận: KHÔNG ĐẠT')).toBe('Kết luận: không đạt');
+  });
+  it('không đụng từ viết tắt hợp lệ, mã hồ sơ, mã điều khoản', () => {
+    for (const t of ['CIC AML KYC KYB đạt', 'BCTC DSCR LTV EBITDA SME', 'TSĐB và TCTD theo OCR', 'AI đề xuất, VND', 'Hồ sơ HSV-2026-00187 theo LA-2026-0001',
+      'CS-TD-SME/2025 §3.1', 'DSCR VƯỢT ngưỡng'.replace('VƯỢT', 'vượt')]) expect(lowerShouting(t)).toBe(t);
+    expect(lowerShouting('DSCR VƯỢT ngưỡng')).toBe('DSCR vượt ngưỡng');
+    expect(lowerShouting('CIC KHÔNG ĐẠT')).toBe('CIC không đạt');
+  });
+  it('chuỗi rỗng và undefined', () => {
+    expect(lowerShouting('')).toBe('');
+    expect(lowerShouting(undefined as unknown as string)).toBe('');
+  });
+  it('các luật làm sạch khác không làm hỏng câu bình thường', () => {
+    for (const t of ['Khách hàng đã nộp BCTC năm 2025 và tờ khai thuế.', 'DSCR đạt 1,34 lần, cao hơn ngưỡng 1,2 lần.', 'Hạn mức 50 tỷ đồng, kỳ hạn 60 tháng.',
+      'Không có dư nợ tại ngân hàng khác.', 'Cấp 2 Hội sở xác nhận theo §3.1.', 'Thẩm định tài sản bảo đảm trước giải ngân.']) expect(scrubInternal(t)).toBe(t);
+  });
+});
