@@ -91,3 +91,11 @@ def test_leverage_moi_cach_viet_va_loai_so_lech_khoi_goi_cuoi():
     out, _ = demote_unsupported(vs, ver)
     assert out["credit"].findings == ["Dòng tiền ổn"]
 
+
+def test_ltv_nguong_chinh_sach_khong_bi_nham_voi_ltv_thuc():
+    ver = _verified()
+    col = ver["collateral"]
+    real = round(col["ltv"] * 100, 1)
+    for t in ["LTV ≤ 70%", "LTV tối đa 70%", "LTV trần 70%", "LTV không vượt 70%", "LTV < 70%", "LTV vượt ngưỡng 70%"]:
+        assert not consistency.mismatches(t, ver), t
+    assert consistency.mismatches("LTV 70% theo hồ sơ", ver) or abs(real - 70) <= 0.6

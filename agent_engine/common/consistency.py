@@ -72,7 +72,7 @@ def mismatches(text: str, verified: dict | None) -> list[str]:
                 out.append(f"DSCR {m.group(1)} (số chính thức {_fmt(dscr)})")
     if col and col.get("ltv"):
         for m in re.finditer(r"LTV[^\n]{0,60}?" + _NUM + r"\s*%", text, re.IGNORECASE):
-            if re.search(r"tối đa|trần|ngưỡng|giới hạn|không vượt", m.group(0), re.IGNORECASE):
+            if _THRESHOLD.search(m.group(0)):
                 continue  # trần chính sách, không phải LTV thực tế
             if abs(_f(m.group(1)) - col["ltv"] * 100) > 0.6:
                 out.append(f"LTV {m.group(1)}% (tính lại {_fmt(col['ltv'] * 100, 1)}%)")
