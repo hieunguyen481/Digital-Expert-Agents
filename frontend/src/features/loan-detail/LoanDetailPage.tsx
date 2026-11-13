@@ -21,6 +21,7 @@ import { TodoPanel, buildTodos } from './TodoPanel';
 import { fetchActionState, fetchAgentRuns } from './loanDetailService';
 import { ReassignControl } from './ReassignControl';
 import { PreDisbursementPanel } from './PreDisbursementPanel';
+import { EmptyBlocksNote, emptyBlocks, type EmptyKey } from './EmptyBlocksNote';
 import styles from './loan-detail.module.css';
 
 export default function LoanDetailPage() {
@@ -40,6 +41,11 @@ export default function LoanDetailPage() {
   if (!q.data) return <div className={styles.page} aria-busy><Skeleton active /></div>;
   const { loan, metrics, flags, collaterals, timeline, supplement_request } = q.data;
   const todos = buildTodos(q.data, actions.data, runs.data);
+  // Các khối chưa có nội dung gộp thành một dòng khi từ hai khối trở lên rỗng; khối rỗng đơn lẻ giữ nguyên khung và câu giải thích riêng.
+  const noConditions = (q.data.disbursement_conditions ?? []).length === 0 && !(['APPROVED', 'APPROVED_WITH_CONDITIONS'].includes(loan.status) && (loan.conditions ?? []).some(Boolean));
+  const allEmpties = emptyBlocks({ metrics: metrics.length === 0, flags: flags.length === 0, conditions: noConditions, collaterals: collaterals.length === 0 });
+  const empties = allEmpties.length >= 2 ? allEmpties : [];
+  const isEmpty = (k: EmptyKey) => empties.some((e) => e.key === k);
   return (
     <>
       <LoanHeader overview={q.data} todoCount={todos.length} />
@@ -56,12 +62,13 @@ export default function LoanDetailPage() {
           <div className={styles.stack}>
             <AgentTeamPanel loanId={loanId} currency={loan.currency} status={loan.status} />
             <KpiStrip amountBillion={Number(loan.requested_amount) / 1e9} currency={loan.currency} termMonths={loan.requested_term_months ?? null} metrics={metrics} />
-            <MetricsPanel loanId={loanId} metrics={metrics} />
-            <FlagsPanel flags={flags} />
-            <PreDisbursementPanel loanId={loanId} status={loan.status} decisionConditions={loan.conditions} confirmed={q.data.disbursement_conditions} />
+            {empties.length >= 2 && <EmptyBlocksNote labels={empties.map((e) => e.label)} />}
+            {!isEmpty('metrics') && <MetricsPanel loanId={loanId} metrics={metrics} />}
+            {!isEmpty('flags') && <FlagsPanel flags={flags} />}
+            {!isEmpty('conditions') && <PreDisbursementPanel loanId={loanId} status={loan.status} decisionConditions={loan.conditions} confirmed={q.data.disbursement_conditions} />}
             <MemoPanel key={loan.status} loanId={loanId} />
             {loan.status === 'APPRAISAL' && actions.data?.can_write && <RelatedPartiesReview loanId={loanId} />}
-            <CollateralPanel items={collaterals} />
+            {!isEmpty('collaterals') && <CollateralPanel items={collaterals} />}
           </div>
           <aside className={`${styles.stack} ${readOnly ? styles.asideWide : ''}`} aria-label="Việc và hành động">
             {!readOnly && <TodoPanel items={todos} ready={!!actions.data} caseId={runs.data?.latest?.case_id} />}

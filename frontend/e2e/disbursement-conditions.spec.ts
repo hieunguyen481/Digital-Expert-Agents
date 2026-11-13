@@ -47,9 +47,13 @@ test('thẩm định xác nhận đề xuất điều kiện: khối "Điều ki
   await loginAs(page, 'tdinh');
   await page.goto(`/ho-so-vay/${LOAN}`);
   const block = page.getByTestId('pre-disbursement');
-  await expect(block).toBeVisible({ timeout: 30_000 });
+  // Hồ sơ rỗng nhiều khối thì "Điều kiện trước giải ngân" gộp vào một dòng "Chưa có: …"; khi đó khối chưa có để đếm, chỉ cần dòng gộp nhắc đúng mục này.
+  await expect(block.or(page.getByTestId('loan-empty-blocks'))).toBeVisible({ timeout: 30_000 });
+  if (!(await block.isVisible())) {
+    await expect(page.getByTestId('loan-empty-blocks')).toContainText('điều kiện trước giải ngân');
+  }
   // Hồ sơ có thể đã có điều kiện từ lần chạy thật trước: không giả định rỗng, chỉ đếm trước/sau.
-  await expect(block.getByTestId('pre-disbursement-confirmed').first().or(block.getByTestId('pre-disbursement-empty'))).toBeVisible();
+  if (await block.isVisible()) await expect(block.getByTestId('pre-disbursement-confirmed').first().or(block.getByTestId('pre-disbursement-empty'))).toBeVisible();
   const expand = async () => { const t = block.getByTestId('pre-disbursement-toggle'); if (await t.count() && (await t.getAttribute('aria-expanded')) === 'false') await t.click(); };
   await expand();
   const before = await block.getByTestId('pre-disbursement-confirmed').count();
