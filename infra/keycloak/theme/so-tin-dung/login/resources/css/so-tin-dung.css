@@ -54,3 +54,19 @@
 .pf-v5-c-input-group .pf-v5-c-form-control { border: 0; }
 .pf-v5-c-input-group .pf-v5-c-button.pf-m-control { border: 0; background: transparent; border-radius: 0 6px 6px 0; }
 .pf-v5-c-form-control.pf-m-error, .pf-v5-c-form-control[aria-invalid='true'] { border-color: var(--sk-danger); }
+
+/* Bố cục chia đôi như trang đăng nhập của ứng dụng: panel navy giới thiệu bên trái, thẻ đăng nhập bên phải.
+   Chỉ có từ 960px; màn hẹp giữ thẻ căn giữa trên nền giấy. */
+@media (min-width: 960px) {
+  .login-pf body::before {
+    content: 'Mỗi hồ sơ vay có một người chịu trách nhiệm.';
+    position: fixed; inset: 0 auto 0 0; width: 42vw; box-sizing: border-box; padding: 140px 56px 0; z-index: 0;
+    background: var(--sk-navy); color: #fff; font: 600 40px/1.15 'Newsreader', Georgia, serif;
+  }
+  .login-pf body::after {
+    content: 'Đội agent đọc hồ sơ, tính chỉ số và nêu rủi ro để người phụ trách hồ sơ làm nhanh hơn. Người có thẩm quyền vẫn là người quyết định.';
+    position: fixed; left: 0; top: 330px; width: 42vw; box-sizing: border-box; padding: 0 56px; max-width: 46ch; z-index: 0;
+    color: #DCE4F1; font: 400 15px/1.55 'Be Vietnam Pro', system-ui, sans-serif;
+  }
+  .pf-v5-c-login { position: relative; z-index: 1; margin-left: 42vw; background: transparent !important; }
+}
