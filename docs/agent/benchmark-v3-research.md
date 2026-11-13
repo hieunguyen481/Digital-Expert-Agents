@@ -502,3 +502,16 @@ Giữ nguyên các giới hạn §15.6 (10 ca, 3 lần/ca, chấm từ khóa/reg
 
 ### 16.7 Hiển thị trên dashboard
 Tab So sánh mặc định mở lượt đo lại này ("đo lại trên bản mã đang chạy", kèm câu nói rõ đây là đo lại sau khi sửa engine). Lượt 1 (§15) và mọi lượt cũ vẫn chọn được, mỗi lượt giữ câu giới hạn riêng. Dòng (b) ghi ở `frontend/src/features/dashboard/blindRuns.ts`, e2e tính lại từ tệp.
+
+## 17. Đo v8 lần ba trên bản khóa `8c9afbc` (13/11/2026)
+
+### 17.1 Đầu mục: ghi trước khi đo (commit trước lượt đo)
+- **Lý do đo lại:** sau lượt §16 engine đổi tiếp để sửa lỗi S12 và S09 còn sót của giám khảo chức năng lần 9 (`docs/agent/cham-diem-chuc-nang-lan-9.md`). Số §16 không còn khớp mã đang chạy.
+- **Commit engine đã đổi (`98600a7..8c9afbc`, `git log --oneline 98600a7..8c9afbc -- agent_engine ':!agent_engine/benchmark_results'`):** `f0a427a` S12: chỉ việc phải làm mới thành điều kiện và đề xuất hành động (`common/gate.py`, `gateway/proposals.py`); `7e823fe` S09: nhận mọi cách viết Nợ…/EBITDA = X lần, số lệch không vào gói cuối (`common/consistency.py`); `8c9afbc` bộ dò LTV bỏ qua ngưỡng chính sách viết bằng ≤, <, vượt (`common/consistency.py`). Kèm các test tương ứng. Crew sửa bị cấm đọc `cases_v8.json`, `grade.py`.
+- **Tự kiểm có chạm single không:** `git diff 98600a7..8c9afbc --name-only -- agent_engine` (bỏ `benchmark_results`) chỉ có `common/consistency.py`, `common/gate.py`, `gateway/proposals.py` và 4 file test. `scripts/benchmark/single_agent_runner.py` import `common.config, identity, llm, mcp_client, rag` và `common.policy_checklist`; không file nào trong số này (và `thresholds` mà `policy_checklist` import) nằm trong danh sách đổi; `grep consistency|gate|proposals` trên các module đó chỉ ra chữ trong chú thích `config.py`, không import. Kết luận: KHÔNG thay đổi nào chạm mã hay chữ single dùng giữa §16 và §17 (khác với khoảng §15→§16, xem đính chính §16.6).
+- **Commit khóa:** `8c9afbc` (engine; HEAD sau đó chỉ thêm frontend/backend/doc). Container engine trên stack chung dựng từ mã này. Từ đây không sửa `agent_engine/` (trừ thêm file kết quả), single-agent, `grade.py`, `cases_v8.json`, prompt, cờ. Lỗi engine thấy trong lúc đo chỉ ghi lại.
+- **Lệnh sẽ chạy (đúng một lượt, giống §15.1, chỉ đổi nhãn):** `python3 agent_engine/scripts/benchmark/run.py --cases all --runs 3 --modes single,multi --cases-file agent_engine/scripts/benchmark/cases_v8.json --grader v3 --max-cost 1.5 --label "v8 đo lần ba trên bản khóa 8c9afbc"`.
+- **Cảnh báo: không còn mù chặt.** Bộ ca đã chạy hai lượt (§15, §16). Không ai sửa engine dựa vào kết quả từng ca, nhưng kết quả cấp tổng đã lộ; đây là lượt đo lại có công bố, không phải đo mù mới. Đáp án `total_exposure`/`audit_required` vẫn theo cách tính cũ (§15.6 bổ sung 2); dòng (b) giữ định nghĩa §14.
+- **Seed khách v8:** có trong DB (10 hồ sơ `benchmark v8` trong `customer.organization_profile`, kiểm bằng SELECT).
+- **Số dư OpenRouter trước đo:** còn 2,1816 USD (đã dùng 7,8184 / hạn mức 10).
+- Lượt mới là số chính (khớp mã đang chạy), kể cả khi kém lượt cũ. Lỗi hạ tầng chỉ chạy lại đúng phần lỗi và ghi rõ; không chạy lại để chọn điểm.
