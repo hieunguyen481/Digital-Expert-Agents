@@ -305,3 +305,20 @@ async def test_repository_list_and_close_have_mandatory_owner_predicates() -> No
     assert list_params["employee_id"] == employee_id
     assert "WHERE id = :conversation_id AND employee_id = :employee_id" in close_sql
     assert close_params["employee_id"] == employee_id
+
+
+class DenyingContextRouter:
+    async def authorize(self, *, employee_id, customer_id, loan_application_id, attachment_ids=()):
+        raise PermissionError("Customer context is outside the authorized scope")
+
+
+@pytest.mark.asyncio
+async def test_set_active_customer_checks_read_scope() -> None:
+    """Mục 11: PATCH gắn khách vào hội thoại kiểm quyền đọc khách như lúc tạo, không gắn được khách ngoài phạm vi."""
+    repository = InMemoryConversationRepository()
+    owner = _principal()
+    conversation = await ConversationService(repository, AllowingContextRouter()).create(
+        owner, active_customer_id=None, active_loan_application_id=None, title=None)
+    with pytest.raises(PermissionError):
+        await ConversationService(repository, DenyingContextRouter()).set_active_customer(
+            owner, conversation["id"], customer_id=uuid4())

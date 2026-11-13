@@ -265,6 +265,12 @@ class ConversationService:
     ) -> Mapping[str, Any]:
         """Gắn khách hàng vào hội thoại đang mở (vd: khách nháp vừa tạo từ upload)."""
         await self.get(principal, conversation_id)
+        # Cùng luật đọc khách như lúc tạo hội thoại: không gắn được khách ngoài phạm vi (403).
+        await self._context_router.authorize(
+            employee_id=principal.employee_id,
+            customer_id=customer_id,
+            loan_application_id=None,
+        )
         row = await self._repository.set_active_customer(
             conversation_id,
             employee_id=principal.employee_id,
