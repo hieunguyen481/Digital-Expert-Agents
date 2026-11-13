@@ -131,7 +131,7 @@ describe('parseAiText và dedupeConditions', () => {
 describe('cleanAiLine và chip điều kiện', () => {
   it('làm sạch một dòng chữ AI: vs, hit, #, từ lặp, (trang N), mã kỹ thuật, mảnh cuối bị cắt', async () => {
     const { cleanAiLine, hasVerdictCondition } = await import('./agentTrace');
-    expect(cleanAiLine('Dòng tiền HĐKD 2025: 93,2 vs 81,0 tỷ')).toBe('Dòng tiền HĐKD 2025: 93,2 so với 81,0 tỷ');
+    expect(cleanAiLine('Dòng tiền HĐKD 2025: 93,2 vs 81,0 tỷ')).toBe('Dòng tiền HĐKD 2025: 93,2 so với 81 tỷ đồng');
     expect(cleanAiLine('## CS-TD-SME/2025 §3.1')).toBe('CS-TD-SME/2025 §3.1');
     expect(cleanAiLine('BCTC BCTC năm 2025 (trang 3)')).toBe('BCTC năm 2025, trang 3');
     expect(cleanAiLine('nếu có hit thì từ chối, compliance_policy Điều 6')).toBe('nếu có kết quả trùng thì từ chối, Chính sách tuân thủ Điều 6');
@@ -154,7 +154,7 @@ describe('luật làm sạch chữ AI (vòng 8)', () => {
     expect(cleanAiLine('vay 1,500,000 đồng')).toBe('vay 1.500.000 đồng');
   });
   it('số thập phân thật và số không đơn vị tiền giữ nguyên', () => {
-    expect(cleanAiLine('hạn mức 1,5 tỷ')).toBe('hạn mức 1,5 tỷ');
+    expect(cleanAiLine('hạn mức 1,5 tỷ đồng')).toBe('hạn mức 1,5 tỷ đồng');
     expect(cleanAiLine('1,000 lần')).toBe('1,000 lần');
   });
   it('"cấp Cấp 2 Hội sở" và "cấp 2 hội sở" → "Cấp 2 Hội sở"', () => {
@@ -239,7 +239,7 @@ describe('chữ AI: mã quy tắc nội bộ, chữ in hoa nhấn mạnh, số k
     expect(cleanAiLine('Tỷ lệ VƯỢT ngưỡng 3.5')).toBe('Tỷ lệ vượt ngưỡng 3,5');
   });
   it('S08: "1,000 tỷ" thành "1.000 tỷ"', () => {
-    expect(scrubInternal('hạn mức ≤ 1,000 tỷ')).toBe('hạn mức ≤ 1.000 tỷ');
+    expect(scrubInternal('hạn mức ≤ 1,000 tỷ')).toBe('hạn mức ≤ 1.000 tỷ đồng');
   });
   it('S05: trả lời trợ lý đổi số thập phân, không đụng §3.1 và ngày; bỏ Q4; chịu rỗng', () => {
     expect(scrubAnswer('trần 3.5 lần theo Q4, xem §3.1 ngày 12.03.2026')).toBe('trần 3,5 lần, xem §3.1 ngày 12.03.2026');
@@ -286,7 +286,7 @@ describe('chữ AI vụng (vòng 9): 0 đồng, ".;", inflow, VND', () => {
     expect(cleanAiLine('Điều kiện trước giải ngân: Giá trị bảo đảm đủ điều kiện hiện tại là 0 đồng')).toBe('Điều kiện trước giải ngân');
     expect(kindTitle('add_disbursement_condition', 'Điều kiện trước giải ngân: Giá trị bảo đảm đủ điều kiện hiện tại là 0 đồng')).toBe('Chưa có tài sản bảo đảm được thẩm định');
     expect(parseAiText('Chưa thể kết luận đủ điều kiện: chưa có kết quả sàng lọc; hạn mức có bảo đảm tối đa 0 đồng').items.join(' ')).not.toMatch(/0 đồng/);
-    expect(cleanAiLine('Dư nợ hiện hữu tại ngân hàng 0 đồng + đề xuất 80 tỷ')).toBe('Dư nợ hiện hữu tại ngân hàng 0 đồng + đề xuất 80 tỷ');
+    expect(cleanAiLine('Dư nợ hiện hữu tại ngân hàng 0 đồng + đề xuất 80 tỷ đồng')).toBe('Dư nợ hiện hữu tại ngân hàng 0 đồng + đề xuất 80 tỷ đồng');
     expect(cleanAiLine('Số tiền quá hạn 0 đồng')).toBe('Số tiền quá hạn 0 đồng');
   });
   it('không còn ".;" hay dấu câu đôi', () => {
@@ -334,7 +334,7 @@ describe('narrativeConditions', () => {
 describe('từ lặp liền nhau (S15)', () => {
   it('gộp từ lặp, giữ câu bình thường', () => {
     expect(cleanAiLine('Cần nêu nêu rõ nguồn trả nợ.')).toBe('Cần nêu rõ nguồn trả nợ.');
-    expect(cleanAiLine('Dư nợ 12 12 tỷ và hạn mức còn lại.')).toBe('Dư nợ 12 12 tỷ và hạn mức còn lại.');
+    expect(cleanAiLine('Dư nợ 12 12 tỷ đồng và hạn mức còn lại.')).toBe('Dư nợ 12 12 tỷ đồng và hạn mức còn lại.');
     expect(cleanAiLine('Thẩm định song song hai tuyến.')).toBe('Thẩm định song song hai tuyến.');
     expect(cleanAiLine('Hồ sơ đủ điều kiện, có tài sản bảo đảm.')).toBe('Hồ sơ đủ điều kiện, có tài sản bảo đảm.');
   });

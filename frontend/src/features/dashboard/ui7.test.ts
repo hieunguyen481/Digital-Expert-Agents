@@ -13,7 +13,7 @@ describe('lần 7, việc 1 và 2: chữ AI theo loại', () => {
   });
   it('"Thiếu dữ liệu chặn:" ở danh sách việc thành "Thiếu dữ liệu bắt buộc:"', () => {
     expect(scrubInternal('Thiếu dữ liệu chặn: Chưa có kết quả tra cứu CIC')).toBe('Thiếu dữ liệu bắt buộc: Chưa có kết quả tra cứu CIC');
-    expect(scrubInternal('doanh nghiệp chưa có tài khoản thanh toán (không chặn trình hồ sơ)')).toBe('doanh nghiệp chưa có tài khoản thanh toán (không cản trở trình hồ sơ)');
+    expect(scrubInternal('doanh nghiệp chưa có tài khoản thanh toán (không chặn trình hồ sơ)')).toBe('doanh nghiệp chưa có tài khoản thanh toán');
   });
   it('tên agent viết hoa ở mọi vị trí; challenge thành phản biện', () => {
     expect(scrubInternal('Credit và compliance thẩm định song song, validation kiểm chứng, planner điều phối')).toBe('Credit và Compliance thẩm định song song, Validation kiểm chứng, Planner điều phối');
@@ -21,9 +21,9 @@ describe('lần 7, việc 1 và 2: chữ AI theo loại', () => {
     expect(scrubInternal('document.extracted_field')).not.toMatch(/^Document/);
   });
   it('"0,0 tỷ" và "0 tỷ đồng" thành "0 đồng"', () => {
-    expect(scrubInternal('dư nợ hiện hữu tại ngân hàng 0,0 tỷ + đề xuất 55,0 tỷ = 55,0 tỷ')).toBe('dư nợ hiện hữu tại ngân hàng 0 đồng + đề xuất 55,0 tỷ = 55,0 tỷ');
-    expect(scrubInternal('Dư nợ hiện hữu 0 tỷ cộng đề xuất 55 tỷ')).toBe('Dư nợ hiện hữu 0 đồng cộng đề xuất 55 tỷ');
-    expect(scrubInternal('dư nợ 10,5 tỷ và 100 tỷ')).toBe('dư nợ 10,5 tỷ và 100 tỷ');
+    expect(scrubInternal('dư nợ hiện hữu tại ngân hàng 0,0 tỷ + đề xuất 55 tỷ đồng = 55 tỷ đồng')).toBe('dư nợ hiện hữu tại ngân hàng 0 đồng + đề xuất 55 tỷ đồng = 55 tỷ đồng');
+    expect(scrubInternal('Dư nợ hiện hữu 0 tỷ cộng đề xuất 55 tỷ đồng')).toBe('Dư nợ hiện hữu 0 đồng cộng đề xuất 55 tỷ đồng');
+    expect(scrubInternal('dư nợ 10,5 tỷ và 100 tỷ')).toBe('dư nợ 10,5 tỷ đồng và 100 tỷ đồng');
   });
   it('câu điều kiện tiên quyết không lặp cụm "trước khi trình cấp phê duyệt"', () => {
     expect(scrubInternal('Điều kiện tiên quyết trước khi trình cấp phê duyệt: Phải có BCTC kiểm toán trước khi trình cấp phê duyệt (CS-TD-SME/2025 §4.1, §6.1)'))
@@ -32,8 +32,8 @@ describe('lần 7, việc 1 và 2: chữ AI theo loại', () => {
   });
   it('trích nguồn lặp nhãn khi nhãn ghi " – " còn trích ghi ", "', () => {
     const label = 'CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt';
-    const quote = 'CS-TD-SME/2025 §3.1, Thẩm quyền phê duyệt Theo tổng cấp tín dụng của khách: ≤ 20 / 20–100 / > 100 tỷ, trang 3';
-    expect(quoteAfterLabel(label, quote)).toBe('Theo tổng cấp tín dụng của khách: ≤ 20 / 20–100 / > 100 tỷ, trang 3');
+    const quote = 'CS-TD-SME/2025 §3.1, Thẩm quyền phê duyệt Theo tổng cấp tín dụng của khách: ≤ 20 / 20–100 / > 100 tỷ đồng, trang 3';
+    expect(quoteAfterLabel(label, quote)).toBe('Theo tổng cấp tín dụng của khách: ≤ 20 / 20–100 / > 100 tỷ đồng, trang 3');
     expect(quoteAfterLabel(label, 'Nội dung khác')).toBe('Nội dung khác');
     expect(quoteAfterLabel('', quote)).toContain('Theo tổng cấp');
   });

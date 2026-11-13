@@ -396,6 +396,8 @@ function scrubStyle(text: string): string {
     .replace(/(?<![\p{L}\d])(\p{L}{2,})(?:[ \t]+\1)+(?![\p{L}\d])/giu, (m, w: string) => (REDUP.has(w.toLowerCase()) ? m : w))
     .replace(AGENT_WORDS, (w) => w.charAt(0).toUpperCase() + w.slice(1))
     .replace(/\b(c)hallenges?\b/gi, (_m, c: string) => (c === 'C' ? 'Phản biện' : 'phản biện'))
+    // Ghi chú vận hành "(không chặn trình hồ sơ)" không nói thêm gì cho người đọc: bỏ cả cụm
+    .replace(/\s*\(\s*không (?:chặn|cản trở) trình(?: hồ sơ)?\s*\)/gi, '')
     .replace(/\bdữ liệu chặn\b/gi, 'dữ liệu bắt buộc')
     .replace(/\bkhông chặn\b/gi, 'không cản trở')
     .replace(/\bchặn\b/g, 'cản trở')
@@ -413,6 +415,13 @@ function scrubStyle(text: string): string {
     .replace(/\bQuá SLA\b/g, 'Quá hạn')
     .replace(/\bgiữ checkpoint\b/gi, 'giữ nguyên bước hiện tại')
     .replace(/\bsau cấp TD\b/g, 'sau khi cấp tín dụng')
+    // "inflow" thô trong thân chữ: tên nghiệp vụ của luồng tiền
+    .replace(/(?<![\p{L}\d_.])([Ii])nflows?(?![\p{L}\d_])/gu, (_m, c: string) => (c === 'I' ? 'Tiền về tài khoản' : 'tiền về tài khoản'))
+    // "80,0 tỷ" -> "80 tỷ đồng": bỏ ",0" thừa ở số tròn, thêm "đồng" sau "tỷ" khi thiếu (không đụng "tỷ lệ", "tỷ suất"…)
+    .replace(/(?<![\d.,])(\d{1,3}(?:\.\d{3})*|\d+),0{1,2}(?!\d)(?=\s*(?:tỷ|triệu|nghìn))/gu, '$1')
+    .replace(/(\d)\s*tỷ(?![\p{L}\d_])(?!\s*(?:đồng|VND|₫))/gu, '$1 tỷ đồng')
+    // Dấu chấm dính dấu lửng ".…" do cắt câu: chỉ giữ dấu lửng
+    .replace(/\.\s*…/g, '…')
     // "0,0 tỷ", "0 tỷ đồng" ghi "0 đồng"
     .replace(/(?<![\d.,])0(?:[.,]0+)?\s*tỷ(?:\s*đồng)?/gi, '0 đồng')
     // "Điều kiện tiên quyết trước khi trình cấp phê duyệt: … trước khi trình cấp phê duyệt": bỏ cụm ở nhãn khi nội dung đã có
@@ -521,10 +530,14 @@ export function trimDangling(t: string): string {
   return (cut > 20 ? base.slice(0, cut) : base).replace(/[\s.;:,]+$/, '');
 }
 /** Mệnh đề cuối "… hiện tại là 0 đồng", "… tối đa 0 đồng": số máy móc khi chưa đủ điều kiện, không nói thêm gì; bỏ mệnh đề, giữ phần đứng trước dấu ";". */
-const ZERO_TAIL = '(?:hiện (?:tại|tính được|ghi nhận)(?: là)?|tối đa):?\\s*0\\s*(?:đồng|VND|₫)?\\.?\\s*$';
+/** Đuôi lý do "do định giá chưa xác minh": nói vì sao số là 0, không bảo ai làm gì. */
+const ZERO_WHY = '(?:\\s+(?:do|vì|bởi vì)\\s+[^.;:]*)?';
+const ZERO_TAIL = `(?:hiện (?:tại|tính được|ghi nhận)(?: (?:là|bằng))?|tối đa):?\\s*0\\s*(?:đồng|VND|₫)?${ZERO_WHY}\\.?\\s*$`;
+/** Chỉ cho mệnh đề nói về bảo đảm/hạn mức/giá trị: "… đủ điều kiện là 0 đồng", "… bằng 0 đồng do …" (có "là/bằng" trần, nên không dùng cho mọi mệnh đề). */
+const ZERO_TAIL_NARROW = `(?:(?:hiện (?:tại|tính được|ghi nhận)\\s+)?(?:là|bằng)|hiện (?:tại|tính được|ghi nhận)|tối đa):?\\s*0\\s*(?:đồng|VND|₫)${ZERO_WHY}\\.?\\s*$`;
 const ZERO_STATUS = new RegExp(`\\s*[A-ZÀ-Ỵa-zà-ỵ][^.;:]*${ZERO_TAIL}`, 'u');
 /** Như trên nhưng chỉ khi mệnh đề nói về giá trị bảo đảm/hạn mức (dùng cho dòng ngắn như tiêu đề; "dư nợ hiện tại 0 đồng" là thông tin thật nên giữ). */
-const ZERO_COLLATERAL = new RegExp(`\\s*[A-ZÀ-Ỵa-zà-ỵ](?=[^.;:]*(?:bảo đảm|hạn mức|giá trị))[^.;:]*${ZERO_TAIL}`, 'u');
+const ZERO_COLLATERAL = new RegExp(`\\s*[A-ZÀ-Ỵa-zà-ỵ](?=[^.;:]*(?:bảo đảm|hạn mức|giá trị|TSĐB))[^.;:]*(?:${ZERO_TAIL}|${ZERO_TAIL_NARROW})`, 'u');
 export function dropZeroStatus(t: string, narrow = false): string {
   const re = narrow ? ZERO_COLLATERAL : ZERO_STATUS;
   return re.test(t) ? t.replace(re, '').replace(/[\s;,:]+$/, '').trim() : t;
@@ -662,7 +675,10 @@ export function exactDocumentList(list: unknown[] | null | undefined): string[] 
   return out;
 }
 /** Ý chỉ nêu số hiện trạng ("… hiện tại: 0 đồng"): không bảo ai làm gì nên không phải yêu cầu bổ sung. */
-const STATUS_ONLY = /hiện (?:tại|tính được|ghi nhận)(?: là)?:?\s*[\d.,]+\s*(?:đồng|VND|₫|%|tỷ(?: đồng)?)?\s*\.?$/iu;
+const STATUS_ONLY_BASE = /hiện (?:tại|tính được|ghi nhận)(?: (?:là|bằng))?:?\s*[\d.,]+\s*(?:đồng|VND|₫|%|tỷ(?: đồng)?)?\s*\.?$/iu;
+/** Như trên nhưng số 0 đồng của bảo đảm/hạn mức, có hoặc không có "hiện tại", có hoặc không có lý do "do …": nhận xét, không phải việc cần làm. */
+const STATUS_ZERO_COLLATERAL = /^(?=[^.;:]*(?:bảo đảm|hạn mức|giá trị|TSĐB))[^.;:]*?(?:\b(?:là|bằng)|hiện (?:tại|tính được|ghi nhận)|tối đa):?\s*0\s*(?:đồng|VND|₫)(?:\s+(?:do|vì|bởi vì)\s+[^.;:]*)?\s*\.?$/iu;
+const STATUS_ONLY = { test: (x: string) => STATUS_ONLY_BASE.test(x) || STATUS_ZERO_COLLATERAL.test(x) };
 /** Động từ quy trình chung và từ nối: một ý chỉ gồm các từ này (không nêu tài liệu hay đối tượng cụ thể) là mảnh câu, không phải việc cần làm. */
 const GENERIC_WORDS = new Set(['hoan', 'thien', 'doi', 'chieu', 'kiem', 'tra', 'ra', 'soat', 'xem', 'xet', 'hoan', 'tat', 'xac', 'nhan', 'truoc', 'khi', 'quyet', 'dinh', 'trinh', 'phe', 'duyet', 'cac', 'day', 'du', 'va', 'de', 'cap', 'tiep', 'tuc', 'ho', 'so', 'thong', 'tin', 'viec']);
 const isFragment = (x: string): boolean => {
