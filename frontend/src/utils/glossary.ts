@@ -22,7 +22,7 @@ const VENDOR: Record<string, string> = {
   openai: 'OpenAI', anthropic: 'Anthropic', google: 'Google', 'meta-llama': 'Meta', mistralai: 'Mistral', deepseek: 'DeepSeek', qwen: 'Qwen', 'x-ai': 'xAI',
 };
 
-/** Tên model dễ đọc: `openai/gpt-6-luna` -> `GPT-6 Luna (OpenAI)`. Id không có nhà cung cấp được giữ nguyên. */
+/** Tên model dễ đọc: `openai/gpt-6-luna` -> `GPT-6 Luna, OpenAI`. Id không có nhà cung cấp được giữ nguyên. */
 export function modelName(id: string | null | undefined): string {
   if (!id) return '—';
   const [vendor, ...rest] = id.split('/');
@@ -32,5 +32,5 @@ export function modelName(id: string | null | undefined): string {
   // "gpt-6" giữ gạch nối vì đó là tên phiên bản; các phần sau cách nhau bằng khoảng trắng.
   const head = /^gpt$/i.test(parts[0]) && parts[1] ? `${cap(parts[0])}-${parts[1]}` : cap(parts[0]);
   const tail = parts.slice(/^gpt$/i.test(parts[0]) && parts[1] ? 2 : 1).map(cap);
-  return `${[head, ...tail].join(' ')} (${VENDOR[vendor] ?? vendor})`;
+  return `${[head, ...tail].join(' ')}, ${VENDOR[vendor] ?? vendor}`;
 }

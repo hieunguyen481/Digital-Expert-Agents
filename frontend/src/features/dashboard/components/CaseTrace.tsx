@@ -9,7 +9,7 @@ import {
   STATE_TONE, agentName, fmtSeconds, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
   BOARD_LABEL, approverLevelLabel, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
-  quoteAfterLabel, cleanAiLine,
+  DECISION_LABEL, quoteAfterLabel, cleanAiLine,
 } from '../agentTrace';
 import { ProposalChain } from '@/features/agent-actions/ActionProposals';
 import { statusLabel } from '@/features/my-work/format';
@@ -182,7 +182,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                               )}
                               {st?.verdict && (
                                 <span className={styles.nodeSum}>
-                                  <VerdictChip v={st.verdict} /> <AiText text={st.verdict.summary} />
+                                  <VerdictChip v={st.verdict} /> <AiText text={st.verdict.summary} skipTag={DECISION_LABEL[st.verdict.decision]} />
                                 </span>
                               )}
                               {sec != null && <span className={styles.tm}>{fmtSeconds(sec)}</span>}
@@ -323,7 +323,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         )}
         {verdicts.map((v) => (
           <div key={v.agent + v.summary} className={styles.dec}>
-            <b>{agentName(v.agent)}</b> <VerdictChip v={v} /> <AiText text={v.summary} />
+            <b>{agentName(v.agent)}</b> <VerdictChip v={v} /> <AiText text={v.summary} skipTag={DECISION_LABEL[v.decision]} />
           </div>
         ))}
         {decided.map((d) => (

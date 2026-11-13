@@ -88,7 +88,7 @@ export function buildRows(run: BenchmarkRun): Row[] {
 /** Kết luận sinh từ số đo thật: liệt kê chỉ số mỗi hệ hơn, không có câu cố định. */
 export function conclusion(rows: Row[], run: BenchmarkRun): string {
   if (!run.summary.single || !run.summary.multi) return 'Lượt đo này chỉ chạy một chế độ nên chưa có kết luận so sánh.';
-  const names = (w: 'single' | 'multi') => rows.filter((r) => r.winner === w).map((r) => r.label.toLowerCase());
+  const names = (w: 'single' | 'multi') => rows.filter((r) => r.winner === w).map((r) => r.label.charAt(0).toLowerCase() + r.label.slice(1));
   const s = names('single');
   const m = names('multi');
   const list = (xs: string[]) => (xs.length ? xs.join('; ') : 'không chỉ số nào');
@@ -234,12 +234,11 @@ export function ComparisonTab() {
             />
           </div>
           <span className={styles.cmpLabel} data-testid="cmp-label">
-            {runOptionLabel({ ...run, modes: (['single', 'multi'] as const).filter((k) => !!run.summary[k]) })}
             <span style={{ display: 'block' }} data-testid="cmp-desc">{runDescription({ ...run, modes: (['single', 'multi'] as const).filter((k) => !!run.summary[k]) })}</span>
           </span>
           <details className={styles.techDet}>
             <summary>Chi tiết kỹ thuật (kiểm toán)</summary>
-            <span data-testid="cmp-tech">{runTechnicalNote(run)}</span>
+            <span data-testid="cmp-tech">{runTechnicalNote(run)}{BLIND_RUNS[run.run_id] ? ` · Bản khóa mã ${BLIND_RUNS[run.run_id].lockedCommit}` : ''}</span>
           </details>
         </div>
       </section>
@@ -276,7 +275,7 @@ export function ComparisonTab() {
       {BLIND_RUNS[run.run_id] && both && (
         <section className={styles.card} aria-labelledby="cmp-blind" data-testid="cmp-blind">
           <div className={styles.cardHead}>
-            <h2 id="cmp-blind">Số đo chính: đo mù trên bản đã khóa mã ({BLIND_RUNS[run.run_id].lockedCommit})</h2>
+            <h2 id="cmp-blind">Số đo chính: đo mù trên bản đã khóa mã</h2>
             <span className={styles.cardNote}>Bộ ca và cách báo cáo đăng ký trước khi đo; trung bình ± độ lệch chuẩn</span>
           </div>
           <div className={`${styles.cardBody} ${styles.flush}`}>

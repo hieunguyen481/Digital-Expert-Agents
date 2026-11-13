@@ -10,7 +10,7 @@ import {
 } from '@/services/agentCaseService';
 import {
   agentName, cleanAiLine, scrubInternal, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
-  quoteText, quoteAfterLabel, cleanConditionList, groupDuplicateFindings, fallbackConclusion,
+  DECISION_LABEL, quoteText, quoteAfterLabel, cleanConditionList, groupDuplicateFindings, fallbackConclusion,
 } from '@/features/dashboard/agentTrace';
 import { ActionProposals } from '@/features/agent-actions/ActionProposals';
 import { AiText } from '@/features/dashboard/components/AiText';
@@ -257,7 +257,7 @@ function RunBody({ caseId, currency, decider, startedAt, isDecider, retry, retry
           {groupDuplicateFindings(verdicts).map(({ agents, item: v }, i) => (
             <span key={`${v.agent}-${i}`} className={styles.finding}>
               <VerdictChip v={v} />
-              <b>{agents.length > 1 ? `${agents.map(agentName).join(' và ')} cùng nêu` : agentName(v.agent)}</b> <AiText text={v.summary} />
+              <b>{agents.length > 1 ? `${agents.map(agentName).join(' và ')} cùng nêu` : agentName(v.agent)}</b> <AiText text={v.summary} skipTag={DECISION_LABEL[v.decision]} />
             </span>
           ))}
         </div>

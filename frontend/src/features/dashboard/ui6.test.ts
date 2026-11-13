@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AgentCaseEvent } from '@/services/agentCaseService';
-import { agentName, cleanAiLine, cleanConditionList, collaboration, groupDuplicateFindings, parseAiText, quoteAfterLabel, sourceLabel } from './agentTrace';
+import { DECISION_LABEL, agentName, cleanAiLine, cleanConditionList, collaboration, groupDuplicateFindings, parseAiText, quoteAfterLabel, sourceLabel } from './agentTrace';
+import { modelName } from '@/utils/glossary';
 import { sourceTypeLabel } from '@/features/loan-detail/format';
 
 const ev = (id: number, agent: string, type: string, payload: Record<string, unknown>) =>
@@ -48,5 +49,17 @@ describe('lần 6, việc 6 và 2', () => {
   it('loại nguồn AI_OCR có nhãn, mã lạ rơi về chữ thường', () => {
     expect(sourceTypeLabel('AI_OCR')).toBe('AI trích xuất');
     expect(sourceTypeLabel('SOME_NEW_KIND')).toBe('Some new kind');
+  });
+});
+
+describe('lần 6, việc 5: văn phong nhỏ', () => {
+  it('Validation chỉ một nhãn trạng thái; "dữ liệu chặn" thành "dữ liệu bắt buộc"', () => {
+    expect(DECISION_LABEL.need_more_info).toBe('Cần bổ sung');
+    const p = parseAiText('Cần bổ sung thiếu dữ liệu chặn: chưa có kết quả tra cứu CIC');
+    expect(p.tag).toBe('Cần bổ sung');
+    expect(p.lead).toBe('Thiếu dữ liệu bắt buộc');
+  });
+  it('tên mô hình ghi "GPT-6 Luna, OpenAI" không lồng ngoặc', () => {
+    expect(modelName('openai/gpt-6-luna')).not.toMatch(/[()]/);
   });
 });

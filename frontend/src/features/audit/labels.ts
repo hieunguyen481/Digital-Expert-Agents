@@ -11,7 +11,7 @@ export const ACTION_LABELS: Record<string, string> = {
   WORKFLOW_RISK_RETURN: 'Rủi ro trả lại Thẩm định',
   WORKFLOW_WITHDRAW: 'Rút hồ sơ',
   WORKFLOW_RETURN_TO_RM: 'Trả lại QHKH',
-  WORKFLOW_EXTEND_DEADLINE: 'Gia hạn hạn bổ sung',
+  WORKFLOW_EXTEND_DEADLINE: 'Gia hạn bổ sung',
   WORKFLOW_FRAUD_HOLD: 'Tạm dừng do nghi gian lận',
   WORKFLOW_FRAUD_RELEASE: 'Gỡ tạm dừng gian lận',
   WORKFLOW_ACCEPT_EXPLANATION: 'Chấp nhận giải trình',

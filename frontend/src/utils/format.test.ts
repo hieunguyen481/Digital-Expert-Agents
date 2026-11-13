@@ -16,8 +16,8 @@ describe('định dạng vi-VN dùng chung', () => {
     expect(fmtDayTime('2026-11-09T18:18:00Z')).toBe('10/11/2026 01:18');
   });
   it('tên model', () => {
-    expect(modelName('openai/gpt-6-luna')).toBe('GPT-6 Luna (OpenAI)');
-    expect(modelName('anthropic/claude-sonnet-5')).toBe('Claude Sonnet 5 (Anthropic)');
+    expect(modelName('openai/gpt-6-luna')).toBe('GPT-6 Luna, OpenAI');
+    expect(modelName('anthropic/claude-sonnet-5')).toBe('Claude Sonnet 5, Anthropic');
     expect(modelName('local-model')).toBe('local-model');
   });
 });

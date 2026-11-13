@@ -64,7 +64,7 @@ export const DECISION_LABEL: Record<string, string> = {
   reject: 'Từ chối',
   pass: 'Đạt',
   fail: 'Không đạt',
-  need_more_info: 'Cần thêm thông tin',
+  need_more_info: 'Cần bổ sung',
   flag: 'Đồng ý có điều kiện',
 };
 
@@ -455,6 +455,7 @@ export function parseAiText(raw: string): AiTextParts {
     if (i > 0 && i <= 40) { lead = upFirst(segs[0].slice(0, i).trim()); segs[0] = segs[0].slice(i + 3); }
   }
   const items = segs.map(dash).filter(Boolean).map(upFirst);
+  if (lead) lead = lead.replace(/dữ liệu chặn/i, 'dữ liệu bắt buộc');
   if (items.length === 1 && !lead) return { tag, items: [items[0]] };
   return { tag, lead, items };
 }

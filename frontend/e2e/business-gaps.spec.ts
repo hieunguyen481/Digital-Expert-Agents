@@ -38,7 +38,7 @@ test('R-01: QHKH gia hạn hạn bổ sung đúng 1 lần, chưa quá hạn thì
   await as(page, 'qhkh');
   await page.goto(`/ho-so-vay/${loanId}`);
   await expect(page.getByRole('button', { name: 'Rút hồ sơ quá hạn' })).toBeDisabled();
-  await page.getByRole('button', { name: /Gia hạn hạn bổ sung/ }).click();
+  await page.getByRole('button', { name: /Gia hạn bổ sung thêm 5 ngày/ }).click();
   await expect(page.getByRole('button', { name: 'Gia hạn', exact: true })).toBeDisabled(); // thiếu lý do thì khóa
   await page.locator('#action-text').fill('Khách cần thêm thời gian lấy báo cáo kiểm toán.');
   await page.getByRole('button', { name: 'Gia hạn', exact: true }).click();
@@ -55,10 +55,10 @@ test('R-04: Kiểm toán lọc nhật ký theo hành động; Tra cứu chính s
   await as(page, 'kiemtoan');
   await page.goto('/nhat-ky-kiem-toan');
   await page.getByLabel('Hành động').fill('Gia hạn');
-  await page.locator('.ant-select-item-option').filter({ hasText: 'Gia hạn hạn bổ sung' }).first().click();
+  await page.locator('.ant-select-item-option').filter({ hasText: 'Gia hạn bổ sung' }).first().click();
   await page.getByRole('button', { name: 'Lọc' }).click();
   const table = page.getByRole('table', { name: 'Nhật ký kiểm toán' });
-  await expect(table.getByText('Gia hạn hạn bổ sung').first()).toBeVisible({ timeout: 30_000 });
+  await expect(table.getByText('Gia hạn bổ sung').first()).toBeVisible({ timeout: 30_000 });
   await shot(page, 'g1', 'nhat-ky');
 
   await as(page, 'qhkh');

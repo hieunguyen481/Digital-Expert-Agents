@@ -103,8 +103,8 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     const sup = state.supplement;
     const overdue = new Date(sup.due_at).getTime() < Date.now();
     if (has('credit_officer')) {
-      btn('extend', sup.extended ? 'Đã gia hạn 1 lần' : 'Gia hạn hạn bổ sung (+5 ngày LV)',
-        () => reasonAction('Gia hạn hạn bổ sung', 'Lý do gia hạn', 'Gia hạn', (t) => extendDeadline(loanId, t)),
+      btn('extend', sup.extended ? 'Đã gia hạn 1 lần' : 'Gia hạn bổ sung thêm 5 ngày LV',
+        () => reasonAction('Gia hạn bổ sung', 'Lý do gia hạn', 'Gia hạn', (t) => extendDeadline(loanId, t)),
         { disabled: sup.extended ? 'Hạn bổ sung chỉ được gia hạn 1 lần' : undefined });
     }
     if (has('credit_officer') || has('credit_manager')) {
