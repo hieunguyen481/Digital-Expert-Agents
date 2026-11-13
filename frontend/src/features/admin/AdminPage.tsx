@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Skeleton, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { RequireRole } from '@/auth/RequireRole';
-import { StateBlock, StatusPill, ledgerNum, ledgerTable } from '@/components/ui';
+import { StateBlock, StatusPill, type PillTone, ledgerNum, ledgerTable } from '@/components/ui';
 import { UI_ROLE_LABEL, uiRoleFromRoles } from '@/auth/roleFromMe';
 import { PageHead } from '@/features/shell/PageHead';
 import apiClient from '@/services/apiClient';
@@ -42,6 +42,13 @@ const SPLIT_ROLE: Record<string, string> = { risk_officer: 'Quản lý rủi ro'
 export function roleLabel(code: string, fallback?: string): string {
   const ui = uiRoleFromRoles([code]);
   return SPLIT_ROLE[code] ?? (ui ? UI_ROLE_LABEL[ui] : fallback ?? 'Vai khác');
+}
+
+/** Nhóm vai quyết định màu chip: kiểm soát (rủi ro, tuân thủ, kiểm toán) xanh dương, quản trị và phê duyệt màu "người", còn lại trung tính. */
+export function roleTone(code: string): PillTone {
+  if (/risk|compliance|audit/i.test(code ?? '')) return 'info';
+  if (/admin|approver|manager/i.test(code ?? '')) return 'human';
+  return 'neutral';
 }
 
 /** Nhãn tiếng Việt của mã quyền; mã gốc hiện nhỏ bên dưới. */
@@ -87,7 +94,7 @@ function Users() {
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Phòng', key: 'dept', render: (_, r) => r.department ?? '—' },
     { title: 'Mã nhân viên', dataIndex: 'employee_code', key: 'code', render: (v: string) => <span style={{ color: 'var(--ink-3)', fontFamily: 'var(--font-num)', fontSize: 'var(--fs-12)' }}>{v}</span> },
-    { title: 'Vai', key: 'roles', render: (_, r) => r.roles.map((x) => <StatusPill key={x}>{roleLabel(x)}</StatusPill>) },
+    { title: 'Vai', key: 'roles', render: (_, r) => r.roles.map((x) => <StatusPill key={x} tone={roleTone(x)}>{roleLabel(x)}</StatusPill>) },
   ];
   return (
     <Section title="Người dùng và vai" hint="Tài khoản nhân viên và vai đang có hiệu lực. Thêm, khóa hoặc đổi vai thực hiện ở Keycloak và dữ liệu nhân sự.">

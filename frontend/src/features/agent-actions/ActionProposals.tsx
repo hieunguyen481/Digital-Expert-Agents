@@ -3,7 +3,7 @@ import { Alert, Button, Input } from 'antd';
 import { AiText } from '@/features/dashboard/components/AiText';
 import { AiTag, StatusPill, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { coversAiText, cleanAiLine, cleanConditionList, quoteAfterLabel, rationaleText, recountTitle, sourceLabel, stripKindLabel, withListHint } from '@/features/dashboard/agentTrace';
+import { coversAiText, cleanAiLine, cleanConditionList, rationaleText, recountTitle, sourceLabel, sourceQuoteParts, stripKindLabel, withListHint } from '@/features/dashboard/agentTrace';
 import { useMe } from '@/auth/session';
 import { normalizeError } from '@/services/apiClient';
 import {
@@ -80,7 +80,7 @@ function ProposalCard({ proposal: p, caseId, loanId, shared }: { proposal: Actio
         <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>
           {own.map((e, i) => (typeof e === 'string'
             ? <li key={i}>{cleanAiLine(e)}</li>
-            : <li key={i}><b>{sourceLabel(e.source)}</b>{quoteAfterLabel(sourceLabel(e.source), e.quote) ? `: ${quoteAfterLabel(sourceLabel(e.source), e.quote)}` : ''}</li>))}
+            : <li key={i}><b>{sourceLabel(e.source)}</b>{(() => { const { rest, joined } = sourceQuoteParts(sourceLabel(e.source), e.quote); return rest ? `${joined ? ' ' : ': '}${rest}` : ''; })()}</li>))}
         </ul>
       )}
       {p.status !== 'PROPOSED' && p.decided_reason && <div style={{ fontSize: 'var(--fs-12)' }}>Lý do của người xử lý: {p.decided_reason}</div>}

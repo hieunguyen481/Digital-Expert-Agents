@@ -488,6 +488,11 @@ export function quoteAfterLabel(rawLabel: string, quote: string): string {
   }
   return /^[\s.…]*$/.test(out) ? '' : out;
 }
+/** Phần trích sau nhãn nguồn bắt đầu bằng chữ thường nghĩa là nhãn chỉ là mấy chữ đầu của một cụm ("Kiểm chứng" + "độc lập bằng công cụ…"): nối liền, không đặt dấu hai chấm và ngoặc kép giữa cụm. */
+export function sourceQuoteParts(label: string, quote: string): { rest: string; joined: boolean } {
+  const rest = quoteAfterLabel(label, quote);
+  return { rest, joined: /^\p{Ll}/u.test(rest) };
+}
 const upFirst = (x: string) => (x ? x.charAt(0).toLocaleUpperCase('vi') + x.slice(1) : x);
 const NEED_INFO = /^Cần bổ sung\s+([^:;]{3,60}):\s*([\s\S]*)$/i;
 const wordCount = (x: string) => x.split(/\s+/).filter(Boolean).length;
@@ -527,14 +532,14 @@ export const sameAiText = (a: string, b: string): boolean => {
   const ka = k(a); return ka.length > 0 && ka === k(b);
 };
 
-/** Hai đoạn chữ AI nói cùng một nội dung: một đoạn nằm gọn trong đoạn kia (≥ 80% từ khóa, từ 6 từ trở lên), dù nhãn hay dấu câu khác. */
+/** Hai đoạn chữ AI nói cùng một nội dung: một đoạn nằm gọn trong đoạn kia (≥ 70% từ khóa, từ 6 từ trở lên), dù nhãn hay dấu câu khác. */
 export const coversAiText = (a: string | null | undefined, b: string | null | undefined): boolean => {
   const w = (x: string) => new Set(fold(String(x ?? '')).split(/[^a-z0-9]+/).filter((t) => t.length > 2));
   const [wa, wb] = [w(a ?? ''), w(b ?? '')];
   const [small, big] = wa.size <= wb.size ? [wa, wb] : [wb, wa];
   if (small.size < 6) return foldPlain(a ?? '').length > 0 && foldPlain(a ?? '') === foldPlain(b ?? '');
   let hit = 0; small.forEach((t) => { if (big.has(t)) hit += 1; });
-  return hit / small.size >= 0.8;
+  return hit / small.size >= 0.7;
 };
 
 const fold = (x: string) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');

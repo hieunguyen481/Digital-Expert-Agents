@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { CaseStepper, StatusPill } from '@/components/ui';
 import { currencyWord, fmtDate, fmtNum } from './format';
 import { statusLabel, stepLabel } from '@/features/my-work/format';
+import { isEndedStatus } from '@/features/my-work/DeadlineChip';
 import type { LoanOverview, TimelineStep } from './types';
 import styles from './loan-detail.module.css';
 
@@ -104,6 +105,9 @@ export function LoanHeader({ overview, todoCount }: { overview: LoanOverview; to
       {current && (
         <div className={styles.due}>
           {stepLabel(current.step_code)} · {current.due_at ? `hạn ${fmtDate(current.due_at)}` : 'không đặt hạn'}
+          {current.due_at && !current.completed_at && !isEndedStatus(loan.status) && new Date(current.due_at).getTime() < Date.now() && (
+            <> <StatusPill tone="bad" outlined>Quá hạn</StatusPill></>
+          )}
         </div>
       )}
       <nav aria-label="Mục lục hồ sơ" className={styles.toc}>

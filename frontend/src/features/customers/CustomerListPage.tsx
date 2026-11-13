@@ -27,6 +27,7 @@ export default function CustomerListPage() {
     },
   });
   const total = q.data?.meta.total ?? 0;
+  const anyRated = (q.data?.items ?? []).some((r) => riskInfo(r.risk_rating));
   const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const to = Math.min(page * PAGE_SIZE, total);
   return (
@@ -51,7 +52,7 @@ export default function CustomerListPage() {
         {q.data && total === 0 && (
           <StateBlock kind="empty" title={search ? 'Không có khách hàng khớp' : 'Chưa có khách hàng'} description={search ? 'Thử tên khác hoặc xóa từ khóa.' : 'Khách hàng bạn được xem sẽ hiện ở đây.'} />
         )}
-        {q.data && total > 0 && !q.data.items.some((r) => riskInfo(r.risk_rating)) && (
+        {q.data && total > 0 && !anyRated && (
           <p className={styles.muted}>Chưa khách hàng nào trên trang này có xếp hạng rủi ro.</p>
         )}
         {q.data && total > 0 && (
@@ -67,7 +68,7 @@ export default function CustomerListPage() {
                 { title: 'Mã khách hàng', render: (_, r) => <span className={styles.id}>{r.customer_number}</span> },
                 { title: 'Phân khúc', render: (_, r) => segmentLabel(r.customer_segment) ?? <span className={styles.muted}>Chưa có</span> },
                 { title: 'Xác minh KYC', render: (_, r) => { const [l, t] = kycInfo(r.kyc_status); return <StatusPill tone={t}>{l}</StatusPill>; } },
-                { title: 'Mức rủi ro', render: (_: unknown, r: CustomerRow) => { const k = riskInfo(r.risk_rating); return k ? <StatusPill tone={k[1]}>{k[0]}</StatusPill> : <span className={styles.muted} role="img" aria-label="Chưa xếp hạng">—</span>; } },
+                ...(anyRated ? [{ title: 'Mức rủi ro', render: (_: unknown, r: CustomerRow) => { const k = riskInfo(r.risk_rating); return k ? <StatusPill tone={k[1]}>{k[0]}</StatusPill> : <span className={styles.muted} role="img" aria-label="Chưa xếp hạng">—</span>; } }] : []),
                 { title: 'Cập nhật', render: (_, r) => <span className={styles.id}>{formatDate(r.updated_at)}</span> },
               ]}
             />

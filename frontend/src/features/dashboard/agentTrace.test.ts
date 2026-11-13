@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AgentCaseEvent } from '@/services/agentCaseService';
-import { cleanAiLine, coversAiText, decisions, rationaleText, realActions, sharedBoards, stripKindLabel, toolCalls, validationView, withListHint } from './agentTrace';
+import { cleanAiLine, sourceQuoteParts, coversAiText, decisions, rationaleText, realActions, sharedBoards, stripKindLabel, toolCalls, validationView, withListHint } from './agentTrace';
 
 const ev = (id: number, agent: string, type: string, payload: Record<string, unknown>) =>
   ({ id, agent, type, payload, case_id: 'c', ts: 0 }) as unknown as AgentCaseEvent;
@@ -204,5 +204,15 @@ describe('gom nội dung cổng lặp', () => {
   });
   it('viết thường chữ đầu sau dấu phẩy', () => {
     expect(cleanAiLine('Thiếu dữ liệu bắt buộc — Chưa có kết quả tra cứu CIC')).toBe('Thiếu dữ liệu bắt buộc, chưa có kết quả tra cứu CIC');
+  });
+});
+
+describe('trích nguồn nối liền', () => {
+  it('nhãn chỉ là mấy chữ đầu của cụm thì nối liền, không ngoặc kép', () => {
+    expect(sourceQuoteParts('Kiểm chứng', 'Kiểm chứng độc lập bằng công cụ: Tính lại tổng')).toEqual({ rest: 'độc lập bằng công cụ: Tính lại tổng', joined: true });
+  });
+  it('trích bắt đầu bằng chữ hoa thì giữ kiểu "nhãn: trích"', () => {
+    expect(sourceQuoteParts('Điều 6', 'Điều 6: Phải tra cứu CIC').joined).toBe(false);
+    expect(sourceQuoteParts('', undefined as unknown as string)).toEqual({ rest: '', joined: false });
   });
 });

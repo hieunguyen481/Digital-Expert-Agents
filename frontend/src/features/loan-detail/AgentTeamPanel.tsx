@@ -10,7 +10,7 @@ import {
 } from '@/services/agentCaseService';
 import {
   agentName, cleanAiLine, scrubInternal, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
-  DECISION_LABEL, quoteAfterLabel, cleanConditionList, groupDuplicateFindings, fallbackConclusion,
+  DECISION_LABEL, sourceQuoteParts, cleanConditionList, groupDuplicateFindings, fallbackConclusion,
 } from '@/features/dashboard/agentTrace';
 import { ActionProposals } from '@/features/agent-actions/ActionProposals';
 import { AiText } from '@/features/dashboard/components/AiText';
@@ -303,7 +303,7 @@ function RunBody({ caseId, currency, decider, startedAt, isDecider, retry, retry
         <div className={styles.stackTight} data-testid="agent-sources">
           <b className={styles.sub}>Trích nguồn</b>
           {sources.map((s, i) => (
-            <span key={i} className={styles.note}>{agentName(s.agent)} · {cleanAiLine(sourceLabel(s.source)).replace(/[\s:]+$/, '')}{quoteAfterLabel(cleanAiLine(sourceLabel(s.source)), s.quote) ? <>: “{quoteAfterLabel(cleanAiLine(sourceLabel(s.source)), s.quote)}”</> : null}</span>
+            <span key={i} className={styles.note}>{agentName(s.agent)} · {cleanAiLine(sourceLabel(s.source)).replace(/[\s:]+$/, '')}{(() => { const { rest, joined } = sourceQuoteParts(cleanAiLine(sourceLabel(s.source)), s.quote); return !rest ? null : joined ? <> {rest}</> : <>: “{rest}”</>; })()}</span>
           ))}
         </div>
       )}

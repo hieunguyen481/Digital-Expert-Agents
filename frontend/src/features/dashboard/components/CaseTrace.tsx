@@ -211,7 +211,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
           <ol className={styles.flowList}>
             {flow.map((f) => (
               <li key={f.id}>
-                <b>{agentName(f.from)}</b> → <b>{agentName(f.to)}</b>
+                <span style={{ whiteSpace: 'nowrap' }}><b>{agentName(f.from)}</b> → <b>{agentName(f.to)}</b></span>
                 <StatusPill tone={f.kind === 'challenge' ? 'warn' : 'neutral'}>{FLOW_KIND[f.kind] ?? f.kind}</StatusPill>
                 {f.text && <span className={styles.dim}><AiText text={f.text} /></span>}
               </li>

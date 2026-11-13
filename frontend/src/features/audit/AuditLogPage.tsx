@@ -22,6 +22,7 @@ interface AuditEvent {
   loan_application_id: string | null;
   loan_application_number?: string | null;
   loan_status?: string | null;
+  metadata?: { kind?: unknown } | null;
 }
 interface AuditList {
   items: AuditEvent[];
@@ -88,7 +89,7 @@ export default function AuditLogPage() {
               return <StatusPill tone="human">Người</StatusPill>;
             } },
             { title: 'Người thao tác', render: (_, r) => r.actor_name ?? (r.actor_type.toUpperCase() === 'AGENT' ? 'Đội agent' : '—') },
-            { title: 'Hành động', dataIndex: 'action', render: (v: string) => actionLabel(v) },
+            { title: 'Hành động', dataIndex: 'action', render: (v: string, r) => actionLabel(v, r.metadata) },
             { title: 'Đối tượng', dataIndex: 'resource_type', render: (v: string) => RESOURCE_LABELS[v] ?? v },
             { title: 'Hồ sơ', render: (_, r) => r.loan_application_id ? <Link to={`/ho-so-vay/${r.loan_application_id}`}><LoanCode code={r.loan_application_number} status={r.loan_status} /></Link> : '—' },
             { title: 'Kết quả', dataIndex: 'result', render: (v: string) => <span style={{ whiteSpace: 'nowrap' }}>{RESULT_LABELS[v] ?? v}</span> },

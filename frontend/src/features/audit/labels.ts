@@ -45,4 +45,12 @@ export const RESOURCE_LABELS: Record<string, string> = {
 
 export const RESULT_LABELS: Record<string, string> = { SUCCESS: 'Thành công', FAILURE: 'Thất bại', DENIED: 'Bị từ chối' };
 
-export const actionLabel = (code: string) => ACTION_LABELS[code] ?? code;
+const OPINION_BY_KIND: Record<string, string> = { RISK: 'Ghi ý kiến rủi ro', COMPLIANCE: 'Ghi ý kiến tuân thủ' };
+/** Mã hành động -> nhãn; ý kiến chuyên môn tách theo vai (kind trong metadata) để không gộp rủi ro với tuân thủ. */
+export const actionLabel = (code: string, metadata?: { kind?: unknown } | null): string => {
+  if (code === 'CASE_RISK_OPINION') {
+    const kind = typeof metadata?.kind === 'string' ? metadata.kind.toUpperCase() : '';
+    if (OPINION_BY_KIND[kind]) return OPINION_BY_KIND[kind];
+  }
+  return ACTION_LABELS[code] ?? code;
+};
