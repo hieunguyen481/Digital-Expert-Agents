@@ -27,7 +27,7 @@ export function buildTodos(overview: LoanOverview, state: CaseActionState | unde
   }));
   const conflicts = overview.metrics.filter((m) => m.conflict_id && !m.chosen).length;
   if (conflicts > 0) items.push({ key: 'conflicts', text: `${conflicts} chỉ số còn mâu thuẫn giữa các nguồn, chưa chốt`, to: `/doi-chieu/${overview.loan.id}` });
-  if (runs?.can_run && !runs.latest) items.push({ key: 'agent', text: 'Chưa có đề xuất AI. Chạy đội agent để có ý kiến tham khảo.', anchor: 'doi-agent' });
+  if (runs?.can_run && !runs.latest) items.push({ key: 'agent', text: 'Chạy đội agent để có ý kiến tham khảo', anchor: 'doi-agent' });
   return items;
 }
 

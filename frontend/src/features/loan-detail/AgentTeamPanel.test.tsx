@@ -35,6 +35,14 @@ describe('AgentTeamPanel', () => {
     expect(screen.getByTestId('agent-team-empty')).toBeTruthy();
   });
 
+  it('lần 6: chỉ xem và chưa có lượt thì không xếp chồng câu "Chưa chạy" cạnh lý do', async () => {
+    runs.fetchAgentRuns.mockResolvedValue({ can_run: false, deny_reason: 'Chỉ xem. Bạn không phải người giữ hồ sơ.', latest: null, runs: [] });
+    mount();
+    const lock = await screen.findByTestId('agent-team-lock');
+    expect(lock.textContent?.trim()).toBe('Chỉ xem. Bạn không phải người giữ hồ sơ.');
+    expect(screen.queryByTestId('agent-team-empty')).toBeNull();
+  });
+
   it('vai trò không được phép: không có nút, có lý do', async () => {
     runs.fetchAgentRuns.mockResolvedValue({ can_run: false, deny_reason: 'Bạn không phải người đang giữ hồ sơ này.', latest: null, runs: [] });
     mount();

@@ -88,13 +88,13 @@ export function AgentTeamPanel({ loanId, currency, status }: { loanId: string; c
           {runsQ.isLoading && <Skeleton active paragraph={{ rows: 2 }} />}
           {data && !data.can_run && data.deny_reason && (
             <span className={styles.note} data-testid="agent-team-lock">
-              <LockOutlined aria-hidden /> <b>Chỉ xem.</b> {data.deny_reason}
+              <LockOutlined aria-hidden /> <b>Chỉ xem.</b> {data.deny_reason.replace(/^\s*chỉ xem[.:,]?\s*/i, '')}
             </span>
           )}
           {run.isError && (
             <Alert type="error" showIcon data-testid="agent-run-error" message={normalizeError(run.error).message} />
           )}
-          {data && !latest && (
+          {data && !latest && (data.can_run || (!!status && DECIDER_STATUSES.includes(status))) && (
             <span className={styles.note} data-testid="agent-team-empty">
               {status && DECIDER_STATUSES.includes(status)
                 ? 'Hồ sơ chưa có lượt chạy đội agent. Người quyết định xem chỉ số và tài liệu bên dưới.'
