@@ -80,4 +80,14 @@ DELETE FROM credit.appraisal_memo_version WHERE loan_application_id IN (SELECT i
 ALTER TABLE document.field_conflict_log ENABLE TRIGGER trg_field_conflict_log_append_only;
 ALTER TABLE credit.checklist_check_log ENABLE TRIGGER trg_checklist_check_log_append_only;
 ALTER TABLE credit.appraisal_memo_version ENABLE TRIGGER trg_appraisal_memo_version_append_only;
+-- Cuoc tro chuyen cua panel Tro ly AI gan voi ho so (seed va LA-) cung tin nhan cua chung: la dau ra phat sinh khi thu/e2e.
+-- De lai thi panel mo ra cau thu cu ("Thoi tiet Ha Noi...") thay vi cuoc moi. Cuoc khong gan ho so nao (cua nguoi dung that) khong bi dung toi;
+-- ca phan tich gan cuoc tro chuyen (ai.analysis_case) giu nguyen, chi go lien ket.
+CREATE TEMP TABLE reset_conv ON COMMIT DROP AS
+  SELECT id FROM ai.conversation
+   WHERE active_loan_application_id IN (SELECT id FROM credit.loan_application WHERE application_number NOT LIKE 'LA-%')
+      OR active_loan_application_id IN (SELECT id FROM reset_app);
+UPDATE ai.analysis_case SET conversation_id = NULL WHERE conversation_id IN (SELECT id FROM reset_conv);
+DELETE FROM ai.message WHERE conversation_id IN (SELECT id FROM reset_conv);
+DELETE FROM ai.conversation WHERE id IN (SELECT id FROM reset_conv);
 COMMIT;
