@@ -240,7 +240,7 @@ def result_context(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]],
             cited = [f"{e.get('source')}: {e.get('quote')}" for e in v.get("evidence") or [] if e.get("source")]
             if cited:
                 parts.append("  điều khoản/nguồn đã trích: " + " | ".join(cited[:6]))
-    if kind == "metric":
+    if kind in ("metric", "policy", "broad"):  # câu hỏi chỉ số thường chứa chữ "chính sách/ngưỡng" nên rơi vào policy
         rec = recomputed_lines(package, final)
         if rec:
             parts.append("SỐ TÍNH LẠI CỦA VALIDATION (kèm ngưỡng chính sách; là số duy nhất dùng khi nêu chỉ số, "

@@ -333,6 +333,7 @@ def test_metric_context_puts_recomputed_number_and_threshold_first() -> None:
         {"agent": "validation", "decision": "approve", "summary": "ok", "findings": [line], "evidence": []}]}}
     ctx = mod.result_context(case, [], "metric")
     assert "SỐ TÍNH LẠI CỦA VALIDATION" in ctx and "1,82 lần (tối đa 3.5)" in ctx and "§4.2" in ctx
+    assert "SỐ TÍNH LẠI CỦA VALIDATION" in mod.result_context(case, [], "policy")
     assert "SỐ TÍNH LẠI" not in mod.result_context({"state": "Pending Approval", "package": {"verdicts": []}}, [], "metric")
 
 
