@@ -344,7 +344,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             Hồ sơ vay đã chuyển sang <b>{statusLabel(a.workflowStatus)}</b> qua bước quyết định của quy trình (có ghi nhật ký kiểm toán).
           </div>
         ))}
-        <ProposalChain events={events} skipText={[stopReason, validation?.narrative].filter((x): x is string => !!x)} />
+        <ProposalChain events={events} caseId={caseId} skipText={[stopReason, validation?.narrative].filter((x): x is string => !!x)} />
         {state === 'Pending Approval' && !decidedHuman && (
           <span className={styles.dim}>Đang chờ người có thẩm quyền xác nhận; agent không tự phê duyệt.</span>
         )}

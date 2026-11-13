@@ -52,6 +52,14 @@ export function ActionProposals({ caseId, loanId }: { caseId: string; loanId: st
   );
 }
 
+/** Danh sách tài liệu đã làm sạch của đề xuất: MỘT nguồn cho thẻ và ngăn kéo, để hai nơi cùng số mục. */
+export const proposalDocs = (p: ActionProposal): string[] => cleanConditionList((p.params?.documents as unknown[] | undefined) ?? []);
+/** Tiêu đề hiện ra: yêu cầu bổ sung đếm lại theo danh sách đã gộp; loại khác bỏ nhãn loại ở đầu. */
+export function proposalTitle(p: Pick<ActionProposal, 'kind' | 'title' | 'params'>): string {
+  const docs = proposalDocs(p as ActionProposal);
+  return p.kind === 'request_documents' && docs.length > 0 ? recountTitle(p.title, docs.length) : stripKindLabel(KIND_LABEL[p.kind], p.title);
+}
+
 function ProposalCard({ proposal: p, caseId, loanId, shared }: { proposal: ActionProposal; caseId: string; loanId: string; shared: string[] }) {
   const me = useMe().data;
   const qc = useQueryClient();
@@ -69,11 +77,11 @@ function ProposalCard({ proposal: p, caseId, loanId, shared }: { proposal: Actio
   });
   const [color, label] = STATUS_TAG[p.status];
   const own = (p.evidence ?? []).filter((e) => !shared.includes(evidenceKey(e)));
-  const docs = cleanConditionList((p.params.documents as unknown[] | undefined) ?? []);
+  const docs = proposalDocs(p);
   return (
     <div data-testid="action-proposal" data-kind={p.kind} data-status={p.status}
       style={{ background: 'var(--surface)', border: '1px solid var(--rule-strong)', borderRadius: 'var(--r-md)', padding: 'var(--s3) var(--s4)', display: 'grid', gap: 'var(--s2)' }}>
-      <div style={{ display: 'flex', gap: 'var(--s2)', alignItems: 'center', flexWrap: 'wrap' }}><AiTag>{KIND_LABEL[p.kind]}</AiTag><StatusPill tone={color}>{label}</StatusPill><b>{p.kind === 'request_documents' && docs.length > 0 ? recountTitle(p.title, docs.length) : stripKindLabel(KIND_LABEL[p.kind], p.title)}</b></div>
+      <div style={{ display: 'flex', gap: 'var(--s2)', alignItems: 'center', flexWrap: 'wrap' }}><AiTag>{KIND_LABEL[p.kind]}</AiTag><StatusPill tone={color}>{label}</StatusPill><b>{proposalTitle(p)}</b></div>
       <div style={{ fontSize: 'var(--fs-13)' }}>Căn cứ: <AiText text={rationaleText(p.kind, p.rationale)} /></div>
       {docs.length > 0 && <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-13)' }}>{docs.map((d) => <li key={d}>{d}</li>)}</ul>}
       {own.length > 0 && (
@@ -138,15 +146,18 @@ export function proposalChains(events: AgentCaseEvent[]): ChainRow[] {
 }
 
 /** `skipText`: các đoạn đã in ở nơi khác của ngăn kéo; lý do của bước nào giống chúng thì không in lại. */
-export function ProposalChain({ events, skipText = [] }: { events: AgentCaseEvent[]; skipText?: string[] }) {
+export function ProposalChain({ events, skipText = [], caseId }: { events: AgentCaseEvent[]; skipText?: string[]; caseId?: string }) {
   const chains = proposalChains(events);
+  // Cùng khóa truy vấn với thẻ đề xuất: tiêu đề "N mục" đếm lại bằng đúng danh sách tài liệu của thẻ.
+  const q = useQuery({ queryKey: ['agent-proposals', caseId], queryFn: () => getActionProposals(caseId!), enabled: !!caseId });
   if (chains.length === 0) return null;
   return (
     <section data-testid="trace-proposals" style={{ marginTop: 12 }}>
       <h3 style={{ margin: '0 0 6px' }}>Hành động đề xuất và xác nhận</h3>
       {chains.map((c, n) => {
         const label = KIND_LABEL[c.kind] ?? String(c.kind ?? '');
-        const title = stripKindLabel(label, c.title);
+        const real = q.data?.find((p) => p.id === c.id);
+        const title = real && c.kind === 'request_documents' && proposalDocs(real).length > 0 ? proposalTitle(real) : stripKindLabel(label, c.title);
         return (
         <div key={c.id} data-testid="trace-proposal-chain" style={{ fontSize: 13, marginBottom: 8 }}>
           {n + 1}. <b>{label}</b>{title ? `: ${c.kind === 'request_documents' ? withListHint(title) : title}` : ''}
