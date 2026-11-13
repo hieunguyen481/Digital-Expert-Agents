@@ -16,6 +16,7 @@ import { statusLabel } from '@/features/my-work/format';
 import { AiBlock, AiTag, HumanBlock, StateBlock, StatusPill } from '@/components/ui';
 import { fmtInt, fmtUsd, fmtVnd } from '@/utils/format';
 import { TERM } from '@/utils/glossary';
+import { humanizeCodes } from '@/features/chat/utils/humanizeCodes';
 import styles from './CaseTrace.module.css';
 
 const TASK_TAG: Record<TaskState, { tone: 'neutral' | 'ai' | 'ok' | 'bad'; label: string }> = {
@@ -383,7 +384,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             ))}
           </ul>
           <details className={styles.det}><summary>Chi tiết kỹ thuật (kiểm toán)</summary>
-            {sources.map((s, i) => <div key={i} className={styles.mono}>{s.source}: {decimalVi(s.raw_quote ?? s.quote ?? "")}</div>)}
+            {sources.map((s, i) => { const raw = decimalVi(s.raw_quote ?? s.quote ?? ''); const shown = humanizeCodes(raw); return <div key={i} className={styles.mono} data-testid="trace-audit-quote" title={shown !== raw ? raw : undefined}>{s.source}: {shown}</div>; })}
           </details>
         </section>
       )}

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Input, Space } from 'antd';
 import { AiTag, HumanTag, StatusPill, type PillTone } from '@/components/ui';
 import styles from './EnginePanel.module.css';
+import { humanizeCodes } from '../utils/humanizeCodes';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
 import { DECISION_LABEL, agentName, approverLevelLabel, cleanAiLine, decimalVi, quoteText, sourceLabel, stateLabel } from '@/features/dashboard/agentTrace';
@@ -133,9 +134,9 @@ export function EnginePanel({ caseId, loanApplicationId, decisionRelated }: Engi
           </ul>
           <details>
             <summary>Chi tiết kỹ thuật (kiểm toán)</summary>
-            {sources.map((s, i) => (
-              <div key={i} className={styles.raw}>{s.source}: {decimalVi(s.raw_quote ?? s.quote ?? '')}</div>
-            ))}
+            {sources.map((s, i) => { const raw = decimalVi(s.raw_quote ?? s.quote ?? ''); const shown = humanizeCodes(raw); return (
+              <div key={i} className={styles.raw} title={shown !== raw ? raw : undefined}>{s.source}: {shown}</div>
+            ); })}
           </details>
         </details>
       )}
