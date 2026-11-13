@@ -49,6 +49,7 @@ class P:
     def __init__(self, role: str) -> None:
         self.roles = frozenset({role})
         self.is_admin = False
+        self.employee_id = UUID(int=7)
 
 
 async def test_only_metrics_with_a_source_are_shown() -> None:
@@ -156,11 +157,13 @@ def test_supplement_request_after_approval_returns_for_supplement() -> None:
 class _GoneRepo:
     def __init__(self, notified: bool) -> None:
         self.notified = notified
+        self.asked_for: UUID | None = None
 
     async def loan(self, loan_id: UUID) -> None:
         return None
 
-    async def had_notification(self, loan_id: UUID) -> bool:
+    async def had_notification(self, loan_id: UUID, employee_id: UUID) -> bool:
+        self.asked_for = employee_id
         return self.notified
 
 
@@ -171,6 +174,11 @@ async def test_reassigned_loan_says_moved_without_content() -> None:
     with pytest.raises(NotFoundError) as moved:
         await LoanDetailService(_GoneRepo(True)).overview(P("credit_appraiser"), LOAN)  # type: ignore[arg-type]
     assert moved.value.code == "LOAN_REASSIGNED"
+    # S01: truy vấn phải hỏi đúng người đang đăng nhập, không phải bất kỳ ai từng có chuông.
+    gone = _GoneRepo(True)
+    with pytest.raises(NotFoundError):
+        await LoanDetailService(gone).overview(P("credit_appraiser"), LOAN)  # type: ignore[arg-type]
+    assert gone.asked_for == UUID(int=7)
     with pytest.raises(NotFoundError) as unknown:
         await LoanDetailService(_GoneRepo(False)).overview(P("credit_appraiser"), LOAN)  # type: ignore[arg-type]
     assert unknown.value.code == "LOAN_NOT_FOUND"

@@ -46,13 +46,14 @@ class LoanDetailRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def had_notification(self, loan_id: UUID) -> bool:
-        """Người gọi từng nhận thông báo về hồ sơ này (RLS: chỉ thấy thông báo của chính mình)."""
+    async def had_notification(self, loan_id: UUID, employee_id: UUID) -> bool:
+        """Chính người gọi từng nhận thông báo về hồ sơ này (bảng chưa có RLS nên lọc tường minh)."""
         row = await fetch_one(
             self.session,
             """SELECT 1 AS found FROM integration.notification
-               WHERE resource_type = 'LOAN_APPLICATION' AND resource_id = :loan_id LIMIT 1""",
-            {"loan_id": loan_id},
+               WHERE resource_type = 'LOAN_APPLICATION' AND resource_id = :loan_id
+                 AND employee_id = :employee_id LIMIT 1""",
+            {"loan_id": loan_id, "employee_id": employee_id},
         )
         return row is not None
 

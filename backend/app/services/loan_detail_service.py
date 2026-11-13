@@ -58,7 +58,7 @@ class LoanDetailService:
         loan = await self._repo.loan(loan_id)
         if loan is None:
             # C-N5: chuông cũ trỏ tới hồ sơ đã chuyển đi; chỉ cho biết đã chuyển, không lộ nội dung.
-            if await self._repo.had_notification(loan_id):
+            if await self._repo.had_notification(loan_id, principal.employee_id):
                 raise NotFoundError("LOAN_REASSIGNED", "Hồ sơ đã chuyển cho người khác.")
             raise NotFoundError("LOAN_NOT_FOUND", "Không tìm thấy hồ sơ hoặc ngoài phạm vi được xem.")
         names = list(METRICS) + list(RECOMPUTED.values())
