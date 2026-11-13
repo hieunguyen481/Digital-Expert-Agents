@@ -16,6 +16,13 @@ DELETE FROM agent.case_event      WHERE case_id IN (SELECT case_id FROM reset_ca
 DELETE FROM agent.case_plan       WHERE case_id IN (SELECT case_id FROM reset_case);
 DELETE FROM credit.loan_agent_run WHERE case_id IN (SELECT case_id FROM reset_case);
 DELETE FROM agent.case_run        WHERE case_id IN (SELECT case_id FROM reset_case);
+-- Co va dieu kien truoc giai ngan do thao tac tu de xuat cua agent (source 'AGENT:<proposal_id>') ghi len ho so, khi ca agent nguon
+-- da bi xoa o tren (de xuat bi xoa theo). Dong khong mang nguon AGENT: (seed, nguoi dung nhap) khong bi dung toi.
+-- Hai bang chi-them voi bank_app nhung script chay bang quyen chu so huu nen xoa duoc.
+DELETE FROM credit.pre_disbursement_condition
+ WHERE source LIKE 'AGENT:%' AND substr(source, 7) NOT IN (SELECT id::text FROM agent.action_proposal);
+DELETE FROM credit.case_flag
+ WHERE source LIKE 'AGENT:%' AND substr(source, 7) NOT IN (SELECT id::text FROM agent.action_proposal);
 -- Thong bao (outbox email xoa theo, ON DELETE CASCADE) cua dung cac ho so tren; seed sinh lai phan thuoc ho so mau qua trigger.
 DELETE FROM integration.notification
  WHERE resource_type = 'LOAN_APPLICATION' AND resource_id IN (SELECT id FROM reset_app);
