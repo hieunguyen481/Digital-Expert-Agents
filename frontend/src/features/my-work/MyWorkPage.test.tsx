@@ -134,4 +134,18 @@ describe('MyWorkPage', () => {
     const head = screen.getByRole('banner');
     expect(within(head).getByRole('button', { name: /Tạo đề xuất vay/ })).toBeEnabled();
   });
+
+  it('phụ đề, thẻ tóm tắt và bộ lọc dùng một nguồn đếm', () => {
+    // facts của backend cố ý lệch (overdue 1, returned 0) để chứng minh màn không đọc nó nữa.
+    setup('credit_officer', ok(data([
+      item({ application_number: 'HSV-1', tags: ['ret'], mine: true }),
+      item({ application_number: 'HSV-2', tags: ['ret', 'over'], mine: false }),
+    ])));
+    const head = screen.getByRole('banner').textContent ?? '';
+    expect(head).toContain('1 quá hạn');
+    expect(head).toContain('2 bị trả lại');
+    const strip = screen.getByRole('group', { name: 'Tóm tắt' });
+    expect(within(strip).getByText('Hồ sơ quá hạn').previousSibling).toHaveTextContent('1');
+    expect(screen.getByText(/Bị trả lại/).textContent).toMatch(/2/);
+  });
 });

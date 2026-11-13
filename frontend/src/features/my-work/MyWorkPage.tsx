@@ -14,7 +14,7 @@ import { SideBlock } from './SideBlock';
 import styles from './my-work.module.css';
 import { EMPTY_COPY, PAGE_TITLE, QUEUE_TITLE, WORK_ROLES } from './roleCopy';
 import { isNameless } from './format';
-import { QUEUE_FILTERS, type QueueFilter, type WorkItem } from './types';
+import { QUEUE_FILTERS, type QueueFilter, type WorkItem, type WorkTag } from './types';
 import { useWorkItems } from './useWorkItems';
 
 function filterFromHash(hash: string): QueueFilter {
@@ -42,11 +42,13 @@ function Content() {
   const setFilter = (next: QueueFilter) =>
     navigate({ pathname: location.pathname, hash: next === 'all' ? '' : `#filter=${next}` }, { replace: true });
 
+  // Một nguồn đếm cho phụ đề, thẻ tóm tắt và bộ lọc: các thẻ gắn trên chính danh sách đang hiện.
+  const tagCount = (tag: WorkTag) => all.data?.items.filter((i) => i.tags.includes(tag)).length ?? 0;
   const facts = all.data
     ? [
-        (readOnly ? all.data.items.filter((i) => i.tags.includes('over')).length : all.data.facts.overdue) > 0 && `${readOnly ? all.data.items.filter((i) => i.tags.includes('over')).length : all.data.facts.overdue} quá hạn`,
-        all.data.facts.returned > 0 && `${all.data.facts.returned} bị trả lại`,
-        all.data.facts.waiting_supplement > 0 && `${all.data.facts.waiting_supplement} chờ bổ sung`,
+        tagCount('over') > 0 && `${tagCount('over')} quá hạn`,
+        tagCount('ret') > 0 && `${tagCount('ret')} bị trả lại`,
+        tagCount('bosung') > 0 && `${tagCount('bosung')} chờ bổ sung`,
       ]
     : [];
 
@@ -96,7 +98,7 @@ function Content() {
   const strip = [
     { label: readOnly || role === 'truongphong' ? 'Hồ sơ đang mở' : 'Cần bạn xử lý', value: readOnly || role === 'truongphong' ? all.data.items.length : mine.length },
     { label: 'Hạn hôm nay', value: all.data.items.filter((i) => i.sla_level === 'today').length },
-    { label: readOnly || role === 'truongphong' ? 'Đã quá hạn' : 'Bạn đang giữ, quá hạn', value: readOnly || role === 'truongphong' ? counts.over : all.data.facts.overdue },
+    { label: 'Hồ sơ quá hạn', value: counts.over },
     role === 'truongphong'
       ? { label: 'Chưa giao người', value: all.data.items.filter((i) => !i.holder_name).length }
       : readOnly ? { label: 'Có cờ cao', value: all.data.items.filter((i) => i.high_flags > 0).length }
