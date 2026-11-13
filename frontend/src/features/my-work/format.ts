@@ -50,7 +50,13 @@ export function slaText(item: WorkItem, today: Date): string {
   if (c === 'pause') return 'tạm dừng';
   if (c === 'none') return '—';
   const n = workdaysBetween(today, new Date(item.due_at!));
-  if (c === 'over') return n < 0 ? `quá hạn ${Math.abs(n)} ngày LV` : 'quá hạn hôm nay';
+  if (c === 'over') {
+    if (n < 0) return `quá hạn ${Math.abs(n)} ngày LV`;
+    // Cuối tuần: không có ngày làm việc nào giữa hạn và hôm nay (n = 0) dù hạn là ngày khác; chỉ "hôm nay" khi hạn đúng là hôm nay.
+    const due = new Date(item.due_at!);
+    if (due.toDateString() === today.toDateString()) return 'quá hạn hôm nay';
+    return `quá hạn từ ${String(due.getDate()).padStart(2, '0')}/${String(due.getMonth() + 1).padStart(2, '0')}`;
+  }
   if (c === 'today') return 'hạn hôm nay';
   return `còn ${n} ngày LV`;
 }

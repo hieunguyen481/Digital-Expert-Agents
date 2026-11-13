@@ -31,6 +31,13 @@ describe('slaText', () => {
   it('quá hạn n ngày LV', () => {
     expect(slaText(item({ sla_level: 'over', due_at: new Date(2026, 10, 4, 17).toISOString() }), today)).toBe('quá hạn 2 ngày LV');
   });
+  it('thứ Bảy, hạn thứ Sáu 13/11: ghi ngày hạn, không ghi "quá hạn hôm nay"', () => {
+    const sat = new Date(2026, 10, 14, 9);
+    expect(slaText(item({ sla_level: 'over', due_at: new Date(2026, 10, 13, 17).toISOString() }), sat)).toBe('quá hạn từ 13/11');
+  });
+  it('hạn là chính hôm nay nhưng đã qua giờ: vẫn "quá hạn hôm nay"', () => {
+    expect(slaText(item({ sla_level: 'over', due_at: new Date(2026, 10, 6, 8).toISOString() }), new Date(2026, 10, 6, 17))).toBe('quá hạn hôm nay');
+  });
   it('workdaysBetween', () => {
     expect(workdaysBetween(today, new Date(2026, 10, 9))).toBe(1);
   });
