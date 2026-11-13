@@ -297,6 +297,18 @@ const FIELD_LABEL: Record<string, string> = {
 };
 /** Che mã nội bộ trong văn bản do Planner/agent sinh: UUID, tên trường kỹ thuật. Không đổi nghĩa câu. */
 export function scrubInternal(text: string): string {
+  return humanizeGate(scrubBase(text));
+}
+/** Nhãn cổng viết hoa ("CẦN BỔ SUNG: …", "Kết luận: CẦN BỔ SUNG/ĐIỀU CHỈNH: …") thành chữ thường như người viết; từ mở câu (Chưa, Không, Thiếu…) sau dấu phẩy viết thường. */
+export function humanizeGate(text: string): string {
+  return text
+    .replace(/(^|[.;:]\s+)([A-ZÀ-ỴĐ][A-ZÀ-ỴĐ/ ]{3,}[A-ZÀ-ỴĐ])(?=\s*[:—–])/g, (_m, pre: string, tag: string) => {
+      const l = tag.toLowerCase();
+      return pre + (pre === '' || /[.;]\s+$/.test(pre) ? l.charAt(0).toLocaleUpperCase('vi') + l.slice(1) : l);
+    })
+    .replace(/,\s+(Chưa|Không|Thiếu|Cần|Đã|Còn|Chỉ)(?=\s)/g, (_m, w: string) => `, ${w.toLowerCase()}`);
+}
+function scrubBase(text: string): string {
   return text
     .replace(/\bAI_OCR\b/g, 'AI trích xuất')
     .replace(/\bcompliance[_ ]policy\b/gi, 'Chính sách tuân thủ')
@@ -434,7 +446,7 @@ const wordCount = (x: string) => x.split(/\s+/).filter(Boolean).length;
 
 /** Văn bản do agent sinh: bỏ "— " đầu, đổi nhãn đầu câu thành chip, tách thành gạch đầu dòng chỉ khi các mảnh là ý độc lập. */
 export function parseAiText(raw: string): AiTextParts {
-  let t = scrubInternal(raw ?? '').replace(/^[\s—–-]+/, '').trim();
+  let t = scrubBase(raw ?? '').replace(/^[\s—–-]+/, '').trim();
   t = t.replace(/\s+vs\.?\s+/gi, ' so với ').replace(/\bhit\b/gi, 'kết quả trùng').replace(/^#+\s*/, '');
   t = trimDangling(t);
   // Câu "… hiện tính được/ghi nhận (là) 0 đồng" là số máy móc khi chưa đủ điều kiện, không nói thêm gì.
@@ -444,6 +456,7 @@ export function parseAiText(raw: string): AiTextParts {
   let lead: string | undefined;
   const m = t.match(CAPS_TAG);
   if (m) { tag = sentenceCase(m[1]); t = m[2]; }
+  t = humanizeGate(t);
   const n = !m ? t.match(NEED_INFO) : null;
   if (n) { tag = 'Cần bổ sung'; lead = upFirst(n[1].trim()); t = n[2]; }
   let segs = splitTop(t, ';');

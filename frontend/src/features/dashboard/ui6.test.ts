@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AgentCaseEvent } from '@/services/agentCaseService';
-import { DECISION_LABEL, agentName, cleanAiLine, cleanConditionList, collaboration, groupDuplicateFindings, parseAiText, quoteAfterLabel, sourceLabel } from './agentTrace';
+import { DECISION_LABEL, agentName, cleanAiLine, cleanConditionList, collaboration, groupDuplicateFindings, humanizeGate, parseAiText, quoteAfterLabel, sourceLabel } from './agentTrace';
+import { GATE_NOTE, limitNote } from './blindRuns';
 import { modelName } from '@/utils/glossary';
 import { sourceTypeLabel } from '@/features/loan-detail/format';
 
@@ -61,5 +62,23 @@ describe('lần 6, việc 5: văn phong nhỏ', () => {
   });
   it('tên mô hình ghi "GPT-6 Luna, OpenAI" không lồng ngoặc', () => {
     expect(modelName('openai/gpt-6-luna')).not.toMatch(/[()]/);
+  });
+});
+
+describe('phiên 2: R02, Q04, SP5', () => {
+  it('R02: nhãn giới hạn theo số ca và số lần của lượt đang xem', () => {
+    expect(limitNote({ per_case: { a: 1, b: 1, c: 1, d: 1, e: 1 }, runs_per_case: 2 })).toContain('(5 ca, 2 lần mỗi ca)');
+    expect(limitNote({ per_case: Object.fromEntries([...Array(8).keys()].map((i) => [String(i), 1])), runs_per_case: 3 })).toContain('(8 ca, 3 lần mỗi ca)');
+  });
+  it('Q04: nhãn cổng viết hoa thành chữ thường như người viết', () => {
+    expect(humanizeGate('CẦN BỔ SUNG: thiếu dữ liệu chặn — Chưa có kết quả CIC')).toBe('Cần bổ sung: thiếu dữ liệu chặn — Chưa có kết quả CIC');
+    expect(humanizeGate('Kết luận: CẦN BỔ SUNG/ĐIỀU CHỈNH: thiếu hồ sơ')).toBe('Kết luận: cần bổ sung/điều chỉnh: thiếu hồ sơ');
+    expect(humanizeGate('Thiếu dữ liệu chặn, Chưa có báo cáo')).toBe('Thiếu dữ liệu chặn, chưa có báo cáo');
+    expect(cleanAiLine('CẦN BỔ SUNG: thiếu dữ liệu chặn')).toMatch(/^Cần bổ sung: /);
+    expect(parseAiText('CẦN BỔ SUNG: thiếu hồ sơ pháp lý').tag).toBe('Cần bổ sung');
+  });
+  it('SP5: câu về cổng tất định nói rõ mô hình đơn lẻ không có cổng', () => {
+    expect(GATE_NOTE).toMatch(/cổng quyết định tất định/);
+    expect(GATE_NOTE).toMatch(/mô hình đơn lẻ không có cổng/);
   });
 });
