@@ -12,14 +12,14 @@ async function openAndAsk(page: Page, role: RoleKey, question: string) {
   await page.goto('/viec-cua-toi');
   const button = page.getByRole('button', { name: /^Hỏi trợ lý về / }).first();
   await expect(button).toBeVisible({ timeout: 20_000 });
-  const created = page.waitForResponse(POST_CONV, { timeout: 30_000 });
   await button.click();
-  const conv = await created;
-  expect(conv.status(), await conv.text()).toBeLessThan(300);
   const box = page.getByPlaceholder(/Hỏi về hồ sơ, chính sách/).last();
+  const created = page.waitForResponse(POST_CONV, { timeout: 60_000 });
   const sent = page.waitForResponse(POST_MSG, { timeout: 150_000 });
   await box.fill(question);
   await page.getByRole('button', { name: 'Gửi' }).last().click();
+  const conv = await created; // hội thoại gắn hồ sơ được tạo khi gửi câu đầu
+  expect(conv.status(), await conv.text()).toBeLessThan(300);
   const r = await sent;
   const body = await r.json().catch(() => ({}));
   const answer: string = body.assistant_message?.content ?? JSON.stringify(body);

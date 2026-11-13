@@ -294,6 +294,7 @@ def test_runtime_adapter_authorizes_loan_chat_with_the_read_rule() -> None:
     src = (Path(mod.__file__).parents[1] / "runtime_adapters.py").read_text()
     assert "identity.can_read_loan(:employee_id, :loan_id)" in src
     assert "identity.can_access_loan(:employee_id, :loan_id)" not in src
+    assert "identity.can_read_customer(:employee_id, :customer_id)" in src
 
 
 def test_auditor_cannot_rerun_agent_team_from_chat_guard() -> None:

@@ -78,7 +78,7 @@ class AuthorizedContextRouter:
             if customer_id is not None:
                 allowed = await session.scalar(
                     text(
-                        "SELECT identity.can_access_customer(:employee_id, :customer_id)"
+                        "SELECT identity.can_read_customer(:employee_id, :customer_id)"
                     ),
                     {"employee_id": employee_id, "customer_id": customer_id},
                 )
