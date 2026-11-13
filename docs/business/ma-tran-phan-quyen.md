@@ -224,6 +224,7 @@ hiện dòng khóa kèm lý do). Quản trị không thấy ca nào (RLS, Q-J). 
 | Nhật ký kiểm toán `/audit-events` | Chỉ Kiểm toán (`audit:read`); phiếu HĐTD đang mở không hiện (Q-I) | Q-M, Q-I |
 | Chính sách `/policies` | Mọi vai trò nghiệp vụ đọc; Quản trị không | Q-R, Q-J |
 | Chat Trợ lý AI `/chat` | Người đăng nhập, mỗi người chỉ thấy phiên của mình | Q-K |
+| Chat gắn hồ sơ | Ai xem được hồ sơ (luật đọc `identity.can_read_loan`, gồm Kiểm toán và Trưởng phòng của phòng) thì mở được chat gắn hồ sơ và được trả lời chỉ đọc từ kết quả đã có; quyền chạy đội agent vẫn theo dòng "Chạy đội agent" (Kiểm toán không chạy); người không xem được hồ sơ nhận 403 | Q-K; quyết định 13/11/2026 |
 | Dashboard trace đội agent | Vai trò ngoài Quản trị thấy ca theo RLS (Quản trị thấy rỗng) | Q-K, Q-M, Q-J |
 | Chạy đội agent trên hồ sơ (`ROLE_STATUSES` trong `loan_agent_run_service.py`) | QHKH (Nháp, Trả về QHKH, Thẩm định chờ bổ sung), Thẩm định, Rủi ro, Tuân thủ khi đang giữ bước; Trưởng phòng trên hồ sơ của phòng. Kết quả chỉ là đề xuất của AI | Q-B, Q-C; quyết định 11/11/2026 (C-N2) |
 | Phê duyệt / từ chối ca engine | Chỉ `loan_approver` | E8, Q4 |

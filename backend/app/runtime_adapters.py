@@ -89,7 +89,7 @@ class AuthorizedContextRouter:
             loans: set[UUID] = set()
             if loan_application_id is not None:
                 allowed = await session.scalar(
-                    text("SELECT identity.can_access_loan(:employee_id, :loan_id)"),
+                    text("SELECT identity.can_read_loan(:employee_id, :loan_id)"),
                     {"employee_id": employee_id, "loan_id": loan_application_id},
                 )
                 if not allowed:
