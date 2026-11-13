@@ -153,7 +153,7 @@ export function collaboration(events: AgentCaseEvent[]): FlowItem[] {
       items.push({ id: e.id, from: 'planner', to: e.agent, kind: 'giao việc', text: str(p.objective) });
     } else if (e.type === 'task_finished') {
       const v = p.verdict as TraceVerdict | undefined;
-      items.push({ id: e.id, from: e.agent, to: 'orchestrator', kind: 'trả kết quả', text: v?.summary ?? '' });
+      items.push({ id: e.id, from: e.agent, to: 'planner', kind: 'trả kết quả', text: v?.summary ?? '' });
     } else if (e.type.startsWith('a2a_')) {
       const inner = (p.payload ?? {}) as Record<string, unknown>;
       const kind =
@@ -208,7 +208,7 @@ const SOURCE_LABEL: Record<string, string> = {
   'banking.account_monthly_summary': 'Tiền về tài khoản theo tháng', 'banking.account': 'Tài khoản thanh toán',
   'document.extracted_field': 'Trường trích xuất từ tài liệu', 'document.document': 'Tài liệu hồ sơ',
   'document.document_version': 'Tài liệu hồ sơ', so_tinh_lai: 'Số tính lại từ công cụ',
-  validation: 'Kiểm chứng của Validation', llm: 'Phân tích của chuyên gia',
+  validation: 'Kiểm chứng', llm: 'Phân tích của chuyên gia',
   compliance_policy: 'Quy định tuân thủ nội bộ', ops_procedures: 'Quy trình vận hành nội bộ',
   shared_cs_td_sme_2025: 'Chính sách tín dụng SME 2025 (CS-TD-SME/2025)',
 };
@@ -403,12 +403,31 @@ export function cleanAiLine(raw: string): string {
     .replace(/\s+vs\.?\s+/gi, ' so với ')
     .replace(/\bhit\b/gi, 'kết quả trùng')
     .replace(/\s+[—–]\s+/g, ', ')
-    .replace(/\s*\(\s*(trang\s+\d+)\s*\)/gi, ', $1');
+    .replace(/\s*\(\s*(trang\s+\d+)\s*\)/gi, ', $1')
+    .replace(/\.{3,}/g, '…').replace(/([)\]”"])\.,/g, '$1,').replace(/(?<=\p{L}|\d)\.,/gu, ',');
   for (let i = 0; i < 3; i += 1) t = t.replace(/(^|[\s(])(\p{L}{2,})\s+\2(?=[\s.,;:)]|$)/giu, '$1$2');
   return trimDangling(t.replace(/\s{2,}/g, ' ').trim());
 }
 /** Trích nguồn hiển thị. */
 export const quoteText = (q: string): string => cleanAiLine(q);
+const foldPlain = (x: string) => x.toLowerCase().replace(/[\s.…,:;"“”-]+/g, ' ').trim();
+/** Trích nguồn đứng sau nhãn nguồn: đoạn trích bắt đầu bằng chính nhãn thì bỏ phần lặp; chỉ còn dấu lửng thì trả chuỗi rỗng. */
+export function quoteAfterLabel(label: string, quote: string): string {
+  const q = quoteText(quote);
+  const l = foldPlain(label);
+  let out = q;
+  if (l.length >= 4 && foldPlain(q).startsWith(l)) {
+    let i = 0; let j = 0; const lc = label.replace(/[\s.…,:;"“”-]+/g, ' ').trim().toLowerCase();
+    // cắt đúng phần đầu của q tương ứng với nhãn (so khớp từng ký tự, bỏ qua dấu câu và khoảng trắng)
+    const qq = q.toLowerCase();
+    while (i < qq.length && j < lc.length) {
+      if (/[\s.…,:;"“”-]/.test(qq[i])) { i += 1; if (lc[j] === ' ') j += 1; continue; }
+      if (qq[i] === lc[j]) { i += 1; j += 1; } else { break; }
+    }
+    out = q.slice(i).replace(/^[\s.…,:;"“”—–-]+/, '').trim();
+  }
+  return /^[\s.…]*$/.test(out) ? '' : out;
+}
 const upFirst = (x: string) => (x ? x.charAt(0).toLocaleUpperCase('vi') + x.slice(1) : x);
 const NEED_INFO = /^Cần bổ sung\s+([^:;]{3,60}):\s*([\s\S]*)$/i;
 const wordCount = (x: string) => x.split(/\s+/).filter(Boolean).length;
@@ -419,7 +438,8 @@ export function parseAiText(raw: string): AiTextParts {
   t = t.replace(/\s+vs\.?\s+/gi, ' so với ').replace(/\bhit\b/gi, 'kết quả trùng').replace(/^#+\s*/, '');
   t = trimDangling(t);
   // Câu "… hiện tính được/ghi nhận (là) 0 đồng" là số máy móc khi chưa đủ điều kiện, không nói thêm gì.
-  t = t.replace(/\s*[A-ZÀ-Ỵa-zà-ỵ][^.;:]*hiện (?:tính được|ghi nhận)(?: là)?:?\s*0\s*(?:đồng|VND|₫)?\.?\s*$/u, '').trim();
+  t = t.replace(/\s*[A-ZÀ-Ỵa-zà-ỵ][^.;:]*hiện (?:tại|tính được|ghi nhận)(?: là)?:?\s*0\s*(?:đồng|VND|₫)?\.?\s*$/u, '').trim();
+  t = t.replace(/\.{3,}/g, '…');
   let tag: string | undefined;
   let lead: string | undefined;
   const m = t.match(CAPS_TAG);
@@ -461,6 +481,36 @@ export function dedupeConditions(list: string[]): string[] {
   return kept.map((k) => k.text);
 }
 
+/** Ý chỉ nêu số hiện trạng ("… hiện tại: 0 đồng"): không bảo ai làm gì nên không phải yêu cầu bổ sung. */
+const STATUS_ONLY = /hiện (?:tại|tính được|ghi nhận)(?: là)?:?\s*[\d.,]+\s*(?:đồng|VND|₫|%|tỷ(?: đồng)?)?\s*\.?$/iu;
+/** Động từ quy trình chung và từ nối: một ý chỉ gồm các từ này (không nêu tài liệu hay đối tượng cụ thể) là mảnh câu, không phải việc cần làm. */
+const GENERIC_WORDS = new Set(['hoan', 'thien', 'doi', 'chieu', 'kiem', 'tra', 'ra', 'soat', 'xem', 'xet', 'hoan', 'tat', 'xac', 'nhan', 'truoc', 'khi', 'quyet', 'dinh', 'trinh', 'phe', 'duyet', 'cac', 'day', 'du', 'va', 'de', 'cap', 'tiep', 'tuc', 'ho', 'so', 'thong', 'tin', 'viec']);
+const isFragment = (x: string): boolean => {
+  const w = fold(x).split(/[^a-z0-9]+/).filter(Boolean);
+  return w.length > 0 && w.every((k) => GENERIC_WORDS.has(k));
+};
+/** Danh sách điều kiện/yêu cầu bổ sung cho người đọc: bỏ ý chỉ nêu số hiện trạng và mảnh câu chung chung, rồi gộp ý trùng. */
+export function cleanConditionList(list: string[]): string[] {
+  return dedupeConditions(list.filter((x) => x.trim() && !STATUS_ONLY.test(x.trim().replace(/[\s.;]+$/, '')) && !isFragment(x)));
+}
+
+export interface FindingGroup<T> { agents: string[]; item: T }
+/** Gộp phát hiện của các chuyên gia khi nội dung gần như trùng nhau: giữ một, ghi tên các agent cùng nêu. */
+export function groupDuplicateFindings<T extends { agent: string; summary: string }>(list: T[]): FindingGroup<T>[] {
+  const out: { agents: string[]; item: T; tok: Set<string> }[] = [];
+  for (const item of list) {
+    const tok = tokens(cleanAiLine(item.summary));
+    const hit = out.find((o) => {
+      const [a, b] = o.tok.size <= tok.size ? [o.tok, tok] : [tok, o.tok];
+      if (a.size < 5) return false;
+      let n = 0; a.forEach((w) => { if (b.has(w)) n += 1; });
+      return n / a.size >= 0.7;
+    });
+    if (hit) { if (!hit.agents.includes(item.agent)) hit.agents.push(item.agent); } else out.push({ agents: [item.agent], item, tok });
+  }
+  return out.map(({ agents, item }) => ({ agents, item }));
+}
+
 /** Kết luận khi gói đề xuất không có `recommendation` (lượt dừng ở "Cần bổ sung", bị từ chối, chuyển cấp): một dòng tiêu đề, kèm tối đa 3 việc cần bổ sung dựng từ ý các chuyên gia cần thêm thông tin. */
 export function fallbackConclusion(state: string, verdicts: TraceVerdict[]): { headline: string; items: string[] } | null {
   if (state === 'Needs Info') {
@@ -471,7 +521,7 @@ export function fallbackConclusion(state: string, verdicts: TraceVerdict[]): { h
       const one = cleanAiLine(first.split(/\.\s+/)[0]).replace(/[\s.;:,]+$/, '').trim();
       if (one && !items.some((x) => x.toLowerCase() === one.toLowerCase())) items.push(one);
     }
-    const shown = dedupeConditions(items).slice(0, 3).map(upFirst);
+    const shown = cleanConditionList(items).slice(0, 3).map(upFirst);
     return shown.length
       ? { headline: `AI đề xuất: cần bổ sung ${shown.length} việc trước khi quyết định`, items: shown }
       : { headline: 'AI đề xuất: cần bổ sung thông tin trước khi quyết định', items: [] };

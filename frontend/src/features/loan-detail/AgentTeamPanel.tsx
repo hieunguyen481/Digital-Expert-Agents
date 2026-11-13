@@ -9,8 +9,8 @@ import {
   TERMINAL_STATES, getAgentCase, getAgentCaseEvents, streamAgentCase, type AgentCaseEvent,
 } from '@/services/agentCaseService';
 import {
-  agentName, cleanAiLine, dedupeConditions, scrubInternal, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
-  quoteText, fallbackConclusion,
+  agentName, cleanAiLine, scrubInternal, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
+  quoteText, quoteAfterLabel, cleanConditionList, groupDuplicateFindings, fallbackConclusion,
 } from '@/features/dashboard/agentTrace';
 import { ActionProposals } from '@/features/agent-actions/ActionProposals';
 import { AiText } from '@/features/dashboard/components/AiText';
@@ -238,7 +238,7 @@ function RunBody({ caseId, currency, decider, startedAt, isDecider, retry, retry
             <ul className={styles.condOl} data-testid="agent-fallback-items">{fallback.items.map((x) => <li key={x}>{x}</li>)}</ul>
           )}
           {!!pkg?.conditions?.length && (() => {
-            const items = dedupeConditions(pkg.conditions.map((x) => cleanCondition(scrubInternal(x))));
+            const items = cleanConditionList(pkg.conditions.map((x) => cleanCondition(scrubInternal(x))));
             const list = <ul className={styles.condOl}>{items.map((x) => <li key={x}>{x}</li>)}</ul>;
             // Người quyết định cần kết luận 1–2 dòng: danh sách việc bổ sung gập sẵn, mở khi cần đọc.
             return isDecider
@@ -254,10 +254,10 @@ function RunBody({ caseId, currency, decider, startedAt, isDecider, retry, retry
       {verdicts.length > 0 && (
         <div className={styles.stackTight} data-testid="agent-findings">
           <b className={styles.sub}>{finished ? `Phát hiện của từng chuyên gia (${findings.length} cần chú ý)` : `${verdicts.length}/4 chuyên gia đã xong`}</b>
-          {verdicts.map((v, i) => (
+          {groupDuplicateFindings(verdicts).map(({ agents, item: v }, i) => (
             <span key={`${v.agent}-${i}`} className={styles.finding}>
               <VerdictChip v={v} />
-              <b>{agentName(v.agent)}</b> <AiText text={v.summary} />
+              <b>{agents.length > 1 ? `${agents.map(agentName).join(' và ')} cùng nêu` : agentName(v.agent)}</b> <AiText text={v.summary} />
             </span>
           ))}
         </div>
@@ -292,7 +292,7 @@ function RunBody({ caseId, currency, decider, startedAt, isDecider, retry, retry
         <div className={styles.stackTight} data-testid="agent-sources">
           <b className={styles.sub}>Trích nguồn</b>
           {sources.map((s, i) => (
-            <span key={i} className={styles.note}>{agentName(s.agent)} · {cleanAiLine(sourceLabel(s.source)).replace(/[\s:]+$/, '')}: “{quoteText(s.quote)}”</span>
+            <span key={i} className={styles.note}>{agentName(s.agent)} · {cleanAiLine(sourceLabel(s.source)).replace(/[\s:]+$/, '')}{quoteAfterLabel(cleanAiLine(sourceLabel(s.source)), s.quote) ? <>: “{quoteAfterLabel(cleanAiLine(sourceLabel(s.source)), s.quote)}”</> : null}</span>
           ))}
         </div>
       )}
