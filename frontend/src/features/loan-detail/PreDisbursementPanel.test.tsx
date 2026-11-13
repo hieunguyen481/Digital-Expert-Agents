@@ -1,20 +1,26 @@
-import { render, screen } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { PreDisbursementPanel } from './PreDisbursementPanel';
 
-vi.mock('./loanDetailService', () => ({ fetchAgentRuns: vi.fn().mockResolvedValue({ latest: { case_id: 'c1' } }) }));
-vi.mock('@/services/agentCaseService', () => ({
-  getAgentCase: vi.fn().mockResolvedValue({ package: { conditions: ['Mở tài khoản thanh toán trước giải ngân'] } }),
-}));
-
-const wrap = (ui: React.ReactElement) => render(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>);
+const wrap = (ui: React.ReactElement) => render(ui);
 
 describe('PreDisbursementPanel', () => {
-  it('liệt kê điều kiện từ quyết định và đội agent khi đã phê duyệt', async () => {
+  it('liệt kê điều kiện từ quyết định khi đã phê duyệt; không hiện đề xuất chưa xác nhận của đội agent', () => {
     wrap(<PreDisbursementPanel loanId="l1" status="APPROVED_WITH_CONDITIONS" decisionConditions={['Bảo hiểm tài sản']} />);
-    expect(await screen.findByText(/Từ đội agent, chưa xác nhận: Mở tài khoản/)).toBeTruthy();
     expect(screen.getByText(/Từ quyết định: Bảo hiểm tài sản/)).toBeTruthy();
+    expect(screen.queryByText(/chưa xác nhận/)).toBeNull();
+    expect(screen.queryByTestId('pre-disbursement-agent')).toBeNull();
+  });
+  it('trên 5 mục thì gập, bấm "Xem thêm" mở hết', () => {
+    const many = Array.from({ length: 7 }, (_, i) => `Điều kiện số ${i + 1}`);
+    wrap(<PreDisbursementPanel loanId="l1" status="APPROVED_WITH_CONDITIONS" decisionConditions={many} />);
+    expect(screen.getAllByTestId('pre-disbursement-decision')).toHaveLength(5);
+    fireEvent.click(screen.getByTestId('pre-disbursement-toggle'));
+    expect(screen.getAllByTestId('pre-disbursement-decision')).toHaveLength(7);
+  });
+  it('đúng 5 mục: không có nút gập', () => {
+    wrap(<PreDisbursementPanel loanId="l1" status="APPROVED" decisionConditions={['a', 'b', 'c', 'd', 'e']} />);
+    expect(screen.queryByTestId('pre-disbursement-toggle')).toBeNull();
   });
   it('chưa phê duyệt: chỉ hiện điều kiện đã xác nhận, kèm người và thời điểm; AI đề xuất phân biệt với người nhập', () => {
     wrap(<PreDisbursementPanel loanId="l1" status="APPROVAL_PENDING" confirmed={[
@@ -26,8 +32,12 @@ describe('PreDisbursementPanel', () => {
     expect(rows[1].textContent).not.toMatch(/AI đề xuất/);
     expect(screen.queryByTestId('pre-disbursement-empty')).toBeNull();
   });
-  it('rỗng: một dòng "Chưa có điều kiện nào được ghi"', () => {
+  it('rỗng sau phê duyệt: có dấu chấm cuối', () => {
+    wrap(<PreDisbursementPanel loanId="l1" status="APPROVED" />);
+    expect(screen.getByTestId('pre-disbursement-empty').textContent).toBe('Chưa có điều kiện nào được ghi.');
+  });
+  it('rỗng trước phê duyệt: nói điều kiện sẽ có sau khi cấp phê duyệt quyết định', () => {
     wrap(<PreDisbursementPanel loanId="l1" status="APPROVAL_PENDING" />);
-    expect(screen.getByTestId('pre-disbursement-empty').textContent).toBe('Chưa có điều kiện nào được ghi');
+    expect(screen.getByTestId('pre-disbursement-empty').textContent).toBe('Điều kiện sẽ có sau khi cấp phê duyệt quyết định.');
   });
 });

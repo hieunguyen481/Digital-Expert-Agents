@@ -50,7 +50,12 @@ test('thẩm định xác nhận đề xuất điều kiện: khối "Điều ki
   await expect(block).toBeVisible({ timeout: 30_000 });
   // Hồ sơ có thể đã có điều kiện từ lần chạy thật trước: không giả định rỗng, chỉ đếm trước/sau.
   await expect(block.getByTestId('pre-disbursement-confirmed').first().or(block.getByTestId('pre-disbursement-empty'))).toBeVisible();
+  const expand = async () => { const t = block.getByTestId('pre-disbursement-toggle'); if (await t.count() && (await t.getAttribute('aria-expanded')) === 'false') await t.click(); };
+  await expand();
   const before = await block.getByTestId('pre-disbursement-confirmed').count();
+  // Đề xuất chưa xác nhận (đang nằm ở thẻ đề xuất hành động) không hiện ở khối này, kể cả khi có gói kết quả của đội agent.
+  await expect(block).not.toContainText('chưa xác nhận');
+  await expect(block.getByTestId('pre-disbursement-agent')).toHaveCount(0);
 
   const card = page.getByTestId('action-proposal').and(page.locator('[data-kind="add_disbursement_condition"]'));
   await card.getByTestId('proposal-confirm').click();
@@ -58,7 +63,7 @@ test('thẩm định xác nhận đề xuất điều kiện: khối "Điều ki
   await card.getByTestId('proposal-submit').click();
   await expect(card).toHaveAttribute('data-status', 'CONFIRMED', { timeout: 20_000 });
 
-  await expect(block.getByTestId('pre-disbursement-confirmed')).toHaveCount(before + 1, { timeout: 20_000 });
+  await expect(async () => { await expand(); await expect(block.getByTestId('pre-disbursement-confirmed')).toHaveCount(before + 1); }).toPass({ timeout: 20_000 });
   const row = block.getByTestId('pre-disbursement-confirmed').filter({ hasText: TEXT });
   await expect(row).toHaveCount(1);
   await expect(row).toContainText(TEXT);
