@@ -3,7 +3,7 @@ import { Alert, Button, Input } from 'antd';
 import { AiText } from '@/features/dashboard/components/AiText';
 import { AiTag, StatusPill, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { cleanAiLine, cleanConditionList, quoteAfterLabel, recountTitle, sourceLabel } from '@/features/dashboard/agentTrace';
+import { cleanAiLine, cleanConditionList, quoteAfterLabel, rationaleText, recountTitle, sourceLabel, stripKindLabel, withListHint } from '@/features/dashboard/agentTrace';
 import { useMe } from '@/auth/session';
 import { normalizeError } from '@/services/apiClient';
 import {
@@ -23,6 +23,15 @@ const ROLES: Record<ProposalKind, string[]> = {
 };
 const STATUS_TAG: Record<string, [PillTone, string]> = { PROPOSED: ['warn', 'Chờ người xác nhận'], CONFIRMED: ['ok', 'Đã xác nhận và thực hiện'], DISMISSED: ['neutral', 'Đã bỏ'] };
 
+const evidenceKey = (e: unknown): string => (typeof e === 'string' ? cleanAiLine(e) : sourceLabel(String((e as { source?: string } | null)?.source ?? '')));
+/** Nguồn xuất hiện ở từ hai thẻ trở lên: in một lần ở đầu khối, mỗi thẻ chỉ giữ nguồn riêng. */
+export function sharedSources(list: ActionProposal[]): string[] {
+  if (list.length < 2) return [];
+  const count = new Map<string, number>();
+  for (const p of list) for (const k of new Set((p.evidence ?? []).map(evidenceKey).filter(Boolean))) count.set(k, (count.get(k) ?? 0) + 1);
+  return [...count].filter(([, n]) => n >= 2).map(([k]) => k);
+}
+
 /** Đề xuất hành động ghi của đội agent. AI chỉ đề xuất; người có thẩm quyền xác nhận hoặc bỏ, kèm lý do. */
 export function ActionProposals({ caseId, loanId }: { caseId: string; loanId: string }) {
   const q = useQuery({
@@ -32,16 +41,18 @@ export function ActionProposals({ caseId, loanId }: { caseId: string; loanId: st
   });
   if (q.isError) return <Alert type="error" showIcon message="Không tải được đề xuất hành động" description={normalizeError(q.error).message} />;
   if (!q.data || q.data.length === 0) return null;
+  const shared = sharedSources(q.data);
   return (
     <section aria-label="Đề xuất hành động" data-testid="action-proposals" style={{ display: 'grid', gap: 'var(--s3)' }}>
       <h3 style={{ margin: 0, font: '600 var(--fs-13)/1.4 var(--font-body)' }}>Đề xuất hành động của đội agent</h3>
       <span style={{ fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>AI chỉ đề xuất. Chưa xác nhận thì chưa có thay đổi nào được ghi vào hồ sơ.</span>
-      {q.data.map((p) => <ProposalCard key={p.id} proposal={p} caseId={caseId} loanId={loanId} />)}
+      {shared.length > 0 && <span data-testid="proposal-shared-sources" style={{ fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>Căn cứ chung: {shared.join(', ')}</span>}
+      {q.data.map((p) => <ProposalCard key={p.id} proposal={p} caseId={caseId} loanId={loanId} shared={shared} />)}
     </section>
   );
 }
 
-function ProposalCard({ proposal: p, caseId, loanId }: { proposal: ActionProposal; caseId: string; loanId: string }) {
+function ProposalCard({ proposal: p, caseId, loanId, shared }: { proposal: ActionProposal; caseId: string; loanId: string; shared: string[] }) {
   const me = useMe().data;
   const qc = useQueryClient();
   const [mode, setMode] = useState<'confirm' | 'dismiss' | null>(null);
@@ -57,16 +68,17 @@ function ProposalCard({ proposal: p, caseId, loanId }: { proposal: ActionProposa
     },
   });
   const [color, label] = STATUS_TAG[p.status];
+  const own = (p.evidence ?? []).filter((e) => !shared.includes(evidenceKey(e)));
   const docs = cleanConditionList((p.params.documents as unknown[] | undefined) ?? []);
   return (
     <div data-testid="action-proposal" data-kind={p.kind} data-status={p.status}
       style={{ background: 'var(--surface)', border: '1px solid var(--rule-strong)', borderRadius: 'var(--r-md)', padding: 'var(--s3) var(--s4)', display: 'grid', gap: 'var(--s2)' }}>
-      <div style={{ display: 'flex', gap: 'var(--s2)', alignItems: 'center', flexWrap: 'wrap' }}><AiTag>{KIND_LABEL[p.kind]}</AiTag><StatusPill tone={color}>{label}</StatusPill><b>{p.kind === 'request_documents' && docs.length > 0 ? recountTitle(p.title, docs.length) : cleanAiLine(p.title)}</b></div>
-      <div style={{ fontSize: 'var(--fs-13)' }}>Căn cứ: <AiText text={p.rationale} /></div>
+      <div style={{ display: 'flex', gap: 'var(--s2)', alignItems: 'center', flexWrap: 'wrap' }}><AiTag>{KIND_LABEL[p.kind]}</AiTag><StatusPill tone={color}>{label}</StatusPill><b>{p.kind === 'request_documents' && docs.length > 0 ? recountTitle(p.title, docs.length) : stripKindLabel(KIND_LABEL[p.kind], p.title)}</b></div>
+      <div style={{ fontSize: 'var(--fs-13)' }}>Căn cứ: <AiText text={rationaleText(p.kind, p.rationale)} /></div>
       {docs.length > 0 && <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-13)' }}>{docs.map((d) => <li key={d}>{d}</li>)}</ul>}
-      {p.evidence.length > 0 && (
+      {own.length > 0 && (
         <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>
-          {p.evidence.map((e, i) => (typeof e === 'string'
+          {own.map((e, i) => (typeof e === 'string'
             ? <li key={i}>{cleanAiLine(e)}</li>
             : <li key={i}><b>{sourceLabel(e.source)}</b>{quoteAfterLabel(sourceLabel(e.source), e.quote) ? `: ${quoteAfterLabel(sourceLabel(e.source), e.quote)}` : ''}</li>))}
         </ul>
@@ -131,14 +143,18 @@ export function ProposalChain({ events }: { events: AgentCaseEvent[] }) {
   return (
     <section data-testid="trace-proposals" style={{ marginTop: 12 }}>
       <h3 style={{ margin: '0 0 6px' }}>Hành động đề xuất và xác nhận</h3>
-      {chains.map((c) => (
+      {chains.map((c, n) => {
+        const label = KIND_LABEL[c.kind] ?? String(c.kind ?? '');
+        const title = stripKindLabel(label, c.title);
+        return (
         <div key={c.id} data-testid="trace-proposal-chain" style={{ fontSize: 13, marginBottom: 8 }}>
-          <b>{KIND_LABEL[c.kind] ?? c.kind}</b>: {cleanAiLine(c.title)}
+          {n + 1}. <b>{label}</b>{title ? `: ${c.kind === 'request_documents' ? withListHint(title) : title}` : ''}
           {c.steps.map((s, i) => (
-            <div key={i} style={{ marginLeft: 12 }}><StatusPill tone={s.tone}>{i + 1}. {s.label}</StatusPill> {cleanAiLine(s.text)}</div>
+            <div key={i} style={{ marginLeft: 12 }}><StatusPill tone={s.tone}>{s.label}</StatusPill> {rationaleText(c.kind, s.text)}</div>
           ))}
         </div>
-      ))}
+        );
+      })}
     </section>
   );
 }

@@ -43,7 +43,7 @@ function sanitizeHref(raw: string): string | null {
   }
 }
 
-const INLINE_PATTERN = /(`[^`]+`)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(\[[^\]]+\]\([^)\s]+\))/g;
+const INLINE_PATTERN = /(`[^`]+`)|(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|((?<![\p{L}\d_])_[^_\n]+_(?![\p{L}\d_]))|(\[[^\]]+\]\([^)\s]+\))/gu;
 
 /** Tách một dòng thành các token inline. */
 export function parseInline(input: string): InlineToken[] {
@@ -63,7 +63,7 @@ export function parseInline(input: string): InlineToken[] {
       tokens.push({ type: 'code', value: raw.slice(1, -1) });
     } else if (raw.startsWith('**')) {
       tokens.push({ type: 'bold', value: raw.slice(2, -2) });
-    } else if (raw.startsWith('*')) {
+    } else if (raw.startsWith('*') || raw.startsWith('_')) {
       tokens.push({ type: 'italic', value: raw.slice(1, -1) });
     } else if (raw.startsWith('[')) {
       const linkMatch = raw.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);

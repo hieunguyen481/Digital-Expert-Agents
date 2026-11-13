@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AgentCaseEvent } from '@/services/agentCaseService';
-import { decisions, realActions, sharedBoards, toolCalls, validationView } from './agentTrace';
+import { cleanAiLine, decisions, rationaleText, realActions, sharedBoards, stripKindLabel, toolCalls, validationView, withListHint } from './agentTrace';
 
 const ev = (id: number, agent: string, type: string, payload: Record<string, unknown>) =>
   ({ id, agent, type, payload, case_id: 'c', ts: 0 }) as unknown as AgentCaseEvent;
@@ -145,5 +145,48 @@ describe('cleanAiLine và chip điều kiện', () => {
     const { agentName } = await import('./agentTrace');
     expect(agentName('planner')).toBe('Planner (điều phối)');
     expect(agentName('orchestrator')).not.toMatch(/Bộ chạy/);
+  });
+});
+
+describe('luật làm sạch chữ AI (vòng 8)', () => {
+  it('dấu nghìn kiểu Anh trước đơn vị tiền → kiểu Việt', () => {
+    expect(cleanAiLine('doanh thu ≤ 1,000 tỷ đồng')).toBe('doanh thu ≤ 1.000 tỷ đồng');
+    expect(cleanAiLine('vay 1,500,000 đồng')).toBe('vay 1.500.000 đồng');
+  });
+  it('số thập phân thật và số không đơn vị tiền giữ nguyên', () => {
+    expect(cleanAiLine('hạn mức 1,5 tỷ')).toBe('hạn mức 1,5 tỷ');
+    expect(cleanAiLine('1,000 lần')).toBe('1,000 lần');
+  });
+  it('"cấp Cấp 2 Hội sở" và "cấp 2 hội sở" → "Cấp 2 Hội sở"', () => {
+    expect(cleanAiLine('thuộc cấp Cấp 2 Hội sở')).toBe('thuộc Cấp 2 Hội sở');
+    expect(cleanAiLine('thuộc cấp 2 hội sở')).toBe('thuộc Cấp 2 Hội sở');
+  });
+  it('từ viết tắt lặp quanh từ khác chỉ giữ một lần', () => {
+    expect(cleanAiLine('Phạm vi SME KHDN SME theo phân khúc')).toBe('Phạm vi SME KHDN theo phân khúc');
+  });
+  it('SLA, checkpoint, "sau cấp TD" thành lời thường', () => {
+    expect(cleanAiLine('Quá SLA phê duyệt — đã nhắc người duyệt, giữ checkpoint')).toBe('Quá hạn phê duyệt: đã nhắc người duyệt, giữ nguyên bước hiện tại');
+    expect(cleanAiLine('Nợ vay/EBITDA sau cấp TD ≤ 3,5')).toBe('Nợ vay/EBITDA sau khi cấp tín dụng ≤ 3,5');
+  });
+  it('chịu undefined và chuỗi rỗng', () => {
+    expect(cleanAiLine(undefined as unknown as string)).toBe('');
+    expect(cleanAiLine('')).toBe('');
+  });
+});
+
+describe('nhãn loại đề xuất và căn cứ', () => {
+  it('tiêu đề đã bắt đầu bằng nhãn thì bỏ nhãn lặp', () => {
+    expect(stripKindLabel('Điều kiện trước giải ngân', 'Điều kiện trước giải ngân: Xác minh chứng thư')).toBe('Xác minh chứng thư');
+    expect(stripKindLabel('Điều kiện trước giải ngân', 'điều kiện trước giải ngân - Xác minh chứng thư')).toBe('Xác minh chứng thư');
+    expect(stripKindLabel('Ghi cờ rủi ro', 'Xác minh chứng thư')).toBe('Xác minh chứng thư');
+    expect(stripKindLabel('Ghi cờ rủi ro', undefined as unknown as string)).toBe('');
+  });
+  it('căn cứ chung chung đổi thành tên mục cụ thể', () => {
+    expect(rationaleText('add_disbursement_condition', 'Điều kiện nêu trong báo cáo cuối của đội agent khi đề xuất phê duyệt.')).toMatch(/mục Điều kiện của báo cáo cuối/);
+    expect(rationaleText('x', '')).toBe('');
+  });
+  it('yêu cầu bổ sung N mục có chỉ dẫn nơi xem', () => {
+    expect(withListHint('Yêu cầu khách bổ sung 5 mục')).toBe('Yêu cầu khách bổ sung 5 mục, xem danh sách ở Việc cần làm');
+    expect(withListHint('Bổ sung giấy tờ')).toBe('Bổ sung giấy tờ');
   });
 });

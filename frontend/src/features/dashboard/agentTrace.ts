@@ -334,6 +334,18 @@ function scrubStyle(text: string): string {
     .replace(/\bchặn\b/g, 'cản trở')
     // "Không có dư nợ" thiếu phạm vi: dư nợ ở đây là dư nợ tại ngân hàng
     .replace(/(Không có dư nợ)(?!\s+tại)/g, '$1 tại ngân hàng')
+    // "≤ 1,000 tỷ": dấu nghìn kiểu Anh trước đơn vị tiền đổi thành dấu chấm ("1.000 tỷ"); số thập phân thật (1,5 tỷ) giữ nguyên
+    .replace(/(?<![\d.,])\d{1,3}(?:,\d{3})+(?!\d)(?=\s*(?:tỷ|triệu|nghìn|đồng|VND|₫))/gu, (n) => n.replace(/,/g, '.'))
+    // "cấp Cấp 2 Hội sở" -> "Cấp 2 Hội sở"; cấp phê duyệt luôn viết hoa "Cấp N Hội sở"
+    .replace(/\bcấp\s+(Cấp\s)/g, '$1')
+    .replace(/(?<![\p{L}\d])cấp\s+(\d)\s+hội sở(?![\p{L}\d])/giu, 'Cấp $1 Hội sở')
+    // Từ viết tắt lặp quanh một từ khác ("SME KHDN SME") giữ một lần
+    .replace(/(?<![\p{L}\d])(\p{Lu}{2,})\s+(\p{Lu}{2,})\s+\1(?![\p{L}\d])/gu, '$1 $2')
+    // Biệt ngữ vận hành: SLA, checkpoint, "cấp TD"
+    .replace(/Quá SLA phê duyệt\s*[—–:-]\s*(.*?)giữ checkpoint/gi, 'Quá hạn phê duyệt: $1giữ nguyên bước hiện tại')
+    .replace(/\bQuá SLA\b/g, 'Quá hạn')
+    .replace(/\bgiữ checkpoint\b/gi, 'giữ nguyên bước hiện tại')
+    .replace(/\bsau cấp TD\b/g, 'sau khi cấp tín dụng')
     // "0,0 tỷ", "0 tỷ đồng" ghi "0 đồng"
     .replace(/(?<![\d.,])0(?:[.,]0+)?\s*tỷ(?:\s*đồng)?/gi, '0 đồng')
     // "Điều kiện tiên quyết trước khi trình cấp phê duyệt: … trước khi trình cấp phê duyệt": bỏ cụm ở nhãn khi nội dung đã có
@@ -597,3 +609,27 @@ export function fallbackConclusion(state: string, verdicts: TraceVerdict[]): { h
   if (state === 'Escalated') return { headline: 'AI đề xuất: chuyển cấp có thẩm quyền cao hơn xem xét', items: [] };
   return null;
 }
+
+/** Nhãn loại đề xuất đã nằm đầu tiêu đề ("Điều kiện trước giải ngân: …") thì bỏ khỏi tiêu đề, để nhãn chỉ hiện một lần. */
+export function stripKindLabel(label: string, title: string): string {
+  const t = cleanAiLine(title ?? '');
+  const l = foldPlain(label ?? '');
+  if (!l || !foldPlain(t).startsWith(l)) return t;
+  let i = 0; let j = 0; const tl = t.toLowerCase();
+  while (i < tl.length && j < l.length) {
+    if (PUNCT.test(tl[i])) { i += 1; if (l[j] === ' ') j += 1; continue; }
+    if (tl[i] === l[j]) { i += 1; j += 1; } else break;
+  }
+  const rest = t.slice(i).replace(/^[\s.…,:;—–-]+/, '').trim();
+  return rest || t;
+}
+const RATIONALE_SECTION: Record<string, string> = {
+  add_disbursement_condition: 'mục Điều kiện của báo cáo cuối (Validation)',
+  request_documents: 'mục Cần bổ sung của báo cáo cuối (Validation)',
+  add_risk_flag: 'mục Rủi ro của báo cáo cuối (Validation)',
+};
+/** "nêu trong báo cáo cuối của đội agent" -> tên mục cụ thể theo loại đề xuất. */
+export const rationaleText = (kind: string, raw: string): string =>
+  cleanAiLine(raw ?? '').replace(/nêu trong báo cáo cuối của đội agent/i, `nêu ở ${RATIONALE_SECTION[kind] ?? 'báo cáo cuối của Validation'}`);
+/** Số mục "N mục" trong tiêu đề yêu cầu bổ sung mà danh sách không có ở đây: chỉ dẫn nơi xem. */
+export const withListHint = (title: string): string => (/\b\d+\s+mục\b/.test(title) ? `${title}, xem danh sách ở Việc cần làm` : title);
