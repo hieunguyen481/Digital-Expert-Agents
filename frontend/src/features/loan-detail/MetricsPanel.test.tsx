@@ -30,3 +30,18 @@ describe('MetricsPanel', () => {
     expect(screen.queryByTestId('metric-source')).toBeNull();
   });
 });
+
+describe('kpiNote', () => {
+  const mk = (a: number, b: number) => ({ code: 'dscr', label: 'DSCR', unit: null, values: [val('DECLARED', a), val('RECOMPUTED', b)] }) as never;
+  it('số tái tính khác số khai thì có chú thích hai số', async () => {
+    const { kpiNote } = await import('./MetricsPanel');
+    const m = mk(1.34, 1.76) as { values: never[] };
+    expect(kpiNote(m as never, m.values[1])).toMatch(/Số tái tính từ tài liệu; khách khai 1,34/);
+  });
+  it('số khớp hoặc không phải tái tính thì không chú thích', async () => {
+    const { kpiNote } = await import('./MetricsPanel');
+    const m = mk(1.5, 1.5) as { values: never[] };
+    expect(kpiNote(m as never, m.values[1])).toBeUndefined();
+    expect(kpiNote(m as never, m.values[0])).toBeUndefined();
+  });
+});

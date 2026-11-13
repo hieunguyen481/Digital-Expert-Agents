@@ -29,6 +29,14 @@ function ValueCell({ loanId, metric, v }: { loanId: string; metric: Metric; v: M
   );
 }
 
+/** Chú thích dưới KPI: số tái tính (≈) khác số khách khai thì nói rõ có hai số và xem bảng bên dưới. */
+export function kpiNote(m: Metric, v: MetricValue): string | undefined {
+  if (v.kind !== 'RECOMPUTED') return undefined;
+  const other = m.values.find((x) => x.kind !== 'RECOMPUTED' && x.value_number != null);
+  if (!other || other.value_number == null || v.value_number == null || other.value_number === v.value_number) return undefined;
+  return `Số tái tính từ tài liệu; khách khai ${fmtNum(other.value_number)}. Xem Chỉ số tài chính.`;
+}
+
 /** Dải chỉ số chính: chỉ lấy số có thật của hồ sơ (đề nghị, kỳ hạn) và chỉ số đã có nguồn; thiếu thì không hiện. */
 export function KpiStrip({ amountBillion, currency, termMonths, metrics }: { amountBillion: number; currency: string; termMonths: number | null; metrics: Metric[] }) {
   const pick = (code: string) => {
@@ -42,7 +50,7 @@ export function KpiStrip({ amountBillion, currency, termMonths, metrics }: { amo
     <div className={styles.strip} role="group" aria-label="Chỉ số chính">
       <KpiCard label={`Đề nghị, tỷ ${currencyWord(currency)}`} value={fmtNum(amountBillion)} />
       {termMonths != null && <KpiCard label="Kỳ hạn, tháng" value={String(termMonths)} />}
-      {[dscr, ltv].map((x) => x && <KpiCard key={x.m.code} label={`${x.m.label}${x.m.unit ? `, ${x.m.unit}` : ''}`} value={`${x.v.kind === 'RECOMPUTED' ? '≈ ' : ''}${fmtNum(x.v.value_number)}`} />)}
+      {[dscr, ltv].map((x) => x && <KpiCard key={x.m.code} label={`${x.m.label}${x.m.unit ? `, ${x.m.unit}` : ''}`} value={`${x.v.kind === 'RECOMPUTED' ? '≈ ' : ''}${fmtNum(x.v.value_number)}`} note={kpiNote(x.m, x.v)} />)}
     </div>
   );
 }
