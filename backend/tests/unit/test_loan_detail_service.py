@@ -38,6 +38,14 @@ class FakeRepo:
     async def flags(self, loan_id: UUID) -> list[dict[str, Any]]:
         return [{"id": 1, "compliance_conclusion": "NO_ISSUE", "compliance_reason": "đã rà"}]
 
+    async def disbursement_conditions(self, loan_id: UUID) -> list[dict[str, Any]]:
+        return [
+            {"id": uuid4(), "condition_text": "Bổ sung hợp đồng bảo hiểm tài sản", "source": "AGENT:abc-123",
+             "created_at": "2026-11-13T09:00:00+00:00", "created_by_name": "Nguyễn Văn A"},
+            {"id": uuid4(), "condition_text": "Ký phụ lục thế chấp", "source": "MANUAL",
+             "created_at": "2026-11-13T10:00:00+00:00", "created_by_name": None},
+        ]
+
     async def collaterals(self, loan_id: UUID) -> list[dict[str, Any]]:
         return []
 
@@ -212,3 +220,12 @@ def test_explanation_reason_visible_to_recipient_and_privileged() -> None:
 
     got = supplement_request("RISK_PENDING_INFO", _explanation_steps("Giải trình nguồn tiền quý 2.", False))
     assert got is not None and got["reason"] == "Giải trình nguồn tiền quý 2." and got["kind"] == "EXPLANATION"  # Q05
+
+
+async def test_disbursement_conditions_hide_proposal_id_and_mark_origin() -> None:
+    svc = LoanDetailService(FakeRepo([]))  # type: ignore[arg-type]
+    data = await svc.overview(P("credit_appraiser"), LOAN)
+    conds = data["disbursement_conditions"]
+    assert [c["origin"] for c in conds] == ["AGENT_PROPOSED", "MANUAL"]
+    assert conds[0]["confirmed_by_name"] == "Nguyễn Văn A" and conds[0]["text"].startswith("Bổ sung")
+    assert "abc-123" not in str(conds) and all("source" not in c for c in conds)

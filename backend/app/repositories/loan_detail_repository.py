@@ -106,6 +106,16 @@ class LoanDetailRepository:
             {"loan_id": loan_id},
         )
 
+    async def disbursement_conditions(self, loan_id: UUID) -> list[Record]:
+        return await fetch_all(
+            self.session,
+            """SELECT cond.id, cond.condition_text, cond.source, cond.created_at, creator.full_name AS created_by_name
+               FROM credit.pre_disbursement_condition AS cond
+               LEFT JOIN identity.employee AS creator ON creator.id = cond.created_by
+               WHERE cond.loan_application_id = :loan_id ORDER BY cond.created_at, cond.id""",
+            {"loan_id": loan_id},
+        )
+
     async def collaterals(self, loan_id: UUID) -> list[Record]:
         return await fetch_all(
             self.session,
