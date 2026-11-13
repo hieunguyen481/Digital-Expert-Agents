@@ -332,3 +332,31 @@ test('Khách hàng: không có xếp hạng nào thì ẩn cả cột Mức rủ
   const note = await page.getByText('Chưa khách hàng nào trên trang này có xếp hạng rủi ro.').count();
   expect(hasCol ? note === 0 : note === 1).toBe(true);
 });
+
+/** Vòng 9: quét toàn văn theo LOẠI lỗi (không theo từng câu): từ in hoa đầu câu ngoài danh sách viết tắt, ".;", "VND" trong khối AI. */
+const KEEP_CAPS = new Set(['CIC', 'AML', 'KYC', 'KYB', 'BCTC', 'DSCR', 'LTV', 'EBITDA', 'SME', 'TSĐB', 'TCTD', 'OCR', 'AI', 'VND', 'HSV', 'LA', 'CS', 'TD', 'HĐTD', 'KHDN', 'CCCD', 'NHNN', 'TT', 'QĐ', 'ID', 'PDF', 'DTI', 'GPKD', 'VAT', 'II', 'III', 'IV', 'HM', 'EMP', 'CIF', 'DEMO', 'SLA', 'SHB', 'ICR', 'HĐQT', 'CMND', 'PEP', 'UBND', 'MST', 'TNHH', 'CP', 'NPL', 'ROE', 'ROA', 'CEO', 'HSTD', 'QHKH', 'HTTD', 'API']);
+export function shoutingStarts(text: string): string[] {
+  const out: string[] = [];
+  for (const sentence of text.split(/(?:^|[\n.!?:]\s+)/u)) {
+    const first = sentence.trim().split(/\s+/)[0]?.replace(/[^\p{L}\d-]/gu, '') ?? '';
+    if (first.length >= 2 && /\p{L}/u.test(first) && first === first.toLocaleUpperCase('vi') && first !== first.toLocaleLowerCase('vi')
+      && !KEEP_CAPS.has(first) && !/\d|-/.test(first)) out.push(first);
+  }
+  return out;
+}
+for (const [no, id] of [['00187', '000000000001'], ['00163', '000000000013'], ['00167', '000000000014']] as const) {
+  test(`quét toàn văn khối AI, ngăn kéo và panel của HSV-2026-${no}`, async ({ page }) => {
+    await loginAs(page, 'truongphong');
+    await page.goto(`/ho-so-vay/75000000-0000-4000-8000-${id}`);
+    await expect(page.getByTestId('agent-team')).toBeVisible({ timeout: 20_000 });
+    const texts: Record<string, string> = {};
+    texts.chiTiet = await page.locator('[data-testid="agent-team"], [data-testid="actions-panel"]').allInnerTexts().then((a) => a.join('\n'));
+    await page.getByRole('button', { name: 'Trợ lý AI' }).first().click();
+    texts.panel = await page.getByRole('complementary', { name: 'Trợ lý AI' }).innerText();
+    for (const [k, t] of Object.entries(texts)) {
+      expect(shoutingStarts(t), `${k}: từ in hoa đầu câu`).toEqual([]);
+      expect(t, `${k}: ".;"`).not.toMatch(/\.\s*;|\.\./);
+      expect(t, `${k}: VND`).not.toMatch(/\bVND\b/);
+    }
+  });
+}
