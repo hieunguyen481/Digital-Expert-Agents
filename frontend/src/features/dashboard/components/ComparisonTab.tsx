@@ -14,7 +14,7 @@ import type {
   BenchmarkRunMeta,
   BenchmarkStat,
 } from '@/types/dashboard';
-import { BLIND_RUNS, LIMIT_NOTE, casesNotBetter } from '../blindRuns';
+import { BLIND_RUNS, GATE_NOTE, limitNote, casesNotBetter } from '../blindRuns';
 import styles from '@/pages/AgentDashboardPage.module.css';
 
 type MetricKey = Exclude<keyof BenchmarkModeSummary, 'runs' | 'errors'>;
@@ -359,7 +359,8 @@ export function ComparisonTab() {
                 : 'Không có ca nào đội agent bằng hoặc thấp hơn mô hình đơn lẻ về độ phủ phát hiện.'}
             </p>
           )}
-          <p className={styles.muted} data-testid="cmp-limit">{LIMIT_NOTE}</p>
+          {both && <p className={styles.muted} data-testid="cmp-gate-note">{GATE_NOTE}</p>}
+          <p className={styles.muted} data-testid="cmp-limit">{limitNote(run)}</p>
         </div>
       </section>
 

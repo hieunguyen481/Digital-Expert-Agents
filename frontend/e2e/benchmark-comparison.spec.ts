@@ -24,7 +24,8 @@ async function expectRun(page: Page, stored: any) {
   await expect(page.getByTestId('cmp-tech')).toContainText(stored.run_id); // nằm trong <details>, vẫn có trong DOM
   await expect(page.getByTestId('cmp-headline')).toContainText(stored.summary.single && stored.summary.multi ? 'điểm phần trăm' : 'chỉ chạy một chế độ');
   await expect(page.getByTestId('cmp-tech')).toContainText(`Bộ chấm ${stored.grader_version ?? 'v1'}`);
-  await expect(page.getByTestId('cmp-limit')).toContainText('Giới hạn');
+  await expect(page.getByTestId('cmp-limit')).toContainText(`(${Object.keys(stored.per_case).length} ca, ${stored.runs_per_case} lần mỗi ca)`);
+  if (stored.summary.single && stored.summary.multi) await expect(page.getByTestId('cmp-gate-note')).toContainText('cổng quyết định tất định');
   if (stored.summary.single && stored.summary.multi) {
     // ca đội agent không hơn (bằng hoặc thấp hơn) phải thấy được; tính lại từ tệp
     const notBetter = Object.keys(stored.per_case).filter((id) => stored.per_case[id].multi.finding_recall.mean <= stored.per_case[id].single.finding_recall.mean + 1e-9);

@@ -20,9 +20,14 @@ export const BLIND_RUNS: Record<string, BlindRunNote> = {
   },
 };
 
-/** Câu giới hạn đặt cạnh kết luận cho mọi lượt đo. */
-export const LIMIT_NOTE =
-  'Giới hạn: bộ ca nhỏ (10 ca, 3 lần mỗi ca), chấm bằng từ khóa, không có người chấm; chỉ nói về các ca này.';
+/** Câu giới hạn đặt cạnh kết luận: số ca và số lần theo đúng lượt đang xem. */
+export function limitNote(run: { per_case: Record<string, unknown>; runs_per_case: number }): string {
+  return `Giới hạn: bộ ca nhỏ (${Object.keys(run.per_case).length} ca, ${run.runs_per_case} lần mỗi ca), chấm bằng từ khóa, không có người chấm; chỉ nói về các ca này.`;
+}
+
+/** Điều cần nói thẳng cạnh kết luận về tỷ lệ đúng cổng quyết định. */
+export const GATE_NOTE =
+  'Tỷ lệ đúng cổng của đội agent dựa vào cổng quyết định tất định (luật cứng) đã được hiệu chỉnh trên các bộ ca trước; mô hình đơn lẻ không có cổng này, nên phần lợi thế ở chỉ số này không chỉ đến từ việc chia việc cho nhiều agent.';
 
 /** Ca đội agent không hơn mô hình đơn lẻ về độ phủ phát hiện (bằng hoặc thấp hơn). */
 export function casesNotBetter(
