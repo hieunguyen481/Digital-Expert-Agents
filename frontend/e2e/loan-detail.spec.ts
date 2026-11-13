@@ -47,7 +47,7 @@ test('tdinh: Tờ trình tự lưu và còn nguyên sau khi tải lại', async 
   await page.goto(VINANOVA);
   const box = page.locator('#memo-4');
   await expect(box).toBeVisible();
-  const text = `Nhận định e2e ${Date.now()}`;
+  const text = `Nhận định thẩm định lúc ${Date.now()}`;
   await box.fill(text);
   await expect(page.getByTestId('memo-save-status')).toContainText('Đã tự lưu');
   await page.reload();
@@ -106,7 +106,7 @@ test('VinaNova: Thẩm định → Trình Rủi ro → Ý kiến Rủi ro/Tuân 
   await page.goto(VINANOVA);
   for (const n of ['1', '2', '3', '4', '5', '6', '7']) {
     const box = page.locator(`#memo-${n}`);
-    if (!(await box.inputValue()).trim()) await box.fill(`Nội dung e2e mục ${n}`);
+    if (!(await box.inputValue()).trim()) await box.fill(`Nội dung mục ${n} do thẩm định viên soạn`);
   }
   await page.locator('#memo-7').blur();
   await expect(page.getByTestId('memo-save-status')).toContainText('Đã tự lưu');

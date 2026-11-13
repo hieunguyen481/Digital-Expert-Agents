@@ -1205,7 +1205,7 @@ INSERT INTO sme_flag VALUES
     (1, 1, 'dso', 'HIGH', 'Kỳ thu tiền 150 ngày – vượt ngưỡng 90 ngày', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
     (1, 2, 'audit', 'HIGH', 'BCTC 2025 không nhất quán: lệch EBITDA, ngày ký, đơn vị kiểm toán', TRUE, 'APPRAISAL', '10000000-0000-4000-8000-000000000008', -1, '11:00'),
     (1, 3, 'cickh', 'HIGH', 'Bản CIC khách tự nộp có dấu hiệu không xác thực', FALSE, 'CHECKING', '10000000-0000-4000-8000-000000000003', -4, '16:00'),
-    (1, 4, 'coi', 'HIGH', 'Phiếu TTKH do cán bộ ngân hàng khác xác nhận (NH TMCP Phương Bắc (hư cấu)); người này là thành viên HĐQT của khách', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
+    (1, 4, 'coi', 'HIGH', 'Phiếu TTKH do cán bộ ngân hàng khác xác nhận (NH TMCP Phương Bắc); người này là thành viên HĐQT của khách', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
     (1, 5, 'debt', 'MEDIUM', 'Dư nợ vay: CIC 98 tỷ vs BCĐKT 56 tỷ (hai thời điểm khác nhau: CIC {D-7}, BCĐKT 31/12/2025)', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
     (1, 6, 'eq', 'MEDIUM', 'Vốn chủ sở hữu: 1.018,5 vs 270 tỷ', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
     (1, 7, 'cfo', 'MEDIUM', 'Dòng tiền HĐKD 2025: 93,2 vs 81,0 tỷ', TRUE, 'AI_DOCUMENT_CHECK', NULL, -4, '16:00'),
@@ -1318,12 +1318,12 @@ VALUES (
     COALESCE((SELECT max(revision) FROM credit.appraisal_memo_version WHERE loan_application_id = pg_temp.id('75000000', 1)), 0) + 1,
     'DRAFT',
     jsonb_build_object(
-        '1', jsonb_build_object('body', 'CTCP Bao bì VinaNova, MST 0318888888, sản xuất bao bì giấy, bao bì nhựa, in công nghiệp. Khách hàng mới tại ngân hàng (dữ liệu mẫu).', 'ai_blocks', '[]'::jsonb),
-        '2', jsonb_build_object('body', 'Đề nghị hạn mức vốn lưu động 80 tỷ đồng, thời hạn 12 tháng, mua nguyên liệu sản xuất (dữ liệu mẫu).', 'ai_blocks', '[]'::jsonb),
-        '3', jsonb_build_object('body', 'UBO Nguyễn Hoàng Nam (55%), không thuộc diện PEP (dữ liệu mẫu).', 'ai_blocks', '[]'::jsonb),
+        '1', jsonb_build_object('body', 'CTCP Bao bì VinaNova, MST 0318888888, sản xuất bao bì giấy, bao bì nhựa, in công nghiệp. Khách hàng mới tại ngân hàng.', 'ai_blocks', '[]'::jsonb),
+        '2', jsonb_build_object('body', 'Đề nghị hạn mức vốn lưu động 80 tỷ đồng, thời hạn 12 tháng, mua nguyên liệu sản xuất.', 'ai_blocks', '[]'::jsonb),
+        '3', jsonb_build_object('body', 'UBO Nguyễn Hoàng Nam (55%), không thuộc diện PEP.', 'ai_blocks', '[]'::jsonb),
         '4', jsonb_build_object('body', '', 'ai_blocks', '[]'::jsonb),
         '5', jsonb_build_object('body', '', 'ai_blocks', '[]'::jsonb),
-        '6', jsonb_build_object('body', 'TSBĐ gồm quyền sử dụng đất, nhà xưởng và máy móc thiết bị; xem danh sách ở mục Tài sản bảo đảm (dữ liệu mẫu).', 'ai_blocks', '[]'::jsonb),
+        '6', jsonb_build_object('body', 'TSBĐ gồm quyền sử dụng đất, nhà xưởng và máy móc thiết bị; xem danh sách ở mục Tài sản bảo đảm.', 'ai_blocks', '[]'::jsonb),
         '7', jsonb_build_object('body', '', 'ai_blocks', '[]'::jsonb)
     ),
     1, '10000000-0000-4000-8000-000000000008', CURRENT_TIMESTAMP

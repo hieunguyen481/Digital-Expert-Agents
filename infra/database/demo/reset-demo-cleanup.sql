@@ -68,4 +68,16 @@ BEGIN
     END;
   END LOOP;
 END $$;
+-- Dau ra do e2e/demo ghi len HO SO SEED (khong LA-): nhat ky chot nguon, nhat ky kiem tra danh muc va cac ban chot to trinh.
+-- Seed khong ghi cac bang nay (to trinh nhap duoc seed dat lai rieng), nen moi dong tren ho so seed deu la dau ra phat sinh.
+-- Ba bang chi-them (trigger chan UPDATE/DELETE): tat trigger trong dung giao dich nay roi bat lai.
+ALTER TABLE document.field_conflict_log DISABLE TRIGGER trg_field_conflict_log_append_only;
+ALTER TABLE credit.checklist_check_log DISABLE TRIGGER trg_checklist_check_log_append_only;
+ALTER TABLE credit.appraisal_memo_version DISABLE TRIGGER trg_appraisal_memo_version_append_only;
+DELETE FROM document.field_conflict_log WHERE loan_application_id IN (SELECT id FROM credit.loan_application WHERE application_number NOT LIKE 'LA-%');
+DELETE FROM credit.checklist_check_log WHERE loan_application_id IN (SELECT id FROM credit.loan_application WHERE application_number NOT LIKE 'LA-%');
+DELETE FROM credit.appraisal_memo_version WHERE loan_application_id IN (SELECT id FROM credit.loan_application WHERE application_number NOT LIKE 'LA-%');
+ALTER TABLE document.field_conflict_log ENABLE TRIGGER trg_field_conflict_log_append_only;
+ALTER TABLE credit.checklist_check_log ENABLE TRIGGER trg_checklist_check_log_append_only;
+ALTER TABLE credit.appraisal_memo_version ENABLE TRIGGER trg_appraisal_memo_version_append_only;
 COMMIT;
