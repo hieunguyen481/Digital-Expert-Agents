@@ -78,7 +78,7 @@
     color: #DCE4F1; font: 400 15px/1.55 'Be Vietnam Pro', system-ui, sans-serif;
   }
   .login-pf::before {
-    content: 'AI đề xuất  →  Chuyên viên xem và sửa  →\A Người có thẩm quyền quyết định';
+    content: 'AI đề xuất  →  Chuyên viên xem và sửa\A →  Người có thẩm quyền quyết định';
     white-space: pre-line;
     position: fixed; left: 0; top: calc(382px + var(--sh)); width: min(var(--pw), 560px); box-sizing: border-box; padding: 0 56px 0 var(--lm); z-index: 1;
     color: #fff; font: 600 13px/28px 'Be Vietnam Pro', system-ui, sans-serif;
@@ -89,19 +89,26 @@
     padding: 10px 14px; border-radius: 6px; color: var(--sk-ink); font: 400 13px/1.5 'Be Vietnam Pro', system-ui, sans-serif;
   }
   .login-pf::after {
-    content: 'AI đề xuất: viền nét đứt, nền tím nhạt. Nội dung do AI sinh, chưa xác nhận.';
-    top: calc(443px + var(--sh)); height: 60px; display: flex; align-items: center;
+    content: 'Viền nét đứt, nền tím nhạt: nội dung do AI sinh, chưa xác nhận.';
+    top: calc(443px + var(--sh)); height: 60px; display: flex; align-items: center; padding-left: 108px; z-index: 0; /* dưới khung đăng nhập để chip của nó nằm trên */
     border: 1.5px dashed #6B4FB8; background: #F3F0FA;
   }
   .pf-v5-c-login::before {
-    content: 'Người quyết định: viền liền, thanh navy bên trái. Quyết định của Cấp phê duyệt hoặc Hội đồng.';
-    top: calc(513px + var(--sh)); height: 60px; display: flex; align-items: center;
+    content: 'Viền liền, thanh navy: quyết định của Cấp phê duyệt hoặc Hội đồng.';
+    top: calc(513px + var(--sh)); height: 60px; display: flex; align-items: center; padding-left: 150px;
     border: 1px solid var(--sk-rule); border-left: 4px solid var(--sk-navy); background: var(--sk-surface);
   }
   .pf-v5-c-login::after {
     content: 'Đội agent, cùng một sơ đồ ở mọi màn hình:\A Planner → Credit · Compliance · Operations\A Document → Validation\A → Người quyết định, ngoài khung AI';
     white-space: pre-line; top: calc(582px + var(--sh)); border: 1px solid var(--sk-rule); background: var(--sk-surface); line-height: 1.7;
   }
+  /* Chip của hai thẻ như trang đăng nhập của ứng dụng: "AI đề xuất" tím nhạt, "Người quyết định" navy đặc. Dùng ::before/::after của khung chứa. */
+  .pf-v5-c-login__container::before, .pf-v5-c-login__container::after {
+    position: fixed; z-index: 2; box-sizing: border-box; padding: 1px 7px; border-radius: 4px;
+    font: 600 12px/20px 'Be Vietnam Pro', system-ui, sans-serif; white-space: nowrap;
+  }
+  .pf-v5-c-login__container::before { content: 'AI đề xuất'; left: calc(var(--lm) + 14px); top: calc(463px + var(--sh)); color: #4F3590; background: #E9E3F6; }
+  .pf-v5-c-login__container::after { content: 'Người quyết định'; left: calc(var(--lm) + 18px); top: calc(533px + var(--sh)); color: #fff; background: #14284B; }
   /* Logo và tên sản phẩm chuyển sang góc trên trái của panel navy, như trang đăng nhập của ứng dụng. */
   .pf-v5-c-login__header {
     position: fixed; top: 48px; left: var(--lm); z-index: 2; margin: 0;
@@ -115,4 +122,4 @@
 @media (min-width: 1070px) { :root { --sh: 0px; } }
 /* Màn thấp: bỏ thẻ cuối rồi thẻ giữa để không tràn khỏi panel. */
 @media (min-width: 960px) and (max-height: 760px) { .pf-v5-c-login::after { display: none; } }
-@media (min-width: 960px) and (max-height: 680px) { .pf-v5-c-login::before { display: none; } }
+@media (min-width: 960px) and (max-height: 680px) { .pf-v5-c-login::before, .pf-v5-c-login__container::after { display: none; } }
