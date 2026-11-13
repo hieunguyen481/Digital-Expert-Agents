@@ -35,6 +35,7 @@ describe('lần 6, việc 3: làm sạch chữ AI theo loại', () => {
     expect(quoteAfterLabel(label, `${label}: Chính sách áp dụng cho doanh nghiệp vừa và nhỏ`)).toBe('Chính sách áp dụng cho doanh nghiệp vừa và nhỏ');
     expect(quoteAfterLabel(label, `${label}…`)).toBe('');
     expect(quoteAfterLabel(label, 'Nội dung khác hẳn')).toBe('Nội dung khác hẳn');
+    expect(quoteAfterLabel(undefined as unknown as string, 'Sao kê 6 tháng')).toBe('Sao kê 6 tháng');
   });
   it('nhãn Validation không ghép lặp tên agent', () => {
     expect(sourceLabel('validation')).toBe('Kiểm chứng');

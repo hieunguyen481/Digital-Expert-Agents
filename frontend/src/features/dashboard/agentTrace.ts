@@ -422,10 +422,11 @@ export function cleanAiLine(raw: string): string {
 }
 /** Trích nguồn hiển thị. */
 export const quoteText = (q: string): string => cleanAiLine(q);
-const foldPlain = (x: string) => x.toLowerCase().replace(/[\s.…,:;"“”-]+/g, ' ').trim();
+const foldPlain = (x: string) => String(x ?? '').toLowerCase().replace(/[\s.…,:;"“”-]+/g, ' ').trim();
 /** Trích nguồn đứng sau nhãn nguồn: đoạn trích bắt đầu bằng chính nhãn thì bỏ phần lặp; chỉ còn dấu lửng thì trả chuỗi rỗng. */
 export function quoteAfterLabel(label: string, quote: string): string {
-  const q = quoteText(quote);
+  const q = quoteText(quote) ?? '';
+  if (!label) return q; // nguồn không có nhãn (dữ liệu cũ chỉ là một dòng chữ): giữ nguyên đoạn trích
   const l = foldPlain(label);
   let out = q;
   if (l.length >= 4 && foldPlain(q).startsWith(l)) {

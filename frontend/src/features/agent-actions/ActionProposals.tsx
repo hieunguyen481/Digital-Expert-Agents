@@ -66,7 +66,9 @@ function ProposalCard({ proposal: p, caseId, loanId }: { proposal: ActionProposa
       {docs.length > 0 && <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-13)' }}>{docs.map((d) => <li key={d}>{cleanAiLine(d)}</li>)}</ul>}
       {p.evidence.length > 0 && (
         <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>
-          {p.evidence.map((e, i) => <li key={i}><b>{sourceLabel(e.source)}</b>{quoteAfterLabel(sourceLabel(e.source), e.quote) ? `: ${quoteAfterLabel(sourceLabel(e.source), e.quote)}` : ''}</li>)}
+          {p.evidence.map((e, i) => (typeof e === 'string'
+            ? <li key={i}>{cleanAiLine(e)}</li>
+            : <li key={i}><b>{sourceLabel(e.source)}</b>{quoteAfterLabel(sourceLabel(e.source), e.quote) ? `: ${quoteAfterLabel(sourceLabel(e.source), e.quote)}` : ''}</li>))}
         </ul>
       )}
       {p.status !== 'PROPOSED' && p.decided_reason && <div style={{ fontSize: 'var(--fs-12)' }}>Lý do của người xử lý: {p.decided_reason}</div>}
