@@ -18,7 +18,7 @@ test('dashboard hiện đúng case vừa chạy ở /chat: DAG, task, luồng ph
   await loginAs(page, 'tdinh');
   await page.goto('/chat');
   await page.getByPlaceholder(/Hỏi Trợ lý AI/).fill('/VinaNova');
-  await page.getByText(/VinaNova/i).first().click();
+  await page.getByRole('option', { name: /VinaNova/i }).first().click();
   const caseResp = page.waitForResponse((r) => /\/agent-cases\/case_[0-9a-f]+$/.test(r.url()), { timeout: 120_000 });
   await page.getByPlaceholder(/Hỏi Trợ lý AI/).fill(REQUEST);
   await page.getByRole('button', { name: 'Gửi' }).click();

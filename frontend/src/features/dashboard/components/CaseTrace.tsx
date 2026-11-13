@@ -222,6 +222,11 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         ) : (
           <span className={styles.text}>Chưa có trao đổi giữa các agent.</span>
         )}
+        {!flow.some((f) => f.kind === 'challenge') && flow.length > 0 && (validation?.challenges ?? 0) > 0 && (
+          <span className={styles.dim} data-testid="flow-numeric-challenge">
+            Validation phản biện số liệu {validation?.challenges} lần: số chuyên gia nêu lệch số hệ thống tính lại, kết luận cuối dùng số tính lại (chi tiết ở mục Validation kiểm chứng bên dưới).
+          </span>
+        )}
         {!flow.some((f) => f.kind === 'challenge') && flow.length > 0 && (validation?.challenges ?? 0) === 0 && (
           <span className={styles.dim}>Validation không phát phản biện nào: các kết luận không mâu thuẫn.</span>
         )}

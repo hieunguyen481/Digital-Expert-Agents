@@ -10,7 +10,7 @@ async function pickVinaNova(page: import('@playwright/test').Page) {
   await page.goto('/chat');
   const box = page.getByPlaceholder(/Hỏi Trợ lý AI/);
   await box.fill('/VinaNova');
-  await page.getByText(/VinaNova/i).first().click();
+  await page.getByRole('option', { name: /VinaNova/i }).first().click();
 }
 
 test('thẩm định viên: yêu cầu phức tạp → multi-agent thật → chờ người xác nhận', async ({ page }) => {

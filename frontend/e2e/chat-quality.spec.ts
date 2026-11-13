@@ -13,7 +13,7 @@ async function pickCustomer(first: Page, role: RoleKey, name: string, fresh = fa
   await page.goto('/chat');
   const box = page.getByPlaceholder(/Hỏi Trợ lý AI/);
   await box.fill(`/${name}`);
-  await page.getByText(new RegExp(name, 'i')).first().click();
+  await page.getByRole('option', { name: new RegExp(name, 'i') }).first().click();
   return { page, box };
 }
 
@@ -65,8 +65,17 @@ test('"phân tích lại" với vai không được phép: từ chối đúng l�
   test.setTimeout(240_000);
   // Rủi ro không xem được khách VinaNova (ngoài phạm vi RLS) nên bị từ chối ACCESS_DENIED; vai xem được nhưng sai bước (QHKH) nhận lý do bước, xem chat-engine.
   // ruiro chỉ chạy được ở bước Rủi ro; VinaNova đang ở bước Thẩm định nên bị từ chối kèm lý do bước.
-  const c1 = await pickCustomer(page, 'ruiro', 'VinaNova');
-  const a = await ask(c1, 'ruiro', 'phân tích lại');
+  // Khách ngoài phạm vi thì ô chọn khách không liệt kê: đó là lời từ chối đúng (không chọn được thì không hỏi được).
+  await loginAs(page, 'ruiro');
+  await page.goto('/chat');
+  const box = page.getByPlaceholder(/Hỏi Trợ lý AI/);
+  await box.fill('/VinaNova');
+  const option = page.getByRole('option', { name: /VinaNova/i }).first();
+  const empty = page.getByRole('listbox', { name: 'Chọn khách hàng' }).getByText('Không tìm thấy khách hàng phù hợp');
+  await expect(option.or(empty)).toBeVisible({ timeout: 15_000 });
+  if (await empty.isVisible()) return;
+  await option.click();
+  const a = await ask({ page, box }, 'ruiro', 'phân tích lại');
   expect(a.status).toBe(403);
   expect(a.answer).toMatch(/AGENT_RUN_NOT_ALLOWED|không được chạy đội agent ở bước này|không phải người đang giữ|ACCESS_DENIED/);
   expect(a.answer).not.toMatch(/CUSTOMER_ALREADY_ASSIGNED|cán bộ khác phụ trách/);

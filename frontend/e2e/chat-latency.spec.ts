@@ -21,7 +21,7 @@ test(`chat về hồ sơ đã phân tích (${ROLE}): 6 câu nhanh, không lộ m
   await page.goto('/chat');
   const box = page.getByPlaceholder(/Hỏi Trợ lý AI/);
   await box.fill('/VinaNova');
-  await page.getByText(/VinaNova/i).first().click();
+  await page.getByRole('option', { name: /VinaNova/i }).first().click();
   const times: number[] = [];
   for (const item of QUESTIONS) {
     const t0 = Date.now();
