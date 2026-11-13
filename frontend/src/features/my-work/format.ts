@@ -86,6 +86,14 @@ export const STATUS_LABEL: Record<string, string> = {
   WITHDRAWN: 'Đã rút',
 };
 
+/** Tên trạng thái trong chữ do máy chủ viết sẵn (lý do chỉ xem) -> đúng tên chip trạng thái ở đầu trang: một trạng thái, một tên. */
+const SERVER_STATUS_NAME: Record<string, string> = {
+  'Đang cho ý kiến rủi ro': STATUS_LABEL.RISK_REVIEW, 'Tạm giữ do nghi gian lận': STATUS_LABEL.RISK_HOLD_FRAUD,
+  'Rủi ro – chờ giải trình': STATUS_LABEL.RISK_PENDING_INFO, 'Chờ Hội đồng': 'Chờ phiên Hội đồng',
+};
+export function unifyStatusNames(text: string): string {
+  return Object.entries(SERVER_STATUS_NAME).reduce((t, [from, to]) => t.split(from).join(to), String(text ?? ''));
+}
 export const stepLabel = (code: string): string => STEP_LABEL[code] ?? code;
 export const statusLabel = (code: string): string => STATUS_LABEL[code] ?? code;
 

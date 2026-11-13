@@ -1,3 +1,4 @@
+import { unifyStatusNames } from '@/features/my-work/format';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Button, Skeleton } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
@@ -81,7 +82,7 @@ export function AgentTeamPanel({ loanId, currency, status }: { loanId: string; c
     return (
       <div id="doi-agent" data-testid="agent-team" role="region" aria-label="Đội agent" className={styles.stack}>
         <span className={styles.note} data-testid="agent-team-lock">
-          <LockOutlined aria-hidden /> <b>Chỉ xem.</b> {data.deny_reason.replace(/^\s*chỉ xem[.:,]?\s*/i, '')}
+          <LockOutlined aria-hidden /> <b>Chỉ xem.</b> {unifyStatusNames(data.deny_reason.replace(/^\s*chỉ xem[.:,]?\s*/i, ''))}
         </span>
       </div>
     );
@@ -99,7 +100,7 @@ export function AgentTeamPanel({ loanId, currency, status }: { loanId: string; c
           {runsQ.isLoading && <Skeleton active paragraph={{ rows: 2 }} />}
           {data && !data.can_run && data.deny_reason && (
             <span className={styles.note} data-testid="agent-team-lock">
-              <LockOutlined aria-hidden /> <b>Chỉ xem.</b> {data.deny_reason.replace(/^\s*chỉ xem[.:,]?\s*/i, '')}
+              <LockOutlined aria-hidden /> <b>Chỉ xem.</b> {unifyStatusNames(data.deny_reason.replace(/^\s*chỉ xem[.:,]?\s*/i, ''))}
             </span>
           )}
           {run.isError && (

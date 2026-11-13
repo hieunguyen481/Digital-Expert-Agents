@@ -75,3 +75,12 @@ describe('deadlineClass: một hàm phân loại hạn theo thời điểm hết
     expect(deadlineClass({ ...item, due_at: null }, new Date())).toBe('none');
   });
 });
+
+import { unifyStatusNames } from './format';
+describe('unifyStatusNames', () => {
+  it('lý do chỉ xem của máy chủ dùng đúng tên chip trạng thái', () => {
+    expect(unifyStatusNames('Hồ sơ đang ở trạng thái “Đang cho ý kiến rủi ro”, vai trò của bạn')).toBe('Hồ sơ đang ở trạng thái “Chờ ý kiến rủi ro”, vai trò của bạn');
+    expect(unifyStatusNames('Đang thẩm định')).toBe('Đang thẩm định');
+    expect(unifyStatusNames('')).toBe('');
+  });
+});
