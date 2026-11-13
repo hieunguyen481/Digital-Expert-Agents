@@ -282,3 +282,26 @@ test('Dashboard: ghi chú trong bảng agent dùng chữ sans màu xám, không 
     expect(font).toMatch(/Be Vietnam Pro/);
   }
 });
+
+/** Toàn văn ngăn kéo dấu vết của mọi hồ sơ trình diễn có lượt chạy: không lộ chuỗi cổng, biệt ngữ hay tên agent viết thường. */
+test('ngăn kéo trace: toàn văn không còn chuỗi cổng thô, "chặn", "challenge", tên agent viết thường', async ({ page }) => {
+  test.setTimeout(240_000);
+  await loginAs(page, 'qhkh');
+  await page.goto('/dashboard');
+  await page.getByRole('tab', { name: 'Dấu vết' }).click();
+  const rows = page.locator('[data-testid^="case-row-"]');
+  await expect(rows.first()).toBeVisible({ timeout: 60_000 });
+  const n = Math.min(await rows.count(), 6);
+  for (let i = 0; i < n; i += 1) {
+    await rows.nth(i).click();
+    const drawer = page.locator('.ant-drawer-body');
+    await expect(drawer.getByTestId('trace-decisions')).toBeVisible({ timeout: 20_000 });
+    const text = await drawer.innerText();
+    expect(text, `ngăn kéo ${i}: nhãn cổng viết hoa`).not.toMatch(/CẦN BỔ SUNG|TỪ CHỐI:|CHUYỂN CẤP:/);
+    expect(text, `ngăn kéo ${i}: biệt ngữ`).not.toMatch(/\bchặn\b|\bchallenge\b/i);
+    expect(text, `ngăn kéo ${i}: tên agent viết thường giữa câu`).not.toMatch(/(?<![\p{L}_.])(credit|compliance|operations|document|validation|planner)(?![\p{L}_.])/u);
+    expect(text, `ngăn kéo ${i}: 0,0 tỷ`).not.toMatch(/\b0(?:,0)? tỷ\b/);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toBeHidden();
+  }
+});

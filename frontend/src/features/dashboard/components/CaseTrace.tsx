@@ -9,7 +9,7 @@ import {
   STATE_TONE, agentName, fmtSeconds, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
   BOARD_LABEL, approverLevelLabel, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
-  DECISION_LABEL, quoteAfterLabel, cleanAiLine,
+  DECISION_LABEL, quoteAfterLabel, cleanAiLine, sameAiText,
 } from '../agentTrace';
 import { ProposalChain } from '@/features/agent-actions/ActionProposals';
 import { statusLabel } from '@/features/my-work/format';
@@ -211,7 +211,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
               <li key={f.id}>
                 <b>{agentName(f.from)}</b> → <b>{agentName(f.to)}</b>
                 <StatusPill tone={f.kind === 'challenge' ? 'warn' : 'neutral'}>{FLOW_KIND[f.kind] ?? f.kind}</StatusPill>
-                {f.text && <span className={styles.dim}>{f.text}</span>}
+                {f.text && <span className={styles.dim}><AiText text={f.text} /></span>}
               </li>
             ))}
           </ol>
@@ -297,9 +297,9 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                 {validation.issues.map((l, i) => <li key={i}>{l}</li>)}
               </ul>
             )}
-            {validation.narrative && (
+            {validation.narrative && !flow.some((f) => f.from === 'validation' && sameAiText(f.text, validation.narrative)) && (
               <span className={styles.text}><b>Diễn giải cho người duyệt</b> <AiTag />
-                <span style={{ display: 'block' }}>{validation.narrative}</span></span>
+                <span style={{ display: 'block' }}><AiText text={validation.narrative} /></span></span>
             )}
           </>
         ) : (
@@ -318,7 +318,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         )}
         {stopReason && (
           <div className={styles.dec} data-testid="trace-stop-reason">
-            {state === 'Rejected' ? 'Đội agent đề xuất từ chối' : 'Đội agent đề nghị bổ sung hồ sơ'}: <b>{stopReason}</b>
+            {state === 'Rejected' ? 'Đội agent đề xuất từ chối' : 'Đội agent đề nghị bổ sung hồ sơ'}: <AiText text={stopReason} />
           </div>
         )}
         {verdicts.map((v) => (

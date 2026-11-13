@@ -308,8 +308,22 @@ export function humanizeGate(text: string): string {
     })
     .replace(/,\s+(Chưa|Không|Thiếu|Cần|Đã|Còn|Chỉ)(?=\s)/g, (_m, w: string) => `, ${w.toLowerCase()}`);
 }
-function scrubBase(text: string): string {
+const AGENT_WORDS = /(?<![\p{L}\d_.])(credit|compliance|operations|document|validation|planner)(?![\p{L}\d_]|\.\p{L})/gu;
+/** Chữ AI hay lẫn tiếng Anh, tên agent viết thường, "0,0 tỷ" và biệt ngữ cổng ("chặn"): làm sạch theo loại, không theo câu. */
+function scrubStyle(text: string): string {
   return text
+    .replace(AGENT_WORDS, (w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .replace(/\b(c)hallenges?\b/gi, (_m, c: string) => (c === 'C' ? 'Phản biện' : 'phản biện'))
+    .replace(/\bdữ liệu chặn\b/gi, 'dữ liệu bắt buộc')
+    .replace(/\bkhông chặn\b/gi, 'không cản trở')
+    .replace(/\bchặn\b/g, 'cản trở')
+    // "0,0 tỷ", "0 tỷ đồng" ghi "0 đồng"
+    .replace(/(?<![\d.,])0(?:[.,]0+)?\s*tỷ(?:\s*đồng)?/gi, '0 đồng')
+    // "Điều kiện tiên quyết trước khi trình cấp phê duyệt: … trước khi trình cấp phê duyệt": bỏ cụm ở nhãn khi nội dung đã có
+    .replace(/(Điều kiện tiên quyết)\s+(trước khi trình cấp phê duyệt)(\s*:\s*[^.]*?\2)/gi, '$1$3');
+}
+function scrubBase(text: string): string {
+  return scrubStyle(text)
     .replace(/\bAI_OCR\b/g, 'AI trích xuất')
     .replace(/\bcompliance[_ ]policy\b/gi, 'Chính sách tuân thủ')
     .replace(/\b([a-z]+(?:_[a-z]+)*_id)\s+[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, (_m, f: string) => FIELD_LABEL[f] ?? f.replace(/_/g, ' '))
@@ -422,19 +436,21 @@ export function cleanAiLine(raw: string): string {
 }
 /** Trích nguồn hiển thị. */
 export const quoteText = (q: string): string => cleanAiLine(q);
-const foldPlain = (x: string) => String(x ?? '').toLowerCase().replace(/[\s.…,:;"“”-]+/g, ' ').trim();
+const PUNCT = /[\s.…,:;"“”–—-]+/;
+const foldPlain = (x: string) => String(x ?? '').toLowerCase().replace(new RegExp(PUNCT.source, 'g'), ' ').trim();
 /** Trích nguồn đứng sau nhãn nguồn: đoạn trích bắt đầu bằng chính nhãn thì bỏ phần lặp; chỉ còn dấu lửng thì trả chuỗi rỗng. */
-export function quoteAfterLabel(label: string, quote: string): string {
+export function quoteAfterLabel(rawLabel: string, quote: string): string {
   const q = quoteText(quote) ?? '';
-  if (!label) return q; // nguồn không có nhãn (dữ liệu cũ chỉ là một dòng chữ): giữ nguyên đoạn trích
+  if (!rawLabel) return q; // nguồn không có nhãn (dữ liệu cũ chỉ là một dòng chữ): giữ nguyên đoạn trích
+  const label = cleanAiLine(rawLabel); // nhãn và trích đi cùng một bộ làm sạch: " – " và ", " là một
   const l = foldPlain(label);
   let out = q;
   if (l.length >= 4 && foldPlain(q).startsWith(l)) {
-    let i = 0; let j = 0; const lc = label.replace(/[\s.…,:;"“”-]+/g, ' ').trim().toLowerCase();
+    let i = 0; let j = 0; const lc = l;
     // cắt đúng phần đầu của q tương ứng với nhãn (so khớp từng ký tự, bỏ qua dấu câu và khoảng trắng)
     const qq = q.toLowerCase();
     while (i < qq.length && j < lc.length) {
-      if (/[\s.…,:;"“”-]/.test(qq[i])) { i += 1; if (lc[j] === ' ') j += 1; continue; }
+      if (PUNCT.test(qq[i])) { i += 1; if (lc[j] === ' ') j += 1; continue; }
       if (qq[i] === lc[j]) { i += 1; j += 1; } else { break; }
     }
     out = q.slice(i).replace(/^[\s.…,:;"“”—–-]+/, '').trim();
@@ -474,6 +490,12 @@ export function parseAiText(raw: string): AiTextParts {
   return { tag, lead, items };
 }
 
+/** Hai đoạn chữ AI cho cùng một nội dung sau khi làm sạch (không tính hoa thường, dấu câu). */
+export const sameAiText = (a: string, b: string): boolean => {
+  const k = (x: string) => { const p = parseAiText(x ?? ''); return foldPlain([p.tag, p.lead, ...p.items].filter(Boolean).join(' ')); };
+  const ka = k(a); return ka.length > 0 && ka === k(b);
+};
+
 const fold = (x: string) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
 const cite = (x: string) => (x.match(/\(([^()]*§[^()]*)\)/)?.[1] ?? '').replace(/\s+/g, '');
 const tokens = (x: string) => new Set(fold(x.replace(/\([^()]*\)/g, ' ')).split(/[^a-z0-9]+/).filter((w) => w.length > 2));
@@ -504,10 +526,23 @@ const isFragment = (x: string): boolean => {
   const w = fold(x).split(/[^a-z0-9]+/).filter(Boolean);
   return w.length > 0 && w.every((k) => GENERIC_WORDS.has(k));
 };
-/** Danh sách điều kiện/yêu cầu bổ sung cho người đọc: bỏ ý chỉ nêu số hiện trạng và mảnh câu chung chung, rồi gộp ý trùng. */
-export function cleanConditionList(list: string[]): string[] {
-  return dedupeConditions(list.filter((x) => x.trim() && !STATUS_ONLY.test(x.trim().replace(/[\s.;]+$/, '')) && !isFragment(x)));
+/** Ý chỉ nêu tình trạng một chỉ số ("DSCR cần xác minh và chưa đối chiếu được LTV"): không bảo ai làm gì nên không phải yêu cầu. */
+const METRIC_STATUS = /^(?:DSCR|LTV|DTI|ICR)\b(?!.*\b(?:làm rõ|bổ sung|cung cấp|giải trình|nộp)\b)\s+(?:cần xác minh|chưa|còn|đang|thấp|cao|vượt|dưới|trên|đạt)/iu;
+/** Danh sách điều kiện/yêu cầu bổ sung cho người đọc: làm sạch từng ý, ghép mảnh bị tách tại ";" (mở bằng chữ thường) vào ý trước,
+ *  bỏ ý chỉ nêu số hiện trạng, tình trạng chỉ số và mảnh câu chung chung, rồi gộp ý trùng. Chịu được undefined, chuỗi rỗng, phần tử không phải chuỗi. */
+export function cleanConditionList(list: unknown[] | null | undefined): string[] {
+  const merged: string[] = [];
+  for (const raw of Array.isArray(list) ? list : []) {
+    const x = typeof raw === 'string' ? raw : (raw && typeof (raw as { text?: unknown }).text === 'string' ? (raw as { text: string }).text : '');
+    const t = scrubInternal(x).trim().replace(/[\s.;:,]+$/, '');
+    if (!t) continue;
+    if (/^\p{Ll}/u.test(t) && merged.length) merged[merged.length - 1] += `; ${t}`;
+    else merged.push(upFirst(t));
+  }
+  return dedupeConditions(merged.filter((x) => !STATUS_ONLY.test(x.replace(/[\s.;]+$/, '')) && !isFragment(x) && !METRIC_STATUS.test(x)));
 }
+/** Tiêu đề thẻ "Yêu cầu khách bổ sung N mục": đếm lại N sau khi làm sạch danh sách. */
+export const recountTitle = (title: string, n: number): string => cleanAiLine(title).replace(/\b\d+\s+mục\b/, `${n} mục`);
 
 export interface FindingGroup<T> { agents: string[]; item: T }
 /** Gộp phát hiện của các chuyên gia khi nội dung gần như trùng nhau: giữ một, ghi tên các agent cùng nêu. */

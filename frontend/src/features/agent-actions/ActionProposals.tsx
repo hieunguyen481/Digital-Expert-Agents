@@ -3,7 +3,7 @@ import { Alert, Button, Input } from 'antd';
 import { AiText } from '@/features/dashboard/components/AiText';
 import { AiTag, StatusPill, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { cleanAiLine, quoteAfterLabel, sourceLabel } from '@/features/dashboard/agentTrace';
+import { cleanAiLine, cleanConditionList, quoteAfterLabel, recountTitle, sourceLabel } from '@/features/dashboard/agentTrace';
 import { useMe } from '@/auth/session';
 import { normalizeError } from '@/services/apiClient';
 import {
@@ -57,13 +57,13 @@ function ProposalCard({ proposal: p, caseId, loanId }: { proposal: ActionProposa
     },
   });
   const [color, label] = STATUS_TAG[p.status];
-  const docs = (p.params.documents as string[] | undefined) ?? [];
+  const docs = cleanConditionList((p.params.documents as unknown[] | undefined) ?? []);
   return (
     <div data-testid="action-proposal" data-kind={p.kind} data-status={p.status}
       style={{ background: 'var(--surface)', border: '1px solid var(--rule-strong)', borderRadius: 'var(--r-md)', padding: 'var(--s3) var(--s4)', display: 'grid', gap: 'var(--s2)' }}>
-      <div style={{ display: 'flex', gap: 'var(--s2)', alignItems: 'center', flexWrap: 'wrap' }}><AiTag>{KIND_LABEL[p.kind]}</AiTag><StatusPill tone={color}>{label}</StatusPill><b>{cleanAiLine(p.title)}</b></div>
+      <div style={{ display: 'flex', gap: 'var(--s2)', alignItems: 'center', flexWrap: 'wrap' }}><AiTag>{KIND_LABEL[p.kind]}</AiTag><StatusPill tone={color}>{label}</StatusPill><b>{p.kind === 'request_documents' && docs.length > 0 ? recountTitle(p.title, docs.length) : cleanAiLine(p.title)}</b></div>
       <div style={{ fontSize: 'var(--fs-13)' }}>Căn cứ: <AiText text={p.rationale} /></div>
-      {docs.length > 0 && <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-13)' }}>{docs.map((d) => <li key={d}>{cleanAiLine(d)}</li>)}</ul>}
+      {docs.length > 0 && <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-13)' }}>{docs.map((d) => <li key={d}>{d}</li>)}</ul>}
       {p.evidence.length > 0 && (
         <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>
           {p.evidence.map((e, i) => (typeof e === 'string'
