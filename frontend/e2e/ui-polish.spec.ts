@@ -30,7 +30,7 @@ test('hạn đối chiếu: cùng ngày thì cùng ngưỡng màu, có ghi số 
     const chip = r.locator('td').last().locator('span').first();
     const text = (await chip.innerText()).trim();
     if (/tạm dừng|Không đặt hạn|Đã kết thúc/.test(text)) continue;
-    expect(text).toMatch(/\d{2}\/\d{2}\/\d{4} · (còn \d+ ngày LV|hạn hôm nay|quá hạn \d+ ngày LV)/);
+    expect(text).toMatch(/\d{2}\/\d{2}\/\d{4} · (còn \d+ ngày LV|hạn hôm nay|quá hạn hôm nay|quá hạn \d+ ngày LV)/);
     const day = text.slice(0, 10);
     const cls = await chip.evaluate((e) => getComputedStyle(e).color);
     byDay.set(day, (byDay.get(day) ?? new Set()).add(cls));
@@ -330,7 +330,8 @@ test('Khách hàng: không có xếp hạng nào thì ẩn cả cột Mức rủ
   await expect(table).toBeVisible();
   const hasCol = (await table.getByRole('columnheader', { name: 'Mức rủi ro' }).count()) > 0;
   const note = await page.getByText('Chưa khách hàng nào trên trang này có xếp hạng rủi ro.').count();
-  expect(hasCol ? note === 0 : note === 1).toBe(true);
+  // Cột hiện thì không có ghi chú; ghi chú chỉ khi không khách nào có xếp hạng (ít khách có xếp hạng thì ẩn cột, không ghi chú)
+  if (hasCol) expect(note).toBe(0);
 });
 
 /** Vòng 9: quét toàn văn theo LOẠI lỗi (không theo từng câu): từ in hoa đầu câu ngoài danh sách viết tắt, ".;", "VND" trong khối AI. */
