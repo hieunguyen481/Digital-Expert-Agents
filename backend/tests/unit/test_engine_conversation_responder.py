@@ -301,3 +301,30 @@ def test_auditor_cannot_rerun_agent_team_from_chat_guard() -> None:
     from app.services.loan_agent_run_service import denial_reason
     auditor = SimpleNamespace(roles=("auditor",), is_admin=False)
     assert denial_reason(auditor, "UNDERWRITING", False) is not None
+
+
+def test_policy_question_is_answered_from_result_not_prompt_assembly() -> None:
+    """S02: hỏi điều khoản/vi phạm khi đã có kết quả → ngữ cảnh có lý do, phát hiện, điều khoản đã trích, cấp đề xuất."""
+    assert mod.question_kind("Hồ sơ này có vi phạm điều khoản chính sách nào không?") == "policy"
+    case = {"state": "Pending Approval", "package": {
+        "recommendation": "ĐỀ XUẤT PHÊ DUYỆT CÓ ĐIỀU KIỆN: ok", "required_approver_level": "head_office_l2",
+        "verdicts": [{"agent": "risk", "decision": "approve", "summary": "s", "findings": ["Vượt hạn mức ngành"],
+                      "evidence": [{"source": "CS-TD-SME/2025 §4.2", "quote": "trần ngành 30%"}]}]}}
+    ctx = mod.result_context(case, [], "policy")
+    assert "Vượt hạn mức ngành" in ctx and "CS-TD-SME/2025 §4.2" in ctx and "Cấp phê duyệt đề xuất" in ctx
+    assert "ĐỀ XUẤT PHÊ DUYỆT" not in ctx and "Đề xuất phê duyệt có điều kiện" in ctx  # Q04
+    assert "ba điều khoản" in mod._KIND_GUIDE["policy"]  # chỉ dặn KHÔNG nhắc; xem câu dặn
+    assert "KHÁC với bước hiện tại của hồ sơ" in ctx  # mục 14
+
+
+def test_metric_context_keeps_reason_when_no_package() -> None:
+    """S03: ca Cần bổ sung không có gói: câu hỏi chỉ số vẫn nhận lý do và báo cáo cuối có số liệu."""
+    case = {"state": "Needs Info", "package": {}}
+    events = [{"type": "state_changed", "payload": {"report_text": "DSCR 1,12 dưới ngưỡng 1,2", "reason": "CẦN BỔ SUNG: thiếu BCTC"}}]
+    ctx = mod.result_context(case, events, "metric")
+    assert "DSCR 1,12" in ctx and "Cần bổ sung: thiếu BCTC" in ctx
+
+
+def test_plain_gate_label_handles_all_caps_without_colon() -> None:
+    assert mod.plain_gate_label("ĐỀ XUẤT PHÊ DUYỆT CÓ ĐIỀU KIỆN") == "Đề xuất phê duyệt có điều kiện"
+    assert mod.plain_gate_label("Hồ sơ ổn") == "Hồ sơ ổn"

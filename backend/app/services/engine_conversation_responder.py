@@ -76,8 +76,13 @@ _GATE_LABEL = re.compile(r"^\s*([A-ZÀ-Ỵ][A-ZÀ-Ỵ /]+?)\s*:\s*")
 def plain_gate_label(text: Any) -> str:
     """Nhãn cổng viết hoa đầu câu ("CẦN BỔ SUNG/ĐIỀU CHỈNH: ...") đọc như người viết: "Cần bổ sung/điều chỉnh: ..."."""
     value = str(text or "")
+    if "\n" in value:
+        return "\n".join(plain_gate_label(line) for line in value.split("\n"))
     m = _GATE_LABEL.match(value)
     if not m:
+        letters = [c for c in value if c.isalpha()]
+        if len(letters) >= 6 and all(c.isupper() for c in letters):  # cả câu viết hoa, không có dấu hai chấm
+            return value[:1].upper() + value[1:].lower()
         return value
     label = m.group(1).strip().lower()
     return label[:1].upper() + label[1:] + ": " + value[m.end():]
@@ -139,7 +144,9 @@ _POLICY_NOTE = ("\n\nĐIỀU KHOẢN CHÍNH SÁCH LIÊN QUAN (CS-TD-SME/2025; tr
 _LEVEL_NAMES_NOTE = ("\n\nTÊN CẤP PHÊ DUYỆT THEO BẬC NGƯỠNG §3.1 (theo tổng cấp tín dụng; trả lời bằng tên cấp, không chỉ nêu khoảng): "
                      f"bậc ≤ ngưỡng thấp: {_LEVEL_LABEL['branch_director']}; bậc giữa (trên ngưỡng thấp đến ngưỡng cao): "
                      f"{_LEVEL_LABEL['head_office_l2']}; bậc > ngưỡng cao: {_LEVEL_LABEL['council']}.")
-_METRIC_Q = re.compile(r"dscr|ebitda|\bltv\b|nợ vay|đòn bẩy|hạn mức|tài sản bảo đảm|tsđb|định giá|kết luận|đề xuất|cấp phê duyệt|"
+# Câu hỏi về điều khoản/vi phạm/chính sách của hồ sơ đã có kết quả: trả lời từ kết quả đội agent, không từ danh sách điều khoản tra thêm.
+_POLICY_KIND_Q = re.compile(r"điều khoản|vi phạm|chính sách|quy định|quy chế|§", re.I)
+_METRIC_Q = re.compile(r"điều khoản|vi phạm|chính sách|quy định|quy chế|ngưỡng|dscr|ebitda|\bltv\b|nợ vay|đòn bẩy|hạn mức|tài sản bảo đảm|tsđb|định giá|kết luận|đề xuất|cấp phê duyệt|"
                        r"điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|phê duyệt|quyết định|thẩm quyền", re.I)
 _LEVERAGE_Q = re.compile(r"nợ vay\s*/\s*ebitda|đòn bẩy|nợ/ebitda|debt\s*/\s*ebitda", re.I)
 _LEVERAGE_NOTE = ("\n\nLƯU Ý VỀ NỢ VAY/EBITDA: có hai cách tính, phải nêu rõ nhãn: 'hiện hữu' (chỉ nợ đang có, trước khi cấp khoản này) "
@@ -148,6 +155,10 @@ _LEVERAGE_NOTE = ("\n\nLƯU Ý VỀ NỢ VAY/EBITDA: có hai cách tính, phải
 _RERUN = re.compile(r"phân tích lại|chạy lại|đánh giá lại|thẩm định lại|làm mới|phân tích mới|tính lại từ đầu", re.I)
 _PII = re.compile(r"\b(cccd|cmnd|căn cước|số điện thoại|sđt|email|địa chỉ nhà|ngày sinh)\b", re.I)
 _FINAL_STATES = {"Pending Approval", "Needs Info", "Rejected", "Completed", "Executing"}
+
+
+_SCOPE_NOTE = ("kết quả này là đề xuất của đội agent, tách khỏi bước hiện tại của hồ sơ: không nói hồ sơ 'chưa thể phê duyệt' "
+               "chỉ vì ca phân tích ở trạng thái Cần bổ sung; viết nhãn kết luận như câu thường, không viết hoa toàn bộ")
 
 
 def _epoch(value: Any) -> float | None:
@@ -161,6 +172,8 @@ def question_kind(message: str) -> str:
     """Loại câu hỏi về kết quả hồ sơ: authority (ai/cấp nào quyết định), broad (kết luận, cờ, điều kiện), metric (một chỉ số)."""
     if _AUTHORITY_Q.search(message):
         return "authority"
+    if _POLICY_KIND_Q.search(message):
+        return "policy"
     return "broad" if _BROAD_Q.search(message) else "metric"
 
 
@@ -168,6 +181,10 @@ _KIND_GUIDE = {
     "broad": "trả lời thẳng câu hỏi, nêu số liệu và căn cứ có trong kết quả; thiếu thì nói rõ là kết quả chưa nêu",
     "metric": ("chỉ trả lời chỉ số được hỏi trong 2-4 câu: giá trị, ngưỡng, đạt hay không, nguồn; số liệu lấy đúng từ kết quả hoặc từ báo cáo tài chính theo năm (kèm năm); "
                "KHÔNG chép lại kết luận, KHÔNG liệt kê điều kiện hay cờ rủi ro; thiếu thì nói rõ là kết quả chưa nêu"),
+    "policy": ("trả lời TỪ kết quả phân tích: nêu lý do, các phát hiện và điều khoản chính sách (số điều khoản) mà kết quả đã trích, "
+               "và cấp phê duyệt đề xuất nếu liên quan; chỉ bổ sung từ danh sách điều khoản tra thêm khi kết quả không nêu; "
+               "không nói về cách hệ thống được cung cấp điều khoản hay prompt (không viết 'ba điều khoản được cung cấp'); "
+               "thiếu thì nói rõ là kết quả chưa nêu"),
     "authority": ("trả lời theo cấp thẩm quyền và vai, không nêu tên hay mã định danh; nêu CẤP PHÊ DUYỆT ĐỀ XUẤT của đội agent "
                   "và điều khoản chính sách (số điều khoản) quy định thẩm quyền; nói rõ đây là đề xuất của AI, người có thẩm quyền "
                   "quyết định; người được phân công/QHKH của khách không được phê duyệt nếu điều khoản tách bạch nêu vậy; "
@@ -184,8 +201,9 @@ def result_context(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]],
     package = case.get("package") or {}
     final = next((e.get("payload") or {} for e in reversed(events) if e.get("type") == "state_changed"
                   and (e.get("payload") or {}).get("report_text")), {})
-    parts = [f"Trạng thái: {_STATE_LABEL.get(str(case.get('state')), case.get('state'))}"]
-    if package.get("recommendation") and kind == "broad":
+    parts = [f"Trạng thái ca phân tích của đội agent (đề xuất của AI, KHÁC với bước hiện tại của hồ sơ): "
+             f"{_STATE_LABEL.get(str(case.get('state')), case.get('state'))}"]
+    if package.get("recommendation") and kind in ("broad", "policy"):
         parts.append(f"Kết luận: {plain_gate_label(package['recommendation'])}")
     level = package.get("required_approver_level") or ""
     if not level and kind == "authority":  # báo cáo cuối của lượt phân tích có thể ghi cấp đề xuất dạng chữ
@@ -200,14 +218,18 @@ def result_context(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]],
         decision = _VERDICT_LABEL.get(str(v.get("decision", "")).lower(), v.get("decision"))
         line = f"{_AGENT_LABEL.get(v.get('agent'), v.get('agent'))} ({decision}): {v.get('summary')}; " \
                f"phát hiện: {'; '.join(v.get('findings') or [])}"
-        parts.append(line + (f"; điều kiện: {'; '.join(v.get('conditions') or [])}" if kind == "broad" else ""))
-    if kind != "broad":
+        parts.append(line + (f"; điều kiện: {'; '.join(v.get('conditions') or [])}" if kind in ("broad", "policy") else ""))
+        if kind == "policy":
+            cited = [f"{e.get('source')}: {e.get('quote')}" for e in v.get("evidence") or [] if e.get("source")]
+            if cited:
+                parts.append("  điều khoản/nguồn đã trích: " + " | ".join(cited[:6]))
+    if kind == "metric" and package:  # có gói thì số liệu nằm ở ý kiến từng chuyên gia
         return "\n".join(parts)[:4000]
     for k, label in (("reason", "Lý do"), ("report_text", "Báo cáo cuối")):
         if final.get(k):
-            parts.append(f"{label}: {plain_gate_label(final[k]) if k == 'reason' else final[k]}")
+            parts.append(f"{label}: {plain_gate_label(final[k])}")
     for k, label in (("findings", "Phát hiện"), ("conditions", "Điều kiện")):
-        if final.get(k) and not package:
+        if final.get(k) and not package and kind != "metric":
             parts.append(f"{label}: " + "; ".join(final[k]))
     return "\n".join(parts)[:6000]
 
@@ -372,7 +394,7 @@ class EngineConversationResponder:
         t_case = time.perf_counter() - t1
         kind = question_kind(message)
         grounded = (f"{message}\n\nKẾT QUẢ PHÂN TÍCH GẦN NHẤT CỦA ĐỘI AGENT CHO HỒ SƠ NÀY (nguồn chính để trả lời; "
-                    f"{_KIND_GUIDE[kind]}):\n"
+                    f"{_KIND_GUIDE[kind]}; {_SCOPE_NOTE}):\n"
                     f"{result_context(case, events, kind)}{await self._policy_block(message)}{self._leverage_note(message)}")
         t2 = time.perf_counter()
         inner = await self._inner.respond(principal=principal, conversation=conversation, message=grounded,
