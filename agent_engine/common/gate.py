@@ -38,6 +38,28 @@ _LABEL_LEAD = re.compile(r"^\s*(?:đồng ý có điều kiện|cần thêm thô
 _AUDIT = re.compile(r"kiểm toán", re.I)
 
 
+# VIỆC PHẢI LÀM = vế có động từ hành động kèm đối tượng ("Bổ sung BCTC kiểm toán", "cần mở tài khoản thanh toán").
+# Câu nhận xét/kết luận ("KYB đạt", "chưa cho thấy vi phạm", "Hạn mức hiện tại là 0 đồng") hay vế chỉ có động từ mà không
+# nêu việc gì ("Hồ sơ cần bổ sung trước khi xem xét") thì không phải điều kiện.
+_VERBS = (r"bổ sung|cung cấp|nộp|mở|định giá|thẩm định lại|xác minh|xác nhận|đối chiếu|đối soát|hoàn tất|hoàn thiện|đăng ký|ký|"
+          r"cập nhật|tra cứu|công chứng|mua|thu thập|giải trình|làm rõ|kiểm tra|giảm|điều chỉnh|gia hạn|lập|thiếu|chưa|chờ|chứng minh|chênh lệch|lệch|không khớp|có")
+_ACTION = re.compile(r"(?<!\w)(?:(?:cần|phải|nên)\s+(?:có|(?:" + _VERBS + r"))|(?:" + _VERBS.replace("|có", "") + r"))(?!\w)(.*)$", re.I)
+_PAST_OR_STATUS = re.compile(r"^\s*(?:đã|đều|đang)\b|\b(?:đạt|chưa cho thấy|không (?:có )?(?:trùng|vi phạm|phát hiện))\b", re.I)
+_OBJECT_STOP = re.compile(r"^\s*(?:(?:trước|sau|để|khi|nếu|vì|do)\b|[,(])", re.I)
+
+
+def is_action(text: str) -> bool:
+    """Vế là việc phải làm (xác định bằng luật, không LLM): có động từ hành động và có nêu đối tượng của việc."""
+    t = (text or "").strip()
+    if not t or _PAST_OR_STATUS.search(t):
+        return False
+    for m in _ACTION.finditer(t):
+        obj = m.group(1)
+        if obj.strip() and not _OBJECT_STOP.match(obj):
+            return True
+    return False
+
+
 def split_clauses(text: str) -> list[str]:
     """Tách một câu kết luận của chuyên gia thành các việc còn thiếu, bằng luật xác định (không LLM): bỏ câu dẫn phủ định
     ("Chưa thể chốt phê duyệt: ...", "Chưa thể chấp thuận ..."), đổi "chưa <việc>" thành "cần <việc>"."""
@@ -50,6 +72,8 @@ def split_clauses(text: str) -> list[str]:
             continue
         if _NOT_YET.match(c):
             c = "cần " + _NOT_YET.sub("", c)
+        if not is_action(c):
+            continue  # câu nhận xét/kết luận/hiện trạng: không phải điều kiện
         c = c[:1].upper() + c[1:]
         if c not in out:
             out.append(c)

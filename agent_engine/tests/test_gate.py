@@ -131,3 +131,21 @@ def test_gate_never_more_favourable_than_expert_without_reason():
     assert out["compliance"].decision == D.APPROVE and len(notes) == 1
     same, none = gate.reconcile_experts(v, D.NEED_MORE_INFO)
     assert same["credit"].decision == D.NEED_MORE_INFO and not none
+
+
+def test_split_clauses_chi_giu_viec_phai_lam():
+    text = ("Các chỉ tiêu hiện tính được khác chưa cho thấy vi phạm ngưỡng; KYB đạt, không có trùng danh sách đen, CIC nhóm 1. "
+            "Hồ sơ cần bổ sung trước khi xem xét phê duyệt; Hạn mức đủ điều kiện hiện tại là 0 đồng; "
+            "Bổ sung BCTC kiểm toán; cần mở tài khoản thanh toán tại ngân hàng; chưa có định giá TSĐB; "
+            "Xác minh người đại diện pháp luật; Cập nhật lịch trả nợ dự phóng")
+    out = gate.split_clauses(text)
+    assert out == ["Bổ sung BCTC kiểm toán", "Cần mở tài khoản thanh toán tại ngân hàng", "Cần có định giá TSĐB",
+                   "Xác minh người đại diện pháp luật", "Cập nhật lịch trả nợ dự phóng"]
+
+
+def test_is_action_nhan_xet_khong_la_dieu_kien():
+    for t in ["KYB đạt, không có trùng danh sách đen, CIC nhóm 1", "Hạn mức đủ điều kiện hiện tại là 0 đồng",
+              "Đã xác minh người đại diện", "Hồ sơ cần bổ sung trước khi xem xét phê duyệt"]:
+        assert not gate.is_action(t), t
+    for t in ["Đăng ký giao dịch bảo đảm", "Tra cứu CIC của bên bảo lãnh", "Ký hợp đồng tín dụng", "Nộp giấy phép kinh doanh"]:
+        assert gate.is_action(t), t

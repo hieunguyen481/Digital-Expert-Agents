@@ -31,6 +31,15 @@ _STAGE_BOUND = re.compile(
 _GENERIC_REQUEST = re.compile(r"xác minh|bổ sung|cung cấp|nộp|đối soát|đối chiếu|hoàn thiện|hoàn tất|chưa có|thiếu", re.I)
 
 
+# Điều kiện do mã dựng (cổng, công cụ) có dấu hiệu riêng dù không mở đầu bằng động từ: vẫn giữ
+_TOOL_CONDITION = re.compile(r"tiên quyết|bắt buộc|không chặn|trước (?:khi )?giải ngân|trước khi trình", re.I)
+
+
+def is_actionable(text: str) -> bool:
+    """Chỉ VIỆC PHẢI LÀM mới thành đề xuất hành động; câu nhận xét/kết luận/hiện trạng số liệu thì không."""
+    return gate.is_action(text) or bool(_TOOL_CONDITION.search(text))
+
+
 def is_disbursement_condition(text: str) -> bool:
     """Vế chỉ ràng buộc giai đoạn giải ngân: nêu rõ "không chặn trình", hoặc hành vi giai đoạn giải ngân (ký hợp đồng,
     mở tài khoản, công chứng, đăng ký giao dịch bảo đảm, bảo hiểm...), hoặc việc gắn "trước giải ngân" (hoàn thiện
@@ -168,7 +177,7 @@ def derive(validation: Verdict, final_verdicts: list[Verdict], report: dict) -> 
         # điều kiện bắt buộc (vd. Q-V thiếu TK thanh toán) không bị cắt: mỗi điều kiện khác nhau là một đề xuất
         conds: list[str] = []
         parts = [p.strip(" .") for c in dict.fromkeys(report.get("conditions") or []) for p in re.split(r";\s+", c) if p.strip(" .")]
-        for c in dict.fromkeys(parts):
+        for c in dict.fromkeys(p for p in parts if is_actionable(p)):
             if not any(similar(c, k) for k in conds):
                 conds.append(c)
         pre = [c for c in conds if is_pre_decision(c)]  # chưa gộp với yêu cầu bổ sung của chuyên gia: dedupe_items lo

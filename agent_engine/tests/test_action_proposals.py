@@ -120,7 +120,7 @@ async def test_backend_refusal_returns_to_proposed_and_logs(env):
 
 
 def test_derive_keeps_every_condition_including_q_v_account():
-    conds = [f"Điều kiện {i}" for i in range(1, 6)] + ["Mở tài khoản thanh toán trước giải ngân (Q-V)"]
+    conds = ["Ký hợp đồng thế chấp", "Công chứng hợp đồng bảo lãnh", "Mua bảo hiểm tài sản bảo đảm", "Đăng ký giao dịch bảo đảm", "Ký phụ lục giải ngân từng đợt"] + ["Mở tài khoản thanh toán trước giải ngân (Q-V)"]
     out = proposals.derive(verdict("validation", VerdictDecision.APPROVE, evidence=[Evidence(source="g", quote="q")]),
                            [], {"conditions": conds})
     assert [p["params"]["text"] for p in out] == conds
