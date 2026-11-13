@@ -49,7 +49,7 @@ export function OverviewTab() {
         <KpiCard hero label="Đã có kết luận" value={fmtInt(done)} note={`trên ${fmtInt(s.cases)} lượt${pct}`} />
         <KpiCard label={TERM.totalRuns} value={fmtInt(s.cases)} note="lượt" />
         <KpiCard label={TERM.toolCalls} value={fmtInt(s.tool_calls)} note="lần" />
-        <KpiCard label={TERM.challenge} value={fmtInt(s.challenges)} note="lần" />
+        <KpiCard label={TERM.challenge} value={fmtInt(s.challenges)} note="lần; phản biện số liệu xem ở từng lượt" />
         {avg && <KpiCard label="Thời gian trung bình" value={avg[0]} note={avg[1]} />}
         {s.cost_usd != null && <KpiCard label="Chi phí LLM" value={fmtDec(s.cost_usd, 2)} note={`USD, ${fmtInt(s.llm_calls)} lượt gọi`} />}
       </div>

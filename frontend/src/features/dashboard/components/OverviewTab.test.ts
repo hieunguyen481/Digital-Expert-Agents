@@ -12,3 +12,10 @@ describe('participationNote', () => {
     expect(participationNote({ agent: 'credit', tasks: 12, errors: 0, tool_calls: 30 })).toBeNull();
   });
 });
+
+describe('thuật ngữ thẻ đối chất', () => {
+  it('thẻ chỉ đếm đối chất giữa các agent, không gọi là phản biện của Validation', async () => {
+    const { TERM } = await import('@/utils/glossary');
+    expect(TERM.challenge).toBe('Đối chất giữa các agent');
+  });
+});

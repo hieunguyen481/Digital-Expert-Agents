@@ -9,7 +9,7 @@ export const TERM = {
   runs: 'Lượt phân tích',
   recentRuns: 'Lượt phân tích gần đây',
   totalRuns: 'Tổng lượt phân tích',
-  challenge: 'Phản biện của Validation',
+  challenge: 'Đối chất giữa các agent',
   plannerAssign: 'Planner giao việc cho đội agent',
   validationCheck: 'Validation kiểm chứng',
   toolCalls: 'Công cụ đã gọi',
