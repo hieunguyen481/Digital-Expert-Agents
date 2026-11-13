@@ -303,6 +303,11 @@ test('ngăn kéo trace: toàn văn không còn chuỗi cổng thô, "chặn", "c
     expect(text, `ngăn kéo ${i}: 0,0 tỷ`).not.toMatch(/(?<![\d.,])0,0 tỷ/);
     expect(text, `ngăn kéo ${i}: tên agent viết thường giữa câu`).not.toMatch(/(?<![\p{L}_.])(credit|compliance|operations|document|validation|planner)(?![\p{L}_.])/u);
     expect(text, `ngăn kéo ${i}: 0,0 tỷ`).not.toMatch(/\b0(?:,0)? tỷ\b/);
+    expect(text, `ngăn kéo ${i}: nhãn lặp "X: X:"`).not.toMatch(/(\p{L}[^\n:]{3,60}): \1:/u);
+    expect(text, `ngăn kéo ${i}: dòng bắt đầu bằng dấu phẩy`).not.toMatch(/^\s*,/m);
+    expect(text, `ngăn kéo ${i}: "cấp Cấp"`).not.toMatch(/\bcấp Cấp\b/);
+    expect(text, `ngăn kéo ${i}: dấu nghìn kiểu Anh`).not.toMatch(/\d,\d{3}(?:,\d{3})* (?:tỷ|đồng)/);
+    expect(text, `ngăn kéo ${i}: biệt ngữ vận hành`).not.toMatch(/sau cấp TD|checkpoint|\bSLA\b|SME KHDN SME/i);
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toBeHidden();
   }
@@ -315,4 +320,15 @@ test('trang hồ sơ: panel Trợ lý AI gắn đúng hồ sơ đang xem', async
   await expect(page.getByTestId('agent-team')).toBeVisible({ timeout: 20_000 });
   await page.getByRole('button', { name: 'Trợ lý AI' }).first().click();
   await expect(page.getByRole('complementary', { name: 'Trợ lý AI' })).toContainText('HSV-2026-00187');
+});
+
+/** Vòng 8, việc 8: cột "Mức rủi ro" chỉ hiện khi trang có ít nhất một khách đã xếp hạng. */
+test('Khách hàng: không có xếp hạng nào thì ẩn cả cột Mức rủi ro, giữ ghi chú', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  await page.goto('/khach-hang');
+  const table = page.getByRole('table', { name: 'Khách hàng' });
+  await expect(table).toBeVisible();
+  const hasCol = (await table.getByRole('columnheader', { name: 'Mức rủi ro' }).count()) > 0;
+  const note = await page.getByText('Chưa khách hàng nào trên trang này có xếp hạng rủi ro.').count();
+  expect(hasCol ? note === 0 : note === 1).toBe(true);
 });
