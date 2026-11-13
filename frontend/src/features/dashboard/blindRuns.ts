@@ -1,5 +1,5 @@
 /**
- * Lượt đo mù đã đăng ký trước (docs/agent/benchmark-v3-research.md §12, §14, §15, §16). Dòng (b) không có trong
+ * Lượt đo mù đã đăng ký trước (docs/agent/benchmark-v3-research.md §12, §14, §15, §16, §17). Dòng (b) không có trong
  * `summary` của engine nên được ghi lại ở đây từ tệp kết quả đã lưu; e2e `benchmark-comparison.spec.ts` tính lại
  * từ tệp và đối chiếu từng con số, nên không thể lệch khỏi số đo thật.
  */
@@ -26,6 +26,12 @@ export const BLIND_RUNS: Record<string, BlindRunNote> = {
     a: { single: { mean: 0.5433, sd: 0.1818 }, multi: { mean: 0.7067, sd: 0.1574 } },
     b: { single: { mean: 0.675, sd: 0.2736 }, multi: { mean: 0.9667, sd: 0.0864 } },
   },
+  '20261113T175157Z-v8 đo lần ba trên bản khóa 8c9afbc': {
+    lockedCommit: '8c9afbc',
+    remeasure: true,
+    a: { single: { mean: 0.57, sd: 0.1985 }, multi: { mean: 0.7133, sd: 0.1655 } },
+    b: { single: { mean: 0.6944, sd: 0.278 }, multi: { mean: 0.975, sd: 0.0763 } },
+  },
 };
 
 /** Câu giới hạn đặt cạnh kết luận: số ca và số lần theo đúng lượt đang xem. */
@@ -50,4 +56,4 @@ export function casesNotBetter(
 
 /** Câu nói rõ lượt đo lại sau khi sửa engine (bộ ca đã được đo một lần ở lượt trước). */
 export const REMEASURE_NOTE =
-  'Đây là lượt đo lại trên bản mã đang chạy, sau khi engine được sửa; bộ ca đã được đo một lần ở lượt trước nên không còn mù chặt. Lượt trước vẫn chọn được ở danh sách trên.';
+  'Đây là lượt đo lại trên bản mã đang chạy, sau khi engine được sửa; bộ ca đã được đo ở các lượt trước nên không còn mù chặt. Với lượt đo thứ ba, đây là lần đo sau hai lần sửa engine (sau lượt 1 và sau lượt 2). Các lượt trước vẫn chọn được ở danh sách trên.';

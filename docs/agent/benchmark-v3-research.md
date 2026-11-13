@@ -515,3 +515,66 @@ Tab So sánh mặc định mở lượt đo lại này ("đo lại trên bản m
 - **Seed khách v8:** có trong DB (10 hồ sơ `benchmark v8` trong `customer.organization_profile`, kiểm bằng SELECT).
 - **Số dư OpenRouter trước đo:** còn 2,1816 USD (đã dùng 7,8184 / hạn mức 10).
 - Lượt mới là số chính (khớp mã đang chạy), kể cả khi kém lượt cũ. Lỗi hạ tầng chỉ chạy lại đúng phần lỗi và ghi rõ; không chạy lại để chọn điểm.
+
+### 17.2 Kết quả (đo lại trên bản khóa `8c9afbc`, 3 lần × 10 ca × 2 chế độ)
+Tệp: `agent_engine/benchmark_results/20261113T175157Z-v8 đo lần ba trên bản khóa 8c9afbc.json`, đã nạp `agent.benchmark_run` (một dòng; `jsonb_array_length(runs)` = 60, 30 single + 30 multi). Lệnh đúng như §17.1, 0 lỗi hạ tầng trong lượt lưu. **Sự cố thao tác (ghi thẳng):** lần chạy đầu bị `timeout 590` của chính tôi cắt khi mới xong J1–J3 (rc=124, không có tệp kết quả, không nạp DB, chỉ 12 dòng log đầu); đó không phải kết quả để chọn điểm, tôi bỏ nó và chạy lại NGUYÊN lượt một lần duy nhất (log bỏ: `/tmp/bo-run-aborted.log`). Chi phí lượt lưu $0,1872 (tệp: `total_cost_usd`). Trường `git_commit` trong tệp ghi `83318e3` (HEAD của repo lúc chạy, chỉ thêm frontend/doc so với engine `8c9afbc`); commit khóa của engine là `8c9afbc` theo §17.1. Số dư OpenRouter: trước 2,1816 USD, sau 1,9548 USD (tốn 0,2268 gồm cả lần chạy bị cắt, ≈0,04). Số bên dưới tính lại bằng script từ từng lượt trong tệp (sd mẫu, se = sd/√30); đây là số chính (khớp mã đang chạy).
+
+| chỉ số (30 lượt/chế độ) | single | multi |
+|---|---|---|
+| **(a) độ phủ phát hiện, đáp án nguyên vẹn** (TB ± sd, se) | 0,570 ± 0,199 (se 0,036) | 0,713 ± 0,166 (se 0,030) |
+| **(b) độ phủ, không tính `total_exposure`, `audit_required`** | 0,694 ± 0,278 (se 0,051) | 0,975 ± 0,076 (se 0,014) |
+| trích nguồn (độ phủ) | 0,914 ± 0,146 (se 0,027) | 0,931 ± 0,130 (se 0,024) |
+| chính xác trích dẫn | 0,900 | 0,962 |
+| phát hiện sai (TB/lượt) | 0,067 (2 lượt: J1 #2 `false_audit_required`, J6 #3 `false_blacklist`) | 0 |
+| đúng cổng | 0,600 (18/30) | 1,000 (30/30) |
+| trễ s | 36,6 ± 8,8 | 40,3 ± 6,7 |
+| $/ca | 0,00248 | 0,00376 |
+
+Dòng (b) giữ định nghĩa §14 (đặt sau khi thấy số v7): số tham khảo có giải thích. Dòng (a) là số đăng ký nguyên vẹn; đáp án hai trường này vẫn theo cách tính cũ (§15.6 bổ sung 2).
+
+### 17.3 Theo từng ca (TB 3 lần; recall (a)/(b); trích nguồn; số lượt đúng cổng; trễ s; $/ca ×10⁻³)
+| ca | recall(a) S | recall(a) M | recall(b) S | recall(b) M | trích S | trích M | cổng S | cổng M | trễ S/M | $ S/M |
+|---|---|---|---|---|---|---|---|---|---|---|
+| J1 | 0,60 | 0,80 | 0,75 | 1,00 | 0,78 | 0,67 | 0/3 (NEEDS_INFO) | 3/3 | 38/36 | 2,59/3,06 |
+| J2 | 0,50 | 0,50 | 1,00 | 1,00 | 0,92 | 0,75 | 3/3 | 3/3 | 35/40 | 2,41/3,45 |
+| J3 | 0,40 | 0,80 | 0,33 | 1,00 | 0,89 | 1,00 | 3/3 (NEEDS_INFO) | 3/3 | 38/40 | 2,52/3,86 |
+| J4 | 0,80 | 0,67 | 1,00 | 1,00 | 0,78 | 0,89 | 3/3 | 3/3 | 28/50 | 2,00/4,54 |
+| J5 | 0,27 | 0,60 | 0,44 | 1,00 | 1,00 | 1,00 | 3/3 | 3/3 | 33/37 | 2,30/3,59 |
+| J6 | 0,80 | 0,80 | 1,00 | 1,00 | 1,00 | 1,00 | 3/3 | 3/3 | 41/42 | 2,79/3,75 |
+| J7 | 0,67 | 0,50 | 0,83 | 1,00 | 1,00 | 1,00 | 0/3 (NEEDS_INFO) | 3/3 | 35/43 | 2,31/4,10 |
+| J8 | 0,73 | 1,00 | 0,67 | 1,00 | 1,00 | 1,00 | 0/3 (NEEDS_INFO) | 3/3 | 31/41 | 2,23/3,83 |
+| J9 | 0,47 | 0,87 | 0,33 | 1,00 | 1,00 | 1,00 | 0/3 (NEEDS_INFO) | 3/3 | 38/39 | 2,64/3,99 |
+| J10 | 0,47 | 0,60 | 0,58 | 0,75 | 0,78 | 1,00 | 3/3 | 3/3 | 50/35 | 3,01/3,42 |
+
+(Cổng theo `gate` trong tệp: single chọn NEEDS_INFO ở 9/10 ca, J4 chọn REJECTED; multi chọn NEEDS_INFO ở J2, J5, J6, J10, REJECTED ở J4, PENDING_APPROVAL ở J1, J3, J7, J8, J9. Đáp án chấp nhận NEEDS_INFO ở J2, J3, J5, J6, J10, nên "3/3" ở J3 của single là chấp nhận NEEDS_INFO, như §15.3.)
+
+### 17.4 Ca multi KHÔNG hơn single
+- **Recall (a) multi thấp hơn single:** J4 (0,67 so với 0,80), J7 (0,50 so với 0,67). Ở (b) cả hai ca multi bằng hoặc hơn (J4 1,00/1,00; J7 1,00 so với 0,83).
+- **Recall (a) bằng nhau:** J2 (0,50/0,50), J6 (0,80/0,80). Ở (b): J2 và J6 bằng nhau (1,00/1,00).
+- **Trích nguồn multi thấp hơn:** J1 (0,67 so với 0,78), J2 (0,75 so với 0,92).
+- **Cổng:** bằng nhau ở 6/10 ca (J2–J6, J10); multi hơn ở J1, J7, J8, J9 (single chọn NEEDS_INFO).
+- **Chi phí:** multi đắt hơn ở cả 10 ca (TB +52%: $0,00376 so với $0,00248). Trễ: multi chậm hơn ở 8/10 ca (J1 và J10 nhanh hơn), TB +3,7 s.
+- Recall (a) của multi chỉ 0,713 vì `total_exposure`/`audit_required` không khớp (đáp án cũ, §14 và §15.6).
+
+### 17.5 So ba lượt: L1 (`735f9a7`, §15), L2 (`98600a7`, §16), L3 (`8c9afbc`, §17)
+"Trong sai số" nghĩa là |chênh| nhỏ hơn 2 lần sai số chuẩn của hiệu (căn tổng bình phương hai se); chỉ là quy ước đọc nhanh, không phải kiểm định đã đăng ký, và các lượt cùng ca không độc lập. Xét cặp L1→L3 và L2→L3.
+
+| chỉ số | single L1 → L2 → L3 | multi L1 → L2 → L3 | nhận xét |
+|---|---|---|---|
+| (a) | 0,520 → 0,543 → 0,570 | 0,707 → 0,707 → 0,713 | cả hai trong sai số ở mọi cặp |
+| (b) | 0,675 → 0,675 → 0,694 | 0,983 → 0,967 → 0,975 | trong sai số |
+| trích nguồn | 0,883 → 0,917 → 0,914 | 0,942 → 0,942 → 0,931 | trong sai số |
+| chính xác trích dẫn | 0,895 → 0,947 → 0,900 | 0,980 → 0,991 → 0,962 | chưa tính se (không phải trung bình theo lượt); chỉ số mô tả |
+| phát hiện sai (TB/lượt) | 0,033 → 0,033 → 0,067 | 0 → 0 → 0 | single: 1, 1, 2 lượt trên 30; số lượt quá nhỏ, không kết luận |
+| đúng cổng | 18/30 → 18/30 → 18/30 | 30/30 ở cả ba | giống nhau |
+| trễ s | 42,0 → 34,4 → 36,6 | 38,0 → 38,7 → 40,3 | single L1→L3: chênh 5,4 s, hơi lớn hơn 2 lần se của hiệu (≈4,8 s), NGOÀI sai số; single L2→L3 và multi mọi cặp trong sai số |
+| $/ca | 0,00244 → 0,00240 → 0,00248 | 0,00348 → 0,00381 → 0,00376 | trong sai số |
+
+(Số single L2 tính lại từ tệp: $/ca 0,00240; §16.2 ghi 0,00244, lệch làm tròn/ghi chép nhỏ, không đổi kết luận.)
+Kết luận theo số đo: không chỉ số chất lượng nào (a, b, trích, đúng cổng) của L3 khác L1 hay L2 ngoài sai số. Các chỉ số hai lần sửa engine nhắm tới (điều kiện/đề xuất hành động, mâu thuẫn số liệu đòn bẩy, bộ dò LTV) không nằm trong bộ chấm này, nên lượt này không chứng minh được các sửa có tác dụng. Chênh trễ của single L1→L3 không có nguyên nhân nào được đo; không giải thích thêm. Giữa L2 và L3 không thay đổi nào chạm mã hay chữ single dùng (§17.1), nên chênh single giữa hai lượt này chỉ có thể là sai số ngẫu nhiên/tải API.
+
+### 17.6 Giới hạn
+Giữ nguyên các giới hạn §15.6 (10 ca, 3 lần/ca, chấm từ khóa/regex không có người chấm, các lượt cùng ca không độc lập, dòng (b) định nghĩa sau khi thấy v7 giảm, sai số chuẩn tính trên 30 lượt, single không bị làm yếu, multi tốn thêm chi phí, kết quả chỉ nói về bộ 10 ca này), hai bổ sung §15.6 ((1) đúng cổng của multi dựa vào cổng tất định `agent_engine/common/gate.py` đã hiệu chỉnh trên v2–v5, single không có cổng này; (2) đáp án `total_exposure`/`audit_required` theo cách tính cũ, không sửa `cases_v8.json`) và đính chính §16.6 (giữa L1 và L2 prompt single có đổi vài chữ do `policy_checklist.py`; giữa L2 và L3 thì không). Thêm: bộ ca **không còn mù chặt** (đã chạy hai lượt trước); đây là lượt đo thứ ba có công bố sau hai lần sửa engine, đúng một lượt lưu, không chọn điểm (lần chạy bị cắt ở §17.2 không có kết quả lưu). Ba lượt không độc lập: cùng bộ ca và cùng mô hình. Không thấy lỗi engine trong lúc đo; chưa soát hết regex sau đo.
+
+### 17.7 Hiển thị trên dashboard
+Tab So sánh mặc định mở lượt này ("đo lại trên bản mã đang chạy", kèm câu nói rõ đây là lượt đo thứ ba sau hai lần sửa engine). Lượt 1 (§15), lượt 2 (§16) và mọi lượt cũ vẫn chọn được, mỗi lượt giữ câu giới hạn riêng. Dòng (b) ghi ở `frontend/src/features/dashboard/blindRuns.ts`, e2e tính lại từ tệp.
