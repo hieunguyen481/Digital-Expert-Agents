@@ -75,3 +75,19 @@ describe('phạm vi dư nợ', () => {
     expect(scrubInternal('')).toBe('');
   });
 });
+
+describe('S05 số thập phân và Q04 nhãn cổng chữ hoa', () => {
+  it('số thập phân dấu chấm hiện kiểu Việt Nam, mã điều khoản/ngày/mã hồ sơ giữ nguyên', async () => {
+    const { decimalVi, scrubInternal } = await import('./agentTrace');
+    expect(decimalVi('DSCR = 1.34, ngưỡng 1.25, tối đa 3.5')).toBe('DSCR = 1,34, ngưỡng 1,25, tối đa 3,5');
+    expect(decimalVi('Theo §3.1 và Điều 3.1, ngày 12.03.2026, HSV-2026-00187, 45.000.000 đồng, 1.250 đồng')).toBe('Theo §3.1 và Điều 3.1, ngày 12.03.2026, HSV-2026-00187, 45.000.000 đồng, 1.250 đồng');
+    expect(decimalVi('')).toBe('');
+    expect(scrubInternal('DSCR 1.34 đạt')).toBe('DSCR 1,34 đạt');
+  });
+  it('nhãn cổng chữ hoa không dấu hai chấm hạ về chữ câu', async () => {
+    const { humanizeGate } = await import('./agentTrace');
+    expect(humanizeGate('ĐỀ XUẤT PHÊ DUYỆT với điều kiện tiên quyết')).toBe('Đề xuất phê duyệt với điều kiện tiên quyết');
+    expect(humanizeGate('Thiếu dữ liệu bắt buộc, Chưa có hồ sơ')).toBe('Thiếu dữ liệu bắt buộc, chưa có hồ sơ');
+    expect(humanizeGate('DSCR đạt, LTV đạt')).toBe('DSCR đạt, LTV đạt');
+  });
+});

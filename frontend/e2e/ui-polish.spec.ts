@@ -305,3 +305,12 @@ test('ngăn kéo trace: toàn văn không còn chuỗi cổng thô, "chặn", "c
     await expect(page.getByRole('dialog')).toBeHidden();
   }
 });
+
+/** S04: mở panel Trợ lý AI ở trang chi tiết hồ sơ thì panel gắn đúng hồ sơ đang xem. */
+test('trang hồ sơ: panel Trợ lý AI gắn đúng hồ sơ đang xem', async ({ page }) => {
+  await loginAs(page, 'truongphong');
+  await page.goto('/ho-so-vay/75000000-0000-4000-8000-000000000001');
+  await expect(page.getByTestId('agent-team')).toBeVisible({ timeout: 20_000 });
+  await page.getByRole('button', { name: 'Trợ lý AI' }).first().click();
+  await expect(page.getByRole('complementary', { name: 'Trợ lý AI' })).toContainText('HSV-2026-00187');
+});

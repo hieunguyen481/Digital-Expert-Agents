@@ -60,14 +60,14 @@ export default function CustomerListPage() {
               className={ledgerTable}
               rowKey={(r) => customerId(r) ?? r.customer_number}
               pagination={false}
-              dataSource={[...q.data.items].sort((a, b) => Number(!!riskInfo(b.risk_rating)) - Number(!!riskInfo(a.risk_rating)))}
+              dataSource={q.data.items}
               aria-label="Khách hàng"
               columns={[
                 { title: 'Khách hàng', render: (_, r) => { const id = customerId(r); return <span className={styles.name}>{id ? <Link to={`/customer/${id}`}>{customerName(r)}</Link> : customerName(r)}</span>; } },
                 { title: 'Mã khách hàng', render: (_, r) => <span className={styles.id}>{r.customer_number}</span> },
                 { title: 'Phân khúc', render: (_, r) => segmentLabel(r.customer_segment) ?? <span className={styles.muted}>Chưa có</span> },
                 { title: 'Xác minh KYC', render: (_, r) => { const [l, t] = kycInfo(r.kyc_status); return <StatusPill tone={t}>{l}</StatusPill>; } },
-                { title: 'Mức rủi ro', render: (_: unknown, r: CustomerRow) => { const k = riskInfo(r.risk_rating); return k ? <StatusPill tone={k[1]}>{k[0]}</StatusPill> : <span className={styles.muted}>Chưa xếp hạng</span>; } },
+                { title: 'Mức rủi ro', render: (_: unknown, r: CustomerRow) => { const k = riskInfo(r.risk_rating); return k ? <StatusPill tone={k[1]}>{k[0]}</StatusPill> : <span className={styles.muted} role="img" aria-label="Chưa xếp hạng">—</span>; } },
                 { title: 'Cập nhật', render: (_, r) => <span className={styles.id}>{formatDate(r.updated_at)}</span> },
               ]}
             />

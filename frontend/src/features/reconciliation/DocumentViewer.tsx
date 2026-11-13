@@ -112,7 +112,7 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
               {textLines.map((l) => (
                 <li key={l.field.field_id}>
                   <button type="button" className={styles.textLine} aria-pressed={l.field.field_id === selectedFieldId}
-                    aria-label={`Dòng văn bản: ${fieldLabel(l.field.field_name)}`} data-testid={`region-${l.field.field_id}`}
+                    aria-label={`Vùng tô: ${fieldLabel(l.field.field_name)}`} data-testid={`region-${l.field.field_id}`}
                     onClick={() => onSelect(l.field.field_id)}>
                     <span className={styles.textLabel}>{fieldLabel(l.field.field_name)}</span>
                     <span>{l.before}{l.hit && <mark className={styles.textMark}>{l.hit}</mark>}{l.after}</span>
@@ -206,10 +206,11 @@ export function pageTextLines(fields: ReconField[]): TextLine[] {
   return ordered.map((field) => {
     const value = (fieldValueText(field) ?? '').toString().trim();
     const raw = typeof field.source_text === 'string' ? splitSourceCode(field.source_text).text.trim() : '';
-    const line = raw || value;
+    // Dòng nguồn chỉ là chữ của tài liệu khi nó chứa giá trị; còn lại (mô tả nguồn kiểu "Hệ thống CIC · tra cứu") thì dùng giá trị.
+    const line = raw && value && raw.toLowerCase().includes(value.toLowerCase()) ? raw : value || raw;
     const at = value && value !== '—' ? line.toLowerCase().indexOf(value.toLowerCase()) : -1;
     if (at >= 0) return { field, before: line.slice(0, at), hit: line.slice(at, at + value.length), after: line.slice(at + value.length) };
-    return { field, before: '', hit: raw ? '' : line, after: raw ? line : '' };
+    return { field, before: '', hit: line, after: '' };
   });
 }
 

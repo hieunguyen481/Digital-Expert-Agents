@@ -11,6 +11,8 @@ export interface AiPanelState {
   context: AiContext | null;
   /** Mở panel (hoặc chỉ đổi ngữ cảnh nếu đang mở). Không bao giờ nhân đôi panel. */
   openWith: (context?: AiContext) => void;
+  /** Ngữ cảnh mặc định của trang đang xem (vd. hồ sơ đang mở): dùng khi mở panel không kèm ngữ cảnh. Truyền null để bỏ. */
+  setPageContext: (context: AiContext | null) => void;
   close: () => void;
   toggle: () => void;
 }
@@ -21,6 +23,8 @@ export function AiPanelProvider({ enabled = true, children }: { enabled?: boolea
   const [open, setOpen] = useState(false);
   const [context, setContext] = useState<AiContext | null>(null);
   const opener = useRef<HTMLElement | null>(null);
+  const pageCtx = useRef<AiContext | null>(null);
+  const setPageContext = useCallback((c: AiContext | null) => { pageCtx.current = c; }, []);
 
   const openWith = useCallback(
     (next?: AiContext) => {
@@ -29,7 +33,8 @@ export function AiPanelProvider({ enabled = true, children }: { enabled?: boolea
         if (!wasOpen) opener.current = document.activeElement as HTMLElement | null;
         return true;
       });
-      if (next) setContext(next);
+      const ctx = next ?? pageCtx.current;
+      if (ctx) setContext(ctx);
     },
     [enabled],
   );
@@ -48,8 +53,8 @@ export function AiPanelProvider({ enabled = true, children }: { enabled?: boolea
   }, [open, close, openWith]);
 
   const value = useMemo<AiPanelState>(
-    () => ({ open: enabled && open, context, openWith, close, toggle }),
-    [enabled, open, context, openWith, close, toggle],
+    () => ({ open: enabled && open, context, openWith, setPageContext, close, toggle }),
+    [enabled, open, context, openWith, setPageContext, close, toggle],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

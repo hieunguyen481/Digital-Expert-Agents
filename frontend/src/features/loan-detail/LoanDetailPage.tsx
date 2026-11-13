@@ -1,7 +1,10 @@
 import { useMe } from '@/auth/session';
 import { uiRoleFromRoles } from '@/auth/roleFromMe';
 import { fmtDay } from '@/utils/format';
+import { useEffect } from 'react';
 import { Alert, Skeleton } from 'antd';
+import { useAiPanel } from '@/features/ai-panel/AiPanelContext';
+import { loanCodeLabel } from '@/components/common/CodeText';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { PageError } from '@/components/common/PageError';
@@ -22,11 +25,17 @@ import styles from './loan-detail.module.css';
 
 export default function LoanDetailPage() {
   const { loanId = '' } = useParams();
+  const { setPageContext } = useAiPanel();
   const q = useQuery({ queryKey: ['loan-overview', loanId], queryFn: () => fetchOverview(loanId) });
   const actions = useQuery({ queryKey: ['loan-actions', loanId], queryFn: () => fetchActionState(loanId) });
   const { data: me } = useMe();
   const readOnly = uiRoleFromRoles(me?.roles ?? []) === 'kiemtoan';
   const runs = useQuery({ queryKey: ['loan-agent-runs', loanId], queryFn: () => fetchAgentRuns(loanId) });
+  const appNo = q.data?.loan.application_number ?? null;
+  useEffect(() => {
+    setPageContext({ type: 'case', id: loanId, label: appNo ? loanCodeLabel(appNo, q.data?.loan.status) : 'Hồ sơ đang xem' });
+    return () => setPageContext(null);
+  }, [loanId, appNo, q.data?.loan.status, setPageContext]);
   if (q.isError) return <PageError title="Không tải được hồ sơ" headingLevel={1} error={normalizeError(q.error)} onRetry={() => void q.refetch()} />;
   if (!q.data) return <div className={styles.page} aria-busy><Skeleton active /></div>;
   const { loan, metrics, flags, collaterals, timeline, supplement_request } = q.data;

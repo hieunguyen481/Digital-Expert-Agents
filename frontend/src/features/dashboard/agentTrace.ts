@@ -306,12 +306,27 @@ export function humanizeGate(text: string): string {
       const l = tag.toLowerCase();
       return pre + (pre === '' || /[.;]\s+$/.test(pre) ? l.charAt(0).toLocaleUpperCase('vi') + l.slice(1) : l);
     })
+    // Nhãn chữ hoa đứng đầu câu không có dấu hai chấm ("ĐỀ XUẤT PHÊ DUYỆT với điều kiện…") hạ về chữ câu thường
+    .replace(/(^|[.;]\s+)([A-ZÀ-ỴĐ]{2,}(?: [A-ZÀ-ỴĐ]{2,})+)(?=\s+[a-zà-ỹđ])/g, (m, pre: string, tag: string) => {
+      // Chuỗi viết tắt lặp ("BCTC BCTC năm") không phải nhãn cổng
+      if (new Set(tag.split(' ')).size < 2) return m;
+      const l = tag.toLowerCase();
+      return pre + l.charAt(0).toLocaleUpperCase('vi') + l.slice(1);
+    })
     .replace(/,\s+(Chưa|Không|Thiếu|Cần|Đã|Còn|Chỉ)(?=\s)/g, (_m, w: string) => `, ${w.toLowerCase()}`);
 }
 const AGENT_WORDS = /(?<![\p{L}\d_.])(credit|compliance|operations|document|validation|planner)(?![\p{L}\d_]|\.\p{L})/gu;
 /** Chữ AI hay lẫn tiếng Anh, tên agent viết thường, "0,0 tỷ" và biệt ngữ cổng ("chặn"): làm sạch theo loại, không theo câu. */
+/** Số thập phân kiểu dấu chấm trong chữ AI ("DSCR = 1.34") hiện kiểu Việt Nam ("1,34"). Chỉ đổi số có 1–2 chữ số lẻ đứng riêng;
+ *  không đụng số có nhiều dấu chấm (ngày, mã điều khoản 3.1.2), số đứng sau "§", "Điều/khoản/mục/điểm", hay dính chữ/mã (HSV-2026.1). */
+const DOT_DECIMAL = /(?<![\p{L}\d_.,§-])(\d{1,3})\.(\d{1,2})(?![\d.]|\.\d|\p{L})/gu;
+const CLAUSE_BEFORE = /(?:điều|khoản|mục|điểm|phần|chương|§|phụ lục|thông tư|nghị định|quyết định)\s*$/i;
+export function decimalVi(text: string): string {
+  return text.replace(DOT_DECIMAL, (m, a: string, b: string, off: number, whole: string) =>
+    CLAUSE_BEFORE.test(whole.slice(Math.max(0, off - 14), off)) ? m : `${a},${b}`);
+}
 function scrubStyle(text: string): string {
-  return text
+  return decimalVi(text)
     .replace(AGENT_WORDS, (w) => w.charAt(0).toUpperCase() + w.slice(1))
     .replace(/\b(c)hallenges?\b/gi, (_m, c: string) => (c === 'C' ? 'Phản biện' : 'phản biện'))
     .replace(/\bdữ liệu chặn\b/gi, 'dữ liệu bắt buộc')
