@@ -1,6 +1,9 @@
 /* Trang chi tiết hồ sơ vay (mockup 03, 12–16, 35): lưới chính + cột phải 360px, token "Sổ Tín Dụng". */
 .page { display: flex; flex-direction: column; gap: var(--s5); min-width: 0; padding: 0 var(--s8); }
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: var(--s5); align-items: start; }
+.gridWide { grid-template-columns: minmax(0, 1fr); }
+/* Vai chỉ đọc không có việc cần làm: cột phải ngắn nên dồn xuống dưới, các khối chỉ số dùng hết chiều ngang. */
+.asideWide { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
 .stack { display: grid; gap: var(--s5); min-width: 0; align-content: start; }
 .stackTight { display: grid; gap: var(--s3); min-width: 0; }
 .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s5); align-items: start; }
@@ -104,3 +107,6 @@
 .goldBtn:global(.ant-btn):not(:disabled):hover { background: var(--bronze-700) !important; border-color: var(--bronze-700) !important; color: #fff !important; }
 .goldBtn:global(.ant-btn):disabled { background: var(--rule) !important; border-color: var(--rule) !important; color: var(--ink-2) !important; }
 @media (max-width: 560px) { .opts { grid-template-columns: 1fr; } }
+
+/* "Quay lại" nhận focus mặc định ở bước xác nhận: luôn thấy vòng focus, kể cả khi focus đặt bằng mã. */
+.backBtn:global(.ant-btn):focus { outline: 3px solid var(--focus); outline-offset: 2px; }

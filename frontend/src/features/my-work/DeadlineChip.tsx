@@ -14,5 +14,5 @@ export function DeadlineChip({ item, today = new Date(), prefix }: { item: WorkI
   const n = item.due_at ? workdaysBetween(today, new Date(item.due_at)) : 0;
   const tone = paused ? 'neutral' : n < 0 || item.sla_level === 'over' ? 'bad' : n <= 1 ? 'warn' : 'neutral';
   const text = slaText({ ...item, sla_level: paused ? 'pause' : n < 0 ? 'over' : n === 0 ? 'today' : 'ok' }, today);
-  return <StatusPill tone={tone}>{prefix ? `${prefix} · ${text}` : text}</StatusPill>;
+  return <StatusPill tone={tone} outlined={tone === 'bad'}>{prefix ? `${prefix} · ${text}` : text}</StatusPill>;
 }

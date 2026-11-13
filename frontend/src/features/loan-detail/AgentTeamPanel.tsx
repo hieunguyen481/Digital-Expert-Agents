@@ -75,11 +75,22 @@ export function AgentTeamPanel({ loanId, currency, status }: { loanId: string; c
       {inProgress ? 'Đội agent đang chạy…' : latest ? 'Chạy lại đội agent' : 'Chạy đội agent'}
     </ActionButton>
   );
+  // Vai không chạy được đội agent và hồ sơ chưa có lượt nào: không có kết luận để xem, chỉ một dòng "Chỉ xem".
+  const isDeciderStatus = !!status && DECIDER_STATUSES.includes(status);
+  if (data && !latest && !data.can_run && data.deny_reason && !isDeciderStatus && !runsQ.isError) {
+    return (
+      <div id="doi-agent" data-testid="agent-team" role="region" aria-label="Đội agent" className={styles.stack}>
+        <span className={styles.note} data-testid="agent-team-lock">
+          <LockOutlined aria-hidden /> <b>Chỉ xem.</b> {data.deny_reason.replace(/^\s*chỉ xem[.:,]?\s*/i, '')}
+        </span>
+      </div>
+    );
+  }
   return (
     <div id="doi-agent" data-testid="agent-team" role="region" aria-label="Đội agent" className={styles.stack}>
       <AiBlock title="Kết luận của đội agent" tag="AI đề xuất – chưa xác nhận" actions={runButton || undefined}>
         <div className={styles.run}>
-          {!latest && <AgentTeam variant="compact" human={{ who: decider }} />}
+          {!latest && !data?.can_run && <AgentTeam variant="compact" human={{ who: decider }} />}
           {runsQ.isError && (
             <Alert type="error" showIcon message="Không tải được trạng thái đội agent"
               description={normalizeError(runsQ.error).message}

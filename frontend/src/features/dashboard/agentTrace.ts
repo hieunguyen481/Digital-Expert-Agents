@@ -317,6 +317,8 @@ function scrubStyle(text: string): string {
     .replace(/\bdữ liệu chặn\b/gi, 'dữ liệu bắt buộc')
     .replace(/\bkhông chặn\b/gi, 'không cản trở')
     .replace(/\bchặn\b/g, 'cản trở')
+    // "Không có dư nợ" thiếu phạm vi: dư nợ ở đây là dư nợ tại ngân hàng
+    .replace(/(Không có dư nợ)(?!\s+tại)/g, '$1 tại ngân hàng')
     // "0,0 tỷ", "0 tỷ đồng" ghi "0 đồng"
     .replace(/(?<![\d.,])0(?:[.,]0+)?\s*tỷ(?:\s*đồng)?/gi, '0 đồng')
     // "Điều kiện tiên quyết trước khi trình cấp phê duyệt: … trước khi trình cấp phê duyệt": bỏ cụm ở nhãn khi nội dung đã có

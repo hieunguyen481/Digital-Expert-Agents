@@ -35,7 +35,7 @@ function PartyRow({ loanId, line, editable, onDone }: { loanId: string; line: Ex
         <b>{line.name}</b>
         {line.relation === 'PRIMARY' ? <StatusPill>Khách hàng vay</StatusPill> : s && <StatusPill tone={TONE[s.color] ?? 'neutral'}>{s.text}</StatusPill>}
         {line.proposed_by_ai && line.status === 'PROPOSED' && <StatusPill tone="ai">AI gợi ý, cần bạn quyết định</StatusPill>}
-        <span>{Number(line.outstanding) + Number(line.off_balance) === 0 ? 'Không có dư nợ' : `Dư nợ ${vnd(line.outstanding)} · ngoài bảng ${vnd(line.off_balance)}`}</span>
+        <span>{Number(line.outstanding) + Number(line.off_balance) === 0 ? 'Không có dư nợ tại ngân hàng' : `Dư nợ ${vnd(line.outstanding)} · ngoài bảng ${vnd(line.off_balance)}`}</span>
       </Space>
       {line.status === 'NOT_IN_GROUP' && line.basis && <p style={{ margin: '4px 0 0' }}>Căn cứ: {line.basis}</p>}
       {line.relation === 'RELATED' && editable && (

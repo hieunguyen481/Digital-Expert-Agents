@@ -98,7 +98,7 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
 
   const footer = confirming ? (
     <>
-      <Button key="back" ref={backRef} autoFocus onClick={() => setConfirming(false)} disabled={busy}>Quay lại</Button>
+      <Button key="back" ref={backRef} className={styles.backBtn} autoFocus onClick={() => setConfirming(false)} disabled={busy}>Quay lại</Button>
       <Button key="commit" type="primary" danger={type === 'REJECTED'} className={approving ? styles.goldBtn : undefined} loading={busy} onClick={run}>{confirmText}</Button>
     </>
   ) : (

@@ -66,3 +66,12 @@ describe('lần 7, việc 1 và 2: chữ AI theo loại', () => {
     expect(sameAiText(GATE, 'Khác hẳn')).toBe(false);
   });
 });
+
+describe('phạm vi dư nợ', () => {
+  it('"Không có dư nợ" ghi rõ tại ngân hàng, không lặp khi đã có', async () => {
+    const { scrubInternal } = await import('./agentTrace');
+    expect(scrubInternal('Rà soát nhóm khách hàng liên quan: Không có dư nợ')).toContain('Không có dư nợ tại ngân hàng');
+    expect(scrubInternal('Không có dư nợ tại ngân hàng')).toBe('Không có dư nợ tại ngân hàng');
+    expect(scrubInternal('')).toBe('');
+  });
+});

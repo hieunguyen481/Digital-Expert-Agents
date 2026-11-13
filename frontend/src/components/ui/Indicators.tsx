@@ -14,8 +14,8 @@ const PILL: Record<PillTone, string> = {
 };
 
 /** Badge trạng thái: chấm màu + nhãn chữ (không dùng riêng màu làm tín hiệu). */
-export function StatusPill({ tone = 'neutral', children }: { tone?: PillTone; children: ReactNode }) {
-  return <span className={[styles.badge, PILL[tone]].filter(Boolean).join(' ')}>{children}</span>;
+export function StatusPill({ tone = 'neutral', outlined = false, children }: { tone?: PillTone; outlined?: boolean; children: ReactNode }) {
+  return <span className={[styles.badge, PILL[tone], outlined ? styles.outlined : ''].filter(Boolean).join(' ')}>{children}</span>;
 }
 
 const FLAG_CLASS = { g: styles.flagG, y: styles.flagY, r: styles.flagR } as const;
