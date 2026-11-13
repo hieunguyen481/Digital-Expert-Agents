@@ -7,7 +7,7 @@ from . import thresholds
 
 POLICY_CHECKLIST = (
     "Checklist chính sách phải nêu rõ trong kết luận (findings), kể cả khi kết quả là 'không vi phạm': "
-    "(1) Tổng cấp tín dụng = dư nợ hiện hữu tại ngân hàng (số tổng cấp tín dụng đã tính lại trong dữ kiện; dư nợ ở TCTD khác không tính vào cấp phê duyệt, Q4) + đề xuất mới; "
+    "(1) Tổng cấp tín dụng = dư nợ hiện hữu tại ngân hàng (số tổng cấp tín dụng đã tính lại trong dữ kiện; dư nợ ở TCTD khác không tính vào cấp phê duyệt theo quy tắc tính tổng cấp tín dụng, §3.1) + đề xuất mới; "
     "ghi con số tổng theo tỷ đồng, so với ngưỡng cấp phê duyệt ≤20 / 20–100 / >100 tỷ và nêu cấp phê duyệt "
     "tương ứng (CS-TD-SME/2025 §3.1). "
     "(2) BCTC kiểm toán (ý kiến chấp nhận toàn phần) bắt buộc khi tổng cấp tín dụng > 20 tỷ; nêu rõ bắt buộc hay "

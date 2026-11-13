@@ -103,7 +103,7 @@ def describe(col: dict | None, exp: dict, lev: dict | None, amount: float) -> li
            + f" (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: {LEVEL_LABEL_VI[exp['tier']]} (CS-TD-SME/2025 §3.1)"]
     if exp.get("other_lenders"):
         out.append(f"Căn cứ cấp phê duyệt: tổng tại ngân hàng {_bn(exp['total'])}; dư nợ {_bn(exp['other_lenders'])} tại tổ "
-                   "chức tín dụng khác không tính vào cấp phê duyệt theo Q4, nhưng vẫn tính vào khả năng trả nợ")
+                   "chức tín dụng khác không tính vào cấp phê duyệt theo quy tắc tính tổng cấp tín dụng (CS-TD-SME/2025 §3.1), nhưng vẫn tính vào khả năng trả nợ")
     if col is not None and col["assets"]:
         if col["eligible_value"] and col.get("valuation_unverified"):
             out.append(f"LTV tạm tính {col['ltv']:.1%} (đề xuất {_bn(amount)} / {_bn(col['eligible_value'])}, "
