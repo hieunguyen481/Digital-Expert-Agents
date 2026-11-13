@@ -386,10 +386,14 @@ export function moneyVi(text: string): string {
     .replace(/(?<![\d.,])(\d{1,3}(?:\.\d{3})*|\d+),0{1,2}(?!\d)(?=\s*(?:tỷ|triệu|nghìn|đồng|VND|₫))/gu, '$1')
     .replace(/(\d|tỷ|triệu|nghìn)\s*(?:VND|₫)(?![\p{L}\d])/gu, '$1 đồng');
 }
+const REDUP = new Set(['song', 'dần', 'từng', 'ngày', 'người', 'năm', 'tháng', 'đều', 'nhà', 'nơi', 'khắp']);
 function scrubStyle(text: string): string {
   return lowerShouting(stripRuleCodes(decimalVi(text)))
     // Dấu câu đôi do ghép mảnh: ".;" ";." ",." ";;" ",," ".."
     .replace(/\.\s*;/g, ';').replace(/;\s*\./g, '.').replace(/,\s*\./g, '.').replace(/;\s*;/g, ';').replace(/,\s*,/g, ',').replace(/(?<!\.)\.\.(?!\.)/g, '.')
+    // Lặp nguyên một từ liền nhau do LLM sinh ("nêu nêu"): giữ một từ
+    // (từ láy hợp lệ như "song song", "dần dần" giữ nguyên)
+    .replace(/(?<![\p{L}\d])(\p{L}{2,})(?:[ \t]+\1)+(?![\p{L}\d])/giu, (m, w: string) => (REDUP.has(w.toLowerCase()) ? m : w))
     .replace(AGENT_WORDS, (w) => w.charAt(0).toUpperCase() + w.slice(1))
     .replace(/\b(c)hallenges?\b/gi, (_m, c: string) => (c === 'C' ? 'Phản biện' : 'phản biện'))
     .replace(/\bdữ liệu chặn\b/gi, 'dữ liệu bắt buộc')
@@ -534,7 +538,7 @@ export function cleanAiLine(raw: string): string {
     .replace(/\s+[—–]\s+/g, ', ')
     .replace(/\s*\(\s*(trang\s+\d+)\s*\)/gi, ', $1')
     .replace(/\.{3,}/g, '…').replace(/([)\]”"])\.,/g, '$1,').replace(/(?<=\p{L}|\d)\.,/gu, ',');
-  for (let i = 0; i < 3; i += 1) t = t.replace(/(^|[\s(])(\p{L}{2,})\s+\2(?=[\s.,;:)]|$)/giu, '$1$2');
+  for (let i = 0; i < 3; i += 1) t = t.replace(/(^|[\s(])(\p{L}{2,})\s+\2(?=[\s.,;:)]|$)/giu, (m, a: string, w: string) => (REDUP.has(w.toLowerCase()) ? m : a + w));
   return trimDangling(lowerAfterComma(dropZeroStatus(t.replace(/\s{2,}/g, ' ').trim(), true)));
 }
 /** Trích nguồn hiển thị. */

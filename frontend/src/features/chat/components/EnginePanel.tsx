@@ -5,7 +5,7 @@ import { AiTag, HumanTag, StatusPill, type PillTone } from '@/components/ui';
 import styles from './EnginePanel.module.css';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
-import { DECISION_LABEL, agentName, approverLevelLabel, cleanAiLine, quoteText, sourceLabel, stateLabel } from '@/features/dashboard/agentTrace';
+import { DECISION_LABEL, agentName, approverLevelLabel, cleanAiLine, decimalVi, quoteText, sourceLabel, stateLabel } from '@/features/dashboard/agentTrace';
 import {
   TERMINAL_STATES,
   type AgentVerdict,
@@ -134,7 +134,7 @@ export function EnginePanel({ caseId, loanApplicationId, decisionRelated }: Engi
           <details>
             <summary>Chi tiết kỹ thuật (kiểm toán)</summary>
             {sources.map((s, i) => (
-              <div key={i} className={styles.raw}>{s.source}: {s.raw_quote ?? s.quote}</div>
+              <div key={i} className={styles.raw}>{s.source}: {decimalVi(s.raw_quote ?? s.quote ?? '')}</div>
             ))}
           </details>
         </details>

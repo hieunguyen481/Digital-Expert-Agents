@@ -9,7 +9,7 @@ import {
   STATE_TONE, agentName, fmtSeconds, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
   BOARD_LABEL, approverLevelLabel, levelFromLines, narrativeConditions, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
-  DECISION_LABEL, quoteAfterLabel, cleanAiLine, coversAiText,
+  DECISION_LABEL, quoteAfterLabel, cleanAiLine, decimalVi, coversAiText,
 } from '../agentTrace';
 import { ProposalChain } from '@/features/agent-actions/ActionProposals';
 import { statusLabel } from '@/features/my-work/format';
@@ -378,7 +378,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             ))}
           </ul>
           <details className={styles.det}><summary>Chi tiết kỹ thuật (kiểm toán)</summary>
-            {sources.map((s, i) => <div key={i} className={styles.mono}>{s.source}: {s.raw_quote ?? s.quote}</div>)}
+            {sources.map((s, i) => <div key={i} className={styles.mono}>{s.source}: {decimalVi(s.raw_quote ?? s.quote ?? "")}</div>)}
           </details>
         </section>
       )}

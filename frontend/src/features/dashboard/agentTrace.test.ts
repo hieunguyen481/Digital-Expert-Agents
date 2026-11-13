@@ -330,3 +330,12 @@ describe('narrativeConditions', () => {
     expect(narrativeConditions(undefined)).toBeNull();
   });
 });
+
+describe('từ lặp liền nhau (S15)', () => {
+  it('gộp từ lặp, giữ câu bình thường', () => {
+    expect(cleanAiLine('Cần nêu nêu rõ nguồn trả nợ.')).toBe('Cần nêu rõ nguồn trả nợ.');
+    expect(cleanAiLine('Dư nợ 12 12 tỷ và hạn mức còn lại.')).toBe('Dư nợ 12 12 tỷ và hạn mức còn lại.');
+    expect(cleanAiLine('Thẩm định song song hai tuyến.')).toBe('Thẩm định song song hai tuyến.');
+    expect(cleanAiLine('Hồ sơ đủ điều kiện, có tài sản bảo đảm.')).toBe('Hồ sơ đủ điều kiện, có tài sản bảo đảm.');
+  });
+});
