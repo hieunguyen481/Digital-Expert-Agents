@@ -120,6 +120,6 @@ def describe(col: dict | None, exp: dict, lev: dict | None, amount: float) -> li
             out.append("Không có TSĐB nào đủ điều kiện pháp lý để tính LTV")
     if lev:
         out.append(f"Tính lại Nợ vay/EBITDA sau cấp TD ({lev['year']}): {_bn(lev['debt_after'])} / "
-                   f"{_bn(lev['ebitda'])} = {lev['ratio']:.2f} lần (tối đa {lev['max']}); "
+                   f"{_bn(lev['ebitda'])} = {lev['ratio']:.2f} lần (tối đa {lev['max']} lần); "
                    + ("VƯỢT ngưỡng" if lev["over"] else "trong ngưỡng") + " (CS-TD-SME/2025 §4.2)")
     return out
