@@ -24,6 +24,8 @@ describe('DecisionModal (mockup 12b)', () => {
     fireEvent.change(screen.getByLabelText(/Lý do quyết định/), { target: { value: 'Đủ điều kiện phê duyệt.' } });
     fireEvent.click(go);
     expect(screen.getByTestId('decision-confirm').textContent).toContain('Không hoàn tác được');
+    // lần 6, việc 8: một cách ghi số, "tỷ đồng (số đầy đủ), bằng mức đề nghị"
+    expect(screen.getByTestId('decision-confirm').textContent).toContain('24 tỷ đồng (24.000.000.000 đồng), bằng mức đề nghị');
     expect(onSubmit).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận phê duyệt' }));
     expect(onSubmit).toHaveBeenCalledTimes(1);

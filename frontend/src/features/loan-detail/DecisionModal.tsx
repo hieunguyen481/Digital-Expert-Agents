@@ -120,7 +120,7 @@ export function DecisionModal({ open, loanId, applicationNumber, requestedAmount
             <p>Hồ sơ {applicationNumber} bị từ chối và kết thúc. <b>Không hoàn tác được.</b> Quyết định ghi tên bạn vào nhật ký kiểm toán.</p>
           ) : (
             <>
-              <p>Hồ sơ {applicationNumber} chuyển sang bước Hoàn tất với hạn mức <b className={styles.num}>{vnd(amount)}</b> đồng (đề nghị {fmtNum(requestedAmount / 1e9)} tỷ đồng), kỳ hạn {term} tháng.</p>
+              <p>Hồ sơ {applicationNumber} chuyển sang bước Hoàn tất với hạn mức <b className={styles.num}>{fmtNum(amount / 1e9)} tỷ đồng</b> ({vnd(amount)} đồng), {amount === requestedAmount ? 'bằng mức đề nghị' : `mức đề nghị là ${fmtNum(requestedAmount / 1e9)} tỷ đồng`}, kỳ hạn {term} tháng.</p>
               {condList.length > 0 && (<><b>Điều kiện bắt buộc trước giải ngân:</b><ol className={styles.condOl}>{condList.map((c) => <li key={c}>{c}</li>)}</ol></>)}
               {exceptions.length > 0 && <p>Ngoại lệ: {exceptions.filter((e) => e.decision === 'ACCEPTED').length} chấp thuận, {exceptions.filter((e) => e.decision === 'REJECTED').length} từ chối.</p>}
               <p><b>Không hoàn tác được.</b> Quyết định ghi tên bạn vào nhật ký kiểm toán.</p>
