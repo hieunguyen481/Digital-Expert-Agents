@@ -48,7 +48,9 @@ test('thẩm định xác nhận đề xuất điều kiện: khối "Điều ki
   await page.goto(`/ho-so-vay/${LOAN}`);
   const block = page.getByTestId('pre-disbursement');
   await expect(block).toBeVisible({ timeout: 30_000 });
-  await expect(block.getByTestId('pre-disbursement-empty')).toHaveText('Chưa có điều kiện nào được ghi');
+  // Hồ sơ có thể đã có điều kiện từ lần chạy thật trước: không giả định rỗng, chỉ đếm trước/sau.
+  await expect(block.getByTestId('pre-disbursement-confirmed').first().or(block.getByTestId('pre-disbursement-empty'))).toBeVisible();
+  const before = await block.getByTestId('pre-disbursement-confirmed').count();
 
   const card = page.getByTestId('action-proposal').and(page.locator('[data-kind="add_disbursement_condition"]'));
   await card.getByTestId('proposal-confirm').click();
@@ -56,8 +58,9 @@ test('thẩm định xác nhận đề xuất điều kiện: khối "Điều ki
   await card.getByTestId('proposal-submit').click();
   await expect(card).toHaveAttribute('data-status', 'CONFIRMED', { timeout: 20_000 });
 
-  const row = block.getByTestId('pre-disbursement-confirmed');
-  await expect(row).toHaveCount(1, { timeout: 20_000 });
+  await expect(block.getByTestId('pre-disbursement-confirmed')).toHaveCount(before + 1, { timeout: 20_000 });
+  const row = block.getByTestId('pre-disbursement-confirmed').filter({ hasText: TEXT });
+  await expect(row).toHaveCount(1);
   await expect(row).toContainText(TEXT);
   await expect(row).toContainText('AI đề xuất');
   await expect(row).toContainText('Đã được người xác nhận');
@@ -73,7 +76,7 @@ test('thẩm định xác nhận đề xuất điều kiện: khối "Điều ki
 test('QHKH (chỉ đọc) thấy điều kiện đã xác nhận, không có nút sửa', async ({ page }) => {
   await loginAs(page, 'qhkh');
   await page.goto(`/ho-so-vay/${LOAN}`);
-  const row = page.getByTestId('pre-disbursement').getByTestId('pre-disbursement-confirmed');
+  const row = page.getByTestId('pre-disbursement').getByTestId('pre-disbursement-confirmed').filter({ hasText: TEXT });
   await expect(row).toContainText(TEXT, { timeout: 30_000 });
   await expect(page.getByTestId('pre-disbursement').getByRole('button')).toHaveCount(0);
 });
