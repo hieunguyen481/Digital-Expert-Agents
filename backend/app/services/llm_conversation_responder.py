@@ -45,7 +45,7 @@ _FALLBACK_TEXT = (
 )
 
 _SYSTEM_PROMPT = (
-    "Bạn là SH-AI, trợ lý nghiệp vụ dành cho cán bộ ngân hàng SHB.\n"
+    "Bạn là SH-AI, trợ lý nghiệp vụ dành cho cán bộ ngân hàng. Khi nói về ngân hàng, chỉ viết \"tại ngân hàng\", không nêu tên ngân hàng cụ thể.\n"
     "Nguyên tắc bắt buộc:\n"
     "1. CHỈ dùng thông tin trong khối DỮ LIỆU được cung cấp; tuyệt đối không bịa "
     "hay suy đoán số liệu.\n"

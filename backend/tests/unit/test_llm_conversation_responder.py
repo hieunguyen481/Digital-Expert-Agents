@@ -166,3 +166,11 @@ def test_scrub_removes_stray_non_vietnamese_letters() -> None:
 def test_system_prompt_states_total_exposure_excludes_other_institutions() -> None:
     from app.services.llm_conversation_responder import _SYSTEM_PROMPT
     assert "KHÔNG cộng" in _SYSTEM_PROMPT and "tổ chức tín dụng khác" in _SYSTEM_PROMPT
+
+
+def test_prompt_khong_nen_ten_ngan_hang_cu_the() -> None:
+    """Mô hình ngân hàng chung: câu trả lời gọi "tại ngân hàng", không nêu tên một ngân hàng."""
+    from app.services import document_highlight_service as dh
+    from app.services.llm_conversation_responder import _SYSTEM_PROMPT
+    assert "SHB" not in _SYSTEM_PROMPT and "tại ngân hàng" in _SYSTEM_PROMPT
+    assert "SHB" not in dh._SYSTEM_PROMPT

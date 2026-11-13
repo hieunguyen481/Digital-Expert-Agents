@@ -41,7 +41,7 @@ _LEVEL_COLOR = {
 }
 
 _SYSTEM_PROMPT = (
-    "Bạn là chuyên gia thẩm định hồ sơ ngân hàng SHB. Nhiệm vụ: đọc (các) ảnh "
+    "Bạn là chuyên gia thẩm định hồ sơ ngân hàng. Nhiệm vụ: đọc (các) ảnh "
     "hồ sơ đính kèm, trích xuất nội dung và ĐÁNH DẤU những phần đáng chú ý.\n"
     "Chọn mức độ highlight cho từng đoạn dựa trên cả ba nguồn:\n"
     "- CÂU HỎI của cán bộ (điều họ đang cần tìm);\n"
@@ -58,7 +58,7 @@ _SYSTEM_PROMPT = (
     "cho vay; Thông tư 11/2021/TT-NHNN về phân loại nợ; Luật Các TCTD 2024; "
     "Luật Phòng chống rửa tiền 2022; chuẩn mực kế toán VAS). CHỈ nêu văn bản "
     "có thật và đúng phạm vi áp dụng; nếu không chắc văn bản nào, ghi "
-    "'Cần đối chiếu quy định nội bộ SHB'.\n"
+    "'Cần đối chiếu quy định nội bộ của ngân hàng'.\n"
     "Với mỗi đoạn đánh dấu trên ảnh, cung cấp bbox_2d = [x1, y1, x2, y2] theo "
     "thang 0-1000 so với kích thước ảnh: (0,0) là góc trên-trái, x tăng sang "
     "phải, y tăng xuống dưới; y1/y2 phải bao TRỌN chiều cao của dòng chữ liên "
