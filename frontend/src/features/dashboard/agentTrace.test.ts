@@ -306,3 +306,18 @@ describe('chữ AI vụng (vòng 9): 0 đồng, ".;", inflow, VND', () => {
     expect(scrubAnswer('**KHÔNG ĐẠT** theo CIC')).toBe('**Không đạt** theo CIC');
   });
 });
+
+import { levelFromLines } from './agentTrace';
+describe('quyết định: gom nhắc và chuyển cấp; cấp phê duyệt từ dòng Validation', () => {
+  it('hai sự kiện nhắc và chuyển cấp do quá hạn chỉ ra một dòng', () => {
+    const e = (id: number, type: string, message: string) => ({ id, agent: 'x', type, ts: id, payload: { message } }) as never;
+    const d = decisions([e(1, 'sla_reminder', 'a'), e(2, 'sla_escalated', 'b')]);
+    expect(d).toHaveLength(1);
+    expect(d[0].text).toBe('b');
+  });
+  it('cấp phê duyệt đọc từ dòng tính lại', () => {
+    expect(levelFromLines(['Tính lại: 55 tỷ; cấp phê duyệt: Cấp 2 Hội sở (CS-TD-SME/2025 §3.1)'])).toBe('Cấp 2 Hội sở');
+    expect(levelFromLines([])).toBeNull();
+    expect(levelFromLines(undefined)).toBeNull();
+  });
+});

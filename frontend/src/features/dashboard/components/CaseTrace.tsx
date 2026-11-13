@@ -8,7 +8,7 @@ import { TERMINAL_STATES, getAgentCase, getAgentCaseEvents, getApproverNames, st
 import {
   STATE_TONE, agentName, fmtSeconds, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
-  BOARD_LABEL, approverLevelLabel, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
+  BOARD_LABEL, approverLevelLabel, levelFromLines, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
   DECISION_LABEL, quoteAfterLabel, cleanAiLine, coversAiText,
 } from '../agentTrace';
 import { ProposalChain } from '@/features/agent-actions/ActionProposals';
@@ -133,8 +133,10 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
     return a && b && b.ts >= a.ts ? b.ts - a.ts : null;
   };
   const decidedHuman = decided.some((d) => d.label !== 'Nhắc/chuyển cấp do quá hạn');
-  const deciderName = (caseQ.data.approver && namesQ.data?.[caseQ.data.approver])
-    || (pkg?.required_approver_level ? approverLevelLabel(pkg.required_approver_level) : 'người có thẩm quyền theo cấp phê duyệt');
+  const approverName = caseQ.data.approver && namesQ.data?.[caseQ.data.approver];
+  // Cấp phê duyệt: từ gói đề xuất, nếu chưa có thì từ dòng Validation tính lại; hai nguồn cùng một cách ghi.
+  const levelName = pkg?.required_approver_level ? approverLevelLabel(pkg.required_approver_level) : levelFromLines(validation?.lines);
+  const deciderName = approverName || levelName || 'người có thẩm quyền theo cấp phê duyệt';
 
   return (
     <div className={styles.body} data-testid="case-trace">
@@ -314,12 +316,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         {pkg?.recommendation && (
           <div className={styles.dec}>
             <span>Đề xuất của đội agent</span><AiTag /><b>{conclusionHeadline(pkg.recommendation)}</b>
-            {(pkg.proposed_limit != null || pkg.required_approver_level) && (
-              <span>{[
-                pkg.proposed_limit != null ? `hạn mức ${fmtVnd(pkg.proposed_limit)}` : '',
-                pkg.required_approver_level ? `cấp xác nhận: ${approverLevelLabel(pkg.required_approver_level)}` : '',
-              ].filter(Boolean).join(', ')}</span>
-            )}
+            {pkg.proposed_limit != null && <span>{`hạn mức ${fmtVnd(pkg.proposed_limit)}`}</span>}
           </div>
         )}
         {stopReason && (
@@ -355,7 +352,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
 
       <div data-testid="trace-decider">
         <HumanBlock title="Cấp phê duyệt">
-          <span className={styles.text}><b>{deciderName}</b>. Đội agent chỉ đề xuất, không tự phê duyệt.</span>
+          <span className={styles.text}><b>{deciderName}</b>{!approverName && levelName ? ' xác nhận' : ''}. Đội agent chỉ đề xuất, không tự phê duyệt.</span>
         </HumanBlock>
       </div>
 

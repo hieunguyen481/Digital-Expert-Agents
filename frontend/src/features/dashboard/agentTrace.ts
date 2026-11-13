@@ -240,6 +240,14 @@ export const APPROVER_LEVEL_LABEL: Record<string, string> = {
   branch_director: 'Giám đốc chi nhánh (cấp 1)', head_office_l2: 'Cấp 2 Hội sở', council: 'Hội đồng tín dụng',
 };
 export const approverLevelLabel = (l: string) => APPROVER_LEVEL_LABEL[l] ?? l;
+/** Cấp phê duyệt đã biết từ các dòng Validation tính lại ("cấp phê duyệt: Cấp 2 Hội sở"), dùng khi gói đề xuất chưa có (hồ sơ dừng ở "Cần bổ sung"). */
+export function levelFromLines(lines: string[] | null | undefined): string | null {
+  for (const l of lines ?? []) {
+    const m = String(l ?? '').match(/cấp phê duyệt:\s*(Cấp \d+ Hội sở|Giám đốc chi nhánh(?: \(cấp \d\))?|Hội đồng tín dụng)/i);
+    if (m) return m[1];
+  }
+  return null;
+}
 export function toolCalls(events: AgentCaseEvent[]): ToolCall[] {
   return events
     .filter((e) => e.type === 'tool_call')
@@ -274,6 +282,7 @@ export interface DecisionItem {
   who?: string;
   text?: string;
 }
+const SLA_LABEL = 'Nhắc/chuyển cấp do quá hạn';
 /** Quyết định của người có thẩm quyền (HITL) và các lần engine từ chối thực thi. */
 export function decisions(events: AgentCaseEvent[]): DecisionItem[] {
   const out: DecisionItem[] = [];
@@ -283,7 +292,13 @@ export function decisions(events: AgentCaseEvent[]): DecisionItem[] {
     else if (e.type === 'decided_on_loan') out.push({ id: e.id, label: 'Người có thẩm quyền đã quyết định trên hồ sơ', tone: 'ok', who: str(p.approver) });
     else if (e.type === 'rejected') out.push({ id: e.id, label: 'Bị từ chối', tone: 'error', who: str(p.approver), text: str(p.reason) });
     else if (e.type === 'commit_refused') out.push({ id: e.id, label: 'Hệ thống từ chối thực thi', tone: 'warn', who: str(p.approver), text: str(p.message) });
-    else if (e.type === 'sla_escalated' || e.type === 'sla_reminder') out.push({ id: e.id, label: 'Nhắc/chuyển cấp do quá hạn', tone: 'warn', text: str(p.message) });
+    else if (e.type === 'sla_escalated' || e.type === 'sla_reminder') {
+      // Nhắc và chuyển cấp do quá hạn gom một dòng (giữ lần mới nhất), không in hai chip cùng nhãn
+      const at = out.findIndex((d) => d.label === SLA_LABEL);
+      const item: DecisionItem = { id: e.id, label: SLA_LABEL, tone: 'warn', text: str(p.message) };
+      if (at >= 0) out.splice(at, 1);
+      out.push(item);
+    }
   }
   return out;
 }

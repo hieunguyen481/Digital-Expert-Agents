@@ -138,7 +138,7 @@ describe('MyWorkPage', () => {
   it('phụ đề, thẻ tóm tắt và bộ lọc dùng một nguồn đếm', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-11-13T09:00:00Z'));
-    onTestFinished(() => vi.useRealTimers());
+    onTestFinished(() => { vi.useRealTimers(); });
     // facts của backend cố ý lệch (overdue 1, returned 0) để chứng minh màn không đọc nó nữa.
     setup('credit_officer', ok(data([
       item({ application_number: 'HSV-1', tags: ['ret'], mine: true, due_at: '2026-11-20T10:00:00Z' }),
@@ -157,7 +157,7 @@ describe('MyWorkPage: hạn hôm nay và quá hạn dùng cùng một hàm phân
   it('sau giờ hết hạn trong ngày: tính quá hạn ở phụ đề và KPI, không còn ở "Hạn hôm nay"', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-11-13T10:30:00Z'));
-    onTestFinished(() => vi.useRealTimers());
+    onTestFinished(() => { vi.useRealTimers(); });
     setup('credit_officer', ok(data([item({ application_number: 'HSV-1', due_at: '2026-11-13T10:00:00Z', sla_level: 'today', tags: [] })])));
     expect(screen.getByRole('banner').textContent).toContain('1 quá hạn');
     const strip = screen.getByRole('group', { name: 'Tóm tắt' });
@@ -167,7 +167,7 @@ describe('MyWorkPage: hạn hôm nay và quá hạn dùng cùng một hàm phân
   it('trước giờ hết hạn: hạn hôm nay 1, quá hạn 0', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-11-13T09:00:00Z'));
-    onTestFinished(() => vi.useRealTimers());
+    onTestFinished(() => { vi.useRealTimers(); });
     setup('credit_officer', ok(data([item({ application_number: 'HSV-1', due_at: '2026-11-13T10:00:00Z', sla_level: 'over', tags: ['over'] })])));
     const strip = screen.getByRole('group', { name: 'Tóm tắt' });
     expect(within(strip).getByText('Hạn hôm nay').previousSibling).toHaveTextContent('1');

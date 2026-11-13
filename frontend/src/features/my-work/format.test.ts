@@ -53,7 +53,6 @@ describe('customerLabel', () => {
 });
 
 import { deadlineClass, withDeadlineClass } from './format';
-import type { WorkItem } from './types';
 describe('deadlineClass: một hàm phân loại hạn theo thời điểm hết hạn thật', () => {
   const item = { due_at: '2026-11-13T10:00:00Z', paused: false, sla_level: 'today', status: 'APPRAISAL', tags: [] } as unknown as WorkItem;
   it('trước giờ hết hạn trong cùng ngày là hạn hôm nay, sau giờ là quá hạn', () => {
