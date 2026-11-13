@@ -59,10 +59,14 @@ export function proposalTitle(p: Pick<ActionProposal, 'kind' | 'title' | 'params
   const docs = proposalDocs(p as ActionProposal);
   return p.kind === 'request_documents' && docs.length > 0 ? recountTitle(p.title, docs.length) : kindTitle(p.kind, p.title);
 }
+const KIND_ALIAS: Partial<Record<ProposalKind, RegExp>> = {
+  add_disbursement_condition: /^\s*Bổ sung trước giải ngân\s*[:–—-]\s*(?=\S)/iu,
+};
 /** Tiêu đề không còn nội dung sau khi bỏ nhãn loại và câu "… 0 đồng" vô nghĩa thì dùng câu nghiệp vụ thay cho nhãn lặp. */
 export function kindTitle(kind: ProposalKind, raw: string): string {
   const label = KIND_LABEL[kind] ?? '';
-  const t = stripKindLabel(label, raw);
+  // Tiêu đề do engine sinh hay mở bằng một nhãn loại khác chữ ("Bổ sung trước giải ngân: …" dưới nhãn "Điều kiện trước giải ngân"): chỉ bỏ nhãn lặp, giữ nội dung.
+  const t = stripKindLabel(label, raw).replace(KIND_ALIAS[kind] ?? /^$/, '');
   if (t.trim().toLowerCase() !== label.toLowerCase()) return t;
   return kind === 'add_disbursement_condition' && /bảo đảm/i.test(raw) ? 'Chưa có tài sản bảo đảm được thẩm định' : '';
 }

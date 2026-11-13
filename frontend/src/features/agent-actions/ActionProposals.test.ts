@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { proposalChains, proposalDocs, proposalTitle } from './ActionProposals';
+import { kindTitle, proposalChains, proposalDocs, proposalTitle } from './ActionProposals';
 
 const ev = (id: number, type: string, payload: Record<string, unknown>) => ({ id, agent: 'x', type, ts: id, payload });
 
@@ -48,5 +48,16 @@ describe('proposalDocs: người xác nhận thấy đúng danh sách sẽ gửi
   });
   it('bỏ mục trùng y hệt sau chuẩn hóa', () => {
     expect(proposalDocs(mk(['Giấy phép kinh doanh.', 'giấy phép kinh doanh', 'Hợp đồng đầu ra']))).toHaveLength(2);
+  });
+});
+
+describe('kindTitle: nhãn lặp trong tiêu đề', () => {
+  it('bỏ "Bổ sung trước giải ngân:" dưới nhãn Điều kiện trước giải ngân, giữ nội dung', () => {
+    expect(kindTitle('add_disbursement_condition', 'Bổ sung trước giải ngân (không cản trở trình): người đại diện pháp luật chưa có trong hồ sơ'))
+      .toBe('người đại diện pháp luật chưa có trong hồ sơ');
+  });
+  it('tiêu đề thường không bị đổi', () => {
+    expect(kindTitle('add_disbursement_condition', 'Mở tài khoản thanh toán trước giải ngân')).toBe('Mở tài khoản thanh toán trước giải ngân');
+    expect(kindTitle('add_risk_flag', 'Bổ sung trước giải ngân: hồ sơ pháp lý')).toBe('Bổ sung trước giải ngân: hồ sơ pháp lý');
   });
 });
