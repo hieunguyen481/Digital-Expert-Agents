@@ -8,7 +8,7 @@
   color: var(--ai-700); border-bottom: 1px dashed var(--ai-500); font: 600 var(--fs-14)/1.4 var(--font-body);
 }
 .head b { flex: 1; }
-.chipRow { padding: var(--s2) var(--s4) 0; }
+.chipRow { padding: var(--s2) var(--s4); flex: none; position: relative; z-index: 1; background: var(--ai-50); border-bottom: 1px solid var(--rule); box-shadow: 0 6px 6px -6px rgba(15, 28, 51, 0.16); }
 .chip { background: var(--surface); border: 1px dashed var(--ai-500); color: var(--ai-700); margin: 0; }
 .error { margin: var(--s2) var(--s4) 0; color: var(--danger-700); font-size: var(--fs-13); }
 .body { flex: 1; min-height: 0; overflow: auto; }

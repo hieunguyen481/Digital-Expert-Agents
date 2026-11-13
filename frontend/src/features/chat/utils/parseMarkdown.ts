@@ -111,6 +111,18 @@ function parseAligns(separator: string): Array<'left' | 'right' | 'center'> {
 
 const isTableSeparator = (line: string) => /^\s*\|?[\s:-]*-[\s:|-]*\|?\s*$/.test(line) && line.includes('-');
 
+/** Bỏ gạch đầu dòng lặp y hệt (không phân biệt hoa thường, dấu chấm cuối, khoảng trắng); giữ gạch xuất hiện đầu tiên. */
+export function dropRepeatedItems(items: InlineToken[][]): InlineToken[][] {
+  const seen = new Set<string>();
+  return items.filter((tokens) => {
+    const key = tokens.map((t) => t.value).join('').toLowerCase().replace(/\s+/g, ' ').replace(/[\s.;,]+$/, '').trim();
+    if (!key) return true;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 /** Chuyển markdown thành danh sách node để render. */
 export function parseMarkdown(input: string): MarkdownNode[] {
   const lines = input.replace(/\r\n/g, '\n').split('\n');
@@ -186,7 +198,7 @@ export function parseMarkdown(input: string): MarkdownNode[] {
         items.push(parseInline(lines[index].replace(/^\s*[-*]\s+/, '')));
         index += 1;
       }
-      nodes.push({ type: 'bulletList', items });
+      nodes.push({ type: 'bulletList', items: dropRepeatedItems(items) });
       continue;
     }
 
