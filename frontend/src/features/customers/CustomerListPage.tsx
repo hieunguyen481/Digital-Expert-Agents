@@ -27,7 +27,10 @@ export default function CustomerListPage() {
     },
   });
   const total = q.data?.meta.total ?? 0;
-  const anyRated = (q.data?.items ?? []).some((r) => riskInfo(r.risk_rating));
+  const ratedCount = (q.data?.items ?? []).filter((r) => riskInfo(r.risk_rating)).length;
+  const anyRated = ratedCount > 0;
+  // Ít dòng có xếp hạng: không dành cả cột cho "—"; chip xếp hạng đứng cạnh tên của dòng có xếp hạng.
+  const ratedColumn = ratedCount * 2 >= (q.data?.items.length ?? 0);
   const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const to = Math.min(page * PAGE_SIZE, total);
   return (
@@ -64,11 +67,11 @@ export default function CustomerListPage() {
               dataSource={q.data.items}
               aria-label="Khách hàng"
               columns={[
-                { title: 'Khách hàng', render: (_, r) => { const id = customerId(r); return <span className={styles.name}>{id ? <Link to={`/customer/${id}`}>{customerName(r)}</Link> : customerName(r)}</span>; } },
+                { title: 'Khách hàng', render: (_, r) => { const id = customerId(r); const k = ratedColumn ? null : riskInfo(r.risk_rating); return <span className={styles.name}>{id ? <Link to={`/customer/${id}`}>{customerName(r)}</Link> : customerName(r)}{k && <> <StatusPill tone={k[1]}>Rủi ro: {k[0]}</StatusPill></>}</span>; } },
                 { title: 'Mã khách hàng', render: (_, r) => <span className={styles.id}>{r.customer_number}</span> },
                 { title: 'Phân khúc', render: (_, r) => segmentLabel(r.customer_segment) ?? <span className={styles.muted}>Chưa có</span> },
                 { title: 'Xác minh KYC', render: (_, r) => { const [l, t] = kycInfo(r.kyc_status); return <StatusPill tone={t}>{l}</StatusPill>; } },
-                ...(anyRated ? [{ title: 'Mức rủi ro', render: (_: unknown, r: CustomerRow) => { const k = riskInfo(r.risk_rating); return k ? <StatusPill tone={k[1]}>{k[0]}</StatusPill> : <span className={styles.muted} role="img" aria-label="Chưa xếp hạng">—</span>; } }] : []),
+                ...(ratedColumn && anyRated ? [{ title: 'Mức rủi ro', render: (_: unknown, r: CustomerRow) => { const k = riskInfo(r.risk_rating); return k ? <StatusPill tone={k[1]}>{k[0]}</StatusPill> : <span className={styles.muted} role="img" aria-label="Chưa xếp hạng">—</span>; } }] : []),
                 { title: 'Cập nhật', render: (_, r) => <span className={styles.id}>{formatDate(r.updated_at)}</span> },
               ]}
             />

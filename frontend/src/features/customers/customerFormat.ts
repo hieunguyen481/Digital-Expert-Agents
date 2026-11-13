@@ -33,6 +33,6 @@ const SEGMENT: Record<string, string> = { SME: 'Doanh nghiệp vừa và nhỏ' 
 const STATUS: Record<string, string> = { ACTIVE: 'Đang hoạt động', INACTIVE: 'Ngừng hoạt động', CLOSED: 'Đã đóng' };
 
 export const kycInfo = (v: string): [string, PillTone] => KYC[v] ?? ['Chưa rõ', 'neutral'];
-export const riskInfo = (v: string | null | undefined): [string, PillTone] | null => (v ? RISK[v] ?? ['Chưa rõ', 'neutral'] : null);
+export const riskInfo = (v: string | null | undefined): [string, PillTone] | null => (v ? RISK[v] ?? null : null);
 export const segmentLabel = (v: string | null | undefined): string | null => (v ? SEGMENT[v] ?? 'Khác' : null);
 export const customerStatusLabel = (v: string): string => STATUS[v] ?? 'Chưa rõ';
