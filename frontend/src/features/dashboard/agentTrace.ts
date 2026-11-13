@@ -611,7 +611,8 @@ export const sameAiText = (a: string, b: string): boolean => {
 /** Phần "Điều kiện chính: …" ở cuối diễn giải của Validation (không kèm câu mở đầu); null nếu không có. */
 export function narrativeConditions(narrative: string | null | undefined): string | null {
   const m = String(narrative ?? '').match(/Điều kiện chính:\s*([\s\S]+)$/);
-  return m && m[1].trim() ? m[1].trim() : null;
+  // Các ý nối bằng ";" cùng một kiểu chữ: ý đầu viết hoa, ý sau chữ thường (trừ từ viết tắt: chữ hoa thứ hai trở đi giữ nguyên)
+  return m && m[1].trim() ? m[1].trim().replace(/;\s+(\p{Lu})(?=\p{Ll})/gu, (_x, c: string) => `; ${c.toLowerCase()}`) : null;
 }
 
 /** Hai đoạn chữ AI nói cùng một nội dung: một đoạn nằm gọn trong đoạn kia (≥ 70% từ khóa, từ 6 từ trở lên), dù nhãn hay dấu câu khác. */

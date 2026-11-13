@@ -169,7 +169,7 @@ export function EnginePanel({ caseId, loanApplicationId, decisionRelated }: Engi
             {pkg.required_approver_level ? ` · Cấp phê duyệt: ${approverLevelLabel(pkg.required_approver_level)}` : ''}
           </div>
           {(pkg.conditions ?? []).map((cond) => (
-            <div key={cond}>• {cond}</div>
+            <div key={cond}>• {cleanAiLine(cond)}</div>
           ))}
           {canDecide && loanApplicationId && !done ? (
             <Space direction="vertical" style={{ width: '100%', marginTop: 8 }}>

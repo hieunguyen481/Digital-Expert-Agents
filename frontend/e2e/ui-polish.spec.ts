@@ -147,7 +147,7 @@ test('OCR: tên tài liệu không còn tiền tố mã loại chữ hoa', async
 
 /** Văn phong: mọi khối chữ AI trên trang hồ sơ đi qua đường làm sạch chung, không lộ mã nội bộ hay viết tắt thô. */
 const AI_BAD = /\bvs\b|##|compliance_policy|\bVND\b|:\s*$/m;
-for (const [no, id] of [['00187', '000000000001'], ['00163', '000000000013'], ['00167', '000000000014']] as const) {
+for (const [no, id] of [['00187', '000000000001'], ['00163', '000000000013'], ['00167', '000000000018']] as const) {
   test(`chữ AI sạch trên hồ sơ HSV-2026-${no}`, async ({ page }) => {
     await loginAs(page, 'truongphong');
     await page.goto(`/ho-so-vay/75000000-0000-4000-8000-${id}`);
@@ -344,7 +344,7 @@ export function shoutingStarts(text: string): string[] {
   }
   return out;
 }
-for (const [no, id] of [['00187', '000000000001'], ['00163', '000000000013'], ['00167', '000000000014']] as const) {
+for (const [no, id] of [['00187', '000000000001'], ['00163', '000000000013'], ['00167', '000000000018']] as const) {
   test(`quét toàn văn khối AI, ngăn kéo và panel của HSV-2026-${no}`, async ({ page }) => {
     await loginAs(page, 'truongphong');
     await page.goto(`/ho-so-vay/75000000-0000-4000-8000-${id}`);

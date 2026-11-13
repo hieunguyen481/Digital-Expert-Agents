@@ -339,3 +339,10 @@ describe('từ lặp liền nhau (S15)', () => {
     expect(cleanAiLine('Hồ sơ đủ điều kiện, có tài sản bảo đảm.')).toBe('Hồ sơ đủ điều kiện, có tài sản bảo đảm.');
   });
 });
+
+describe('điều kiện chính nối bằng dấu chấm phẩy', () => {
+  it('ý sau viết thường, từ viết tắt giữ nguyên', () => {
+    expect(narrativeConditions('Điều kiện chính: Bổ sung BCTC; Hoàn tất sàng lọc; KYC lại; bổ sung thêm'))
+      .toBe('Bổ sung BCTC; hoàn tất sàng lọc; KYC lại; bổ sung thêm');
+  });
+});
