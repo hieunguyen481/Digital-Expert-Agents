@@ -1,4 +1,4 @@
-import { decimalVi, lowerShouting, stripRuleCodes } from '@/features/dashboard/agentTrace';
+import { decimalVi, lowerShouting, moneyVi, stripRuleCodes } from '@/features/dashboard/agentTrace';
 
 /** Đổi mã trạng thái thô trong câu trả lời của trợ lý sang chữ tiếng Việt (chỉ để hiển thị). */
 const CODES: Record<string, string> = {
@@ -30,9 +30,9 @@ const STATUS_RE = new RegExp(`\\s*\\((${Object.keys(STATUS).join('|')})\\)`, 'g'
 
 /** Làm sạch câu trả lời để hiển thị: bỏ mã trạng thái trong ngoặc, đổi tên mục dữ liệu, bỏ chữ in hoa kiểu nhãn. */
 export function scrubAnswer(text: string): string {
-  return lowerShouting(stripRuleCodes(decimalVi(humanizeCodes(text ?? '')
+  return moneyVi(lowerShouting(stripRuleCodes(decimalVi(humanizeCodes(text ?? '')
     .replace(STATUS_RE, '')
     .replace(/\[nguồn:\s*([^\]]+)\]/gi, (_m, src: string) => `(nguồn: ${src.trim()})`)
     .replace(SRC_RE, (k) => SOURCES[k] ?? k)
-    .replace(/\bDỮ LIỆU\b/g, 'Dữ liệu'))));
+    .replace(/\bDỮ LIỆU\b/g, 'Dữ liệu')))));
 }

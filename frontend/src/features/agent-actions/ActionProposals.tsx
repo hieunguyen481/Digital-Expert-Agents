@@ -57,7 +57,14 @@ export const proposalDocs = (p: ActionProposal): string[] => cleanConditionList(
 /** Tiêu đề hiện ra: yêu cầu bổ sung đếm lại theo danh sách đã gộp; loại khác bỏ nhãn loại ở đầu. */
 export function proposalTitle(p: Pick<ActionProposal, 'kind' | 'title' | 'params'>): string {
   const docs = proposalDocs(p as ActionProposal);
-  return p.kind === 'request_documents' && docs.length > 0 ? recountTitle(p.title, docs.length) : stripKindLabel(KIND_LABEL[p.kind], p.title);
+  return p.kind === 'request_documents' && docs.length > 0 ? recountTitle(p.title, docs.length) : kindTitle(p.kind, p.title);
+}
+/** Tiêu đề không còn nội dung sau khi bỏ nhãn loại và câu "… 0 đồng" vô nghĩa thì dùng câu nghiệp vụ thay cho nhãn lặp. */
+export function kindTitle(kind: ProposalKind, raw: string): string {
+  const label = KIND_LABEL[kind] ?? '';
+  const t = stripKindLabel(label, raw);
+  if (t.trim().toLowerCase() !== label.toLowerCase()) return t;
+  return kind === 'add_disbursement_condition' && /bảo đảm/i.test(raw) ? 'Chưa có tài sản bảo đảm được thẩm định' : '';
 }
 
 function ProposalCard({ proposal: p, caseId, loanId, shared }: { proposal: ActionProposal; caseId: string; loanId: string; shared: string[] }) {
@@ -157,7 +164,7 @@ export function ProposalChain({ events, skipText = [], caseId }: { events: Agent
       {chains.map((c, n) => {
         const label = KIND_LABEL[c.kind] ?? String(c.kind ?? '');
         const real = q.data?.find((p) => p.id === c.id);
-        const title = real && c.kind === 'request_documents' && proposalDocs(real).length > 0 ? proposalTitle(real) : stripKindLabel(label, c.title);
+        const title = real && c.kind === 'request_documents' && proposalDocs(real).length > 0 ? proposalTitle(real) : kindTitle(c.kind, c.title);
         return (
         <div key={c.id} data-testid="trace-proposal-chain" style={{ fontSize: 13, marginBottom: 8 }}>
           {n + 1}. <b>{label}</b>{title ? `: ${c.kind === 'request_documents' ? withListHint(title) : title}` : ''}

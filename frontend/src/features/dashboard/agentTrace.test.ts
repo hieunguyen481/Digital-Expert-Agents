@@ -278,3 +278,31 @@ describe('lowerShouting theo loại (hồi quy "ĐỀ xuất")', () => {
       'Không có dư nợ tại ngân hàng khác.', 'Cấp 2 Hội sở xác nhận theo §3.1.', 'Thẩm định tài sản bảo đảm trước giải ngân.']) expect(scrubInternal(t)).toBe(t);
   });
 });
+
+import { moneyVi, parseAiText, sourceLabel } from './agentTrace';
+import { kindTitle } from '@/features/agent-actions/ActionProposals';
+describe('chữ AI vụng (vòng 9): 0 đồng, ".;", inflow, VND', () => {
+  it('bỏ mệnh đề "hiện tại là 0 đồng" và "tối đa 0 đồng" về giá trị bảo đảm; giữ dư nợ 0 đồng thật', () => {
+    expect(cleanAiLine('Điều kiện trước giải ngân: Giá trị bảo đảm đủ điều kiện hiện tại là 0 đồng')).toBe('Điều kiện trước giải ngân');
+    expect(kindTitle('add_disbursement_condition', 'Điều kiện trước giải ngân: Giá trị bảo đảm đủ điều kiện hiện tại là 0 đồng')).toBe('Chưa có tài sản bảo đảm được thẩm định');
+    expect(parseAiText('Chưa thể kết luận đủ điều kiện: chưa có kết quả sàng lọc; hạn mức có bảo đảm tối đa 0 đồng').items.join(' ')).not.toMatch(/0 đồng/);
+    expect(cleanAiLine('Dư nợ hiện hữu tại ngân hàng 0 đồng + đề xuất 80 tỷ')).toBe('Dư nợ hiện hữu tại ngân hàng 0 đồng + đề xuất 80 tỷ');
+    expect(cleanAiLine('Số tiền quá hạn 0 đồng')).toBe('Số tiền quá hạn 0 đồng');
+  });
+  it('không còn ".;" hay dấu câu đôi', () => {
+    expect(scrubInternal('đề xuất 80 tỷ đồng.; thẩm định pháp lý')).toBe('đề xuất 80 tỷ đồng; thẩm định pháp lý');
+    expect(scrubInternal('xong,, tiếp')).toBe('xong, tiếp');
+    expect(scrubInternal('Hết... rồi')).toBe('Hết... rồi');
+  });
+  it('nhãn nguồn "Dữ kiện inflow" thành tên nghiệp vụ', () => {
+    expect(sourceLabel('Dữ kiện inflow')).toBe('Dữ kiện tiền về tài khoản');
+    expect(sourceLabel('inflow')).toBe('Tiền về tài khoản');
+    expect(sourceLabel('Dữ kiện thẩm định')).toBe('Dữ kiện thẩm định');
+  });
+  it('tiền: bỏ ",0" thừa và VND thành đồng', () => {
+    expect(moneyVi('tăng từ 56,0 tỷ VND lên 98,0 tỷ VND')).toBe('tăng từ 56 tỷ đồng lên 98 tỷ đồng');
+    expect(moneyVi('hạn mức 12,5 tỷ đồng; 50.000.000 VND')).toBe('hạn mức 12,5 tỷ đồng; 50.000.000 đồng');
+    expect(scrubAnswer('Tổng 56.0 tỷ VND theo hồ sơ')).toBe('Tổng 56 tỷ đồng theo hồ sơ');
+    expect(scrubAnswer('**KHÔNG ĐẠT** theo CIC')).toBe('**Không đạt** theo CIC');
+  });
+});

@@ -219,6 +219,12 @@ export const sourceLabel = (s: string): string => {
   const one = (p: string) => {
     const name = p.replace(/^core-banking:/, '').replace(/\.md$/, '');
     if (SOURCE_LABEL[name]) return SOURCE_LABEL[name];
+    // Khóa bảng chung viết thô ("Dữ kiện inflow", "inflow") -> tên nghiệp vụ của khóa đó
+    const board = name.match(/^(?:(dữ kiện)\s+)?([a-z_]+)$/i);
+    if (board && BOARD_LABEL[board[2].toLowerCase()]) {
+      const b = BOARD_LABEL[board[2].toLowerCase()];
+      return board[1] ? `${board[1].charAt(0).toUpperCase()}${board[1].slice(1)} ${b.charAt(0).toLowerCase()}${b.slice(1)}`.replace(/ cic$/, ' CIC') : b;
+    }
     if (TOOL_LABEL[name]) return TOOL_LABEL[name].charAt(0).toUpperCase() + TOOL_LABEL[name].slice(1);
     if (/^(customer|credit|banking|document|agent|audit)\.[a-z_]+$/.test(name)) return 'Dữ liệu core banking';
     return p;
@@ -348,7 +354,7 @@ export function lowerShouting(text: string): string {
     const words = run.split(/[ \t]+/);
     const loud = words.filter((w) => !ACRONYMS.has(w));
     if (!loud.some((w) => TONED.test(w)) && loud.length < 2) return run;
-    const startOfSentence = /(^|[.;!?]\s+)$/.test(whole.slice(0, off));
+    const startOfSentence = /(?:^|[.;!?]\s+|\n)[*_>#"“(\-\s]*$/.test(whole.slice(0, off));
     let first = true;
     return run.replace(/\p{Lu}{2,}/gu, (w) => {
       if (ACRONYMS.has(w)) { first = false; return w; }
@@ -359,8 +365,16 @@ export function lowerShouting(text: string): string {
     });
   });
 }
+/** Số tiền ghi theo kiểu ứng dụng: "56,0 tỷ VND" -> "56 tỷ đồng" (bỏ ",0" thừa, "VND" đọc là "đồng"). */
+export function moneyVi(text: string): string {
+  return String(text ?? '')
+    .replace(/(?<![\d.,])(\d{1,3}(?:\.\d{3})*|\d+),0{1,2}(?!\d)(?=\s*(?:tỷ|triệu|nghìn|đồng|VND|₫))/gu, '$1')
+    .replace(/(\d|tỷ|triệu|nghìn)\s*(?:VND|₫)(?![\p{L}\d])/gu, '$1 đồng');
+}
 function scrubStyle(text: string): string {
   return lowerShouting(stripRuleCodes(decimalVi(text)))
+    // Dấu câu đôi do ghép mảnh: ".;" ";." ",." ";;" ",," ".."
+    .replace(/\.\s*;/g, ';').replace(/;\s*\./g, '.').replace(/,\s*\./g, '.').replace(/;\s*;/g, ';').replace(/,\s*,/g, ',').replace(/(?<!\.)\.\.(?!\.)/g, '.')
     .replace(AGENT_WORDS, (w) => w.charAt(0).toUpperCase() + w.slice(1))
     .replace(/\b(c)hallenges?\b/gi, (_m, c: string) => (c === 'C' ? 'Phản biện' : 'phản biện'))
     .replace(/\bdữ liệu chặn\b/gi, 'dữ liệu bắt buộc')
@@ -487,6 +501,15 @@ export function trimDangling(t: string): string {
   const cut = Math.max(base.lastIndexOf('. '), base.lastIndexOf('; '));
   return (cut > 20 ? base.slice(0, cut) : base).replace(/[\s.;:,]+$/, '');
 }
+/** Mệnh đề cuối "… hiện tại là 0 đồng", "… tối đa 0 đồng": số máy móc khi chưa đủ điều kiện, không nói thêm gì; bỏ mệnh đề, giữ phần đứng trước dấu ";". */
+const ZERO_TAIL = '(?:hiện (?:tại|tính được|ghi nhận)(?: là)?|tối đa):?\\s*0\\s*(?:đồng|VND|₫)?\\.?\\s*$';
+const ZERO_STATUS = new RegExp(`\\s*[A-ZÀ-Ỵa-zà-ỵ][^.;:]*${ZERO_TAIL}`, 'u');
+/** Như trên nhưng chỉ khi mệnh đề nói về giá trị bảo đảm/hạn mức (dùng cho dòng ngắn như tiêu đề; "dư nợ hiện tại 0 đồng" là thông tin thật nên giữ). */
+const ZERO_COLLATERAL = new RegExp(`\\s*[A-ZÀ-Ỵa-zà-ỵ](?=[^.;:]*(?:bảo đảm|hạn mức|giá trị))[^.;:]*${ZERO_TAIL}`, 'u');
+export function dropZeroStatus(t: string, narrow = false): string {
+  const re = narrow ? ZERO_COLLATERAL : ZERO_STATUS;
+  return re.test(t) ? t.replace(re, '').replace(/[\s;,:]+$/, '').trim() : t;
+}
 /** Một dòng chữ AI (tiêu đề cờ, căn cứ, trích nguồn): bỏ mã kỹ thuật, "vs", "hit", "#", từ lặp liền nhau, "(trang N)" gộp vào nguồn đứng trước. */
 export function cleanAiLine(raw: string): string {
   let t = scrubInternal(raw ?? '')
@@ -497,7 +520,7 @@ export function cleanAiLine(raw: string): string {
     .replace(/\s*\(\s*(trang\s+\d+)\s*\)/gi, ', $1')
     .replace(/\.{3,}/g, '…').replace(/([)\]”"])\.,/g, '$1,').replace(/(?<=\p{L}|\d)\.,/gu, ',');
   for (let i = 0; i < 3; i += 1) t = t.replace(/(^|[\s(])(\p{L}{2,})\s+\2(?=[\s.,;:)]|$)/giu, '$1$2');
-  return trimDangling(lowerAfterComma(t.replace(/\s{2,}/g, ' ').trim()));
+  return trimDangling(lowerAfterComma(dropZeroStatus(t.replace(/\s{2,}/g, ' ').trim(), true)));
 }
 /** Trích nguồn hiển thị. */
 export const quoteText = (q: string): string => cleanAiLine(q);
@@ -537,7 +560,7 @@ export function parseAiText(raw: string): AiTextParts {
   t = t.replace(/\s+vs\.?\s+/gi, ' so với ').replace(/\bhit\b/gi, 'kết quả trùng').replace(/^#+\s*/, '');
   t = trimDangling(t);
   // Câu "… hiện tính được/ghi nhận (là) 0 đồng" là số máy móc khi chưa đủ điều kiện, không nói thêm gì.
-  t = t.replace(/\s*[A-ZÀ-Ỵa-zà-ỵ][^.;:]*hiện (?:tại|tính được|ghi nhận)(?: là)?:?\s*0\s*(?:đồng|VND|₫)?\.?\s*$/u, '').trim();
+  t = dropZeroStatus(t);
   t = t.replace(/\.{3,}/g, '…');
   let tag: string | undefined;
   let lead: string | undefined;
