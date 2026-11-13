@@ -3,7 +3,7 @@ import { Alert, Button, Input } from 'antd';
 import { AiText } from '@/features/dashboard/components/AiText';
 import { AiTag, StatusPill, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { cleanAiLine, cleanConditionList, quoteAfterLabel, rationaleText, recountTitle, sourceLabel, stripKindLabel, withListHint } from '@/features/dashboard/agentTrace';
+import { coversAiText, cleanAiLine, cleanConditionList, quoteAfterLabel, rationaleText, recountTitle, sourceLabel, stripKindLabel, withListHint } from '@/features/dashboard/agentTrace';
 import { useMe } from '@/auth/session';
 import { normalizeError } from '@/services/apiClient';
 import {
@@ -137,7 +137,8 @@ export function proposalChains(events: AgentCaseEvent[]): ChainRow[] {
   return [...rows.values()];
 }
 
-export function ProposalChain({ events }: { events: AgentCaseEvent[] }) {
+/** `skipText`: các đoạn đã in ở nơi khác của ngăn kéo; lý do của bước nào giống chúng thì không in lại. */
+export function ProposalChain({ events, skipText = [] }: { events: AgentCaseEvent[]; skipText?: string[] }) {
   const chains = proposalChains(events);
   if (chains.length === 0) return null;
   return (
@@ -150,7 +151,7 @@ export function ProposalChain({ events }: { events: AgentCaseEvent[] }) {
         <div key={c.id} data-testid="trace-proposal-chain" style={{ fontSize: 13, marginBottom: 8 }}>
           {n + 1}. <b>{label}</b>{title ? `: ${c.kind === 'request_documents' ? withListHint(title) : title}` : ''}
           {c.steps.map((s, i) => (
-            <div key={i} style={{ marginLeft: 12 }}><StatusPill tone={s.tone}>{s.label}</StatusPill> {rationaleText(c.kind, s.text)}</div>
+            <div key={i} style={{ marginLeft: 12 }}><StatusPill tone={s.tone}>{s.label}</StatusPill> {skipText.some((t) => coversAiText(t, s.text)) ? '' : rationaleText(c.kind, s.text)}</div>
           ))}
         </div>
         );

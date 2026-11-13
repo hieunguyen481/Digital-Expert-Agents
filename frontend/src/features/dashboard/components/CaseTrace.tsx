@@ -9,7 +9,7 @@ import {
   STATE_TONE, agentName, fmtSeconds, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
   BOARD_LABEL, approverLevelLabel, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
-  DECISION_LABEL, quoteAfterLabel, cleanAiLine, sameAiText,
+  DECISION_LABEL, quoteAfterLabel, cleanAiLine, coversAiText,
 } from '../agentTrace';
 import { ProposalChain } from '@/features/agent-actions/ActionProposals';
 import { statusLabel } from '@/features/my-work/format';
@@ -122,7 +122,9 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
     (state === 'Needs Info' || state === 'Rejected') && typeof stopEvent?.payload?.reason === 'string'
       ? stopEvent.payload.reason
       : undefined;
-  const sources = verdicts.flatMap((v) => (v.evidence ?? []).map((e) => ({ agent: v.agent, ...e })));
+  // Trích nguồn nhắc lại đúng nội dung đã nêu ở lý do dừng (cổng xác định) thì chỉ giữ ở lý do dừng.
+  const sources = verdicts.flatMap((v) => (v.evidence ?? []).map((e) => ({ agent: v.agent, ...e })))
+    .filter((s) => !(stopReason && coversAiText(s.quote, stopReason)));
   // Thời gian từng task = từ sự kiện task_started đến task_finished (giây, ts của engine).
   const taskSeconds = (taskId: string): number | null => {
     const mine = events.filter((e) => e.payload?.task_id === taskId);
@@ -297,7 +299,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                 {validation.issues.map((l, i) => <li key={i}>{scrubInternal(l)}</li>)}
               </ul>
             )}
-            {validation.narrative && !flow.some((f) => f.from === 'validation' && sameAiText(f.text, validation.narrative)) && (
+            {validation.narrative && !flow.some((f) => f.from === 'validation' && coversAiText(f.text, validation.narrative)) && !coversAiText(stopReason, validation.narrative) && !verdicts.some((v) => coversAiText(v.summary, validation.narrative)) && (
               <span className={styles.text}><b>Diễn giải cho người duyệt</b> <AiTag />
                 <span style={{ display: 'block' }}><AiText text={validation.narrative} /></span></span>
             )}
@@ -325,7 +327,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             {state === 'Rejected' ? 'Đội agent đề xuất từ chối' : 'Đội agent đề nghị bổ sung hồ sơ'}: <AiText text={stopReason} />
           </div>
         )}
-        {verdicts.map((v) => (
+        {verdicts.filter((v) => !(stopReason && v.agent === 'validation' && coversAiText(v.summary, stopReason))).map((v) => (
           <div key={v.agent + v.summary} className={styles.dec}>
             <b>{agentName(v.agent)}</b> <VerdictChip v={v} /> <AiText text={v.summary} skipTag={DECISION_LABEL[v.decision]} />
           </div>
@@ -333,7 +335,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         {decided.map((d) => (
           <div key={d.id} className={styles.dec}>
             <StatusPill tone={DECISION_TONE[d.tone as 'ok' | 'error'] ?? 'warn'}>{d.label}</StatusPill>
-            {d.who && <span className={styles.dim}>Người xác nhận: {namesQ.data?.[d.who] ?? 'Không rõ'}</span>} {d.text}
+            {d.who && <span className={styles.dim}>Người xác nhận: {namesQ.data?.[d.who] ?? 'Không rõ'}</span>} {scrubInternal(d.text ?? '')}
           </div>
         ))}
         {actions.map((a) => (
@@ -342,7 +344,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
             Hồ sơ vay đã chuyển sang <b>{statusLabel(a.workflowStatus)}</b> qua bước quyết định của quy trình (có ghi nhật ký kiểm toán).
           </div>
         ))}
-        <ProposalChain events={events} />
+        <ProposalChain events={events} skipText={[stopReason, validation?.narrative].filter((x): x is string => !!x)} />
         {state === 'Pending Approval' && !decidedHuman && (
           <span className={styles.dim}>Đang chờ người có thẩm quyền xác nhận; agent không tự phê duyệt.</span>
         )}

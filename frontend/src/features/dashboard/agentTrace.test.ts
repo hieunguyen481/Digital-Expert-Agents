@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AgentCaseEvent } from '@/services/agentCaseService';
-import { cleanAiLine, decisions, rationaleText, realActions, sharedBoards, stripKindLabel, toolCalls, validationView, withListHint } from './agentTrace';
+import { cleanAiLine, coversAiText, decisions, rationaleText, realActions, sharedBoards, stripKindLabel, toolCalls, validationView, withListHint } from './agentTrace';
 
 const ev = (id: number, agent: string, type: string, payload: Record<string, unknown>) =>
   ({ id, agent, type, payload, case_id: 'c', ts: 0 }) as unknown as AgentCaseEvent;
@@ -188,5 +188,21 @@ describe('nhãn loại đề xuất và căn cứ', () => {
   it('yêu cầu bổ sung N mục có chỉ dẫn nơi xem', () => {
     expect(withListHint('Yêu cầu khách bổ sung 5 mục')).toBe('Yêu cầu khách bổ sung 5 mục, xem danh sách ở Việc cần làm');
     expect(withListHint('Bổ sung giấy tờ')).toBe('Bổ sung giấy tờ');
+  });
+});
+
+describe('gom nội dung cổng lặp', () => {
+  const stop = 'Thiếu dữ liệu bắt buộc: Chưa có kết quả tra cứu CIC, phải tra cứu trước khi trình (CS-TD-SME/2025 §6.1, §6.3); Chưa có kết quả sàng lọc AML, phải hoàn tất trước khi trình';
+  it('cùng nội dung khác nhãn và dấu câu thì coi là một', () => {
+    expect(coversAiText(stop, 'CẦN BỔ SUNG: Thiếu dữ liệu bắt buộc, Chưa có kết quả tra cứu CIC, phải tra cứu trước khi trình (CS-TD-SME/2025 §6.1, §6.3); Chưa có kết quả sàng lọc AML, phải hoàn tất trước khi trình')).toBe(true);
+    expect(coversAiText(stop, 'cần thêm thông tin (Chưa có kết quả tra cứu CIC, phải tra cứu trước khi trình; Chưa có kết quả sàng lọc AML, phải hoàn tất trước khi trình)')).toBe(true);
+  });
+  it('nội dung khác thì không gộp; chịu undefined', () => {
+    expect(coversAiText(stop, 'Định giá tài sản bảo đảm chưa cập nhật, cần thẩm định lại giá trị thị trường tại thời điểm hiện tại')).toBe(false);
+    expect(coversAiText(undefined, '')).toBe(false);
+    expect(coversAiText('', stop)).toBe(false);
+  });
+  it('viết thường chữ đầu sau dấu phẩy', () => {
+    expect(cleanAiLine('Thiếu dữ liệu bắt buộc — Chưa có kết quả tra cứu CIC')).toBe('Thiếu dữ liệu bắt buộc, chưa có kết quả tra cứu CIC');
   });
 });

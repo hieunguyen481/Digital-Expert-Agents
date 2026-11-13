@@ -442,7 +442,9 @@ export interface AiTextParts {
   /** Các ý tách bằng ";" hoặc "—"; một ý thì là câu thường. */
   items: string[];
 }
-const dash = (x: string) => x.replace(/\s+[—–]\s+/g, ', ').replace(/^[\s—–-]+/, '').replace(/[\s.;:,]+$/, '').trim();
+const LOWER_AFTER_COMMA = /,\s+(Chưa|Không|Thiếu|Cần|Đã|Còn|Chỉ|Phải)(?=\s)/g;
+const lowerAfterComma = (x: string) => x.replace(LOWER_AFTER_COMMA, (_m, w: string) => `, ${w.toLowerCase()}`);
+const dash = (x: string) => lowerAfterComma(x.replace(/\s+[—–]\s+/g, ', ')).replace(/^[\s—–-]+/, '').replace(/[\s.;:,]+$/, '').trim();
 
 /** Chuỗi bị cắt giữa chữ ("… dư n"): bỏ mảnh cuối một chữ cái rồi lùi về ranh giới câu hoặc ý gần nhất. */
 export function trimDangling(t: string): string {
@@ -461,7 +463,7 @@ export function cleanAiLine(raw: string): string {
     .replace(/\s*\(\s*(trang\s+\d+)\s*\)/gi, ', $1')
     .replace(/\.{3,}/g, '…').replace(/([)\]”"])\.,/g, '$1,').replace(/(?<=\p{L}|\d)\.,/gu, ',');
   for (let i = 0; i < 3; i += 1) t = t.replace(/(^|[\s(])(\p{L}{2,})\s+\2(?=[\s.,;:)]|$)/giu, '$1$2');
-  return trimDangling(t.replace(/\s{2,}/g, ' ').trim());
+  return trimDangling(lowerAfterComma(t.replace(/\s{2,}/g, ' ').trim()));
 }
 /** Trích nguồn hiển thị. */
 export const quoteText = (q: string): string => cleanAiLine(q);
@@ -523,6 +525,16 @@ export function parseAiText(raw: string): AiTextParts {
 export const sameAiText = (a: string, b: string): boolean => {
   const k = (x: string) => { const p = parseAiText(x ?? ''); return foldPlain([p.tag, p.lead, ...p.items].filter(Boolean).join(' ')); };
   const ka = k(a); return ka.length > 0 && ka === k(b);
+};
+
+/** Hai đoạn chữ AI nói cùng một nội dung: một đoạn nằm gọn trong đoạn kia (≥ 80% từ khóa, từ 6 từ trở lên), dù nhãn hay dấu câu khác. */
+export const coversAiText = (a: string | null | undefined, b: string | null | undefined): boolean => {
+  const w = (x: string) => new Set(fold(String(x ?? '')).split(/[^a-z0-9]+/).filter((t) => t.length > 2));
+  const [wa, wb] = [w(a ?? ''), w(b ?? '')];
+  const [small, big] = wa.size <= wb.size ? [wa, wb] : [wb, wa];
+  if (small.size < 6) return foldPlain(a ?? '').length > 0 && foldPlain(a ?? '') === foldPlain(b ?? '');
+  let hit = 0; small.forEach((t) => { if (big.has(t)) hit += 1; });
+  return hit / small.size >= 0.8;
 };
 
 const fold = (x: string) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
