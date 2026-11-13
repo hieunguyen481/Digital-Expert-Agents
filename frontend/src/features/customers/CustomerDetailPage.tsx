@@ -1,9 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { Skeleton, Table } from 'antd';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useUiRole } from '@/auth/session';
-import { ActionButton, StateBlock, StatusPill, ledgerNum, ledgerTable } from '@/components/ui';
-import { statusLabel } from '@/features/my-work/format';
+import { ActionButton, StateBlock, StatusPill, Timeline, ledgerNum, ledgerTable, type TimelineEntry } from '@/components/ui';
+import { fetchOverview } from '@/features/loan-detail/loanDetailService';
+import { statusLabel, stepLabel } from '@/features/my-work/format';
+import { stepResultLabel } from '@/features/loan-detail/format';
 import { PageHead } from '@/features/shell/PageHead';
 import apiClient from '@/services/apiClient';
 import type { ApiError } from '@/types/api';
@@ -37,6 +39,22 @@ export default function CustomerDetailPage() {
     enabled: cust.isSuccess,
     queryFn: async () => (await apiClient.get<LoanRow[]>(`/customers/${id}/loan-applications`)).data,
   });
+  // Hoạt động gần đây: các bước xử lý mới nhất trong dòng thời gian của (tối đa 3) hồ sơ vay của khách hàng.
+  const recentLoans = (loans.data ?? []).slice(0, 3);
+  const overviews = useQueries({
+    queries: recentLoans.map((l) => ({ queryKey: ['loan-overview', l.id], queryFn: () => fetchOverview(l.id), retry: false, staleTime: 30_000 })),
+  });
+  const activity: TimelineEntry[] = recentLoans
+    .flatMap((l, i) => (overviews[i]?.data?.timeline ?? []).map((st) => ({ l, st })))
+    .sort((a, b) => b.st.received_at.localeCompare(a.st.received_at))
+    .slice(0, 6)
+    .map(({ l, st }, i) => ({
+      key: st.id,
+      time: formatDate(st.received_at),
+      current: i === 0 && !st.completed_at,
+      title: <span><b>{stepLabel(st.step_code)}</b> · <LoanCode code={l.application_number} status={l.status} />{st.assignee_name ? ` · ${st.assignee_name}` : ''}</span>,
+      body: <span className={styles.muted}>{st.completed_at ? `xong ${formatDate(st.completed_at)}${st.result ? ` (${stepResultLabel(st.result)})` : ''}` : 'đang xử lý'}</span>,
+    }));
   const crumbs = [{ label: 'Khách hàng SME', to: '/khach-hang' }];
 
   if (cust.isLoading) return <div className={styles.page} role="status" aria-label="Đang tải"><Skeleton active /></div>;
@@ -116,6 +134,12 @@ export default function CustomerDetailPage() {
             </div>
           </aside>
         </div>
+        {activity.length > 0 && (
+          <section className={styles.card} aria-labelledby="kh-hd" data-testid="customer-activity">
+            <div className={styles.cardHead}><h2 id="kh-hd">Hoạt động gần đây</h2></div>
+            <div className={styles.cardBody}><Timeline entries={activity} label="Hoạt động gần đây của khách hàng" /></div>
+          </section>
+        )}
       </div>
     </>
   );
