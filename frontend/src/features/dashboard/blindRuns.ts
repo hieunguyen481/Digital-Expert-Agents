@@ -56,4 +56,4 @@ export function casesNotBetter(
 
 /** Câu nói rõ lượt đo lại sau khi sửa engine (bộ ca đã được đo một lần ở lượt trước). */
 export const REMEASURE_NOTE =
-  'Đây là lượt đo lại trên bản mã đang chạy, sau khi engine được sửa; bộ ca đã được đo ở các lượt trước nên không còn mù chặt. Với lượt đo thứ ba, đây là lần đo sau hai lần sửa engine (sau lượt 1 và sau lượt 2). Các lượt trước vẫn chọn được ở danh sách trên.';
+  'Đo lại trên bản mã đang chạy, sau khi engine được sửa; bộ ca đã được đo ở lượt trước nên không còn mù chặt. Lần 3 là lần đo sau hai lần sửa engine (sau lần 1 và sau lần 2). Các lượt trước vẫn chọn được ở danh sách trên.';

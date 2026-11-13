@@ -49,8 +49,8 @@ export default function LoginPage() {
         <div className={styles.legend}>
           <div className={styles.flow} aria-label="Quy trình: AI đề xuất, chuyên viên xem và sửa, người có thẩm quyền quyết định">
             <b>AI đề xuất</b>
-            <span className={styles.step}><span aria-hidden>→&nbsp;</span><b>Chuyên viên xem và sửa</b></span>
-            <span className={styles.step}><span aria-hidden>→&nbsp;</span><b>Người có thẩm quyền quyết định</b></span>
+            <span className={styles.step}><span aria-hidden>→</span><b>Chuyên viên xem và sửa</b></span>
+            <span className={styles.step}><span aria-hidden>→</span><b>Người có thẩm quyền quyết định</b></span>
           </div>
           <div className={`${styles.sample} ${styles.sampleAi}`}>
             <span className={styles.tagAi}>AI đề xuất</span>

@@ -54,3 +54,17 @@ describe('lượt đo mặc định có nhiều lần lặp nhất', () => {
     expect(defaultRunId([rr('three', 3, '2026-11-09T09:00:00Z'), rr('one', 1, '2026-11-11T09:00:00Z')])).toBe('three');
   });
 });
+
+describe('nhãn lần đo của bộ ca v8', () => {
+  it('đánh số lần 1, 2, 3 theo nhãn lưu', async () => {
+    const { blindOrdinal } = await import('./ComparisonTab');
+    expect(blindOrdinal('v8 mù trên bản khóa 735f9a7')).toBe(1);
+    expect(blindOrdinal('v8 đo lại trên bản khóa 98600a7')).toBe(2);
+    expect(blindOrdinal('v8 đo lần ba trên bản khóa 8c9afbc')).toBe(3);
+  });
+  it('lượt khác không gắn số lần', async () => {
+    const { blindOrdinal } = await import('./ComparisonTab');
+    expect(blindOrdinal('v7 kiểm thoái lui')).toBeNull();
+    expect(blindOrdinal(null)).toBeNull();
+  });
+});

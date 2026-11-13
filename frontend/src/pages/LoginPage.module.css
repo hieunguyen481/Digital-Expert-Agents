@@ -17,6 +17,7 @@
 .flow b { color: #fff; }
 /* Mũi tên đi liền với bước đứng sau: xuống dòng thì mũi tên mở đầu dòng mới, không rơi cuối dòng. */
 .step { white-space: nowrap; }
+.step > span { margin-right: var(--s1); }
 .sample { background: var(--surface); color: var(--ink); border-radius: var(--r-md); padding: var(--s3) var(--s4); display: flex; gap: var(--s3); align-items: center; font-size: var(--fs-12); }
 .sampleAi { border: 1.5px dashed var(--ai-500); background: var(--ai-50); }
 .sampleHm { border: 1px solid var(--navy-700); border-left: 5px solid var(--navy-700); }
