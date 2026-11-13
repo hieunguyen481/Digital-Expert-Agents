@@ -426,3 +426,15 @@ Bổ sung (13/11/2026, chỉ thêm, không sửa số đã ghi): (1) Tỷ lệ �
 
 ### 15.8 Hiển thị trên dashboard
 Tab So sánh mặc định mở lượt v8 (ba lần lặp, bộ ca mới nhất), kèm mục "Số đo chính: đo mù" với hai dòng (a)/(b), danh sách ca đội agent không hơn (bằng hoặc thấp hơn) và câu giới hạn cạnh kết luận; mọi lượt cũ (v1–v7, kiểm thoái lui) vẫn chọn được. Dòng (b) ghi ở `frontend/src/features/dashboard/blindRuns.ts` và e2e tính lại từ tệp kết quả để đối chiếu.
+
+## 16. Đo lại v8 trên bản khóa `98600a7` (13/11/2026)
+
+### 16.1 Đầu mục: ghi trước khi đo (commit trước lượt đo)
+- **Lý do đo lại:** sau lượt §15 engine đã đổi để sửa lỗi S09 của giám khảo chức năng lần 8 (`docs/agent/cham-diem-chuc-nang-lan-8.md`). Mã engine đang chạy không còn là bản `735f9a7`, nên số §15 không còn khớp mã đang chạy.
+- **Commit engine đã đổi (`735f9a7..98600a7`):** `fcbc57f` bỏ mã quy tắc nội bộ Q4 khỏi chữ hiển thị (giữ điều khoản §3.1); `24ec4be` bộ dò mâu thuẫn số liệu nhận mọi cách viết đòn bẩy và quét trích dẫn bằng chứng; `98600a7` dòng tính lại Nợ vay/EBITDA ghi đơn vị "lần". Các thay đổi này không nhắm vào ca benchmark (crew sửa bị cấm đọc `cases_v8.json`, `grade.py`).
+- **Commit khóa:** `98600a7` (engine; HEAD `import/duskdash` chỉ thêm frontend/backend). Container engine trên stack chung dựng từ mã này. Từ đây không sửa `agent_engine/` (trừ thêm file kết quả), single-agent, `grade.py`, `cases_v8.json`, prompt, cờ. Lỗi engine thấy trong lúc đo chỉ ghi lại.
+- **Lệnh sẽ chạy (đúng một lượt, giống §15.1, chỉ đổi nhãn):** `python3 agent_engine/scripts/benchmark/run.py --cases all --runs 3 --modes single,multi --cases-file agent_engine/scripts/benchmark/cases_v8.json --grader v3 --max-cost 1.5 --label "v8 đo lại trên bản khóa 98600a7"`.
+- **Cảnh báo: không còn mù chặt.** Lượt §15 đã chạy trên đúng bộ ca này. Dù không ai sửa engine dựa vào kết quả từng ca, bộ ca đã bị lộ kết quả ở cấp tổng; đây là lượt đo lại có công bố, không phải đo mù mới. Đáp án `total_exposure`/`audit_required` vẫn là đáp án cũ (§15.6 bổ sung (2)); dòng (b) giữ định nghĩa §14.
+- **Seed khách v8:** có trong DB (10 hồ sơ `benchmark v8` trong `customer.organization_profile`, kiểm bằng SELECT).
+- **Số dư OpenRouter trước đo:** còn 3,1440 USD (đã dùng 6,8560 / hạn mức 10).
+- Lượt mới là số chính (khớp mã đang chạy), kể cả khi kém lượt cũ. Lỗi hạ tầng (nếu có) chỉ chạy lại đúng phần lỗi và ghi rõ; không chạy lại để chọn điểm.
