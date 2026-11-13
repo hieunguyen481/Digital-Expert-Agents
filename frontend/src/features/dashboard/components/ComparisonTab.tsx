@@ -14,7 +14,7 @@ import type {
   BenchmarkRunMeta,
   BenchmarkStat,
 } from '@/types/dashboard';
-import { BLIND_RUNS, GATE_NOTE, limitNote, casesNotBetter } from '../blindRuns';
+import { BLIND_RUNS, GATE_NOTE, REMEASURE_NOTE, limitNote, casesNotBetter } from '../blindRuns';
 import styles from '@/pages/AgentDashboardPage.module.css';
 
 type MetricKey = Exclude<keyof BenchmarkModeSummary, 'runs' | 'errors'>;
@@ -275,7 +275,7 @@ export function ComparisonTab() {
       {BLIND_RUNS[run.run_id] && both && (
         <section className={styles.card} aria-labelledby="cmp-blind" data-testid="cmp-blind">
           <div className={styles.cardHead}>
-            <h2 id="cmp-blind">Số đo chính: đo mù trên bản đã khóa mã</h2>
+            <h2 id="cmp-blind">{BLIND_RUNS[run.run_id].remeasure ? 'Số đo chính: đo lại trên bản mã đang chạy' : 'Số đo chính: đo mù trên bản đã khóa mã'}</h2>
             <span className={styles.cardNote}>Bộ ca và cách báo cáo đăng ký trước khi đo; trung bình ± độ lệch chuẩn</span>
           </div>
           <div className={`${styles.cardBody} ${styles.flush}`}>
@@ -297,6 +297,9 @@ export function ComparisonTab() {
               ]}
             />
           </div>
+          {BLIND_RUNS[run.run_id].remeasure && (
+            <p className={styles.muted} style={{ padding: '0 var(--s5) var(--s4)' }} data-testid="cmp-remeasure-note">{REMEASURE_NOTE}</p>
+          )}
           <p className={styles.muted} style={{ padding: '0 var(--s5) var(--s4)' }}>
             Dòng (a) là số đăng ký nguyên vẹn. Dòng (b) được định nghĩa sau khi thấy số của bộ đo cũ giảm (đáp án của hai loại phát hiện đó viết theo cách tính tổng cấp tín dụng cũ), nên là số tham khảo có giải thích, không phải kết quả mù thuần túy.
           </p>

@@ -1,5 +1,5 @@
 /**
- * Lượt đo mù đã đăng ký trước (docs/agent/benchmark-v3-research.md §12, §14, §15). Dòng (b) không có trong
+ * Lượt đo mù đã đăng ký trước (docs/agent/benchmark-v3-research.md §12, §14, §15, §16). Dòng (b) không có trong
  * `summary` của engine nên được ghi lại ở đây từ tệp kết quả đã lưu; e2e `benchmark-comparison.spec.ts` tính lại
  * từ tệp và đối chiếu từng con số, nên không thể lệch khỏi số đo thật.
  */
@@ -7,6 +7,8 @@ export interface BlindStat { mean: number; sd: number }
 export interface BlindRunNote {
   /** Mã commit khóa mã engine và backend khi đo. */
   lockedCommit: string;
+  /** true: đo lại trên bản mã đang chạy sau khi sửa engine; bộ ca không còn mù chặt. */
+  remeasure?: boolean;
   /** (a) độ phủ theo đáp án đăng ký nguyên vẹn; (b) không tính hai loại phát hiện tổng cấp tín dụng và BCTC kiểm toán. */
   a: { single: BlindStat; multi: BlindStat };
   b: { single: BlindStat; multi: BlindStat };
@@ -17,6 +19,12 @@ export const BLIND_RUNS: Record<string, BlindRunNote> = {
     lockedCommit: '735f9a7',
     a: { single: { mean: 0.52, sd: 0.1523 }, multi: { mean: 0.7067, sd: 0.1574 } },
     b: { single: { mean: 0.675, sd: 0.281 }, multi: { mean: 0.9833, sd: 0.0632 } },
+  },
+  '20261113T085421Z-v8 đo lại trên bản khóa 98600a7': {
+    lockedCommit: '98600a7',
+    remeasure: true,
+    a: { single: { mean: 0.5433, sd: 0.1818 }, multi: { mean: 0.7067, sd: 0.1574 } },
+    b: { single: { mean: 0.675, sd: 0.2736 }, multi: { mean: 0.9667, sd: 0.0864 } },
   },
 };
 
@@ -39,3 +47,7 @@ export function casesNotBetter(
     return s != null && m != null && m <= s + 1e-9 ? [{ id, single: s, multi: m }] : [];
   });
 }
+
+/** Câu nói rõ lượt đo lại sau khi sửa engine (bộ ca đã được đo một lần ở lượt trước). */
+export const REMEASURE_NOTE =
+  'Đây là lượt đo lại trên bản mã đang chạy, sau khi engine được sửa; bộ ca đã được đo một lần ở lượt trước nên không còn mù chặt. Lượt trước vẫn chọn được ở danh sách trên.';
