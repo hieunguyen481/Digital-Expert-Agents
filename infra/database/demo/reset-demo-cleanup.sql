@@ -6,9 +6,13 @@ BEGIN;
 CREATE TEMP TABLE reset_app ON COMMIT DROP AS
   SELECT id FROM credit.loan_application
    WHERE application_number LIKE 'LA-%'
-      OR application_number IN ('HSV-2026-00187', 'HSV-2026-00184', 'HSV-2026-00196', 'HSV-2026-00223', 'HSV-2026-00163');
+      OR application_number IN ('HSV-2026-00187', 'HSV-2026-00184', 'HSV-2026-00196', 'HSV-2026-00223', 'HSV-2026-00163', 'HSV-2026-00167');
 CREATE TEMP TABLE reset_case ON COMMIT DROP AS
-  SELECT DISTINCT case_id FROM credit.loan_agent_run WHERE loan_application_id IN (SELECT id FROM reset_app);
+  SELECT case_id FROM credit.loan_agent_run WHERE loan_application_id IN (SELECT id FROM reset_app)
+  UNION
+  -- Ca cu khong con dong nao trong loan_agent_run van ghi ho so vay trong payload.request: xoa cung, de dieu kien/co do de xuat cua ca do khong sot lai.
+  SELECT case_id FROM agent.case_run
+   WHERE payload->'request'->>'loan_application_id' IN (SELECT id::text FROM reset_app);
 DELETE FROM agent.action_log      WHERE case_id IN (SELECT case_id FROM reset_case);
 DELETE FROM agent.approval_token  WHERE case_id IN (SELECT case_id FROM reset_case);
 DELETE FROM agent.action_proposal WHERE case_id IN (SELECT case_id FROM reset_case);
@@ -17,12 +21,16 @@ DELETE FROM agent.case_plan       WHERE case_id IN (SELECT case_id FROM reset_ca
 DELETE FROM credit.loan_agent_run WHERE case_id IN (SELECT case_id FROM reset_case);
 DELETE FROM agent.case_run        WHERE case_id IN (SELECT case_id FROM reset_case);
 -- Co va dieu kien truoc giai ngan do thao tac tu de xuat cua agent (source 'AGENT:<proposal_id>') ghi len ho so, khi ca agent nguon
--- da bi xoa o tren (de xuat bi xoa theo). Dong khong mang nguon AGENT: (seed, nguoi dung nhap) khong bi dung toi.
+-- da bi xoa o tren (de xuat bi xoa theo), VA moi dong nguon AGENT: tren cac ho so demo/e2e o reset_app, ke ca ca cu khong con dong
+-- nao trong credit.loan_agent_run (nhieu ngay demo truoc de lai dieu kien 'Da duoc nguoi xac nhan' len ho so warm).
+-- Dong khong mang nguon AGENT: (seed, nguoi dung nhap) khong bi dung toi.
 -- Hai bang chi-them voi bank_app nhung script chay bang quyen chu so huu nen xoa duoc.
 DELETE FROM credit.pre_disbursement_condition
- WHERE source LIKE 'AGENT:%' AND substr(source, 7) NOT IN (SELECT id::text FROM agent.action_proposal);
+ WHERE source LIKE 'AGENT:%'
+   AND (loan_application_id IN (SELECT id FROM reset_app) OR substr(source, 7) NOT IN (SELECT id::text FROM agent.action_proposal));
 DELETE FROM credit.case_flag
- WHERE source LIKE 'AGENT:%' AND substr(source, 7) NOT IN (SELECT id::text FROM agent.action_proposal);
+ WHERE source LIKE 'AGENT:%'
+   AND (loan_application_id IN (SELECT id FROM reset_app) OR substr(source, 7) NOT IN (SELECT id::text FROM agent.action_proposal));
 -- Thong bao (outbox email xoa theo, ON DELETE CASCADE) cua dung cac ho so tren; seed sinh lai phan thuoc ho so mau qua trigger.
 DELETE FROM integration.notification
  WHERE resource_type = 'LOAN_APPLICATION' AND resource_id IN (SELECT id FROM reset_app);
