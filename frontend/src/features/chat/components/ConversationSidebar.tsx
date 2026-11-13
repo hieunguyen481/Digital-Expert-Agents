@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { Button, Dropdown, Input, Modal, Popconfirm, Skeleton, Tooltip } from 'antd';
 import type { MenuProps } from 'antd';
 import {
-  CustomerServiceOutlined,
   DeleteOutlined,
   EditOutlined,
   MessageOutlined,
@@ -295,12 +294,10 @@ export function ConversationSidebar({
       </div>
 
       <div className={styles.footer}>
-        <div className={styles.supportCard}>
-          <CustomerServiceOutlined className={styles.supportIcon} aria-hidden="true" />
+        <div className={styles.supportCard} data-testid="chat-reference-note">
           <span className={styles.supportBody}>
-            <span className={styles.supportTitle}>Bạn cần hỗ trợ thêm?</span>
             <span className={styles.supportText}>
-              Liên hệ chuyên viên qua kênh chính thức để được tư vấn trực tiếp.
+              Câu trả lời là tham khảo. Số liệu chính thức xem ở hồ sơ.
             </span>
           </span>
         </div>
