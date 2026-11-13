@@ -161,3 +161,8 @@ async def test_successful_reply_carries_model_metadata() -> None:
 def test_scrub_removes_stray_non_vietnamese_letters() -> None:
     from app.services.llm_conversation_responder import scrub_raw_names
     assert scrub_raw_names("Theo hồ sơç, DSCR đạt") == "Theo hồ sơ, DSCR đạt"
+
+
+def test_system_prompt_states_total_exposure_excludes_other_institutions() -> None:
+    from app.services.llm_conversation_responder import _SYSTEM_PROMPT
+    assert "KHÔNG cộng" in _SYSTEM_PROMPT and "tổ chức tín dụng khác" in _SYSTEM_PROMPT

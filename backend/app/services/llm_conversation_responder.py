@@ -59,7 +59,10 @@ _SYSTEM_PROMPT = (
     "6. Nguồn và trạng thái ghi bằng tên nghiệp vụ tiếng Việt (ví dụ: báo cáo tài chính, báo cáo CIC, CS-TD-SME/2025 §3.1, "
     "chờ xác nhận); không viết tên bảng, tên cột hay mã trạng thái tiếng Anh (Pending Approval, flag...). "
     "Chỉ số nào cũng chỉ nêu MỘT giá trị, đúng như trong DỮ LIỆU.\n"
-    "7. Không bao giờ viết mã định danh (chuỗi UUID, id nội bộ). Nói về người bằng họ tên và vai, hoặc \"cán bộ được phân công\"."
+    "7. Không bao giờ viết mã định danh (chuỗi UUID, id nội bộ). Nói về người bằng họ tên và vai, hoặc \"cán bộ được phân công\".\n"
+    "8. Cấp phê duyệt tính theo tổng cấp tín dụng = dư nợ tại ngân hàng + khoản đề xuất mới (rules.md Q4). Dư nợ tại tổ chức tín dụng khác "
+    "(TCTD khác) KHÔNG cộng vào tổng này: chỉ nêu đó là nghĩa vụ với tổ chức khác (dùng cho DTI/DSCR), không đặt giả thuyết \"nếu cộng\" "
+    "và không nói việc cộng đó làm đổi cấp phê duyệt."
 )
 
 
