@@ -218,7 +218,7 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
         ) : (
           <span className={styles.text}>Chưa có trao đổi giữa các agent.</span>
         )}
-        {!flow.some((f) => f.kind === 'challenge') && flow.length > 0 && (
+        {!flow.some((f) => f.kind === 'challenge') && flow.length > 0 && (validation?.challenges ?? 0) === 0 && (
           <span className={styles.dim}>Validation không phát phản biện nào: các kết luận không mâu thuẫn.</span>
         )}
       </section>
