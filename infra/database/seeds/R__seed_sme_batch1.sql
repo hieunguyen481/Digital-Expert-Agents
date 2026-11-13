@@ -799,7 +799,7 @@ INSERT INTO sme_doc VALUES
     (1, 8, 'A01-04', 'FINANCIAL_STATEMENT', 'AUDITED', 'BCTC năm 2025 đã kiểm toán', NULL, DATE '2026-03-28', FALSE, TRUE, 8, 'VERIFIED', -6),
     (1, 9, 'BCTC-Q3', 'FINANCIAL_STATEMENT', 'QUARTERLY', 'BCTC {Q_LAST} (minh họa)', -12, NULL, FALSE, TRUE, 9, 'VERIFIED', -6),
     (1, 10, 'CONGNO', 'RECEIVABLES_INVENTORY_LIST', NULL, 'Bảng kê công nợ và tồn kho (minh họa)', -8, NULL, FALSE, TRUE, 10, 'VERIFIED', -6),
-    (1, 11, 'A01-07', 'BANK_STATEMENT', NULL, 'Sao kê 12 tháng {STMT_FROM}–{STMT_TO} · NH TMCP Sông Hậu (hư cấu)', -7, NULL, TRUE, TRUE, 11, 'VERIFIED', -6),
+    (1, 11, 'A01-07', 'BANK_STATEMENT', NULL, 'Sao kê 12 tháng {STMT_FROM}–{STMT_TO} · NH TMCP Sông Hậu', -7, NULL, TRUE, TRUE, 11, 'VERIFIED', -6),
     (1, 12, 'GTGT-2Q', 'TAX_RETURN', 'VAT', 'Tờ khai GTGT {Q_PREV} và {Q_LAST} (minh họa)', -12, NULL, FALSE, TRUE, 12, 'VERIFIED', -6),
     (1, 13, 'CIC', 'CIC_REPORT', 'BANK_LOOKUP', 'Kết quả tra cứu CIC do ngân hàng thực hiện · Hệ thống CIC (giả lập)', -7, NULL, TRUE, TRUE, 13, 'VERIFIED', -7),
     (1, 14, 'PA', 'BUSINESS_PLAN', NULL, 'Phương án kinh doanh (minh họa)', -8, NULL, FALSE, TRUE, 14, 'VERIFIED', -6),
@@ -819,10 +819,10 @@ INSERT INTO sme_doc VALUES
     (2, 7, 'DONGY', 'CIC_CONSENT', NULL, 'Dong_y_tra_cuu_CIC.pdf', -25, NULL, FALSE, TRUE, 7, 'VERIFIED', -2),
     (2, 8, 'BCTC25', 'FINANCIAL_STATEMENT', 'AUDITED', 'BCTC_2025_kiemtoan.pdf', NULL, DATE '2026-03-30', FALSE, TRUE, 8, 'VERIFIED', -2),
     (2, 10, 'CONGNO', 'RECEIVABLES_INVENTORY_LIST', NULL, 'Bang_ke_cong_no_ton_kho_{MK_CONGNO}.xlsx', NULL, pg_temp.quarter_end(pg_temp.wd(-2), 0), FALSE, TRUE, 10, 'VERIFIED', -2),
-    (2, 11, 'SAOKE', 'BANK_STATEMENT', NULL, 'Saoke_SongTien_{MK_FROM}_{MK_TO}.pdf · NH TMCP Sông Tiền (hư cấu)', -2, NULL, TRUE, TRUE, 11, 'AI_PROPOSED', -2),
+    (2, 11, 'SAOKE', 'BANK_STATEMENT', NULL, 'Saoke_SongTien_{MK_FROM}_{MK_TO}.pdf · NH TMCP Sông Tiền', -2, NULL, TRUE, TRUE, 11, 'AI_PROPOSED', -2),
     (2, 12, 'THUE', 'TAX_RETURN', 'VAT', 'To_khai_GTGT_Q2_Q3.pdf', -12, NULL, FALSE, TRUE, 12, 'VERIFIED', -2),
     (2, 14, 'PA', 'BUSINESS_PLAN', NULL, 'Phuong_an_VLD_2027.docx', -2, NULL, FALSE, TRUE, 14, 'VERIFIED', -2),
-    (2, 15, 'HD', 'SALES_CONTRACT', NULL, 'HĐ với CTCP Thực phẩm Đồng Xanh (hư cấu) – 1/2', -5, NULL, FALSE, TRUE, 15, 'VERIFIED', -2),
+    (2, 15, 'HD', 'SALES_CONTRACT', NULL, 'HĐ với CTCP Thực phẩm Đồng Xanh – 1/2', -5, NULL, FALSE, TRUE, 15, 'VERIFIED', -2),
     (2, 16, 'TSBD', 'COLLATERAL_DOCUMENT', NULL, 'Chung_thu_dinh_gia_CT-2026-118.pdf', -4, NULL, FALSE, TRUE, 16, 'VERIFIED', -2),
     -- Van ban dong y CIC cua cac ho so co ngay tra cuu tren mockup 03.
     (3, 1, 'DONGY', 'CIC_CONSENT', NULL, 'Văn bản đồng ý tra cứu CIC', -16, NULL, FALSE, TRUE, NULL, 'VERIFIED', -4),
@@ -1180,9 +1180,9 @@ INSERT INTO banking.credit_facility (
     monthly_obligation, overdue_days, debt_group, currency, as_of_date, created_at
 )
 VALUES
-    (pg_temp.sid('58200000', 1, 1), pg_temp.id('58100000', 1), 'TCTD A (hư cấu)', 'TERM_LOAN',
+    (pg_temp.sid('58200000', 1, 1), pg_temp.id('58100000', 1), 'TCTD A', 'TERM_LOAN',
      NULL, 56000000000.0000, NULL, 0, '1', 'VND', pg_temp.wd(-7), pg_temp.at(-7, '10:00')),
-    (pg_temp.sid('58200000', 1, 2), pg_temp.id('58100000', 1), 'TCTD B (hư cấu)', 'SHORT_TERM_LOAN',
+    (pg_temp.sid('58200000', 1, 2), pg_temp.id('58100000', 1), 'TCTD B', 'SHORT_TERM_LOAN',
      NULL, 42000000000.0000, NULL, 0, '1', 'VND', pg_temp.wd(-7), pg_temp.at(-7, '10:00'))
 ON CONFLICT (id) DO UPDATE
 SET credit_report_id = EXCLUDED.credit_report_id,
