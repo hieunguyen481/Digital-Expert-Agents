@@ -1,6 +1,6 @@
 from common import consistency, recompute
 from common.report import demote_unsupported
-from common.schemas import Verdict, VerdictDecision
+from common.schemas import Evidence, Verdict, VerdictDecision
 
 
 def _verified():
@@ -46,3 +46,34 @@ def test_demoted_list_does_not_repeat_mismatched_number():
     verified = {"leverage": {"ratio": 1.82, "ebitda": 1e11, "debt": 1.8e11, "over": False, "max": 3.5}}
     out, demoted = demote_unsupported({"credit": v}, verified)
     assert out["credit"].findings == [] and not any("1,39" in d for d in demoted)
+
+
+def test_leverage_phrasings_and_evidence():
+    ver = _verified()  # 1,82 lần
+    for bad in ("Đòn bẩy sau cấp 1,39 lần, dưới ngưỡng",
+                "Nợ vay sau cấp 136 tỷ / EBITDA 98 tỷ = 1,39 lần",
+                "Nợ vay/EBITDA sau cấp 1,39 lần",
+                "Đòn bẩy tài chính sau cấp khoảng 1,39 lần"):
+        assert consistency.mismatches(bad, ver), bad
+    for ok in ("Đòn bẩy sau cấp 1,82 lần",
+               "Nợ vay sau cấp 178 tỷ / EBITDA 98 tỷ = 1,82 lần",
+               "Nợ vay/EBITDA tối đa 3,5 lần theo §4.2",
+               "Đòn bẩy không vượt 3,5 lần",
+               "Đòn bẩy hiện hữu trước cấp 0,57 lần",
+               "EBITDA 98 tỷ, dòng tiền ổn"):
+        assert not consistency.mismatches(ok, ver), ok
+    v = _v("credit", summary="ok")
+    v = v.model_copy(update={"evidence": [Evidence(source="credit", quote="Đòn bẩy sau cấp 1,39 lần")]})
+    notes = consistency.check_verdicts({"credit": v}, ver)
+    assert len(notes) == 1 and "1,82" in notes[0]
+    out, _ = demote_unsupported({"credit": v}, ver)
+    assert out["credit"].evidence == []
+
+
+def test_user_facing_text_has_no_internal_rule_codes():
+    import re
+    from common import policy_checklist
+    exp = recompute.exposure_check([{"outstanding": 98e9}], 80e9, 0)
+    lines = recompute.describe(None, exp, None, 80e9)
+    text = " ".join(lines) + " " + policy_checklist.POLICY_CHECKLIST
+    assert "§3.1" in text and not re.search(r"\bQ-?[0-9A-Z]\b", text)

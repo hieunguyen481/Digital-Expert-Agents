@@ -94,7 +94,8 @@ def demote_unsupported(verdicts: dict[str, Verdict], verified: dict | None) -> t
         if consistency.mismatches(summary, verified):
             kept = [x for x in re.split(r"(?<=[.;])\s+", summary) if not consistency.mismatches(x, verified)]
             summary = " ".join(kept) or "(số liệu trong kết luận đã được Validation thay bằng số tính lại — xem phản biện)"
-        out[name] = v.model_copy(update={"findings": keep_f, "conditions": keep_c, "summary": summary})
+        evidence = [e for e in v.evidence if not consistency.leverage_mismatches(e.quote, verified)]  # trích dẫn lệch số cũng bỏ
+        out[name] = v.model_copy(update={"findings": keep_f, "conditions": keep_c, "summary": summary, "evidence": evidence})
     return out, demoted
 
 

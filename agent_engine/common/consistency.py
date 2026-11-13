@@ -35,16 +35,31 @@ def _collateral_totals(verified: dict) -> set[float]:
     return {col["eligible_value"] / 1e9, (col["eligible_value"] + excluded) / 1e9}
 
 
+# Đòn bẩy sau cấp viết theo ba cách: "Nợ vay/EBITDA … X lần", "Nợ vay … / EBITDA … = X lần", "Đòn bẩy … X lần"
+_LEVERAGE = re.compile(r"(?:Nợ vay[^\n/]{0,60}/\s*EBITDA|Đòn bẩy(?:\s+tài\s+chính)?)[^\n]{0,90}?" + _NUM + r"\s*lần", re.IGNORECASE)
+_THRESHOLD = re.compile(r"tối đa|trần|ngưỡng|giới hạn|không vượt|vượt|[≤≥<>]", re.IGNORECASE)
+_PRE_LOAN = re.compile(r"trước\s+(?:khi\s+)?cấp|hiện hữu|hiện tại", re.IGNORECASE)
+
+
+def leverage_mismatches(text: str, verified: dict | None) -> list[str]:
+    """Đòn bẩy sau cấp nêu trong `text` (mọi cách viết) lệch số tính lại. Dùng cho cả trích dẫn bằng chứng."""
+    lev = (verified or {}).get("leverage")
+    out: list[str] = []
+    for m in (_LEVERAGE.finditer(text) if lev and text else ()):
+        if _THRESHOLD.search(m.group(0)) or _PRE_LOAN.search(m.group(0)):
+            continue  # trần chính sách hoặc đòn bẩy trước cấp: không phải số sau cấp
+        if abs(_f(m.group(1)) - lev["ratio"]) > 0.015:
+            out.append(f"Nợ vay/EBITDA {m.group(1)} lần (tính lại {_fmt(lev['ratio'])} lần)")
+    return out
+
+
 def mismatches(text: str, verified: dict | None) -> list[str]:
     """Mô tả từng chỉ số trong `text` lệch số tính lại; rỗng nếu không lệch/không đủ dữ kiện để so."""
     if not verified or not text:
         return []
-    out: list[str] = []
+    out: list[str] = leverage_mismatches(text, verified)
     lev, col = verified.get("leverage"), verified.get("collateral")
     if lev:
-        for m in re.finditer(r"Nợ vay\s*/\s*EBITDA[^\n]{0,90}?" + _NUM + r"\s*lần", text, re.IGNORECASE):
-            if abs(_f(m.group(1)) - lev["ratio"]) > 0.015:
-                out.append(f"Nợ vay/EBITDA {m.group(1)} lần (tính lại {_fmt(lev['ratio'])} lần)")
         for m in re.finditer(r"EBITDA[^\n.]{0,25}?" + _NUM + r"\s*tỷ", text, re.IGNORECASE):
             if abs(_f(m.group(1)) - lev["ebitda"] / 1e9) > 0.05:
                 out.append(f"EBITDA {m.group(1)} tỷ (số liệu BCTC {_fmt(lev['ebitda'] / 1e9, 1)} tỷ)")
@@ -76,8 +91,11 @@ def check_verdicts(verdicts: dict, verified: dict | None) -> list[str]:
     notes: list[str] = []
     for name, v in verdicts.items():
         seen: set[str] = set()
-        for t in [v.summary, *v.findings, *v.conditions]:
-            for m in mismatches(t, verified):
+        # trích dẫn bằng chứng chỉ quét đòn bẩy: số khác trong trích dẫn có thể là ngưỡng chính sách hay số nguồn gốc
+        scans = [(t, mismatches) for t in [v.summary, *v.findings, *v.conditions]]
+        scans += [(e.quote, leverage_mismatches) for e in v.evidence]
+        for t, fn in scans:
+            for m in fn(t, verified):
                 if m not in seen:
                     seen.add(m)
                     notes.append(f"Phản biện số liệu: {name} nêu {m}; bản tổng hợp chỉ dùng số đã tính lại từ công cụ")
