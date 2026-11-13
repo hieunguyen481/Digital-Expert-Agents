@@ -194,6 +194,23 @@ _KIND_GUIDE = {
 }
 
 
+_RECOMPUTED = re.compile(r"Tính lại (?:Nợ vay/EBITDA|LTV|DSCR)[^\n]*")
+
+
+def recomputed_lines(package: Mapping[str, Any], final: Mapping[str, Any]) -> list[str]:
+    """Dòng số tính lại của Validation (kèm ngưỡng chính sách) trong kết quả đội agent: dùng làm số duy nhất khi trả lời chỉ số."""
+    texts: list[str] = [*(package.get("trace_summary") or []), str(package.get("report_text") or ""),
+                        str(final.get("report_text") or "")]
+    for v in package.get("verdicts") or []:
+        texts += [*(v.get("findings") or []), str(v.get("summary") or ""), *(e.get("quote") or "" for e in v.get("evidence") or [])]
+    out: list[str] = []
+    for t in texts:
+        for m in _RECOMPUTED.finditer(str(t)):
+            if m.group(0) not in out:
+                out.append(m.group(0).strip())
+    return out
+
+
 def result_context(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]], kind: str = "broad") -> str:
     """Kết quả lượt phân tích gần nhất dưới dạng văn bản để trả lời thẳng câu hỏi (gói phê duyệt, hoặc báo cáo cuối khi cần bổ sung/từ chối).
 
@@ -223,6 +240,11 @@ def result_context(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]],
             cited = [f"{e.get('source')}: {e.get('quote')}" for e in v.get("evidence") or [] if e.get("source")]
             if cited:
                 parts.append("  điều khoản/nguồn đã trích: " + " | ".join(cited[:6]))
+    if kind == "metric":
+        rec = recomputed_lines(package, final)
+        if rec:
+            parts.append("SỐ TÍNH LẠI CỦA VALIDATION (kèm ngưỡng chính sách; là số duy nhất dùng khi nêu chỉ số, "
+                         "nếu ý kiến chuyên gia nêu số khác thì bỏ số đó và nêu cả ngưỡng): " + " | ".join(rec[:4]))
     if kind == "metric" and package:  # có gói thì số liệu nằm ở ý kiến từng chuyên gia
         return "\n".join(parts)[:4000]
     for k, label in (("reason", "Lý do"), ("report_text", "Báo cáo cuối")):

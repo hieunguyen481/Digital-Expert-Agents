@@ -325,6 +325,17 @@ def test_metric_context_keeps_reason_when_no_package() -> None:
     assert "DSCR 1,12" in ctx and "Cần bổ sung: thiếu BCTC" in ctx
 
 
+def test_metric_context_puts_recomputed_number_and_threshold_first() -> None:
+    """S09: có số tính lại của Validation thì câu hỏi chỉ số nhận số đó kèm ngưỡng, số khác của chuyên gia không là nguồn."""
+    line = "Tính lại Nợ vay/EBITDA sau cấp TD (2025): 178,0 tỷ / 98,0 tỷ = 1,82 lần (tối đa 3.5); trong ngưỡng (CS-TD-SME/2025 §4.2)"
+    case = {"state": "Pending Approval", "package": {"verdicts": [
+        {"agent": "credit", "decision": "approve", "summary": "Đòn bẩy sau cấp 1,39 lần", "findings": [], "evidence": []},
+        {"agent": "validation", "decision": "approve", "summary": "ok", "findings": [line], "evidence": []}]}}
+    ctx = mod.result_context(case, [], "metric")
+    assert "SỐ TÍNH LẠI CỦA VALIDATION" in ctx and "1,82 lần (tối đa 3.5)" in ctx and "§4.2" in ctx
+    assert "SỐ TÍNH LẠI" not in mod.result_context({"state": "Pending Approval", "package": {"verdicts": []}}, [], "metric")
+
+
 def test_plain_gate_label_handles_all_caps_without_colon() -> None:
     assert mod.plain_gate_label("ĐỀ XUẤT PHÊ DUYỆT CÓ ĐIỀU KIỆN") == "Đề xuất phê duyệt có điều kiện"
     assert mod.plain_gate_label("Hồ sơ ổn") == "Hồ sơ ổn"
