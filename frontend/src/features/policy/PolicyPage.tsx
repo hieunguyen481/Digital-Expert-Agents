@@ -1,7 +1,7 @@
 import { CloseCircleFilled } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Input, Table } from 'antd';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RequireRole } from '@/auth/RequireRole';
 import type { UiRole } from '@/auth/roleFromMe';
 import { PageHead } from '@/features/shell/PageHead';
@@ -26,6 +26,9 @@ export default function PolicyPage() {
 function PolicyContent() {
   const [term, setTerm] = useState('');
   const [query, setQuery] = useState('');
+  // antd không cho đặt tên cho chính nút xóa (chỉ cho biểu tượng bên trong): đặt aria-label trực tiếp để trình đọc màn hình đọc "Xóa từ khóa".
+  const card = useRef<HTMLDivElement>(null);
+  useEffect(() => { card.current?.querySelectorAll('.ant-input-clear-icon').forEach((b) => b.setAttribute('aria-label', 'Xóa từ khóa')); }, [term]);
   const list = useQuery<Policy[]>({ queryKey: ['policies'], queryFn: async () => (await apiClient.get<Policy[]>('/policies')).data });
   const found = useQuery<Clause[]>({
     queryKey: ['policy-search', query],
@@ -36,7 +39,7 @@ function PolicyContent() {
     <>
       <PageHead title="Tra cứu chính sách" facts={['Tìm điều khoản trong chính sách cho vay hiện hành. Chỉ đọc.', list.data ? `${list.data.filter((p) => !/DEMO/i.test(p.policy_code)).length} chính sách` : null]} />
       <div className={styles.page}>
-        <div className={styles.card}>
+        <div className={styles.card} ref={card}>
           <label className={styles.searchLabel} htmlFor="policy-q">Từ khóa</label>
           <Input.Search
             id="policy-q" aria-label="Tìm điều khoản" placeholder="Ví dụ: DSCR, tài sản bảo đảm" allowClear={{ clearIcon: <CloseCircleFilled aria-label="Xóa từ khóa" /> }} enterButton="Tìm"

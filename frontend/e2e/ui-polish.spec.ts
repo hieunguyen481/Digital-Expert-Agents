@@ -361,3 +361,10 @@ for (const [no, id] of [['00187', '000000000001'], ['00163', '000000000013'], ['
     }
   });
 }
+
+test('tra cứu chính sách: nút xóa từ khóa có tên truy cập', async ({ page }) => {
+  await loginAs(page, 'httd');
+  await page.goto('/tra-cuu-chinh-sach');
+  await page.getByLabel('Tìm điều khoản').fill('DSCR');
+  await expect(page.locator('button.ant-input-clear-icon')).toHaveAttribute('aria-label', 'Xóa từ khóa');
+});
