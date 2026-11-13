@@ -34,8 +34,19 @@ describe('proposalTitle: thẻ và ngăn kéo cùng một số mục', () => {
   } as never;
   it('đếm lại theo danh sách đã gộp, cùng một hàm cho cả hai nơi', () => {
     const n = proposalDocs(p).length;
-    expect(n).toBeLessThan(5);
+    expect(n).toBe(4); // chỉ bỏ mục trùng y hệt
     expect(proposalTitle(p)).toContain(`${n} mục`);
     expect(proposalTitle(p)).not.toContain('5 mục');
+  });
+});
+
+describe('proposalDocs: người xác nhận thấy đúng danh sách sẽ gửi', () => {
+  const mk = (documents: string[]) => ({ kind: 'request_documents', title: 'x', params: { documents } }) as never;
+  it('không gộp mục gần giống, không lọc mục ngắn hay chữ thường', () => {
+    const docs = ['Báo cáo tài chính 2025 kiểm toán', 'Báo cáo tài chính 2025 có dấu xác nhận', 'đối chiếu nguồn tiền vào', 'DSCR cần xác minh'];
+    expect(proposalDocs(mk(docs))).toHaveLength(4);
+  });
+  it('bỏ mục trùng y hệt sau chuẩn hóa', () => {
+    expect(proposalDocs(mk(['Giấy phép kinh doanh.', 'giấy phép kinh doanh', 'Hợp đồng đầu ra']))).toHaveLength(2);
   });
 });

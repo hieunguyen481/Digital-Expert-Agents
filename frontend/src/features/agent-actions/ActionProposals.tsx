@@ -3,7 +3,7 @@ import { Alert, Button, Input } from 'antd';
 import { AiText } from '@/features/dashboard/components/AiText';
 import { AiTag, StatusPill, type PillTone } from '@/components/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { coversAiText, cleanAiLine, cleanConditionList, rationaleText, recountTitle, sourceLabel, sourceQuoteParts, stripKindLabel, withListHint } from '@/features/dashboard/agentTrace';
+import { coversAiText, cleanAiLine, exactDocumentList, rationaleText, recountTitle, sourceLabel, sourceQuoteParts, stripKindLabel, withListHint } from '@/features/dashboard/agentTrace';
 import { useMe } from '@/auth/session';
 import { normalizeError } from '@/services/apiClient';
 import {
@@ -53,7 +53,7 @@ export function ActionProposals({ caseId, loanId }: { caseId: string; loanId: st
 }
 
 /** Danh sách tài liệu đã làm sạch của đề xuất: MỘT nguồn cho thẻ và ngăn kéo, để hai nơi cùng số mục. */
-export const proposalDocs = (p: ActionProposal): string[] => cleanConditionList((p.params?.documents as unknown[] | undefined) ?? []);
+export const proposalDocs = (p: ActionProposal): string[] => exactDocumentList((p.params?.documents as unknown[] | undefined) ?? []);
 /** Tiêu đề hiện ra: yêu cầu bổ sung đếm lại theo danh sách đã gộp; loại khác bỏ nhãn loại ở đầu. */
 export function proposalTitle(p: Pick<ActionProposal, 'kind' | 'title' | 'params'>): string {
   const docs = proposalDocs(p as ActionProposal);

@@ -647,6 +647,20 @@ export function dedupeConditions(list: string[]): string[] {
   return kept.map((k) => k.text);
 }
 
+/** Danh sách tài liệu của một đề xuất hành động, đúng như backend sẽ gửi đi: chỉ làm sạch chữ từng mục (mã nội bộ),
+ *  không ghép, không lọc, không gộp mục gần giống; chỉ bỏ mục trùng y hệt sau khi chuẩn hóa hoa/thường, dấu và khoảng trắng. */
+export function exactDocumentList(list: unknown[] | null | undefined): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of Array.isArray(list) ? list : []) {
+    const x = typeof raw === 'string' ? raw : (raw && typeof (raw as { text?: unknown }).text === 'string' ? (raw as { text: string }).text : '');
+    const t = scrubInternal(x).trim().replace(/[\s.;:,]+$/, '');
+    const k = fold(t).replace(/[^a-z0-9]+/g, ' ').trim();
+    if (!t || seen.has(k)) continue;
+    seen.add(k); out.push(upFirst(t));
+  }
+  return out;
+}
 /** Ý chỉ nêu số hiện trạng ("… hiện tại: 0 đồng"): không bảo ai làm gì nên không phải yêu cầu bổ sung. */
 const STATUS_ONLY = /hiện (?:tại|tính được|ghi nhận)(?: là)?:?\s*[\d.,]+\s*(?:đồng|VND|₫|%|tỷ(?: đồng)?)?\s*\.?$/iu;
 /** Động từ quy trình chung và từ nối: một ý chỉ gồm các từ này (không nêu tài liệu hay đối tượng cụ thể) là mảnh câu, không phải việc cần làm. */
