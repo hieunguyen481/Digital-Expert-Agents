@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
 import { listAgentCases, type AgentCaseSummary } from '@/services/agentCaseService';
-import { fmtDayTime, fmtInt } from '@/utils/format';
+import { fmtDayTime, fmtInt, fmtVnd } from '@/utils/format';
 import { StateBlock, StatusPill, ledgerNum, ledgerTable } from '@/components/ui';
 import { STATE_TONE, fmtSeconds, isTestCase, purposeLabel, stateLabel } from '../agentTrace';
 import { CaseTrace } from './CaseTrace';
@@ -100,8 +100,8 @@ export function TracesTab({ initialCaseId = null }: { initialCaseId?: string | n
               title: 'Yêu cầu', key: 'request',
               render: (_: unknown, r) => (
                 <span>
-                  {r.request.amount != null ? `${fmtInt(r.request.amount)} đồng` : '—'}
-                  {r.request.term_months ? `, ${r.request.term_months} tháng` : ''}
+                  {r.request.amount != null ? fmtVnd(r.request.amount) : '—'}
+                  {r.request.term_months ? ` · ${r.request.term_months} tháng` : ''}
                   {r.request.purpose ? <span className={styles.sub}>{purposeLabel(r.request.purpose)}</span> : null}
                 </span>
               ),

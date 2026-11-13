@@ -18,3 +18,16 @@ describe('groupNotifications', () => {
     expect(g[0].unread).toBe(true);
   });
 });
+
+import { loanCodeIn, titleWithCode } from './cleanText';
+describe('mã hồ sơ trong tiêu đề thông báo', () => {
+  it('lấy mã từ nội dung và gắn vào tiêu đề', () => {
+    const code = loanCodeIn('Hồ sơ cần xử lý', 'Hồ sơ LA-20261101-AB12CD34 chờ bạn');
+    expect(code).toBe('LA-20261101-AB12CD34');
+    expect(titleWithCode('Hồ sơ cần xử lý', code)).toBe('Hồ sơ cần xử lý · LA-20261101-AB12CD34');
+  });
+  it('chịu được thiếu dữ liệu', () => {
+    expect(loanCodeIn(undefined, '', null)).toBeNull();
+    expect(titleWithCode('Tiêu đề', null)).toBe('Tiêu đề');
+  });
+});
