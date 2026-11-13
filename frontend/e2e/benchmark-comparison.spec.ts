@@ -34,7 +34,7 @@ async function expectRun(page: Page, stored: any) {
     else await expect(el).toContainText('Không có ca nào');
   }
   const blind = stored.cases_version === 'v8' && /(mù|đo lại|đo lần ba) trên bản khóa/.test(stored.label ?? '');
-  if (blind && /đo lại|đo lần ba/.test(stored.label)) await expect(page.getByTestId('cmp-remeasure-note')).toContainText('đo lại trên bản mã đang chạy');
+  if (blind && /đo lại|đo lần ba/.test(stored.label)) await expect(page.getByTestId('cmp-remeasure-note')).toContainText(/đo lại trên bản mã đang chạy/i);
   if (blind) { // dòng (a)/(b) tính lại từ từng lượt trong tệp
     const EX = new Set(['total_exposure', 'audit_required']);
     const stat = (xs: number[]) => { const m = xs.reduce((p, c) => p + c, 0) / xs.length; return { mean: m, sd: Math.sqrt(xs.reduce((p, c) => p + (c - m) ** 2, 0) / (xs.length - 1)) }; };
