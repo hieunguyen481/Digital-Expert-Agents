@@ -21,7 +21,7 @@ METRICS: dict[str, tuple[str, str, str | None, str | None, str | None]] = {
     "dti": ("Nợ vay/EBITDA sau cấp TD", "lần", "debt_to_ebitda_max", "<=", "4.2"),
     "icr": ("EBIT/Chi phí lãi vay", "lần", "ebit_interest_min", ">=", "4.2"),
     "dso": ("Kỳ thu tiền bình quân", "ngày", "dso_max_days", "<=", "4.4"),
-    "ltv": ("LTV – dư nợ/giá trị xử lý TSBĐ", "%", None, None, None),
+    "ltv": ("LTV – dư nợ/giá trị xử lý TSĐB", "%", None, None, None),
     "de": ("Nợ phải trả/VCSH", "lần", None, None, None),
     "cr": ("Thanh toán hiện hành", "lần", None, None, None),
     "qr": ("Thanh toán nhanh", "lần", None, None, None),
