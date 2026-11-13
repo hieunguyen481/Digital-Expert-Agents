@@ -40,6 +40,8 @@ export interface TimelineStep {
   id: string; step_code: string; assignee_name: string | null; received_at: string; due_at: string | null;
   completed_at: string | null; result: string | null; reason: string | null; reason_restricted: boolean;
 }
+export interface DisbursementCondition { id: string; text: string; origin: 'AGENT_PROPOSED' | 'MANUAL'; confirmed_by_name: string | null; created_at: string }
+
 export interface LoanOverview {
   loan: {
     id: string; application_number: string; status: string; requested_amount: string; currency: string;
@@ -47,6 +49,7 @@ export interface LoanOverview {
   };
   metrics: Metric[];
   flags: Flag[];
+  disbursement_conditions?: DisbursementCondition[];
   collaterals: Collateral[];
   timeline: TimelineStep[];
   supplement_request?: { kind?: 'SUPPLEMENT' | 'EXPLANATION' | 'RETURNED' | 'RETURNED_TO_APPRAISAL'; reason: string | null; requested_at: string; due_at: string | null } | null;
