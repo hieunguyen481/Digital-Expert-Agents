@@ -51,3 +51,28 @@ describe('customerLabel', () => {
     expect(isNameless({ customer_name: '' })).toBe(true);
   });
 });
+
+import { deadlineClass, withDeadlineClass } from './format';
+import type { WorkItem } from './types';
+describe('deadlineClass: một hàm phân loại hạn theo thời điểm hết hạn thật', () => {
+  const item = { due_at: '2026-11-13T10:00:00Z', paused: false, sla_level: 'today', status: 'APPRAISAL', tags: [] } as unknown as WorkItem;
+  it('trước giờ hết hạn trong cùng ngày là hạn hôm nay, sau giờ là quá hạn', () => {
+    expect(deadlineClass(item, new Date('2026-11-13T09:00:00Z'))).toBe('today');
+    expect(deadlineClass(item, new Date('2026-11-13T10:30:00Z'))).toBe('over');
+    expect(deadlineClass(item, new Date('2026-11-12T09:00:00Z'))).toBe('ok');
+  });
+  it('chip chữ, thẻ over và KPI cùng một kết quả sau giờ hết hạn', () => {
+    const now = new Date('2026-11-13T10:30:00Z');
+    expect(slaText(item, now)).toBe('quá hạn hôm nay');
+    const d = withDeadlineClass({ ...item, sla_level: 'today' } as WorkItem, now);
+    expect(d.sla_level).toBe('over');
+    expect(d.tags).toContain('over');
+    const before = withDeadlineClass({ ...item, sla_level: 'over', tags: ['over'] } as WorkItem, new Date('2026-11-13T09:00:00Z'));
+    expect(before.sla_level).toBe('today');
+    expect(before.tags).not.toContain('over');
+  });
+  it('tạm dừng và không có hạn', () => {
+    expect(deadlineClass({ ...item, paused: true }, new Date())).toBe('pause');
+    expect(deadlineClass({ ...item, due_at: null }, new Date())).toBe('none');
+  });
+});

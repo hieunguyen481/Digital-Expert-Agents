@@ -13,7 +13,7 @@ import { QueueTable } from './QueueTable';
 import { SideBlock } from './SideBlock';
 import styles from './my-work.module.css';
 import { EMPTY_COPY, PAGE_TITLE, QUEUE_TITLE, WORK_ROLES } from './roleCopy';
-import { isNameless } from './format';
+import { isNameless, withDeadlineClass } from './format';
 import { QUEUE_FILTERS, type QueueFilter, type WorkItem, type WorkTag } from './types';
 import { useWorkItems } from './useWorkItems';
 
@@ -34,10 +34,19 @@ function Content() {
   const rawAll = useWorkItems('all');
   const rawFiltered = useWorkItems(filter);
   // Kiểm toán không cần thấy hồ sơ chưa có khách (nháp do thử nghiệm tạo ra): ẩn khỏi danh sách mặc định.
-  const visible = <T extends { items: WorkItem[] } | undefined>(d: T): T =>
-    (readOnly && d ? { ...d, items: d.items.filter((i) => !isNameless(i)) } : d) as T;
+  // Mọi con số hạn (chip, phụ đề, KPI, bộ lọc) đi qua một hàm phân loại theo thời điểm hết hạn thật (withDeadlineClass).
+  const visible = <T extends { items: WorkItem[] } | undefined>(d: T): T => {
+    if (!d) return d;
+    const now = new Date();
+    const items = d.items.filter((i) => !(readOnly && isNameless(i))).map((i) => withDeadlineClass(i, now));
+    return { ...d, items } as T;
+  };
   const all = useMemo(() => ({ ...rawAll, data: visible(rawAll.data) }), [rawAll.data, readOnly]); // eslint-disable-line react-hooks/exhaustive-deps
-  const filtered = useMemo(() => ({ ...rawFiltered, data: visible(rawFiltered.data) }), [rawFiltered.data, readOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+  const filtered = useMemo(() => {
+    // Bộ lọc "Quá hạn" lấy từ chính danh sách đã phân loại, không dùng thẻ do máy chủ gắn.
+    if (filter === 'over' && all.data) return { ...rawFiltered, data: { ...all.data, items: all.data.items.filter((i) => i.tags.includes('over')) } };
+    return { ...rawFiltered, data: visible(rawFiltered.data) };
+  }, [rawFiltered.data, all.data, filter, readOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setFilter = (next: QueueFilter) =>
     navigate({ pathname: location.pathname, hash: next === 'all' ? '' : `#filter=${next}` }, { replace: true });

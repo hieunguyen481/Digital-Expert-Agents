@@ -16,3 +16,13 @@ describe('DeadlineChip', () => {
     expect(screen.getByText(/quá hạn/)).toBeTruthy();
   });
 });
+
+describe('DeadlineChip trong cùng ngày hết hạn', () => {
+  const it0 = { ...base, due_at: '2026-11-13T10:00:00Z', sla_level: 'today' } as unknown as WorkItem;
+  it('trước giờ hết hạn: hạn hôm nay; sau giờ: quá hạn (đỏ), không ghi hôm nay', () => {
+    const { container, rerender } = render(<DeadlineChip item={it0} today={new Date('2026-11-13T09:00:00Z')} />);
+    expect(container.textContent).toBe('hạn hôm nay');
+    rerender(<DeadlineChip item={it0} today={new Date('2026-11-13T10:30:00Z')} />);
+    expect(container.textContent).toBe('quá hạn hôm nay');
+  });
+});

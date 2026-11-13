@@ -25,13 +25,33 @@ export function workdaysBetween(from: Date, to: Date): number {
   return sign * count;
 }
 
+export type DeadlineClass = 'pause' | 'none' | 'over' | 'today' | 'ok';
+/** MỘT hàm phân loại hạn cho chip, bộ đếm, KPI và bộ lọc: theo thời điểm hết hạn thật, không theo số ngày hay cờ của máy chủ.
+ *  Qua thời điểm hết hạn là quá hạn (kể cả trong cùng ngày); cùng ngày nhưng chưa tới giờ là hạn hôm nay; còn lại là còn hạn. */
+export function deadlineClass(item: Pick<WorkItem, 'due_at' | 'paused' | 'sla_level'>, now: Date): DeadlineClass {
+  if (item.paused || item.sla_level === 'pause') return 'pause';
+  if (!item.due_at) return 'none';
+  const due = new Date(item.due_at);
+  if (Number.isNaN(due.getTime())) return 'none';
+  if (now.getTime() > due.getTime()) return 'over';
+  return due.toDateString() === now.toDateString() ? 'today' : 'ok';
+}
+/** Gắn lại `sla_level` và thẻ `over` theo `deadlineClass`, để mọi nơi đếm cùng một số. */
+export function withDeadlineClass<T extends WorkItem>(item: T, now: Date): T {
+  const c = deadlineClass(item, now);
+  if (c === 'none') return item;
+  const rest = item.tags.filter((t) => t !== 'over');
+  return { ...item, sla_level: c, tags: c === 'over' ? [...rest, 'over'] : rest };
+}
+
 /** Câu SLA theo design-system §15. */
 export function slaText(item: WorkItem, today: Date): string {
-  if (item.paused || item.sla_level === 'pause') return 'tạm dừng';
-  if (!item.due_at) return '—';
-  const n = workdaysBetween(today, new Date(item.due_at));
-  if (item.sla_level === 'over' || n < 0) return `quá hạn ${Math.max(Math.abs(n), 1)} ngày LV`;
-  if (item.sla_level === 'today' || n === 0) return 'hạn hôm nay';
+  const c = deadlineClass(item, today);
+  if (c === 'pause') return 'tạm dừng';
+  if (c === 'none') return '—';
+  const n = workdaysBetween(today, new Date(item.due_at!));
+  if (c === 'over') return n < 0 ? `quá hạn ${Math.abs(n)} ngày LV` : 'quá hạn hôm nay';
+  if (c === 'today') return 'hạn hôm nay';
   return `còn ${n} ngày LV`;
 }
 
