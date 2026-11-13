@@ -77,3 +77,17 @@ def test_user_facing_text_has_no_internal_rule_codes():
     lines = recompute.describe(None, exp, None, 80e9)
     text = " ".join(lines) + " " + policy_checklist.POLICY_CHECKLIST
     assert "§3.1" in text and not re.search(r"\bQ-?[0-9A-Z]\b", text)
+
+
+def test_leverage_moi_cach_viet_va_loai_so_lech_khoi_goi_cuoi():
+    ver = _verified()  # 1,82 lần
+    for t in ["Nợ sau cấp 136 tỷ/EBITDA 98 tỷ = 1,39 lần", "Nợ vay sau cấp 136 / EBITDA 98 = 1,39 lần",
+              "Tổng nợ / EBITDA = 1,39 lần", "Đòn bẩy sau cấp 1,39 lần"]:
+        assert consistency.mismatches(t, ver), t
+    assert not consistency.mismatches("Nợ sau cấp 178 tỷ/EBITDA 98 tỷ = 1,82 lần", ver)
+    assert not consistency.mismatches("Nợ hiện hữu 56 tỷ/EBITDA 98 tỷ = 0,57 lần", ver)
+    vs = {"credit": _v("credit", findings=["Nợ sau cấp 136 tỷ/EBITDA 98 tỷ = 1,39 lần", "Dòng tiền ổn"])}
+    assert len(consistency.check_verdicts(vs, ver)) == 1
+    out, _ = demote_unsupported(vs, ver)
+    assert out["credit"].findings == ["Dòng tiền ổn"]
+

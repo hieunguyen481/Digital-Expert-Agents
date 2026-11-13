@@ -35,8 +35,8 @@ def _collateral_totals(verified: dict) -> set[float]:
     return {col["eligible_value"] / 1e9, (col["eligible_value"] + excluded) / 1e9}
 
 
-# Đòn bẩy sau cấp viết theo ba cách: "Nợ vay/EBITDA … X lần", "Nợ vay … / EBITDA … = X lần", "Đòn bẩy … X lần"
-_LEVERAGE = re.compile(r"(?:Nợ vay[^\n/]{0,60}/\s*EBITDA|Đòn bẩy(?:\s+tài\s+chính)?)[^\n]{0,90}?" + _NUM + r"\s*lần", re.IGNORECASE)
+# Đòn bẩy sau cấp viết theo nhiều cách: "Nợ vay/EBITDA … X lần", "Nợ sau cấp 136 tỷ/EBITDA 98 tỷ = X lần", "Đòn bẩy … X lần"
+_LEVERAGE = re.compile(r"(?:Nợ[^\n/]{0,60}/\s*EBITDA|Đòn bẩy(?:\s+tài\s+chính)?)[^\n]{0,90}?" + _NUM + r"\s*lần", re.IGNORECASE)
 _THRESHOLD = re.compile(r"tối đa|trần|ngưỡng|giới hạn|không vượt|vượt|[≤≥<>]", re.IGNORECASE)
 _PRE_LOAN = re.compile(r"trước\s+(?:khi\s+)?cấp|hiện hữu|hiện tại", re.IGNORECASE)
 
