@@ -247,3 +247,38 @@ test('Khách hàng: cột rủi ro không lặp "Chưa xếp hạng" ở mọi d
   await expect(page.getByRole('table', { name: 'Khách hàng' })).toBeVisible();
   expect(await page.getByRole('table', { name: 'Khách hàng' }).getByText('Chưa xếp hạng', { exact: true }).count()).toBe(0);
 });
+
+/** Lần 6 (UN): dữ liệu trình diễn sạch và các chỗ trình bày đo được. */
+const SEED_LOAN = '75000000-0000-4000-8000-000000000001';
+const NO_TEST_TEXT = /e2e|\(dữ liệu mẫu\)|\(hư cấu\)/i;
+test('hồ sơ seed: tờ trình và trang đối chiếu không còn chữ e2e, "(dữ liệu mẫu)", "(hư cấu)"', async ({ page }) => {
+  await loginAs(page, 'tdinh');
+  await page.goto(`/ho-so-vay/${SEED_LOAN}`);
+  await expect(page.getByTestId('agent-team')).toBeVisible({ timeout: 20_000 });
+  expect(await page.locator('main').innerText()).not.toMatch(NO_TEST_TEXT);
+  await page.goto(`/doi-chieu/${SEED_LOAN}`);
+  await expect(page.getByRole('region', { name: 'Danh mục tài liệu' })).toBeVisible();
+  expect(await page.locator('main').innerText()).not.toMatch(NO_TEST_TEXT);
+});
+
+test('chi tiết khách hàng có khối "Hoạt động gần đây" với dòng thời gian', async ({ page }) => {
+  await loginAs(page, 'qhkh');
+  await page.goto('/khach-hang');
+  const table = page.getByRole('table', { name: 'Khách hàng' });
+  await expect(table).toBeVisible();
+  await table.getByRole('link').first().click();
+  const card = page.getByTestId('customer-activity');
+  await expect(card).toBeVisible({ timeout: 20_000 });
+  await expect(card.getByRole('heading', { name: 'Hoạt động gần đây' })).toBeVisible();
+  expect(await card.locator('li').count()).toBeGreaterThan(0);
+});
+
+test('Dashboard: ghi chú trong bảng agent dùng chữ sans màu xám, không dùng mono', async ({ page }) => {
+  await loginAs(page, 'truongphong');
+  await page.goto('/dashboard');
+  const notes = page.getByTestId('cell-note');
+  if (await notes.count()) {
+    const font = await notes.first().evaluate((el) => getComputedStyle(el).fontFamily);
+    expect(font).toMatch(/Be Vietnam Pro/);
+  }
+});

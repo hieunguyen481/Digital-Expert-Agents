@@ -10,7 +10,7 @@ import {
 } from '@/services/agentCaseService';
 import {
   agentName, cleanAiLine, scrubInternal, approverLevelLabel, latestPlan, packageOf, sourceLabel, stateLabel, taskStates, type TraceVerdict,
-  DECISION_LABEL, quoteText, quoteAfterLabel, cleanConditionList, groupDuplicateFindings, fallbackConclusion,
+  DECISION_LABEL, quoteAfterLabel, cleanConditionList, groupDuplicateFindings, fallbackConclusion,
 } from '@/features/dashboard/agentTrace';
 import { ActionProposals } from '@/features/agent-actions/ActionProposals';
 import { AiText } from '@/features/dashboard/components/AiText';
