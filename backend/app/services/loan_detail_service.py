@@ -101,8 +101,16 @@ class LoanDetailService:
                 row["compliance_conclusion"] = row["compliance_reason"] = None
             flags.append(row)
         timeline = [dict(s) for s in await self._repo.steps(loan_id)]
+        conditions = [
+            {"id": c["id"], "text": c["condition_text"], "created_at": c["created_at"],
+             "confirmed_by_name": c["created_by_name"],
+             # mã đề xuất nội bộ không ra ngoài: chỉ phân biệt do đội agent đề xuất hay người nhập
+             "origin": "AGENT_PROPOSED" if str(c["source"]).startswith("AGENT:") else "MANUAL"}
+            for c in await self._repo.disbursement_conditions(loan_id)
+        ]
         return {
             "loan": dict(loan), "metrics": metrics, "flags": flags,
+            "disbursement_conditions": conditions,
             "collaterals": [dict(c) for c in await self._repo.collaterals(loan_id)],
             "timeline": timeline,
             "supplement_request": supplement_request(dict(loan).get("status"), timeline),

@@ -62,8 +62,16 @@ def _principal(roles=("credit_officer",)):
                            roles=frozenset(roles))
 
 
+LINKS: dict = {"mine": set(), "others": set()}
+
+
 @pytest.fixture(autouse=True)
 def _loan(monkeypatch):
+    LINKS.update(mine=set(), others=set())
+
+    async def links(self, principal, customer_id, loan_id):
+        return set(LINKS["mine"]), set(LINKS["others"])
+    monkeypatch.setattr(EngineConversationResponder, "_loan_case_links", links)
     async def load(self, principal, customer_id, loan_id):
         return {"id": LOAN, "requested_amount": 4.2e9, "requested_term_months": 36,
                 "loan_purpose": "Vốn lưu động"}
@@ -353,3 +361,19 @@ async def test_missing_documents_question_reuses_result_of_open_loan(message) ->
     assert engine.request is None
     assert reply.metadata["reused_result"] is True and reply.metadata["engine_case_id"] == "case_0"
     assert mod.question_kind(message) == "broad"
+
+
+@pytest.mark.asyncio
+async def test_case_run_for_this_loan_is_reused_and_other_loans_case_is_not() -> None:
+    # ca của hồ sơ khác cùng khách, cùng số tiền + kỳ hạn: không được dùng để trả lời hồ sơ này
+    engine = _Engine()
+    engine.cases = [_prior(case_id="case_other", created_at=300.0)]
+    LINKS["others"] = {"case_other"}
+    await _ask(EngineConversationResponder(_Inner(), engine), message="DSCR bao nhiêu?")
+    assert engine.request is not None
+    # ca do chính hồ sơ này chạy: dùng lại dù số liệu yêu cầu lệch
+    engine2, inner2 = _Engine(), _Inner()
+    engine2.cases = [_prior(case_id="case_mine", request={"amount": 9e9, "term_months": 12})]
+    LINKS["mine"] = {"case_mine"}
+    reply = await _ask(EngineConversationResponder(inner2, engine2), message="DSCR bao nhiêu?")
+    assert engine2.request is None and reply.metadata["engine_case_id"] == "case_mine"

@@ -80,6 +80,7 @@ function ProposalCard({ proposal: p, caseId, loanId, shared }: { proposal: Actio
       void qc.invalidateQueries({ queryKey: ['agent-proposals', caseId] });
       void qc.invalidateQueries({ queryKey: ['agent-case-events', caseId] });
       void qc.invalidateQueries({ queryKey: ['loan-actions', loanId] });
+      void qc.invalidateQueries({ queryKey: ['loan-overview', loanId] });
     },
   });
   const [color, label] = STATUS_TAG[p.status];

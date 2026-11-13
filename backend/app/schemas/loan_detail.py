@@ -11,6 +11,7 @@ class LoanOverview(APIModel):
     loan: dict[str, Any]
     metrics: list[dict[str, Any]]
     flags: list[dict[str, Any]]
+    disbursement_conditions: list[dict[str, Any]] = []
     collaterals: list[dict[str, Any]]
     timeline: list[dict[str, Any]]
     supplement_request: dict[str, Any] | None = None

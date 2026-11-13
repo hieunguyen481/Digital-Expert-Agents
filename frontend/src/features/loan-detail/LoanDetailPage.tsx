@@ -58,7 +58,7 @@ export default function LoanDetailPage() {
             <KpiStrip amountBillion={Number(loan.requested_amount) / 1e9} currency={loan.currency} termMonths={loan.requested_term_months ?? null} metrics={metrics} />
             <MetricsPanel loanId={loanId} metrics={metrics} />
             <FlagsPanel flags={flags} />
-            <PreDisbursementPanel loanId={loanId} status={loan.status} decisionConditions={loan.conditions} />
+            <PreDisbursementPanel loanId={loanId} status={loan.status} decisionConditions={loan.conditions} confirmed={q.data.disbursement_conditions} />
             <MemoPanel key={loan.status} loanId={loanId} />
             {loan.status === 'APPRAISAL' && actions.data?.can_write && <RelatedPartiesReview loanId={loanId} />}
             <CollateralPanel items={collaterals} />
