@@ -98,7 +98,13 @@ class LoanDetailRepository:
     async def flags(self, loan_id: UUID) -> list[Record]:
         return await fetch_all(
             self.session,
-            """SELECT flag.id, flag.code, flag.severity, flag.title, flag.status, flag.source,
+            """SELECT flag.id, flag.code, flag.severity,
+                      -- Cờ chuyển kèm từ ngoại lệ tài liệu lưu mã mục ("SME-01-…") trong tiêu đề: hiện tên tiếng Việt của tài liệu.
+                      COALESCE((SELECT 'Đề xuất ngoại lệ tài liệu: ' || rtrim(btrim(req.requirement_description), '.') || ' đi theo hồ sơ'
+                                  FROM policy.checklist_rule_requirement AS req
+                                 WHERE flag.code LIKE 'EXCEPTION:%' AND req.requirement_code = substr(flag.code, 11) LIMIT 1),
+                               flag.title) AS title,
+                      flag.status, flag.source,
                       flag.blocks_submission, flag.handling_note, flag.compliance_conclusion,
                       flag.compliance_reason, flag.created_at, flag.early_warned_at, flag.early_warning_note
                FROM credit.case_flag AS flag WHERE flag.loan_application_id = :loan_id
