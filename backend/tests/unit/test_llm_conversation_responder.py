@@ -174,3 +174,21 @@ def test_prompt_khong_nen_ten_ngan_hang_cu_the() -> None:
     from app.services.llm_conversation_responder import _SYSTEM_PROMPT
     assert "SHB" not in _SYSTEM_PROMPT and "tại ngân hàng" in _SYSTEM_PROMPT
     assert "SHB" not in dh._SYSTEM_PROMPT
+
+
+def test_split_loans_puts_active_loan_apart_from_other_loans_of_same_customer() -> None:
+    from app.services.llm_conversation_responder import split_loans
+
+    a, b = {"id": uuid4(), "application_number": "A", "requested_amount": 1}, {"id": uuid4(), "application_number": "B"}
+    ctx = split_loans([b, a], a["id"])
+    assert ctx["active_loan_application"] is a
+    assert ctx["other_loan_applications_of_same_customer"] == [b]
+    assert "loan_applications" not in ctx and "HỒ SƠ ĐANG MỞ" in ctx["active_loan_application_note"]
+
+
+def test_split_loans_without_active_loan_keeps_full_list() -> None:
+    from app.services.llm_conversation_responder import split_loans
+
+    a, b = {"id": uuid4()}, {"id": uuid4()}
+    assert split_loans([a, b], None) == {"loan_applications": [a, b]}
+    assert split_loans([a, b], uuid4()) == {"loan_applications": [a, b]}

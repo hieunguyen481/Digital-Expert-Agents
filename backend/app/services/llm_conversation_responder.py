@@ -67,7 +67,8 @@ _SYSTEM_PROMPT = (
 
 
 _RAW_SOURCE = {
-    "customer_overview": "hồ sơ khách hàng", "loan_applications": "hồ sơ vay", "existing_obligations": "dư nợ hiện hữu",
+    "customer_overview": "hồ sơ khách hàng", "loan_applications": "hồ sơ vay", "active_loan_application": "hồ sơ vay đang mở",
+    "other_loan_applications_of_same_customer": "hồ sơ vay khác của khách", "existing_obligations": "dư nợ hiện hữu",
     "transaction_summary": "tổng hợp giao dịch", "financial_statements": "báo cáo tài chính",
     "financial_statements_note": "báo cáo tài chính", "recent_transactions": "giao dịch gần đây",
     "existing_obligations_note": "dư nợ hiện hữu", "recent_transactions_note": "giao dịch gần đây",
@@ -96,6 +97,25 @@ class _LLMAnswer(BaseModel):
 
 def _jsonable(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, default=str)
+
+
+def split_loans(loans: Sequence[Mapping[str, Any]], active_id: UUID | None) -> dict[str, Any]:
+    """Ngữ cảnh hồ sơ vay: hồ sơ đang mở đứng riêng, hồ sơ khác của cùng khách tách nhãn (chỉ nhắc khi được hỏi)."""
+    active = next((x for x in loans if active_id is not None and str(x.get("id")) == str(active_id)), None)
+    if active is None:
+        return {"loan_applications": list(loans)}
+    return {
+        "active_loan_application": active,
+        "active_loan_application_note": (
+            "HỒ SƠ ĐANG MỞ trong hội thoại (mã application_number, số tiền, kỳ hạn, bước hiện tại): mọi câu hỏi "
+            "'hồ sơ này', 'khoản vay này', 'còn thiếu gì' đều nói về hồ sơ này, trả lời bằng số liệu của nó và nêu mã hồ sơ."
+        ),
+        "other_loan_applications_of_same_customer": [x for x in loans if x is not active],
+        "other_loan_applications_note": (
+            "Hồ sơ khác của cùng khách, KHÔNG phải hồ sơ đang mở: chỉ nhắc khi người dùng hỏi rõ về hồ sơ khác "
+            "hoặc so sánh; không lấy số tiền, kỳ hạn hay tiến độ của chúng cho câu hỏi về hồ sơ đang mở."
+        ),
+    }
 
 
 def _optional_uuid(value: Any) -> UUID | None:
@@ -395,7 +415,8 @@ class LLMConversationResponder:
 
         return {
             "customer_overview": overview,
-            "loan_applications": loans,
+            **split_loans(loans, _optional_uuid(
+                route.get("loan_application_id") or conversation.get("active_loan_application_id"))),
             "existing_obligations": obligations,
             "existing_obligations_note": (
                 "Dư nợ hiện hữu của khách (khác với hồ sơ vay đang xử lý); "

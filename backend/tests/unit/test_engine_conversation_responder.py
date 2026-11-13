@@ -340,3 +340,16 @@ def test_metric_context_puts_recomputed_number_and_threshold_first() -> None:
 def test_plain_gate_label_handles_all_caps_without_colon() -> None:
     assert mod.plain_gate_label("ĐỀ XUẤT PHÊ DUYỆT CÓ ĐIỀU KIỆN") == "Đề xuất phê duyệt có điều kiện"
     assert mod.plain_gate_label("Hồ sơ ổn") == "Hồ sơ ổn"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("message", ["Hồ sơ này còn thiếu gì để trình?", "Cần bổ sung gì thì đủ để trình?"])
+async def test_missing_documents_question_reuses_result_of_open_loan(message) -> None:
+    inner, engine = _Inner(), _Engine()
+    engine.cases = [_prior(case_id="case_other", request={"amount": 9e9, "term_months": 12}), _prior()]
+    reply = await _ask(EngineConversationResponder(inner, engine), message=message,
+                       route={"route_type": "DIRECT", "intent": "LOAN_QUESTION"},
+                       conv={"active_customer_id": str(CUSTOMER), "active_loan_application_id": str(LOAN)})
+    assert engine.request is None
+    assert reply.metadata["reused_result"] is True and reply.metadata["engine_case_id"] == "case_0"
+    assert mod.question_kind(message) == "broad"

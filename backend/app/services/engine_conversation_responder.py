@@ -136,8 +136,10 @@ _POLICY_Q = re.compile(r"điều khoản|chính sách|quy định|quy chế|§|t
 # (tra thêm điều khoản thẩm quyền) thay vì chỉ tra bằng nguyên câu hỏi.
 _AUTHORITY_Q = re.compile(r"phê duyệt|thẩm quyền|quyết định|cấp nào|người duyệt|ai duyệt|ký duyệt", re.I)
 _AUTHORITY_TOPIC = "thẩm quyền phê duyệt theo tổng cấp tín dụng"
+# Câu hỏi "còn thiếu gì / cần bổ sung gì / đã đủ để trình chưa": đáp từ yêu cầu bổ sung và điều kiện của kết quả đội agent.
+_MISSING_Q = r"còn thiếu|thiếu gì|cần bổ sung|bổ sung gì|yêu cầu bổ sung|để trình|đủ (?:để )?trình"
 # Câu hỏi tổng hợp (cả kết luận, cờ rủi ro, điều kiện) mới nhận cả khối kết luận; câu hỏi một chỉ số nhận phần gọn.
-_BROAD_Q = re.compile(r"kết luận|đề xuất|điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|tổng quan|tóm tắt", re.I)
+_BROAD_Q = re.compile(_MISSING_Q + r"|kết luận|đề xuất|điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|tổng quan|tóm tắt", re.I)
 _POLICY_NOTE = ("\n\nĐIỀU KHOẢN CHÍNH SÁCH LIÊN QUAN (CS-TD-SME/2025; trích đúng số điều khoản khi trả lời, "
                 "không có trong đây thì nói rõ là chưa tra được):\n")
 # Tên cấp theo bậc ngưỡng §3.1 (corpus chỉ có ngưỡng): cùng bảng `_LEVEL_LABEL` mà khung đội agent dùng, không đặt số ở đây.
@@ -147,7 +149,7 @@ _LEVEL_NAMES_NOTE = ("\n\nTÊN CẤP PHÊ DUYỆT THEO BẬC NGƯỠNG §3.1 (th
 # Câu hỏi về điều khoản/vi phạm/chính sách của hồ sơ đã có kết quả: trả lời từ kết quả đội agent, không từ danh sách điều khoản tra thêm.
 _POLICY_KIND_Q = re.compile(r"điều khoản|vi phạm|chính sách|quy định|quy chế|§", re.I)
 _METRIC_Q = re.compile(r"điều khoản|vi phạm|chính sách|quy định|quy chế|ngưỡng|dscr|ebitda|\bltv\b|nợ vay|đòn bẩy|hạn mức|tài sản bảo đảm|tsđb|định giá|kết luận|đề xuất|cấp phê duyệt|"
-                       r"điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|phê duyệt|quyết định|thẩm quyền", re.I)
+                       r"điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|phê duyệt|quyết định|thẩm quyền|" + _MISSING_Q, re.I)
 _LEVERAGE_Q = re.compile(r"nợ vay\s*/\s*ebitda|đòn bẩy|nợ/ebitda|debt\s*/\s*ebitda", re.I)
 _LEVERAGE_NOTE = ("\n\nLƯU Ý VỀ NỢ VAY/EBITDA: có hai cách tính, phải nêu rõ nhãn: 'hiện hữu' (chỉ nợ đang có, trước khi cấp khoản này) "
                   "và 'sau cấp' (đã cộng khoản vay đề xuất; là số đội agent và cổng quyết định dùng). Chỉ nêu số có trong dữ liệu, "
