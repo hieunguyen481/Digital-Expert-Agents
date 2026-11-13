@@ -321,3 +321,12 @@ describe('quyết định: gom nhắc và chuyển cấp; cấp phê duyệt t�
     expect(levelFromLines(undefined)).toBeNull();
   });
 });
+
+import { narrativeConditions } from './agentTrace';
+describe('narrativeConditions', () => {
+  it('lấy riêng phần Điều kiện chính, không có thì null', () => {
+    expect(narrativeConditions('Đề xuất phê duyệt với điều kiện. Điều kiện chính: Đối chiếu lịch trả nợ; cung cấp hồ sơ pháp lý')).toBe('Đối chiếu lịch trả nợ; cung cấp hồ sơ pháp lý');
+    expect(narrativeConditions('Không có điều kiện')).toBeNull();
+    expect(narrativeConditions(undefined)).toBeNull();
+  });
+});

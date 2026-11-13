@@ -8,7 +8,7 @@ import { TERMINAL_STATES, getAgentCase, getAgentCaseEvents, getApproverNames, st
 import {
   STATE_TONE, agentName, fmtSeconds, collaboration, dagLevels, decisions, latestPlan,
   llmUsage, packageOf, stateLabel, taskStates, toolCalls, type TaskState, type TraceVerdict,
-  BOARD_LABEL, approverLevelLabel, levelFromLines, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
+  BOARD_LABEL, approverLevelLabel, levelFromLines, narrativeConditions, realActions, scrubInternal, sharedBoards, sourceLabel, toolLabel, validationView,
   DECISION_LABEL, quoteAfterLabel, cleanAiLine, coversAiText,
 } from '../agentTrace';
 import { ProposalChain } from '@/features/agent-actions/ActionProposals';
@@ -301,10 +301,23 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                 {validation.issues.map((l, i) => <li key={i}>{scrubInternal(l)}</li>)}
               </ul>
             )}
-            {validation.narrative && !flow.some((f) => f.from === 'validation' && coversAiText(f.text, validation.narrative)) && !coversAiText(stopReason, validation.narrative) && !verdicts.some((v) => coversAiText(v.summary, validation.narrative)) && (
-              <span className={styles.text}><b>Diễn giải cho người duyệt</b> <AiTag />
-                <span style={{ display: 'block' }}><AiText text={validation.narrative} /></span></span>
-            )}
+            {validation.narrative && (() => {
+              const others = [...flow.filter((f) => f.from === 'validation').map((f) => f.text), stopReason, ...verdicts.map((v) => v.summary)];
+              const covered = others.some((x) => coversAiText(x, validation.narrative));
+              if (!covered) {
+                return (
+                  <span className={styles.text}><b>Diễn giải cho người duyệt</b> <AiTag />
+                    <span style={{ display: 'block' }}><AiText text={validation.narrative} /></span></span>
+                );
+              }
+              // Câu tóm tắt đã phủ phần mở đầu của diễn giải: vẫn giữ riêng "Điều kiện chính" nếu chưa nơi nào nêu.
+              const cond = narrativeConditions(validation.narrative);
+              if (!cond || others.some((x) => coversAiText(x, cond))) return null;
+              return (
+                <span className={styles.text}><b>Điều kiện chính</b> <AiTag />
+                  <span style={{ display: 'block' }}><AiText text={cond} /></span></span>
+              );
+            })()}
           </>
         ) : (
           <span className={styles.dim}>Validation chưa kiểm chứng lượt phân tích này.</span>

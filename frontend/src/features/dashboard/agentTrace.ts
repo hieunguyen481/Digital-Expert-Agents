@@ -604,6 +604,12 @@ export const sameAiText = (a: string, b: string): boolean => {
   const ka = k(a); return ka.length > 0 && ka === k(b);
 };
 
+/** Phần "Điều kiện chính: …" ở cuối diễn giải của Validation (không kèm câu mở đầu); null nếu không có. */
+export function narrativeConditions(narrative: string | null | undefined): string | null {
+  const m = String(narrative ?? '').match(/Điều kiện chính:\s*([\s\S]+)$/);
+  return m && m[1].trim() ? m[1].trim() : null;
+}
+
 /** Hai đoạn chữ AI nói cùng một nội dung: một đoạn nằm gọn trong đoạn kia (≥ 70% từ khóa, từ 6 từ trở lên), dù nhãn hay dấu câu khác. */
 export const coversAiText = (a: string | null | undefined, b: string | null | undefined): boolean => {
   const w = (x: string) => new Set(fold(String(x ?? '')).split(/[^a-z0-9]+/).filter((t) => t.length > 2));
