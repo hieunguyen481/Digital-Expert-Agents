@@ -5,7 +5,7 @@ import { AiTag, HumanTag, StatusPill, type PillTone } from '@/components/ui';
 import styles from './EnginePanel.module.css';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
-import { DECISION_LABEL, agentName, approverLevelLabel, sourceLabel, stateLabel } from '@/features/dashboard/agentTrace';
+import { DECISION_LABEL, agentName, approverLevelLabel, cleanAiLine, quoteText, sourceLabel, stateLabel } from '@/features/dashboard/agentTrace';
 import {
   TERMINAL_STATES,
   type AgentVerdict,
@@ -117,7 +117,7 @@ export function EnginePanel({ caseId, loanApplicationId, decisionRelated }: Engi
               <b>{agentName(v.agent)}</b>
               <StatusPill tone={toneOf(String(v.decision))}>{DECISION_LABEL[v.decision] ?? v.decision}</StatusPill>
             </span>
-            <span className={styles.vtext}>{v.summary}</span>
+            <span className={styles.vtext}>{cleanAiLine(v.summary)}</span>
           </li>
         ))}
       </ul>
@@ -127,7 +127,7 @@ export function EnginePanel({ caseId, loanApplicationId, decisionRelated }: Engi
           <ul>
             {sources.map((s, i) => (
               <li key={i}>
-                <span className={styles.srcTag}>{sourceLabel(s.source)}</span> {s.quote}
+                <span className={styles.srcTag}>{sourceLabel(s.source)}</span> {quoteText(s.quote)}
               </li>
             ))}
           </ul>

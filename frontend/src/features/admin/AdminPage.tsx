@@ -8,6 +8,7 @@ import { PageHead } from '@/features/shell/PageHead';
 import apiClient from '@/services/apiClient';
 import { paginationItemRender } from '@/utils/paginationRender';
 import styles from './admin.module.css';
+import { permStepNote } from './permNote';
 
 export interface AdminUser {
   employee_id: string;
@@ -118,7 +119,11 @@ function Permissions() {
       title: roleLabel(r.role_code, r.role_name),
       key: r.role_code,
       align: 'center' as const,
-      render: (_: unknown, row: { code: string }) => (r.permissions.includes(row.code) ? <span aria-label="Được">✔</span> : <span aria-label="Không">—</span>),
+      render: (_: unknown, row: { code: string }) => {
+        if (r.permissions.includes(row.code)) return <span aria-label="Được">✔</span>;
+        const note = permStepNote(r.role_code, row.code);
+        return note ? <span className={styles.permStep} data-testid="perm-step">{note}</span> : <span aria-label="Không">—</span>;
+      },
     })),
   ];
   return (

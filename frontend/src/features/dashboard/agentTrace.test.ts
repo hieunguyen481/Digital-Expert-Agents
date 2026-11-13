@@ -216,3 +216,33 @@ describe('trích nguồn nối liền', () => {
     expect(sourceQuoteParts('', undefined as unknown as string)).toEqual({ rest: '', joined: false });
   });
 });
+
+import { lowerShouting, stripRuleCodes, scrubInternal } from './agentTrace';
+import { scrubAnswer } from '@/features/chat/utils/humanizeCodes';
+
+describe('chữ AI: mã quy tắc nội bộ, chữ in hoa nhấn mạnh, số kiểu Việt', () => {
+  it('bỏ mã quy tắc (S07), giữ quý Q4/2026', () => {
+    expect(stripRuleCodes('không tính vào cấp phê duyệt theo Q4.')).toBe('không tính vào cấp phê duyệt.');
+    expect(stripRuleCodes('hạn mức (§3.1, Q4) áp dụng')).toBe('hạn mức (§3.1) áp dụng');
+    expect(stripRuleCodes('khoản vay theo Q-M, đủ')).toBe('khoản vay, đủ');
+    expect(stripRuleCodes('doanh thu Q4/2026 tăng')).toBe('doanh thu Q4/2026 tăng');
+    expect(stripRuleCodes(undefined as unknown as string)).toBe('');
+  });
+  it('viết thường chữ in hoa nhấn mạnh giữa câu (Q04), giữ từ viết tắt', () => {
+    expect(lowerShouting('DSCR VƯỢT ngưỡng cho phép')).toBe('DSCR vượt ngưỡng cho phép');
+    expect(lowerShouting('kết quả KHÔNG ĐẠT yêu cầu')).toBe('kết quả không đạt yêu cầu');
+    expect(lowerShouting('khách có CIC nhóm 3')).toBe('khách có CIC nhóm 3');
+    expect(lowerShouting('')).toBe('');
+  });
+  it('thẻ kết quả: nhãn cổng và VƯỢT đi qua bộ làm sạch chung', () => {
+    expect(cleanAiLine('CẦN BỔ SUNG: thiếu dữ liệu chặn')).toBe('Cần bổ sung: thiếu dữ liệu bắt buộc');
+    expect(cleanAiLine('Tỷ lệ VƯỢT ngưỡng 3.5')).toBe('Tỷ lệ vượt ngưỡng 3,5');
+  });
+  it('S08: "1,000 tỷ" thành "1.000 tỷ"', () => {
+    expect(scrubInternal('hạn mức ≤ 1,000 tỷ')).toBe('hạn mức ≤ 1.000 tỷ');
+  });
+  it('S05: trả lời trợ lý đổi số thập phân, không đụng §3.1 và ngày; bỏ Q4; chịu rỗng', () => {
+    expect(scrubAnswer('trần 3.5 lần theo Q4, xem §3.1 ngày 12.03.2026')).toBe('trần 3,5 lần, xem §3.1 ngày 12.03.2026');
+    expect(scrubAnswer('')).toBe('');
+  });
+});

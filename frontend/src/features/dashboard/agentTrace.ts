@@ -325,8 +325,23 @@ export function decimalVi(text: string): string {
   return text.replace(DOT_DECIMAL, (m, a: string, b: string, off: number, whole: string) =>
     CLAUSE_BEFORE.test(whole.slice(Math.max(0, off - 14), off)) ? m : `${a},${b}`);
 }
+/** Mã quy tắc nội bộ ("Q4", "Q-M") lọt vào chữ AI: bỏ khỏi chữ hiển thị. "Q4/2026" (quý) giữ nguyên. */
+const RULE = 'Q-?(?:[A-Z]|\\d{1,2})';
+export function stripRuleCodes(text: string): string {
+  return String(text ?? '')
+    // "(§3.1, Q4)" -> "(§3.1)"; "(Q4)" -> ""
+    .replace(new RegExp(`\\s*\\(\\s*${RULE}\\s*\\)`, 'g'), '')
+    .replace(new RegExp(`\\s*,\\s*${RULE}(?![\\p{L}\\d/-]|\\.\\d)`, 'gu'), '')
+    .replace(new RegExp(`\\s+theo\\s+${RULE}(?![\\p{L}\\d/-]|\\.\\d)`, 'gu'), '')
+    .replace(/\(\s*,\s*/g, '(').replace(/\s+([.,;)])/g, '$1');
+}
+const TONED = /[ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸ]/;
+/** Chữ in hoa nhấn mạnh giữa câu ("VƯỢT ngưỡng", "KHÔNG ĐẠT") viết thường; từ viết tắt ASCII (DSCR, CIC) giữ nguyên. */
+export function lowerShouting(text: string): string {
+  return String(text ?? '').replace(/(?<=[\p{L}\d,;)]\s)\p{Lu}+(?:\s+\p{Lu}+)*(?![\p{L}]|\s+\p{Lu}|\s*[:—–])/gu, (run) => (TONED.test(run) ? run.toLowerCase() : run));
+}
 function scrubStyle(text: string): string {
-  return decimalVi(text)
+  return lowerShouting(stripRuleCodes(decimalVi(text)))
     .replace(AGENT_WORDS, (w) => w.charAt(0).toUpperCase() + w.slice(1))
     .replace(/\b(c)hallenges?\b/gi, (_m, c: string) => (c === 'C' ? 'Phản biện' : 'phản biện'))
     .replace(/\bdữ liệu chặn\b/gi, 'dữ liệu bắt buộc')
