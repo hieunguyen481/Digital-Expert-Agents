@@ -12,9 +12,12 @@ export const fmtMoney = (v: string | null, currency: string): string =>
   v == null ? '—' : currency === 'VND' ? fmtVnd(Number(v)) : `${new Intl.NumberFormat('vi-VN').format(Number(v))} ${currency}`;
 
 const SOURCE_TYPE: Record<string, string> = {
-  OCR: 'OCR', AI: 'AI đề xuất', MANUAL: 'Nhập tay', HUMAN: 'Người nhập',
+  OCR: 'OCR', AI_OCR: 'AI trích xuất', AI: 'AI đề xuất', MANUAL: 'Nhập tay', HUMAN: 'Người nhập',
+  SYSTEM_CIC: 'Hệ thống CIC', SYSTEM_CORE: 'Hệ thống lõi ngân hàng', SYSTEM: 'Hệ thống', CUSTOMER: 'Khách hàng khai báo', DOCUMENT: 'Tài liệu',
 };
-export const sourceTypeLabel = (t: string | null): string => (t ? SOURCE_TYPE[t] ?? t : 'Không rõ loại nguồn');
+/** Loại nguồn theo tiếng Việt; mã chưa có nhãn rơi về chữ thường dễ đọc, không lộ mã thô. */
+export const sourceTypeLabel = (t: string | null): string =>
+  t ? SOURCE_TYPE[t] ?? (/^[A-Z0-9_]+$/.test(t) ? t.toLowerCase().replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase()) : t) : 'Không rõ loại nguồn';
 
 export const KIND_LABEL = { DECLARED: 'Khai báo', RECOMPUTED: 'Tính lại' } as const;
 

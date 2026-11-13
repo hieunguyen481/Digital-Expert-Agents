@@ -1,6 +1,7 @@
 import { fmtDayTime } from '@/utils/format';
 import { Table } from 'antd';
 import { useQuery } from '@tanstack/react-query';
+import { fieldLabelOr } from './fieldLabels';
 import { fetchReconLog } from './reconciliationService';
 import styles from './reconciliation.module.css';
 
@@ -17,11 +18,11 @@ export function LogPanel({ loanId }: { loanId: string }) {
       <h2>Nhật ký đối chiếu (chỉ ghi thêm)</h2>
       {conflicts.length > 0 && (
         <Table
-          size="small" pagination={false} rowKey="log_id" dataSource={conflicts} aria-label="Nhật ký chốt nguồn"
+          size="small" pagination={conflicts.length > 10 ? { pageSize: 10, showSizeChanger: false } : false} rowKey="log_id" dataSource={conflicts} aria-label="Nhật ký chốt nguồn"
           columns={[
             { title: 'Lúc', render: (_, r) => fmt(r.at) },
             { title: 'Ai', dataIndex: 'actor_name' },
-            { title: 'Mâu thuẫn', dataIndex: 'conflict_code' },
+            { title: 'Mâu thuẫn', render: (_, r) => fieldLabelOr(r.conflict_code) },
             { title: 'Giá trị cũ', render: (_, r) => r.old_value_text ?? '—' },
             { title: 'Giá trị mới', render: (_, r) => r.new_value_text ?? '—' },
             { title: 'Lý do', dataIndex: 'reason' },
@@ -30,7 +31,7 @@ export function LogPanel({ loanId }: { loanId: string }) {
       )}
       {checks.length > 0 && (
         <Table
-          size="small" pagination={false} rowKey="log_id" dataSource={checks} aria-label="Nhật ký hậu kiểm danh mục"
+          size="small" pagination={checks.length > 10 ? { pageSize: 10, showSizeChanger: false } : false} rowKey="log_id" dataSource={checks} aria-label="Nhật ký hậu kiểm danh mục"
           style={{ marginTop: 8 }}
           columns={[
             { title: 'Lúc', render: (_, r) => fmt(r.at) },
