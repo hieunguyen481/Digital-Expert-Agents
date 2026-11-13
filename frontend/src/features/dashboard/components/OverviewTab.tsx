@@ -85,7 +85,7 @@ export function OverviewTab() {
               { title: 'Agent', dataIndex: 'agent', key: 'agent', render: (a: string) => <b>{agentName(a)}</b> },
               { title: 'Lượt tham gia', dataIndex: 'tasks', key: 'tasks', align: 'right', className: ledgerNum, render: (n: number, row) => {
                 const note = participationNote(row);
-                return note ? <span className={styles.muted}>{note}</span> : fmtInt(n);
+                return note ? <span className={styles.cellNote} data-testid="cell-note">{note}</span> : fmtInt(n);
               } },
               { title: 'Lỗi', dataIndex: 'errors', key: 'errors', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },
               { title: 'Công cụ gọi', dataIndex: 'tool_calls', key: 'tool_calls', align: 'right', className: ledgerNum, render: (n: number) => fmtInt(n) },

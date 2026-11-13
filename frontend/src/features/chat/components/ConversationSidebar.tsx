@@ -18,7 +18,7 @@ import {
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PageError } from '@/components/common/PageError';
-import { filterConversations, groupConversations } from '@/features/chat/utils/groupConversations';
+import { conversationStamp, duplicateTitleSet, filterConversations, groupConversations } from '@/features/chat/utils/groupConversations';
 import type { Conversation } from '@/types/conversation';
 import type { UserProfile } from '@/types/user';
 import styles from './ConversationSidebar.module.css';
@@ -57,6 +57,7 @@ export function ConversationSidebar({
   const [renameTarget, setRenameTarget] = useState<Conversation | null>(null);
   const [renameValue, setRenameValue] = useState('');
 
+  const dupTitles = useMemo(() => duplicateTitleSet(conversations), [conversations]);
   const groups = useMemo(
     () => groupConversations(filterConversations(conversations, searchTerm)),
     [conversations, searchTerm],
@@ -264,9 +265,11 @@ export function ConversationSidebar({
                         )}{' '}
                         {conversation.title}
                       </span>
-                      {conversation.preview && (
+                      {conversation.preview ? (
                         <span className={styles.itemPreview}>{conversation.preview}</span>
-                      )}
+                      ) : dupTitles.has(conversation.title) ? (
+                        <span className={styles.itemPreview} data-testid="conv-stamp">{conversationStamp(conversation.updatedAt)}</span>
+                      ) : null}
                     </span>
 
                     <Dropdown

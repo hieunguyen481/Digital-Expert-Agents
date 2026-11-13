@@ -68,3 +68,4 @@
 .card td .mono { display: block; }
 
 .cmpLabel { display: block; margin-top: var(--s2); font: 400 var(--fs-13) var(--font-body); color: var(--ink-2); }
+.cellNote { color: var(--ink-3); font: 400 var(--fs-13) var(--font-body); font-variant-numeric: normal; letter-spacing: 0; }

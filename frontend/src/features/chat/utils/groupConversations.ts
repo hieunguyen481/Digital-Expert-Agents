@@ -54,3 +54,17 @@ export function groupConversations(
     ];
   });
 }
+
+/** Cuộc trò chuyện trùng tiêu đề thì thêm dòng giờ cập nhật để phân biệt (lần 6, việc 9). */
+export function duplicateTitleSet(conversations: Array<{ title: string }>): Set<string> {
+  const seen = new Map<string, number>();
+  for (const c of conversations) seen.set(c.title, (seen.get(c.title) ?? 0) + 1);
+  return new Set([...seen].filter(([, n]) => n > 1).map(([t]) => t));
+}
+
+export function conversationStamp(updatedAt: string): string {
+  const d = new Date(updatedAt);
+  if (Number.isNaN(d.getTime())) return '';
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `Cập nhật ${p(d.getHours())}:${p(d.getMinutes())} ${p(d.getDate())}/${p(d.getMonth() + 1)}`;
+}
