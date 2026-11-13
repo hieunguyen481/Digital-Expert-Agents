@@ -3,12 +3,14 @@ import { Table } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { fieldLabelOr } from './fieldLabels';
 import { fetchReconLog } from './reconciliationService';
+import type { ReconItem } from './types';
 import styles from './reconciliation.module.css';
 
 const fmt = (iso: string) => fmtDayTime(iso);
 
 /** Nhật ký chỉ đọc: backend chỉ cho thêm dòng, không sửa hay xóa. */
-export function LogPanel({ loanId }: { loanId: string }) {
+export function LogPanel({ loanId, items = [] }: { loanId: string; items?: ReconItem[] }) {
+  const labelOf = (code: string) => items.find((i) => i.code === code)?.label ?? 'Mục danh mục';
   const q = useQuery({ queryKey: ['recon-log', loanId], queryFn: () => fetchReconLog(loanId) });
   const conflicts = q.data?.conflicts ?? [];
   const checks = q.data?.checks ?? [];
@@ -36,7 +38,7 @@ export function LogPanel({ loanId }: { loanId: string }) {
           columns={[
             { title: 'Lúc', render: (_, r) => fmt(r.at) },
             { title: 'Ai', dataIndex: 'actor_name' },
-            { title: 'Mục', dataIndex: 'requirement_code' },
+            { title: 'Mục', render: (_, r) => labelOf(r.requirement_code) },
             { title: 'Kết quả', render: (_, r) => (r.result === 'PASS' ? 'Đạt' : 'Không đạt') },
             { title: 'Ghi chú', render: (_, r) => r.note ?? '—' },
           ]}

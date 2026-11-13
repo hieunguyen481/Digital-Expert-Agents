@@ -78,9 +78,10 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
   // Chưa có ảnh trang thì mở sẵn danh sách trường để cột giữa không trống.
   const othersOpen = showOthers ?? (!hasImage && !img.data);
   const others = onPage.filter((f) => f.field_id !== selected?.field_id);
+  const textLines = pageTextLines(onPage);
 
   return (
-    <section className={styles.panel} aria-label="Tài liệu đang xem">
+    <section className={`${styles.panel} ${styles.viewer}`} aria-label="Tài liệu đang xem">
       <h2>{docTitle(doc.title, doc.document_type)}</h2>
       {(q.data.warnings ?? []).map((w) => (
         <Alert key={w} type="warning" showIcon data-testid="customer-mismatch" style={{ marginBottom: 8 }}
@@ -105,15 +106,23 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
       )}
       {!hasImage && !img.data ? (
         <div className={styles.pageEmpty} data-testid="page-frame" aria-label={`Trang ${page}`} data-source={doc.data_source}>
-          <span className={styles.note}>Chưa có ảnh trang. Chọn một trường trích xuất để xem giá trị và nguồn.</span>
-          <div className={styles.chipRow}>
-            {onPage.map((f) => (
-              <button key={f.field_id} type="button" className={styles.fieldChip} aria-pressed={f.field_id === selectedFieldId}
-                aria-label={`Vùng tô: ${fieldLabel(f.field_name)}`} data-testid={`region-${f.field_id}`} onClick={() => onSelect(f.field_id)}>
-                {fieldLabel(f.field_name)}
-              </button>
-            ))}
-          </div>
+          <span className={styles.textNote} data-testid="page-text-note">Bản văn bản trích xuất, không phải ảnh gốc.</span>
+          {textLines.length > 0 ? (
+            <ol className={styles.textLines} data-testid="page-text">
+              {textLines.map((l) => (
+                <li key={l.field.field_id}>
+                  <button type="button" className={styles.textLine} aria-pressed={l.field.field_id === selectedFieldId}
+                    aria-label={`Dòng văn bản: ${fieldLabel(l.field.field_name)}`} data-testid={`region-${l.field.field_id}`}
+                    onClick={() => onSelect(l.field.field_id)}>
+                    <span className={styles.textLabel}>{fieldLabel(l.field.field_name)}</span>
+                    <span>{l.before}{l.hit && <mark className={styles.textMark}>{l.hit}</mark>}{l.after}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <span className={styles.note}>Trang này chưa có trường trích xuất.</span>
+          )}
         </div>
       ) : (
       <div className={styles.pageFrame} data-testid="page-frame" aria-label={`Trang ${page}`}
@@ -187,6 +196,21 @@ export function DocumentViewer({ loanId, documentId, selectedFieldId, onSelect, 
       )}
     </section>
   );
+}
+
+export interface TextLine { field: ReconField; before: string; hit: string; after: string }
+/** Văn bản trích xuất của một trang, theo dòng từ trên xuống (theo toạ độ nếu có): dòng nguồn mà API trả cho từng trường, hoặc "nhãn: giá trị";
+ *  phần giá trị của trường nằm trong dòng được tách ra để tô sáng. Chịu được trường thiếu giá trị, thiếu nguồn. */
+export function pageTextLines(fields: ReconField[]): TextLine[] {
+  const ordered = [...fields].sort((a, b) => (a.bounding_box?.y ?? Infinity) - (b.bounding_box?.y ?? Infinity));
+  return ordered.map((field) => {
+    const value = (fieldValueText(field) ?? '').toString().trim();
+    const raw = typeof field.source_text === 'string' ? splitSourceCode(field.source_text).text.trim() : '';
+    const line = raw || value;
+    const at = value && value !== '—' ? line.toLowerCase().indexOf(value.toLowerCase()) : -1;
+    if (at >= 0) return { field, before: line.slice(0, at), hit: line.slice(at, at + value.length), after: line.slice(at + value.length) };
+    return { field, before: '', hit: raw ? '' : line, after: raw ? line : '' };
+  });
 }
 
 const TONE: Record<string, PillTone> = { purple: 'ai', orange: 'warn', green: 'ok', default: 'neutral' };

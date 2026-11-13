@@ -40,3 +40,15 @@
 .fieldChip:hover { border-color: var(--bronze-700); }
 .fieldChip[aria-pressed='true'] { border-color: var(--bronze-700); background: rgba(176, 138, 62, 0.22); font-weight: 600; }
 .fieldChip:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* Cột giữa dính khi cuộn để hai cột bên dài không để lại dải trống; nội dung dài thì cuộn trong khung. */
+.viewer { align-self: start; position: sticky; top: var(--s4); max-height: calc(100dvh - var(--topbar-h, 52px) - var(--s8)); overflow: auto; }
+/* Văn bản trích xuất thay cho ảnh trang: theo dòng, dòng chứa giá trị của trường đang chọn được tô sáng. */
+.textNote { font-size: var(--fs-12); font-weight: 600; color: var(--ink-2); }
+.textLines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; font-family: var(--font-mono); font-size: var(--fs-13); }
+.textLine { width: 100%; display: grid; grid-template-columns: 9em minmax(0, 1fr); gap: var(--s2); text-align: left; font: inherit; color: var(--ink); background: transparent; border: 0; border-left: 3px solid transparent; border-radius: var(--r-sm); padding: 4px var(--s2); cursor: pointer; overflow-wrap: anywhere; }
+.textLine:hover { background: var(--surface); }
+.textLine[aria-pressed='true'] { background: rgba(176, 138, 62, 0.22); border-left-color: var(--bronze-700); }
+.textLine:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.textLabel { font-family: var(--font-sans, inherit); font-size: var(--fs-12); color: var(--ink-2); }
+.textMark { background: rgba(176, 138, 62, 0.45); color: inherit; padding: 0 2px; border-radius: 2px; }

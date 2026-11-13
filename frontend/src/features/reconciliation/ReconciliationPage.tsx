@@ -84,7 +84,7 @@ function Workspace({ loanId }: { loanId: string }) {
             <TransferBar loanId={loanId} transfer={view.transfer} onDone={reload} />
           </div>
         </div>
-        <LogPanel loanId={loanId} />
+        <LogPanel loanId={loanId} items={view.items} />
       </div>
     </>
   );
