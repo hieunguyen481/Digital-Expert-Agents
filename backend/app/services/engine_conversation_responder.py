@@ -17,6 +17,7 @@ from uuid import UUID
 from app.db import session as db_session
 from app.db.rls_context import rls_transaction
 from app.logging import get_logger
+from app.repositories.base import fetch_all
 from app.repositories.customer_repository import CustomerRepository
 from app.schemas.conversation import ConversationReply
 from app.services.agent_engine_client import AgentEngineClient, AgentEngineError
@@ -403,10 +404,21 @@ class EngineConversationResponder:
             return None
         t_list = time.perf_counter() - t0
         loan_changed = _epoch(loan.get("updated_at"))
+        mine, others = await self._loan_case_links(principal, customer_id, UUID(str(loan["id"])))
+
+        def belongs(c: Mapping[str, Any]) -> bool:
+            # Ca do chính hồ sơ này chạy (credit.loan_agent_run) thì chắc chắn đúng; ca thuộc hồ sơ khác của khách thì loại;
+            # ca không gắn hồ sơ nào (chat chạy trực tiếp) mới đối chiếu số tiền + kỳ hạn.
+            if c.get("case_id") in mine:
+                return True
+            if c.get("case_id") in others:
+                return False
+            return (abs(float((c.get("request") or {}).get("amount") or 0) - request["amount"]) < 1
+                    and (c.get("request") or {}).get("term_months") == request["term_months"])
+
         latest = next((c for c in sorted(cases, key=lambda c: -(c.get("created_at") or 0))
                        if str(c.get("customer_id")) == str(customer_id) and c.get("state") in _FINAL_STATES
-                       and abs(float((c.get("request") or {}).get("amount") or 0) - request["amount"]) < 1
-                       and (c.get("request") or {}).get("term_months") == request["term_months"]), None)
+                       and belongs(c)), None)
         if latest is None or (loan_changed and loan_changed > float(latest.get("updated_at") or 0)):
             return None  # chưa có kết quả, hoặc dữ liệu hồ sơ đã đổi sau lần phân tích
         t1 = time.perf_counter()
@@ -436,6 +448,27 @@ class EngineConversationResponder:
             route_type=str(route.get("route_type") or "ORCHESTRATED"),
             complexity_level=route.get("complexity_level") if isinstance(route.get("complexity_level"), int) else None,
             metadata=meta)
+
+    async def _loan_case_links(self, principal: PrincipalLike, customer_id: UUID,
+                               loan_id: UUID) -> tuple[set[str], set[str]]:
+        """Mã ca đội agent đã gắn với hồ sơ này, và với các hồ sơ khác của cùng khách (credit.loan_agent_run, dưới RLS)."""
+        factory = db_session.AsyncSessionFactory
+        if factory is None:
+            return set(), set()
+        try:
+            async with factory() as session, rls_transaction(
+                    session, employee_id=principal.employee_id, branch_id=principal.branch_id,
+                    is_admin=principal.is_admin):
+                rows = await fetch_all(
+                    session,
+                    """SELECT run.case_id, run.loan_application_id FROM credit.loan_agent_run AS run
+                       JOIN credit.loan_application AS la ON la.id = run.loan_application_id
+                       WHERE la.primary_customer_id = :c""", {"c": customer_id})
+        except Exception:  # noqa: BLE001 - không đối chiếu được thì quay về so số tiền + kỳ hạn
+            logger.warning("LOAN_CASE_LINKS_UNAVAILABLE")
+            return set(), set()
+        mine = {str(r["case_id"]) for r in rows if str(r["loan_application_id"]) == str(loan_id)}
+        return mine, {str(r["case_id"]) for r in rows} - mine
 
     async def _load_loan(self, principal: PrincipalLike, customer_id: UUID,
                          loan_id: UUID | None) -> Mapping[str, Any] | None:
