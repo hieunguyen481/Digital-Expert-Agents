@@ -30,7 +30,7 @@ test('hạn đối chiếu: cùng ngày thì cùng ngưỡng màu, có ghi số 
     const chip = r.locator('td').last().locator('span').first();
     const text = (await chip.innerText()).trim();
     if (/tạm dừng|Không đặt hạn|Đã kết thúc/.test(text)) continue;
-    expect(text).toMatch(/\d{2}\/\d{2}\/\d{4} · (còn \d+ ngày LV|hạn hôm nay|quá hạn hôm nay|quá hạn \d+ ngày LV)/);
+    expect(text).toMatch(/\d{2}\/\d{2}\/\d{4} · (còn \d+ ngày LV|hạn hôm nay|quá hạn hôm nay|quá hạn \d+ ngày LV|quá hạn từ \d{2}\/\d{2})/);
     const day = text.slice(0, 10);
     const cls = await chip.evaluate((e) => getComputedStyle(e).color);
     byDay.set(day, (byDay.get(day) ?? new Set()).add(cls));
