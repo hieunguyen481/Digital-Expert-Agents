@@ -59,7 +59,9 @@ test('tdinh: Tờ trình tự lưu và còn nguyên sau khi tải lại', async 
 test('ruiro: hồ sơ còn ở Thẩm định nên ngoài phạm vi, không thấy chỉ số lẫn bản nháp Tờ trình', async ({ page }) => {
   await loginAs(page, 'ruiro');
   await page.goto(VINANOVA);
-  await expect(page.getByText('Hồ sơ đã chuyển cho người khác')).toBeVisible();
+  // S01: ruiro chưa từng giữ hồ sơ nên không nhận câu "đã chuyển" (chỉ người từng có chuông về hồ sơ mới nhận).
+  await expect(page.getByText('Không tìm thấy nội dung')).toBeVisible();
+  await expect(page.getByText('Hồ sơ đã chuyển cho người khác')).toHaveCount(0);
   await expect(page.locator('#memo-4')).toHaveCount(0);
   await expect(page.getByTestId('metric-dscr-DECLARED')).toHaveCount(0);
 });
