@@ -43,7 +43,7 @@ export default function LoanDetailPage() {
               {supplement_request.kind !== 'RETURNED_TO_APPRAISAL' && <Link to={`/doi-chieu/${loanId}`}>Tải tài liệu bổ sung</Link>}
             </>} />
         )}
-        <div className={styles.grid}>
+        <div className={`${styles.grid} ${readOnly ? styles.gridWide : ''}`} data-testid="loan-grid" data-readonly={readOnly}>
           <div className={styles.stack}>
             <AgentTeamPanel loanId={loanId} currency={loan.currency} status={loan.status} />
             <KpiStrip amountBillion={Number(loan.requested_amount) / 1e9} currency={loan.currency} termMonths={loan.requested_term_months ?? null} metrics={metrics} />
@@ -54,7 +54,7 @@ export default function LoanDetailPage() {
             {loan.status === 'APPRAISAL' && actions.data?.can_write && <RelatedPartiesReview loanId={loanId} />}
             <CollateralPanel items={collaterals} />
           </div>
-          <aside className={styles.stack} aria-label="Việc và hành động">
+          <aside className={`${styles.stack} ${readOnly ? styles.asideWide : ''}`} aria-label="Việc và hành động">
             {!readOnly && <TodoPanel items={todos} ready={!!actions.data} caseId={runs.data?.latest?.case_id} />}
             <ActionsPanel loanId={loanId} overview={q.data} />
             <ReassignControl loanId={loanId} />
