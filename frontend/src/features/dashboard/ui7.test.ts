@@ -91,3 +91,12 @@ describe('S05 số thập phân và Q04 nhãn cổng chữ hoa', () => {
     expect(humanizeGate('DSCR đạt, LTV đạt')).toBe('DSCR đạt, LTV đạt');
   });
 });
+
+describe('dòng Validation trong ngăn kéo', () => {
+  it('dòng tính lại: 0,0 tỷ, 3.5 và tên agent được làm sạch', async () => {
+    const { scrubInternal } = await import('./agentTrace');
+    expect(scrubInternal('dư nợ hiện hữu tại ngân hàng 0,0 tỷ + đề xuất 22,0 tỷ')).toContain('0 đồng');
+    expect(scrubInternal('3,92 lần (tối đa 3.5); VƯỢT ngưỡng (CS-TD-SME/2025 §4.2)')).toContain('tối đa 3,5');
+    expect(scrubInternal('Kết luận của credit thiếu trích dẫn nguồn')).toBe('Kết luận của Credit thiếu trích dẫn nguồn');
+  });
+});

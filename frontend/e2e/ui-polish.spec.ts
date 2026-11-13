@@ -299,6 +299,8 @@ test('ngăn kéo trace: toàn văn không còn chuỗi cổng thô, "chặn", "c
     const text = await drawer.innerText();
     expect(text, `ngăn kéo ${i}: nhãn cổng viết hoa`).not.toMatch(/CẦN BỔ SUNG|TỪ CHỐI:|CHUYỂN CẤP:/);
     expect(text, `ngăn kéo ${i}: biệt ngữ`).not.toMatch(/\bchặn\b|\bchallenge\b/i);
+    expect(text, `ngăn kéo ${i}: số thập phân dấu chấm`).not.toMatch(/(?:tối đa|ngưỡng|DSCR\s*[=≥]?)\s*\d\.\d/);
+    expect(text, `ngăn kéo ${i}: 0,0 tỷ`).not.toMatch(/(?<![\d.,])0,0 tỷ/);
     expect(text, `ngăn kéo ${i}: tên agent viết thường giữa câu`).not.toMatch(/(?<![\p{L}_.])(credit|compliance|operations|document|validation|planner)(?![\p{L}_.])/u);
     expect(text, `ngăn kéo ${i}: 0,0 tỷ`).not.toMatch(/\b0(?:,0)? tỷ\b/);
     await page.keyboard.press('Escape');

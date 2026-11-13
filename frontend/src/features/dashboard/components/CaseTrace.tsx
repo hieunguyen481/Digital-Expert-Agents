@@ -288,13 +288,13 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
               <>
                 <span className={styles.text}><b>Số liệu tính lại từ dữ liệu công cụ</b> {SYSTEM_TAG}</span>
                 <ul className={styles.sub} data-testid="validation-lines">
-                  {validation.lines.map((l, i) => <li key={i}>{l}</li>)}
+                  {validation.lines.map((l, i) => <li key={i}>{scrubInternal(l)}</li>)}
                 </ul>
               </>
             )}
             {validation.issues.length > 0 && (
               <ul className={styles.sub}>
-                {validation.issues.map((l, i) => <li key={i}>{l}</li>)}
+                {validation.issues.map((l, i) => <li key={i}>{scrubInternal(l)}</li>)}
               </ul>
             )}
             {validation.narrative && !flow.some((f) => f.from === 'validation' && sameAiText(f.text, validation.narrative)) && (
