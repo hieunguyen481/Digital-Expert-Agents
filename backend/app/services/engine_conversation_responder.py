@@ -70,6 +70,19 @@ def _final_payload(events: Sequence[Mapping[str, Any]]) -> Mapping[str, Any]:
                  and (e.get("payload") or {}).get("report_text")), {})
 
 
+_GATE_LABEL = re.compile(r"^\s*([A-ZÀ-Ỵ][A-ZÀ-Ỵ /]+?)\s*:\s*")
+
+
+def plain_gate_label(text: Any) -> str:
+    """Nhãn cổng viết hoa đầu câu ("CẦN BỔ SUNG/ĐIỀU CHỈNH: ...") đọc như người viết: "Cần bổ sung/điều chỉnh: ..."."""
+    value = str(text or "")
+    m = _GATE_LABEL.match(value)
+    if not m:
+        return value
+    label = m.group(1).strip().lower()
+    return label[:1].upper() + label[1:] + ": " + value[m.end():]
+
+
 def compose_engine_reply(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]] = ()) -> str:
     """Trả lời cho lượt phân tích mới: kết luận + các điểm chính; hồ sơ chưa có gói phê duyệt (cần bổ sung/từ chối)
     thì lấy lý do, phát hiện, điều kiện từ báo cáo cuối của lượt, không chỉ một dòng trạng thái."""
@@ -78,7 +91,7 @@ def compose_engine_reply(case: Mapping[str, Any], events: Sequence[Mapping[str, 
     lines: list[str] = []
     if package.get("recommendation"):
         lines.append(f"**Kết luận của đội agent (đề xuất, chưa có hiệu lực):** "
-                     f"{package['recommendation']}")
+                     f"{plain_gate_label(package['recommendation'])}")
     limit = package.get("proposed_limit")
     if isinstance(limit, (int, float)) and limit > 0:  # không có hạn mức thì không in dòng trống số
         lines.append(f"**Hạn mức đề xuất:** {limit:,.0f} VND".replace(",", "."))
@@ -97,7 +110,7 @@ def compose_engine_reply(case: Mapping[str, Any], events: Sequence[Mapping[str, 
     if not package.get("recommendation"):
         final = _final_payload(events)
         if final.get("reason"):
-            lines.append(f"**Kết luận:** {final['reason']}")
+            lines.append(f"**Kết luận:** {plain_gate_label(final['reason'])}")
         for key, label in (("findings", "Các điểm chính"), ("conditions", "Điều kiện / việc cần làm")):
             if final.get(key) and not verdicts:
                 lines.append(f"\n**{label}:**")
@@ -158,7 +171,9 @@ _KIND_GUIDE = {
     "authority": ("trả lời theo cấp thẩm quyền và vai, không nêu tên hay mã định danh; nêu CẤP PHÊ DUYỆT ĐỀ XUẤT của đội agent "
                   "và điều khoản chính sách (số điều khoản) quy định thẩm quyền; nói rõ đây là đề xuất của AI, người có thẩm quyền "
                   "quyết định; người được phân công/QHKH của khách không được phê duyệt nếu điều khoản tách bạch nêu vậy; "
-                  "tối đa 5 câu, không chép lại kết luận hay điều kiện; dùng cấp đề xuất này, không dùng trường cấp phê duyệt của hồ sơ vay"),
+                  "tối đa 5 câu, không chép lại kết luận hay điều kiện; dùng cấp đề xuất này, không dùng trường cấp phê duyệt của hồ sơ vay. "
+                  "Cách tính cấp: tổng cấp tín dụng = dư nợ tại ngân hàng + khoản đề xuất mới; dư nợ tại tổ chức tín dụng khác "
+                  "KHÔNG cộng vào tổng này, nên không nêu giả thuyết cộng dư nợ đó hay việc vượt ngưỡng vì cộng thêm"),
 }
 
 
@@ -171,7 +186,7 @@ def result_context(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]],
                   and (e.get("payload") or {}).get("report_text")), {})
     parts = [f"Trạng thái: {_STATE_LABEL.get(str(case.get('state')), case.get('state'))}"]
     if package.get("recommendation") and kind == "broad":
-        parts.append(f"Kết luận: {package['recommendation']}")
+        parts.append(f"Kết luận: {plain_gate_label(package['recommendation'])}")
     level = package.get("required_approver_level") or ""
     if not level and kind == "authority":  # báo cáo cuối của lượt phân tích có thể ghi cấp đề xuất dạng chữ
         m = re.search(r"Cấp phê duyệt đề xuất:[^\n.]*", str(final.get("report_text") or ""))
@@ -190,7 +205,7 @@ def result_context(case: Mapping[str, Any], events: Sequence[Mapping[str, Any]],
         return "\n".join(parts)[:4000]
     for k, label in (("reason", "Lý do"), ("report_text", "Báo cáo cuối")):
         if final.get(k):
-            parts.append(f"{label}: {final[k]}")
+            parts.append(f"{label}: {plain_gate_label(final[k]) if k == 'reason' else final[k]}")
     for k, label in (("findings", "Phát hiện"), ("conditions", "Điều kiện")):
         if final.get(k) and not package:
             parts.append(f"{label}: " + "; ".join(final[k]))

@@ -273,3 +273,30 @@ async def test_leverage_question_without_result_labels_existing_vs_post_grant() 
     await _ask(EngineConversationResponder(Inner(), _Engine()), route={"route_type": "DIRECT", "intent": "DIRECT_QUERY"},
                message="Nợ vay/EBITDA của hồ sơ này bao nhiêu?")
     assert "sau cấp" in seen["message"] and "hiện hữu" in seen["message"]
+
+
+def test_gate_label_is_written_like_a_person_in_reply_and_context() -> None:
+    assert mod.plain_gate_label("CẦN BỔ SUNG/ĐIỀU CHỈNH: DSCR thấp") == "Cần bổ sung/điều chỉnh: DSCR thấp"
+    assert mod.plain_gate_label("TỪ CHỐI: vi phạm") == "Từ chối: vi phạm"
+    assert mod.plain_gate_label("Hồ sơ đủ điều kiện") == "Hồ sơ đủ điều kiện"
+    case = {"state": "Needs Info", "package": {"recommendation": "CẦN BỔ SUNG/ĐIỀU CHỈNH: DSCR thấp"}}
+    assert "CẦN BỔ SUNG" not in mod.compose_engine_reply(case)
+    assert "CẦN BỔ SUNG" not in mod.result_context(case, [], "broad")
+
+
+def test_authority_guide_states_total_exposure_rule_without_other_institution_debt() -> None:
+    guide = mod._KIND_GUIDE["authority"]
+    assert "KHÔNG cộng" in guide and "tổ chức tín dụng khác" in guide
+
+
+def test_runtime_adapter_authorizes_loan_chat_with_the_read_rule() -> None:
+    from pathlib import Path
+    src = (Path(mod.__file__).parents[1] / "runtime_adapters.py").read_text()
+    assert "identity.can_read_loan(:employee_id, :loan_id)" in src
+    assert "identity.can_access_loan(:employee_id, :loan_id)" not in src
+
+
+def test_auditor_cannot_rerun_agent_team_from_chat_guard() -> None:
+    from app.services.loan_agent_run_service import denial_reason
+    auditor = SimpleNamespace(roles=("auditor",), is_admin=False)
+    assert denial_reason(auditor, "UNDERWRITING", False) is not None
