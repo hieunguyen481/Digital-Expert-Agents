@@ -578,3 +578,16 @@ Giữ nguyên các giới hạn §15.6 (10 ca, 3 lần/ca, chấm từ khóa/reg
 
 ### 17.7 Hiển thị trên dashboard
 Tab So sánh mặc định mở lượt này ("đo lại trên bản mã đang chạy", kèm câu nói rõ đây là lượt đo thứ ba sau hai lần sửa engine). Lượt 1 (§15), lượt 2 (§16) và mọi lượt cũ vẫn chọn được, mỗi lượt giữ câu giới hạn riêng. Dòng (b) ghi ở `frontend/src/features/dashboard/blindRuns.ts`, e2e tính lại từ tệp.
+
+## 18. Đo v8 lần bốn trên bản khóa `d58022a` (14/11/2026)
+
+### 18.1 Đầu mục: ghi trước khi đo (commit trước lượt đo)
+- **Lý do đo lại:** sau lượt §17 engine đổi tiếp để sửa bốn lỗi T02, T03, T06, T07 của giám khảo chức năng lần 10 (`docs/agent/cham-diem-chuc-nang-lan-10.md`). Số §17 không còn khớp mã đang chạy.
+- **Commit engine đã đổi (`8c9afbc..d58022a`):** một commit `d58022a`, chạm `common/consistency.py` (T02 chỉ phản biện "chưa có định giá" khi có giá thẩm định; T03 trần LTV chính sách không bị đọc thành LTV thực; T06 bỏ chữ "nêu" lặp), `common/facts.py` và `agents/validation_agent.py` (T07 trường phụ còn thiếu viết thành việc phải làm, mỗi việc một dòng), cùng 3 file test.
+- **Tự kiểm có chạm single không:** `scripts/benchmark/single_agent_runner.py` chỉ import `common.config, identity, llm, mcp_client, rag, policy_checklist`; không import file nào đã đổi. `grade.py`, `cases_v8.json`, prompt, cờ không đổi.
+- **Các sửa này theo loại lỗi, không theo ca:** lỗi do giám khảo chức năng thấy trên hồ sơ demo và trên dấu vết các ca; không ai mở đáp án hay điểm từng ca để chỉnh luật.
+- **Commit khóa:** `d58022a`. Container engine trên stack chung dựng từ mã này (kiểm: `grep -c _is_policy_cap /engine/common/consistency.py` trong container = 2).
+- **Lệnh sẽ chạy (đúng một lượt, giống §15.1, chỉ đổi nhãn):** `python3 agent_engine/scripts/benchmark/run.py --cases all --runs 3 --modes single,multi --cases-file agent_engine/scripts/benchmark/cases_v8.json --grader v3 --max-cost 1.5 --label "v8 đo lần bốn trên bản khóa d58022a"`.
+- **Cảnh báo: không còn mù chặt.** Bộ ca đã chạy ba lượt (§15–§17). Đây là lượt đo lại có công bố, không phải đo mù mới.
+- **Số dư OpenRouter trước đo:** còn 1,4071 USD (đã dùng 8,5929 / hạn mức 10).
+- Lượt mới là số chính (khớp mã đang chạy), kể cả khi kém lượt cũ. Lỗi hạ tầng chỉ chạy lại đúng phần lỗi và ghi rõ; không chạy lại để chọn điểm.
