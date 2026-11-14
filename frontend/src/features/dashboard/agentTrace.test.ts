@@ -111,7 +111,7 @@ describe('parseAiText và dedupeConditions', () => {
       v('need_more_info', 'Chưa có kết quả sàng lọc AML của khách hàng'),
       v('need_more_info', 'Thông tin thứ tư không nên hiện ra'),
     ]);
-    expect(out?.headline).toBe('AI đề xuất: cần bổ sung 3 việc trước khi quyết định');
+    expect(out?.headline).toBe('AI đề xuất: cần bổ sung trước khi quyết định');
     expect(out?.headline).not.toContain(':\n');
     expect(out?.items).toHaveLength(3);
     expect(out?.items[0]).toMatch(/^Chưa có kết quả CIC/);
@@ -346,5 +346,14 @@ describe('điều kiện chính nối bằng dấu chấm phẩy', () => {
   it('ý sau viết thường, từ viết tắt giữ nguyên', () => {
     expect(narrativeConditions('Điều kiện chính: Bổ sung BCTC; Hoàn tất sàng lọc; KYC lại; bổ sung thêm'))
       .toBe('Bổ sung BCTC; hoàn tất sàng lọc; KYC lại; bổ sung thêm');
+  });
+});
+
+describe('scrubInternal: lời dặn mô hình và chữ viết tắt sai', () => {
+  it('bỏ câu "Chỉ dùng số này làm DSCR…" và sửa TSBĐ thành TSĐB', async () => {
+    const { scrubInternal } = await import('./agentTrace');
+    expect(scrubInternal('DSCR chính thức 1,34 (ngưỡng 1,2). Chỉ dùng số này làm DSCR; các số tính lại ở cảnh báo chỉ để đối chiếu, không coi là DSCR khác.'))
+      .toBe('DSCR chính thức 1,34 (ngưỡng 1,2).');
+    expect(scrubInternal('Hoàn thiện pháp lý TSBĐ')).toBe('Hoàn thiện pháp lý TSĐB');
   });
 });

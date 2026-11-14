@@ -172,6 +172,9 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                           const st = states[t.task_id];
                           const tag = TASK_TAG[st?.state ?? 'waiting'];
                           const sec = st?.state === 'done' ? taskSeconds(t.task_id) : null;
+                          // Ý kiến cuối (sau phản biện) khác ý kiến lúc xong việc: ghi rõ cả hai, tránh một agent hai trạng thái không lời giải thích
+                          const fin = pkg?.verdicts?.find((v) => v.agent === t.agent);
+                          const revised = st?.verdict && fin && fin.decision !== st.verdict.decision ? fin : null;
                           return (
                             <div key={t.task_id} data-testid={`dag-task-${t.task_id}`}
                               className={`${styles.node} ${st?.state === 'done' ? styles.done : ''} ${st?.state === 'running' ? styles.running : ''} ${st?.state === 'error' ? styles.error : ''}`}>
@@ -187,8 +190,11 @@ function CaseTraceBody({ caseId }: { caseId: string }) {
                               )}
                               {st?.verdict && (
                                 <span className={styles.nodeSum}>
-                                  <VerdictChip v={st.verdict} /> <AiText text={st.verdict.summary} skipTag={DECISION_LABEL[st.verdict.decision]} />
+                                  {revised && 'Ban đầu: '}<VerdictChip v={st.verdict} /> <AiText text={st.verdict.summary} skipTag={DECISION_LABEL[st.verdict.decision]} />
                                 </span>
+                              )}
+                              {revised && (
+                                <span className={styles.nodeSum} data-testid={`dag-revised-${t.task_id}`}>Sau phản biện: <VerdictChip v={revised} /></span>
                               )}
                               {sec != null && <span className={styles.tm}>{fmtSeconds(sec)}</span>}
                             </div>

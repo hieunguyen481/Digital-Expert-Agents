@@ -62,7 +62,7 @@ export default function LoanDetailPage() {
           <div className={styles.stack}>
             <AgentTeamPanel loanId={loanId} currency={loan.currency} status={loan.status} />
             <KpiStrip amountBillion={Number(loan.requested_amount) / 1e9} currency={loan.currency} termMonths={loan.requested_term_months ?? null} metrics={metrics} />
-            {empties.length >= 2 && <EmptyBlocksNote labels={empties.map((e) => e.label)} />}
+            {empties.length >= 2 && <EmptyBlocksNote labels={empties.filter((e) => e.key !== 'conditions' || ['APPROVED', 'APPROVED_WITH_CONDITIONS'].includes(loan.status)).map((e) => e.label)} />}
             {!isEmpty('metrics') && <MetricsPanel loanId={loanId} metrics={metrics} />}
             {!isEmpty('flags') && <FlagsPanel flags={flags} />}
             {!isEmpty('conditions') && <PreDisbursementPanel loanId={loanId} status={loan.status} decisionConditions={loan.conditions} confirmed={q.data.disbursement_conditions} />}

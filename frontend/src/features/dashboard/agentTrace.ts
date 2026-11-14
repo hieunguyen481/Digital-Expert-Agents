@@ -318,7 +318,10 @@ const FIELD_LABEL: Record<string, string> = {
 };
 /** Che mã nội bộ trong văn bản do Planner/agent sinh: UUID, tên trường kỹ thuật. Không đổi nghĩa câu. */
 export function scrubInternal(text: string): string {
-  return humanizeGate(scrubBase(text));
+  // Lời dặn dành cho mô hình ("Chỉ dùng số này làm DSCR; …") không phải nội dung cho người đọc; "TSBĐ" là viết sai của "TSĐB".
+  return humanizeGate(scrubBase(text))
+    .replace(/\s*Chỉ dùng số này làm DSCR;[^.]*(?:\.|$)/g, '')
+    .replace(/TSBĐ/g, 'TSĐB');
 }
 /** Nhãn cổng viết hoa ("CẦN BỔ SUNG: …", "Kết luận: CẦN BỔ SUNG/ĐIỀU CHỈNH: …") thành chữ thường như người viết; từ mở câu (Chưa, Không, Thiếu…) sau dấu phẩy viết thường. */
 export function humanizeGate(text: string): string {
@@ -732,7 +735,7 @@ export function fallbackConclusion(state: string, verdicts: TraceVerdict[]): { h
     }
     const shown = cleanConditionList(items).slice(0, 3).map(upFirst);
     return shown.length
-      ? { headline: `AI đề xuất: cần bổ sung ${shown.length} việc trước khi quyết định`, items: shown }
+      ? { headline: 'AI đề xuất: cần bổ sung trước khi quyết định', items: shown }
       : { headline: 'AI đề xuất: cần bổ sung thông tin trước khi quyết định', items: [] };
   }
   if (state === 'Rejected') return { headline: 'AI đề xuất: từ chối hồ sơ', items: [] };
