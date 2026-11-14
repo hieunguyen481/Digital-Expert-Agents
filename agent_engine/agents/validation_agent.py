@@ -214,8 +214,8 @@ async def handle_task(env: Envelope) -> Verdict:
                 "findings": [consistency.unblock_for_approval(c) for c in v.findings]}) for k, v in verdicts.items()}
             report = merge_verdicts(verdicts, own_findings, own_conditions, demoted)
         extra = [*gate_why]
-        if verified["ancillary"]:
-            extra.append("Bổ sung trước giải ngân (không chặn trình): " + "; ".join(verified["ancillary"]))
+        # mỗi việc một dòng, viết thành việc phải làm (không ghép bằng "; " để khỏi bị tách thành mảnh mất chủ ngữ)
+        extra += verified["ancillary"]  # đã là câu việc phải làm, có "(không chặn trình)"
         if extra:
             report = merge_verdicts(verdicts, [*own_findings, *extra], [*own_conditions, *extra], demoted)
     elif VerdictDecision.REJECT in decisions.values():

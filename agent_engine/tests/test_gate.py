@@ -28,6 +28,12 @@ def test_ancillary_gaps_do_not_block():
                      "blacklist": BL, "collateral": []}, REQ, TODAY)
     assert f["ancillary"] and not f["blockers"]
     assert gate.decide(f)[0] == D.APPROVE
+    # T07: mỗi mục là một câu việc phải làm, không phải câu mô tả hiện trạng
+    from gateway import proposals
+    assert all(proposals.is_actionable(x) and "chưa có trong hồ sơ" not in x for x in f["ancillary"])
+    f2 = facts.build({"business": {"account_number": None, "legal_rep_name": None}, "financials": [{**FIN[0], "reported_ratios": {}}],
+                      "loans": LOANS, "cic": CIC, "blacklist": BL, "collateral": []}, REQ, TODAY)
+    assert len(f2["ancillary"]) == 3 and all(gate.is_action(x) and x[:1].isupper() for x in f2["ancillary"])
 
 
 def test_blocking_gaps():

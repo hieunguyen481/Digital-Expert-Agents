@@ -99,3 +99,35 @@ def test_ltv_nguong_chinh_sach_khong_bi_nham_voi_ltv_thuc():
     for t in ["LTV ≤ 70%", "LTV tối đa 70%", "LTV trần 70%", "LTV không vượt 70%", "LTV < 70%", "LTV vượt ngưỡng 70%"]:
         assert not consistency.mismatches(t, ver), t
     assert consistency.mismatches("LTV 70% theo hồ sơ", ver) or abs(real - 70) <= 0.6
+
+
+def test_declared_only_collateral_is_not_challenged_for_missing_appraisal():
+    """T02: TSĐB mới có giá khai (chưa thẩm định) thì chuyên gia nói "chưa có định giá" là đúng, không phản biện."""
+    declared = [{"collateral_id": "c1", "legal_status": "clear", "valuation": 145e9, "valuation_basis": "declared",
+                 "valuation_status": "NEEDS_VERIFICATION"}]
+    ver = {"collateral": recompute.collateral_check(declared, 80e9)}
+    assert not consistency.mismatches("TSĐB chưa có giá trị định giá, cần thẩm định", ver)
+    appraised = [{"collateral_id": "c1", "legal_status": "clear", "valuation": 30e9, "valuation_basis": "appraised"}]
+    ver = {"collateral": recompute.collateral_check(appraised, 20e9)}
+    assert consistency.mismatches("TSĐB chưa có định giá", ver)
+
+
+def test_policy_ltv_cap_is_not_read_as_actual_ltv():
+    """T03: "theo LTV 70%", "mức LTV 70%" là trần chính sách; LTV thực nêu sai vẫn bị phản biện."""
+    cols = [{"collateral_id": "c1", "legal_status": "clear", "valuation": 20e9, "valuation_basis": "appraised"}]
+    ver = {"collateral": recompute.collateral_check(cols, 9e9)}  # LTV 45%, trần 70%
+    for ok in ("LTV 45%; mức tối đa 70%",
+               "Hạn mức bảo đảm tối đa 14 tỷ theo LTV 70%",
+               "Áp dụng mức LTV 70% của chính sách",
+               "LTV 45%, thấp hơn quy định LTV 70%"):
+        assert not consistency.mismatches(ok, ver), ok
+    for bad in ("LTV 70%", "LTV thực tế của khoản vay là 70%", "Tính lại. LTV 60% theo hồ sơ", "theo số liệu, LTV 52%"):
+        assert consistency.mismatches(bad, ver), bad
+
+
+def test_challenge_note_has_single_verb():
+    """T06: dòng phản biện không lặp chữ "nêu"."""
+    ver = _verified()
+    notes = consistency.check_verdicts({"credit": _v("credit", summary="chưa có giá trị định giá"),
+                                        "compliance": _v("compliance", summary="Không có EBITDA để tính")}, ver)
+    assert len(notes) == 2 and not any("nêu nêu" in n for n in notes)

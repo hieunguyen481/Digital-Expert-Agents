@@ -88,7 +88,7 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
     if not fin:
         blockers.append("Chưa có BCTC/số liệu tài chính — chưa tính được Nợ vay/EBITDA (CS-TD-SME/2025 §4.2, §6.1)")
     if biz and not biz.get("account_number"):
-        ancillary.append("doanh nghiệp chưa có tài khoản thanh toán tại ngân hàng — cần mở tài khoản trước khi giải ngân")
+        ancillary.append("Mở tài khoản thanh toán tại ngân hàng cho doanh nghiệp trước giải ngân (không chặn trình)")
     if breaches_inflow:
         breaches.append(breaches_inflow)
     if request.get("has_collateral"):
@@ -111,11 +111,11 @@ def build(raw: dict, request: dict, today: date | None = None) -> dict:
                   "không coi là DSCR khác"] if dscr else [])
     # Trường phụ: không chặn, nêu thành điều kiện bổ sung trước giải ngân (rules.md Q7)
     if fin and not dscr:
-        ancillary.append("DSCR/lịch trả nợ dự phóng chưa có trong hồ sơ")
+        ancillary.append("Bổ sung lịch trả nợ dự phóng để tính DSCR trước giải ngân (không chặn trình)")
     if biz and not biz.get("legal_rep_name"):
-        ancillary.append("người đại diện pháp luật chưa có trong hồ sơ")
+        ancillary.append("Bổ sung thông tin người đại diện pháp luật vào hồ sơ trước giải ngân (không chặn trình)")
     if latest.get("data_note"):
-        ancillary.append(str(latest["data_note"]))
+        ancillary.append("Bổ sung trước giải ngân (không chặn trình): " + str(latest["data_note"]))
     return {"amount": amount, "has_collateral_data": bool(cols), "collateral": col, "exposure": exp, "leverage": lev,
             "lines": recompute.describe(col, exp, lev, amount) + dscr_line + conflicts, "blockers": blockers, "breaches": breaches,
             "hard_stops": hard_stops, "ancillary": ancillary, "raw": raw}

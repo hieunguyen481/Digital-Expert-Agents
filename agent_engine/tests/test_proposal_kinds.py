@@ -77,3 +77,15 @@ def test_compound_conditions_split_and_explicit_stage_condition_survives():
     assert [p["kind"] for p in items].count("add_disbursement_condition") == 1
     again = proposals.dedupe_items(proposals.derive(v, [], rep), have=items)
     assert again == []  # chạy lại không phình thêm
+
+
+def test_ancillary_gaps_become_whole_action_conditions():
+    """T07: thiếu trường phụ thành điều kiện viết như việc phải làm, mỗi việc một thẻ, không có mảnh câu hiện trạng."""
+    texts = ["Mở tài khoản thanh toán tại ngân hàng cho doanh nghiệp trước giải ngân (không chặn trình)",
+             "Bổ sung lịch trả nợ dự phóng để tính DSCR trước giải ngân (không chặn trình)",
+             "Bổ sung thông tin người đại diện pháp luật vào hồ sơ trước giải ngân (không chặn trình)"]
+    v, rep = _approve(texts)
+    items = proposals.derive(v, [], rep)
+    conds = [p["params"]["text"] for p in items if p["kind"] == "add_disbursement_condition"]
+    assert len(conds) == len(texts) == len(items)
+    assert all(c[:1].isupper() and "chưa có trong hồ sơ" not in c for c in conds)
