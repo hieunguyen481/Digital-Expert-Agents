@@ -311,6 +311,9 @@ export function ComparisonTab() {
           {BLIND_RUNS[run.run_id].remeasure && (
             <p className={styles.muted} style={{ padding: '0 var(--s5) var(--s4)' }} data-testid="cmp-remeasure-note">{REMEASURE_NOTE}</p>
           )}
+          {BLIND_RUNS[run.run_id].infraNote && (
+            <p className={styles.muted} style={{ padding: '0 var(--s5) var(--s4)' }} data-testid="cmp-infra-note">{BLIND_RUNS[run.run_id].infraNote}</p>
+          )}
           <p className={styles.muted} style={{ padding: '0 var(--s5) var(--s4)' }}>
             Dòng (a) là số đăng ký nguyên vẹn. Dòng (b) được định nghĩa sau khi thấy số của bộ đo cũ giảm (đáp án của hai loại phát hiện đó viết theo cách tính tổng cấp tín dụng cũ), nên là số tham khảo có giải thích, không phải kết quả mù thuần túy.
           </p>

@@ -595,7 +595,7 @@ Tab So sánh mặc định mở lượt này ("đo lại trên bản mã đang c
 ### 18.2 Kết quả (đo trên bản khóa `d58022a`, 3 lần × 10 ca × 2 chế độ)
 Tệp: `agent_engine/benchmark_results/20261114T031611Z-v8 đo lần bốn trên bản khóa d58022a.json`, đã nạp `agent.benchmark_run` (60 lượt: 30 single + 30 multi). Lệnh đúng như §18.1. Trường `git_commit` ghi `8a8fceb` (HEAD lúc chạy, chỉ thêm tài liệu so với engine `d58022a`).
 
-**Sự cố hạ tầng (ghi thẳng):** ba lượt cuối, đều của ca J10, hỏng vì mất kết nối tới LLM: single #3 (`APIConnectionError: Connection error.`), multi #2 (`case_5bedff17c5c9`) và multi #3 (`case_bd27adaf1d35`), cả hai có sự kiện `agent_error: Connection error.` rồi chuyển Escalated, 0/5 phát hiện. Theo luật đã ghi ở §18.1, chỉ chạy bù đúng ba lượt này, mỗi lượt một lần, không chọn điểm: tệp `20261114T031836Z-v8 lần bốn chạy bù J10 a.json` (1 single + 1 multi) và `20261114T031913Z-v8 lần bốn chạy bù J10 b.json` (1 multi). Ba lượt bù được ghép vào tệp chính (mỗi dòng có `infra_rerun_of`), tóm tắt tính lại bằng `grade.summarize`. Tệp gốc chưa ghép và hai tệp chạy bù lưu ở `agent_engine/benchmark_results/luot-phu/` (không nạp DB), tệp gốc có hậu tố "(bản gốc, 3 lượt lỗi hạ tầng)". Nếu tính cả ba lượt hỏng thì multi (a) sẽ thấp hơn vì hai lượt 0/5; đó là lỗi mạng chứ không phải chất lượng agent.
+**Sự cố hạ tầng (ghi thẳng):** ba lượt cuối, đều của ca J10, hỏng vì mất kết nối tới LLM: single #3 (`APIConnectionError: Connection error.`), multi #2 (`case_5bedff17c5c9`) và multi #3 (`case_bd27adaf1d35`), cả hai có sự kiện `agent_error: Connection error.` rồi chuyển Escalated, 0/5 phát hiện. Theo luật đã ghi ở §18.1, chỉ chạy bù đúng ba lượt này, mỗi lượt một lần, không chọn điểm: tệp `20261114T031836Z-v8 lần bốn chạy bù J10 a.json` (1 single + 1 multi) và `20261114T031913Z-v8 lần bốn chạy bù J10 b.json` (1 multi). Ba lượt bù được ghép vào tệp chính (mỗi dòng có `infra_rerun_of`), tóm tắt tính lại bằng `grade.summarize`. Tệp gốc chưa ghép và hai tệp chạy bù lưu ở `agent_engine/benchmark_results/luot-phu/` (không nạp DB), tệp gốc có hậu tố "(bản gốc, 3 lượt lỗi hạ tầng)". **Số khi KHÔNG ghép** (tính từ tệp gốc; giám khảo chức năng lần 11 tự tính lại ra cùng số): multi 30 lượt, trong đó 2 lượt hỏng 0/5: (a) 0,668, (b) 0,925, cổng 28/30; single 29 lượt chấm được: (a) 0,526, (b) 0,638, cổng 17/29. Ghép làm multi tăng 4,7 điểm (a), 5,8 điểm (b) và 2 cổng; single gần như không đổi. Kết luận multi hơn single vẫn đúng khi không ghép. Tab So sánh ghi rõ việc chạy bù và các số này.
 
 | Chỉ số (TB ± sd, n = 30) | Single | Multi |
 |---|---|---|
@@ -605,7 +605,7 @@ Tệp: `agent_engine/benchmark_results/20261114T031611Z-v8 đo lần bốn trên
 | Phát hiện sai (TB mỗi lượt) | 0,033 | 0 |
 | Độ phủ trích nguồn | 0,925 | 0,931 |
 | Độ trễ (s) | 42,9 | 40,1 |
-| Chi phí mỗi lượt (USD) | 0,00260 | 0,00388 (+49%) |
+| Chi phí mỗi lượt (USD) | 0,00257 | 0,00387 (+51%) |
 
 Tổng chi phí tệp chính $0,1929 (đã gồm 3 lượt bù). Số dư OpenRouter: trước 1,4071 USD, sau lượt chính 1,2214 USD.
 

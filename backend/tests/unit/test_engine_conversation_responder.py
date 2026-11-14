@@ -377,3 +377,11 @@ async def test_case_run_for_this_loan_is_reused_and_other_loans_case_is_not() ->
     LINKS["mine"] = {"case_mine"}
     reply = await _ask(EngineConversationResponder(inner2, engine2), message="DSCR bao nhiêu?")
     assert engine2.request is None and reply.metadata["engine_case_id"] == "case_mine"
+
+
+def test_why_and_document_questions_reuse_team_result() -> None:
+    """T10: câu hỏi "vì sao cần BCTC kiểm toán", "cần tài liệu gì" phải được đáp từ kết quả đội agent đã có."""
+    from app.services.engine_conversation_responder import _METRIC_Q
+    for q in ("Vì sao hồ sơ này cần BCTC kiểm toán?", "Tại sao phải bổ sung tài liệu?", "Lý do chưa trình được là gì?"):
+        assert _METRIC_Q.search(q), q
+    assert not _METRIC_Q.search("Hôm nay thời tiết thế nào?")

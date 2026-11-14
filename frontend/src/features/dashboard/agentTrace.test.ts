@@ -298,6 +298,8 @@ describe('chữ AI vụng (vòng 9): 0 đồng, ".;", inflow, VND', () => {
     expect(sourceLabel('Dữ kiện inflow')).toBe('Dữ kiện tiền về tài khoản');
     expect(sourceLabel('inflow')).toBe('Tiền về tài khoản');
     expect(sourceLabel('Dữ kiện thẩm định')).toBe('Dữ kiện thẩm định');
+    expect(sourceLabel('Dữ kiện cic')).not.toMatch(/cIC/);
+    expect(sourceLabel('Dữ kiện cic')).toMatch(/^Dữ kiện CIC/);
   });
   it('tiền: bỏ ",0" thừa và VND thành đồng', () => {
     expect(moneyVi('tăng từ 56,0 tỷ VND lên 98,0 tỷ VND')).toBe('tăng từ 56 tỷ đồng lên 98 tỷ đồng');

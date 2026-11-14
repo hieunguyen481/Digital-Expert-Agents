@@ -9,6 +9,8 @@ export interface BlindRunNote {
   lockedCommit: string;
   /** true: đo lại trên bản mã đang chạy sau khi sửa engine; bộ ca không còn mù chặt. */
   remeasure?: boolean;
+  /** Sự cố hạ tầng khi đo và cách xử lý, nói thẳng cạnh số chính. */
+  infraNote?: string;
   /** (a) độ phủ theo đáp án đăng ký nguyên vẹn; (b) không tính hai loại phát hiện tổng cấp tín dụng và BCTC kiểm toán. */
   a: { single: BlindStat; multi: BlindStat };
   b: { single: BlindStat; multi: BlindStat };
@@ -35,6 +37,7 @@ export const BLIND_RUNS: Record<string, BlindRunNote> = {
   '20261114T031611Z-v8 đo lần bốn trên bản khóa d58022a': {
     lockedCommit: 'd58022a',
     remeasure: true,
+    infraNote: 'Ba lượt của ca J10 (1 mô hình đơn lẻ, 2 đội agent) hỏng vì mất kết nối tới LLM và được chạy bù đúng ba lượt đó, mỗi lượt một lần, rồi ghép vào số trên. Nếu không ghép: độ phủ (a) của đội agent là 66,8%, (b) là 92,5%, đúng cổng 28/30; mô hình đơn lẻ (29 lượt chấm được) (a) 52,6%, (b) 63,8%, đúng cổng 17/29.',
     a: { single: { mean: 0.5283, sd: 0.1937 }, multi: { mean: 0.715, sd: 0.1526 } },
     b: { single: { mean: 0.6333, sd: 0.2858 }, multi: { mean: 0.9833, sd: 0.0634 } },
   },

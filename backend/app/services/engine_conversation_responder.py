@@ -150,7 +150,8 @@ _LEVEL_NAMES_NOTE = ("\n\nTÊN CẤP PHÊ DUYỆT THEO BẬC NGƯỠNG §3.1 (th
 # Câu hỏi về điều khoản/vi phạm/chính sách của hồ sơ đã có kết quả: trả lời từ kết quả đội agent, không từ danh sách điều khoản tra thêm.
 _POLICY_KIND_Q = re.compile(r"điều khoản|vi phạm|chính sách|quy định|quy chế|§", re.I)
 _METRIC_Q = re.compile(r"điều khoản|vi phạm|chính sách|quy định|quy chế|ngưỡng|dscr|ebitda|\bltv\b|nợ vay|đòn bẩy|hạn mức|tài sản bảo đảm|tsđb|định giá|kết luận|đề xuất|cấp phê duyệt|"
-                       r"điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|phê duyệt|quyết định|thẩm quyền|" + _MISSING_Q, re.I)
+                       r"điều kiện|phát hiện|rủi ro|\bcờ\b|chuyên gia|đội agent|phê duyệt|quyết định|thẩm quyền|"
+                       r"bctc|báo cáo tài chính|kiểm toán|tài liệu|vì sao|tại sao|lý do|" + _MISSING_Q, re.I)
 _LEVERAGE_Q = re.compile(r"nợ vay\s*/\s*ebitda|đòn bẩy|nợ/ebitda|debt\s*/\s*ebitda", re.I)
 _LEVERAGE_NOTE = ("\n\nLƯU Ý VỀ NỢ VAY/EBITDA: có hai cách tính, phải nêu rõ nhãn: 'hiện hữu' (chỉ nợ đang có, trước khi cấp khoản này) "
                   "và 'sau cấp' (đã cộng khoản vay đề xuất; là số đội agent và cổng quyết định dùng). Chỉ nêu số có trong dữ liệu, "

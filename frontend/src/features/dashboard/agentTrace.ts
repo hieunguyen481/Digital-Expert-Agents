@@ -223,7 +223,7 @@ export const sourceLabel = (s: string): string => {
     const board = name.match(/^(?:(dữ kiện)\s+)?([a-z_]+)$/i);
     if (board && BOARD_LABEL[board[2].toLowerCase()]) {
       const b = BOARD_LABEL[board[2].toLowerCase()];
-      return board[1] ? `${board[1].charAt(0).toUpperCase()}${board[1].slice(1)} ${b.charAt(0).toLowerCase()}${b.slice(1)}`.replace(/ cic$/, ' CIC') : b;
+      return board[1] ? `${board[1].charAt(0).toUpperCase()}${board[1].slice(1)} ${/^[A-ZĐ]{2,}(?![a-zà-ỹ])/.test(b) ? b : b.charAt(0).toLowerCase() + b.slice(1)}` : b; // nhãn mở bằng chữ viết tắt (CIC, TSĐB) giữ nguyên hoa
     }
     if (TOOL_LABEL[name]) return TOOL_LABEL[name].charAt(0).toUpperCase() + TOOL_LABEL[name].slice(1);
     if (/^(customer|credit|banking|document|agent|audit)\.[a-z_]+$/.test(name)) return 'Dữ liệu core banking';
