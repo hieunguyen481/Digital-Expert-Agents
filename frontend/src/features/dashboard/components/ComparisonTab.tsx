@@ -149,9 +149,10 @@ export function runDescription(m: Pick<BenchmarkRunMeta, 'runs_per_case' | 'case
   return `${hasBothModes(m) ? 'So sánh đội agent với mô hình đơn lẻ' : 'Chỉ đo đội agent'} trên bộ ca ${m.cases_version}. ${how}`;
 }
 
-/** Thứ tự đo của bộ ca v8 (nhãn lưu: "v8 mù…" là lần 1, "v8 đo lại…" lần 2, "v8 đo lần ba…" lần 3); lượt khác không có số lần. */
+/** Thứ tự đo của bộ ca v8 (nhãn lưu: "v8 mù…" là lần 1, "v8 đo lại…" lần 2, "v8 đo lần ba…" lần 3, "v8 đo lần bốn…" lần 4); lượt khác không có số lần. */
 export function blindOrdinal(label: string | null | undefined): number | null {
   const t = label ?? '';
+  if (/^v8 đo lần bốn(?=\s|$)/.test(t)) return 4;
   if (/^v8 đo lần ba(?=\s|$)/.test(t)) return 3;
   if (/^v8 đo lại(?=\s|$)/.test(t)) return 2;
   if (/^v8 mù(?=\s|$)/.test(t)) return 1;

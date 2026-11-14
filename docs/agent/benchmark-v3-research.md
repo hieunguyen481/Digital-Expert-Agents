@@ -591,3 +591,37 @@ Tab So sánh mặc định mở lượt này ("đo lại trên bản mã đang c
 - **Cảnh báo: không còn mù chặt.** Bộ ca đã chạy ba lượt (§15–§17). Đây là lượt đo lại có công bố, không phải đo mù mới.
 - **Số dư OpenRouter trước đo:** còn 1,4071 USD (đã dùng 8,5929 / hạn mức 10).
 - Lượt mới là số chính (khớp mã đang chạy), kể cả khi kém lượt cũ. Lỗi hạ tầng chỉ chạy lại đúng phần lỗi và ghi rõ; không chạy lại để chọn điểm.
+
+### 18.2 Kết quả (đo trên bản khóa `d58022a`, 3 lần × 10 ca × 2 chế độ)
+Tệp: `agent_engine/benchmark_results/20261114T031611Z-v8 đo lần bốn trên bản khóa d58022a.json`, đã nạp `agent.benchmark_run` (60 lượt: 30 single + 30 multi). Lệnh đúng như §18.1. Trường `git_commit` ghi `8a8fceb` (HEAD lúc chạy, chỉ thêm tài liệu so với engine `d58022a`).
+
+**Sự cố hạ tầng (ghi thẳng):** ba lượt cuối, đều của ca J10, hỏng vì mất kết nối tới LLM: single #3 (`APIConnectionError: Connection error.`), multi #2 (`case_5bedff17c5c9`) và multi #3 (`case_bd27adaf1d35`), cả hai có sự kiện `agent_error: Connection error.` rồi chuyển Escalated, 0/5 phát hiện. Theo luật đã ghi ở §18.1, chỉ chạy bù đúng ba lượt này, mỗi lượt một lần, không chọn điểm: tệp `20261114T031836Z-v8 lần bốn chạy bù J10 a.json` (1 single + 1 multi) và `20261114T031913Z-v8 lần bốn chạy bù J10 b.json` (1 multi). Ba lượt bù được ghép vào tệp chính (mỗi dòng có `infra_rerun_of`), tóm tắt tính lại bằng `grade.summarize`. Tệp gốc chưa ghép và hai tệp chạy bù lưu ở `agent_engine/benchmark_results/luot-phu/` (không nạp DB), tệp gốc có hậu tố "(bản gốc, 3 lượt lỗi hạ tầng)". Nếu tính cả ba lượt hỏng thì multi (a) sẽ thấp hơn vì hai lượt 0/5; đó là lỗi mạng chứ không phải chất lượng agent.
+
+| Chỉ số (TB ± sd, n = 30) | Single | Multi |
+|---|---|---|
+| (a) Độ phủ phát hiện, đáp án nguyên vẹn | 0,528 ± 0,194 | 0,715 ± 0,153 |
+| (b) Độ phủ, không tính tổng cấp tín dụng và BCTC kiểm toán | 0,633 ± 0,286 | 0,983 ± 0,063 |
+| Đúng cổng quyết định | 18/30 | 30/30 |
+| Phát hiện sai (TB mỗi lượt) | 0,033 | 0 |
+| Độ phủ trích nguồn | 0,925 | 0,931 |
+| Độ trễ (s) | 42,9 | 40,1 |
+| Chi phí mỗi lượt (USD) | 0,00260 | 0,00388 (+49%) |
+
+Tổng chi phí tệp chính $0,1929 (đã gồm 3 lượt bù). Số dư OpenRouter: trước 1,4071 USD, sau lượt chính 1,2214 USD.
+
+**Theo từng ca, độ phủ (a) single / multi:** J1 0,60 / 0,80; J2 0,42 / 0,58; J3 0,47 / 0,80; J4 0,53 / 0,60; J5 0,20 / 0,60; J6 0,73 / 0,80; J7 0,67 / 0,50; J8 0,67 / 1,00; J9 0,40 / 0,80; J10 0,60 / 0,67.
+
+**Ca multi KHÔNG hơn single:** J7 (0,50 so với 0,67), giống cả ba lượt trước.
+
+### 18.3 So bốn lượt
+| Lượt | Engine | (a) single | (a) multi | (b) single | (b) multi | Cổng single / multi |
+|---|---|---|---|---|---|---|
+| L1 §15 | `735f9a7` | 0,520 | 0,707 | 0,675 | 0,983 | 18/30, 30/30 |
+| L2 §16 | `98600a7` | 0,543 | 0,707 | 0,675 | 0,967 | 18/30, 30/30 |
+| L3 §17 | `8c9afbc` | 0,570 | 0,713 | 0,694 | 0,975 | 18/30, 30/30 |
+| L4 §18 | `d58022a` | 0,528 | 0,715 | 0,633 | 0,983 | 18/30, 30/30 |
+
+Không chỉ số chất lượng nào của multi khác các lượt trước quá sai số (se ≈ 0,03). Dao động của single (0,52–0,57) là nhiễu giữa các lượt chạy: mã single không đổi. Bốn sửa T02, T03, T06, T07 chạm câu phản biện và câu điều kiện; bộ chấm từ khóa của v8 không đo các lỗi này, nên lượt đo này chỉ xác nhận các sửa không làm kém đi, không chứng minh các sửa có tác dụng (bằng chứng cho việc đó là kiểm thử đơn vị và dấu vết trên hồ sơ demo).
+
+### 18.4 Giới hạn
+Như §17.6: 10 ca, 3 lần mỗi ca, chấm bằng từ khóa, không có người chấm; bộ ca đã đo bốn lượt nên không còn mù chặt; lợi thế "đúng cổng" đến từ cổng quyết định tất định mà single không có.

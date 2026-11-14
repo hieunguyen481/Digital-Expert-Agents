@@ -61,6 +61,7 @@ describe('nhãn lần đo của bộ ca v8', () => {
     expect(blindOrdinal('v8 mù trên bản khóa 735f9a7')).toBe(1);
     expect(blindOrdinal('v8 đo lại trên bản khóa 98600a7')).toBe(2);
     expect(blindOrdinal('v8 đo lần ba trên bản khóa 8c9afbc')).toBe(3);
+    expect(blindOrdinal('v8 đo lần bốn trên bản khóa d58022a')).toBe(4);
   });
   it('lượt khác không gắn số lần', async () => {
     const { blindOrdinal } = await import('./ComparisonTab');

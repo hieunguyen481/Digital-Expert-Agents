@@ -33,8 +33,8 @@ async function expectRun(page: Page, stored: any) {
     if (notBetter.length) for (const id of notBetter) await expect(el).toContainText(`${id} (`);
     else await expect(el).toContainText('Không có ca nào');
   }
-  const blind = stored.cases_version === 'v8' && /(mù|đo lại|đo lần ba) trên bản khóa/.test(stored.label ?? '');
-  if (blind && /đo lại|đo lần ba/.test(stored.label)) await expect(page.getByTestId('cmp-remeasure-note')).toContainText(/đo lại trên bản mã đang chạy/i);
+  const blind = stored.cases_version === 'v8' && /(mù|đo lại|đo lần ba|đo lần bốn) trên bản khóa/.test(stored.label ?? '');
+  if (blind && /đo lại|đo lần ba|đo lần bốn/.test(stored.label)) await expect(page.getByTestId('cmp-remeasure-note')).toContainText(/đo lại trên bản mã đang chạy/i);
   if (blind) { // dòng (a)/(b) tính lại từ từng lượt trong tệp
     const EX = new Set(['total_exposure', 'audit_required']);
     const stat = (xs: number[]) => { const m = xs.reduce((p, c) => p + c, 0) / xs.length; return { mean: m, sd: Math.sqrt(xs.reduce((p, c) => p + (c - m) ** 2, 0) / (xs.length - 1)) }; };
@@ -82,7 +82,7 @@ test('ComparisonTab mặc định là lượt đo thật mới nhất của bộ
   await expectRun(page, defaultRun); // mặc định
   // Nhãn lựa chọn viết cho người đọc nghiệp vụ (runOptionLabel): giờ đo · bộ ca · so sánh/đa agent · số lượt mỗi ca.
   // Vài lượt cùng giờ/bộ ca/số lượt có cùng nhãn: gom theo nhãn, chọn lần lượt từng mục khớp và đối chiếu theo mã lượt hiện ở chú thích.
-  const labelOf = (r: any) => `${fmtDayTime(r.created_at)} · Bộ ca ${r.cases_version}${/^v8 đo lần ba(?=\s|$)/.test(r.label ?? '') ? ' lần 3' : /^v8 đo lại(?=\s|$)/.test(r.label ?? '') ? ' lần 2' : /^v8 mù(?=\s|$)/.test(r.label ?? '') ? ' lần 1' : ''} · ${r.summary.single && r.summary.multi ? 'So sánh đội agent và mô hình đơn lẻ' : 'Chỉ đo đội agent'} · ${r.runs_per_case} lượt mỗi ca${r.regrade_of ? ' · chấm lại dữ liệu cũ' : ''}`;
+  const labelOf = (r: any) => `${fmtDayTime(r.created_at)} · Bộ ca ${r.cases_version}${/^v8 đo lần bốn(?=\s|$)/.test(r.label ?? '') ? ' lần 4' : /^v8 đo lần ba(?=\s|$)/.test(r.label ?? '') ? ' lần 3' : /^v8 đo lại(?=\s|$)/.test(r.label ?? '') ? ' lần 2' : /^v8 mù(?=\s|$)/.test(r.label ?? '') ? ' lần 1' : ''} · ${r.summary.single && r.summary.multi ? 'So sánh đội agent và mô hình đơn lẻ' : 'Chỉ đo đội agent'} · ${r.runs_per_case} lượt mỗi ca${r.regrade_of ? ' · chấm lại dữ liệu cũ' : ''}`;
   const groups = new Map<string, any[]>();
   for (const r of all) groups.set(labelOf(r), [...(groups.get(labelOf(r)) ?? []), r]);
   for (const [expected, members] of groups) {

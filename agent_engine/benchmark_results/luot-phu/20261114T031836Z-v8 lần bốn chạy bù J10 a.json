@@ -1,0 +1,436 @@
+{
+ "run_id": "20261114T031836Z-v8 lần bốn chạy bù J10 a",
+ "created_at": "2026-11-14T03:18:36.185087+00:00",
+ "started_at": "2026-11-14T03:16:56.441630+00:00",
+ "label": "v8 lần bốn chạy bù J10 a",
+ "cases_version": "v8",
+ "grader_version": "v3",
+ "llm_mode": "llm",
+ "planner_model": "anthropic/claude-haiku-5.5",
+ "specialist_model": "openai/gpt-6-luna",
+ "git_commit": "8a8fceb",
+ "runs_per_case": 1,
+ "cases": [
+  "J10"
+ ],
+ "total_cost_usd": 0.006777185,
+ "summary": {
+  "multi": {
+   "runs": 1,
+   "errors": 0,
+   "finding_recall": {
+    "mean": 0.8,
+    "sd": 0.0
+   },
+   "citation_recall": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "tool_recall": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "false_findings": {
+    "mean": 0.0,
+    "sd": 0.0
+   },
+   "invalid_citations": {
+    "mean": 0.0,
+    "sd": 0.0
+   },
+   "gate_ok": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "tool_calls": {
+    "mean": 9.0,
+    "sd": 0.0
+   },
+   "latency_s": {
+    "mean": 52.32754921913147,
+    "sd": 0.0
+   },
+   "total_tokens": {
+    "mean": 14519.0,
+    "sd": 0.0
+   },
+   "cost_usd": {
+    "mean": 0.0043544,
+    "sd": 0.0
+   },
+   "citation_precision": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "sources_listed": {
+    "mean": 19.0,
+    "sd": 0.0
+   },
+   "report_chars": {
+    "mean": 4900.0,
+    "sd": 0.0
+   },
+   "report_chars_body": {
+    "mean": 3260.0,
+    "sd": 0.0
+   }
+  },
+  "single": {
+   "runs": 1,
+   "errors": 0,
+   "finding_recall": {
+    "mean": 0.6,
+    "sd": 0.0
+   },
+   "citation_recall": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "tool_recall": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "false_findings": {
+    "mean": 0.0,
+    "sd": 0.0
+   },
+   "invalid_citations": {
+    "mean": 0.0,
+    "sd": 0.0
+   },
+   "gate_ok": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "tool_calls": {
+    "mean": 8.0,
+    "sd": 0.0
+   },
+   "latency_s": {
+    "mean": 39.36620463099098,
+    "sd": 0.0
+   },
+   "total_tokens": {
+    "mean": 14988.0,
+    "sd": 0.0
+   },
+   "cost_usd": {
+    "mean": 0.0024227849999999998,
+    "sd": 0.0
+   },
+   "citation_precision": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "sources_listed": {
+    "mean": 11.0,
+    "sd": 0.0
+   },
+   "report_chars": {
+    "mean": 4091.0,
+    "sd": 0.0
+   },
+   "report_chars_body": {
+    "mean": 4091.0,
+    "sd": 0.0
+   }
+  }
+ },
+ "per_case": {
+  "J10": {
+   "multi": {
+    "runs": 1,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.8,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 9.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 52.32754921913147,
+     "sd": 0.0
+    },
+    "total_tokens": {
+     "mean": 14519.0,
+     "sd": 0.0
+    },
+    "cost_usd": {
+     "mean": 0.0043544,
+     "sd": 0.0
+    },
+    "citation_precision": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "sources_listed": {
+     "mean": 19.0,
+     "sd": 0.0
+    },
+    "report_chars": {
+     "mean": 4900.0,
+     "sd": 0.0
+    },
+    "report_chars_body": {
+     "mean": 3260.0,
+     "sd": 0.0
+    }
+   },
+   "single": {
+    "runs": 1,
+    "errors": 0,
+    "finding_recall": {
+     "mean": 0.6,
+     "sd": 0.0
+    },
+    "citation_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_recall": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "false_findings": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "invalid_citations": {
+     "mean": 0.0,
+     "sd": 0.0
+    },
+    "gate_ok": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "tool_calls": {
+     "mean": 8.0,
+     "sd": 0.0
+    },
+    "latency_s": {
+     "mean": 39.36620463099098,
+     "sd": 0.0
+    },
+    "total_tokens": {
+     "mean": 14988.0,
+     "sd": 0.0
+    },
+    "cost_usd": {
+     "mean": 0.0024227849999999998,
+     "sd": 0.0
+    },
+    "citation_precision": {
+     "mean": 1.0,
+     "sd": 0.0
+    },
+    "sources_listed": {
+     "mean": 11.0,
+     "sd": 0.0
+    },
+    "report_chars": {
+     "mean": 4091.0,
+     "sd": 0.0
+    },
+    "report_chars_body": {
+     "mean": 4091.0,
+     "sd": 0.0
+    }
+   }
+  }
+ },
+ "runs": [
+  {
+   "mode": "single",
+   "case_id": "J10",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 39.36620463099098,
+   "calls": 8,
+   "tokens": {
+    "prompt": 11299,
+    "completion": 3689,
+    "total": 14988
+   },
+   "cost_usd": 0.0024227849999999998,
+   "llm_requests": 3,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": null,
+   "final_report_text": "",
+   "sources": [
+    "customer/business và customer.kyc_assessment",
+    "banking.credit_report + credit_facility",
+    "credit.existing_obligation",
+    "credit.total_credit_exposure / get_bank_exposure",
+    "banking.account_monthly_summary",
+    "CS-TD-SME/2025 §3.1",
+    "CS-TD-SME/2025 §4.1, §6.1",
+    "CS-TD-SME/2025 §4.2",
+    "CS-TD-SME/2025 §7.1",
+    "CS-TD-SME/2025 §6.3",
+    "ops_procedures.md – Mục 3"
+   ],
+   "grade": {
+    "findings": {
+     "cic_expired": false,
+     "requery": false,
+     "total_exposure": true,
+     "ltv": true,
+     "leverage": true
+    },
+    "findings_hit": 3,
+    "findings_total": 5,
+    "citations": {
+     "cite_cic_validity": true,
+     "cite_ltv": true,
+     "cite_authority": true
+    },
+    "citations_hit": 3,
+    "citations_total": 3,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_collateral": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v3",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true,
+    "sources_listed": 11,
+    "policy_sources_listed": 5,
+    "policy_sources_used": 5,
+    "citation_precision": 1.0,
+    "report_chars": 4091,
+    "report_chars_body": 4091
+   },
+   "conclusion_text": "Khuyến nghị CHƯA trình duyệt khoản vay 10 tỷ đồng trong 24 tháng để bổ sung vốn lưu động; chưa đủ cơ sở xác nhận khả năng trả nợ do thiếu dữ liệu debt service để tính DSCR, CIC đã quá thời hạn hiệu lực theo chính sách, và có chênh lệch giữa dư nợ hiện hữu được xác nhận ở hai nguồn. Đây là kết luận thẩm định/khuyến nghị, không phải quyết định cấp tín dụng.\nKYB/pháp nhân: doanh nghiệp trạng thái ACTIVE, KYC VERIFIED, khách hàng hiện hữu; có tài khoản ngân hàng hoạt động thể hiện trong hồ sơ. Tên người đại diện và số giấy tờ đại diện bị trống trong dữ liệu trả về; cần hoàn thiện/đối chiếu hồ sơ pháp lý doanh nghiệp trước khi trình.\nAML: đã sàng lọc, không có blacklist hit; PEP NOT_PEP, rủi ro AML LOW. Không phát sinh điều kiện từ chối AML.\nCIC: nhóm 1, dư nợ quá hạn 0; không thuộc trường hợp CIC nhóm 2 hoặc nhóm từ 3 trở lên. Ngày báo cáo 2026-10-06, trong khi đánh giá/dữ liệu hồ sơ có ngày 2026-11-10; đã quá hiệu lực 30 ngày tính đến ngày trình theo CS-TD-SME/2025 §6.3, cần tra CIC mới trước khi trình.\nKhả năng trả nợ/dòng tiền: BCTC mẫu năm 2025 ghi nhận doanh thu 380 tỷ đồng, EBITDA 26 tỷ đồng, tổng nợ 40 tỷ đồng, vốn chủ sở hữu 160 tỷ đồng; tỷ lệ nợ/vốn chủ sở hữu 0,25 lần. Sau cộng khoản đề nghị vào nợ tài chính, nợ/EBITDA tham khảo là (40+10)/26 = 1,92 lần. Dòng tiền vào tài khoản 12 tháng là 342 tỷ đồng. Dữ liệu không có debt_service và không cung cấp lịch trả nợ dự kiến/CFADS, nên không thể tính DSCR hoặc xác nhận DSCR đạt tối thiểu 1,25 lần theo CS-TD-SME/2025 §4.2. Cần bổ sung dự báo dòng tiền và lịch trả nợ; các số liệu tài chính được gắn nhãn DU_LIEU_MAU, không xem là chứng từ BCTC đã xác thực.\nTSĐB: kho bãi và quyền sử dụng đất được thẩm định giá 25 tỷ đồng, tình trạng định giá APPRAISED, pháp lý clear. Với khoản đề nghị 10 tỷ đồng, LTV tính trên giá trị này là 40%, đáp ứng giới hạn LTV tối đa 70% theo CS-TD-SME/2025 §7.1; vẫn cần đối chiếu bản gốc hồ sơ quyền sở hữu/quyền sử dụng và hoàn tất đăng ký biện pháp bảo đảm theo quy trình.\nChecklist tổng cấp tín dụng theo CS-TD-SME/2025 §3.1: công cụ tính dư nợ hiện hữu tại ngân hàng là 0 tỷ đồng; cộng đề xuất 10 tỷ đồng = tổng cấp tín dụng 10 tỷ đồng, thuộc ngưỡng ≤20 tỷ đồng, trình cấp phê duyệt theo bucket ≤20 tỷ đồng. Chính sách truy vấn được nêu các bucket nhưng không xác định chức danh/cấp cụ thể. Lưu ý nguồn khoản vay hiện hữu khác ghi dư nợ 9 tỷ đồng (đơn vị cho vay ghi “Ngân hàng (mẫu)”), không khớp kết quả exposure 0; nếu cộng khoản này thì tổng tham khảo là 19 tỷ đồng, vẫn thuộc cùng bucket ≤20 tỷ đồng. Phải đối chiếu và cập nhật số tổng cấp tín dụng trước khi trình; dư nợ tại TCTD khác không cộng vào tổng cấp phê duyệt theo §3.1.\nChecklist BCTC kiểm toán theo CS-TD-SME/2025 §4.1 và §6.1: với tổng cấp tín dụng tính theo exposure hiện tại là 10 tỷ đồng (hoặc 19 tỷ đồng nếu khoản vay 9 tỷ được xác nhận là dư nợ tại ngân hàng), kiểm toán với ý kiến chấp nhận toàn phần chưa bắt buộc theo ngưỡng >20 tỷ đồng. Hồ sơ trả về chỉ có dữ liệu tài chính gắn nhãn mẫu; chưa xác nhận đã nhận BCTC chính thức/kiểm toán, nên cần hoàn thiện chứng từ tài chính theo danh mục hồ sơ và xác minh tổng cấp tín dụng trước khi trình.\nVận hành: doanh nghiệp có trạng thái hoạt động và tài khoản, nhưng cần bổ sung/đối chiếu hồ sơ pháp lý doanh nghiệp, xác nhận dư nợ, CIC còn hiệu lực và hồ sơ tài sản bảo đảm. Theo CS-TD-SME/2025 §6.1 cần rà soát đủ danh mục hồ sơ; hồ sơ chính thức chỉ được khởi tạo sau phê duyệt có hiệu lực theo quy trình tác nghiệp. Không thực hiện phê duyệt hoặc giải ngân ở bước này.\nCung cấp lịch trả nợ dự kiến và dự báo dòng tiền/CFADS đủ để tính DSCR; xác nhận DSCR đạt tối thiểu 1,25 lần theo CS-TD-SME/2025 §4.2.\nTra cứu CIC mới còn hiệu lực tại thời điểm trình; đối chiếu chênh lệch dư nợ 9 tỷ đồng với kết quả exposure tại ngân hàng và cập nhật tổng cấp tín dụng chính thức.\nHoàn thiện, xác thực BCTC và hồ sơ trong danh mục CS-TD-SME/2025 §6.1; xác nhận tình trạng kiểm toán nếu tổng cấp tín dụng sau đối soát vượt 20 tỷ đồng.\nĐối chiếu hồ sơ pháp lý doanh nghiệp và hồ sơ pháp lý TSĐB bản gốc; hoàn tất điều kiện đăng ký bảo đảm trước các bước tác nghiệp tiếp theo.",
+   "tools_called": [
+    "get_cic_status",
+    "check_blacklist",
+    "get_existing_loans",
+    "get_annual_inflow",
+    "get_bank_exposure",
+    "get_collateral",
+    "get_business",
+    "get_financials"
+   ]
+  },
+  {
+   "mode": "multi",
+   "case_id": "J10",
+   "iteration": 1,
+   "error": null,
+   "latency_s": 52.32754921913147,
+   "calls": 9,
+   "tokens": {
+    "prompt": 6518,
+    "completion": 8001,
+    "total": 14519
+   },
+   "cost_usd": 0.0043544,
+   "llm_requests": 7,
+   "gate": "NEEDS_INFO",
+   "case_id_engine": "case_648448a661fc",
+   "final_report_text": "credit: [cần thêm thông tin] Chưa thể kết luận cấp tín dụng do chưa đối chiếu được DSCR; yêu cầu bổ sung lịch trả nợ và lãi suất khoản vay mới để thẩm định khả năng trả nợ.\ncompliance: [cần thêm thông tin] Cần cập nhật CIC còn hiệu lực trước khi quyết định; các ngưỡng tín dụng và LTV hiện tính được đều đạt.\noperations: [pass] Điều kiện vận hành đạt. Đã soạn nội dung bản nháp khoản vay để người có thẩm quyền xem; chưa ghi vào hệ thống\nPhát hiện:\n- Tổng cấp tín dụng 10,0 tỷ (dư nợ tại ngân hàng 0,0 + đề xuất 10,0), thuộc ngưỡng ≤20 tỷ; cấp phê duyệt: Giám đốc chi nhánh (cấp 1) (§3.1).\n- Kiểm toán toàn phần không bắt buộc vì tổng cấp tín dụng không quá 20 tỷ; hồ sơ cung cấp chưa thể hiện BCTC kiểm toán (§4.1, §6.1).\n- Chưa tính được DSCR để đối chiếu ngưỡng ≥1,25 lần (§4.2): thiếu lịch trả nợ và lãi suất khoản vay mới; chưa kết luận đạt hay vi phạm.\n- Dòng tiền vào xác minh 342 tỷ, thấp hơn doanh thu BCTC 380 tỷ 38 tỷ (10%); cần làm rõ chênh lệch.\n- Doanh thu 380 tỷ thuộc phạm vi SME (§1.2); nợ vay/EBITDA sau cấp 1,92 lần; LTV ≤70% chưa đối chiếu do thiếu định giá (§7.1).\n- Doanh nghiệp đang hoạt động, định danh đã xác minh; rà soát không ghi nhận trùng danh sách đen.\n- CIC nhóm 1, không có dư nợ quá hạn; báo cáo 06/10/2026 đã 35 ngày tại mốc rà soát 10/11/2026, cần cập nhật theo hiệu lực 30 ngày (§6.3).\n- Bất động sản đã định giá 25 tỷ đồng, pháp lý rõ; hạn mức bảo đảm tối đa 17,5 tỷ, khoản vay 10 tỷ có LTV 40%, đạt ngưỡng (§7.1).\n- Tính lại tổng cấp tín dụng: dư nợ hiện hữu tại ngân hàng 0,0 tỷ + đề xuất 10,0 tỷ = 10,0 tỷ; không vượt 20 tỷ nên chưa bắt buộc BCTC kiểm toán (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: Giám đốc chi nhánh (cấp 1) (CS-TD-SME/2025 §3.1)\n- Căn cứ cấp phê duyệt: tổng tại ngân hàng 10,0 tỷ; dư nợ 9,0 tỷ tại tổ chức tín dụng khác không tính vào cấp phê duyệt theo quy tắc tính tổng cấp tín dụng (CS-TD-SME/2025 §3.1), nhưng vẫn tính vào khả năng trả nợ\n- Tính lại LTV: đề xuất 10,0 tỷ / TSĐB đủ điều kiện 25,0 tỷ = 40,0% (tối đa 70%, tương ứng 17,5 tỷ); trong ngưỡng LTV (CS-TD-SME/2025 §7.1)\n- Tính lại Nợ vay/EBITDA sau cấp TD (2025): 50,0 tỷ / 26,0 tỷ = 1,92 lần (tối đa 3,5 lần); trong ngưỡng (CS-TD-SME/2025 §4.2)\n- Bản CIC tra cứu ngày 2026-10-06 đã quá 30 ngày, hết hiệu lực — phải tra lại trước khi trình (CS-TD-SME/2025 §6.3, §6.4)\n- Bổ sung lịch trả nợ dự phóng để tính DSCR trước giải ngân (không chặn trình)\n- Bổ sung thông tin người đại diện pháp luật vào hồ sơ trước giải ngân (không chặn trình)\nĐiều kiện:\n- Bổ sung lịch trả nợ và lãi suất khoản vay mới để tính DSCR; chỉ xem xét tiếp nếu đáp ứng ngưỡng chính sách.\n- Giải trình chênh lệch giữa dòng tiền vào và doanh thu BCTC; bổ sung hồ sơ pháp lý, định giá TSĐB để đối chiếu LTV và giá trị bảo đảm đủ điều kiện.\n- Bổ sung ngành hoạt động và hạn mức tập trung ngành do bộ phận Rủi ro cấu hình để đối chiếu §5.2 trước khi phê duyệt.\n- Bổ sung kết quả CIC mới còn hiệu lực trước khi trình phê duyệt.\n- Bổ sung thông tin người đại diện trước giải ngân.\n- Bản CIC tra cứu ngày 2026-10-06 đã quá 30 ngày, hết hiệu lực — phải tra lại trước khi trình (CS-TD-SME/2025 §6.3, §6.4)\n- Bổ sung lịch trả nợ dự phóng để tính DSCR trước giải ngân (không chặn trình)\n- Bổ sung thông tin người đại diện pháp luật vào hồ sơ trước giải ngân (không chặn trình)\nTrích dẫn:\n- (credit) Dữ liệu tài chính năm 2025: Doanh thu 380 tỷ; EBITDA 26 tỷ; nợ vay 40 tỷ; vốn chủ sở hữu 160 tỷ.\n- (credit) Kết quả tính lại tổng cấp tín dụng: Dư nợ tại ngân hàng 0,0 tỷ + đề xuất 10,0 tỷ = 10,0 tỷ; dư nợ tại TCTD khác 9,0 tỷ.\n- (credit) Dữ liệu dòng tiền xác minh: Dòng tiền vào xác minh năm: 342 tỷ trong 12 tháng.\n- (credit) CS-TD-SME/2025 §4.2, §7.1: DSCR tối thiểu 1,25 lần; LTV tối đa 70%.\n- (credit) CS-TD-SME/2025 §5.2 – Tập trung ngành: ## CS-TD-SME/2025 §5.2 – Tập trung ngành\nDư nợ một ngành không vượt hạn mức tỷ trọng do Rủi ro cấu hình. (trang 6)\n- (credit) CS-TD-SME/2025 §1.2 – Phạm vi SME: ## CS-TD-SME/2025 §1.2 – Phạm vi SME\nKHDN SME theo phân khúc nội bộ: doanh thu năm ≤ 1,000 tỷ đồng. (trang 1)\n- (compliance) Dữ liệu rà soát khách hàng: Khách hàng hoạt động, định danh đã xác minh; không trùng danh sách đen.\n- (compliance) Kết quả CIC: Nhóm 1; nợ quá hạn 0; ngày báo cáo 06/10/2026.\n- (compliance) Hồ sơ tài sản bảo đảm và tính toán LTV: Định giá 25 tỷ đồng; LTV khoản vay 40%; mức tối đa 70%.\n- (compliance) Quy định hiệu lực tài liệu: CIC có hiệu lực 30 ngày tính tới ngày trình phê duyệt.\n- (compliance) CS-TD-SME/2025 §7.1 – LTV và TSBĐ: ## CS-TD-SME/2025 §7.1 – LTV và TSBĐ\nTỷ lệ cho vay trên giá trị TSBĐ theo loại tài sản (≤ 70%). (trang 9)\n- (compliance) CS-TD-SME/2025 §6.3 – Hiệu lực tài liệu: ## CS-TD-SME/2025 §6.3 – Hiệu lực tài liệu\nCIC, sao kê, xác nhận dư nợ: 30 ngày từ ngày tra cứu/ngày ngân hàng cấp, tính tới ngày trình phê duyệt. (trang 7)\n- (operations) core-banking:tạo bản nháp hồ sơ vay: Bản nháp chỉ soạn nội dung, chưa ghi vào hệ thống; tài khoản nhận vốn ******0080",
+   "sources": [
+    "core-banking:create_loan_draft",
+    "Dữ liệu rà soát khách hàng",
+    "Kết quả CIC",
+    "Hồ sơ tài sản bảo đảm và tính toán LTV",
+    "Quy định hiệu lực tài liệu",
+    "CS-TD-SME/2025 §7.1 – LTV và TSBĐ",
+    "CS-TD-SME/2025 §6.3 – Hiệu lực tài liệu",
+    "Dữ liệu tài chính năm 2025",
+    "Kết quả tính lại tổng cấp tín dụng",
+    "Dữ liệu dòng tiền xác minh",
+    "CS-TD-SME/2025 §4.2, §7.1",
+    "CS-TD-SME/2025 §5.2 – Tập trung ngành",
+    "CS-TD-SME/2025 §1.2 – Phạm vi SME",
+    "validation",
+    "validation",
+    "validation",
+    "CS-TD-SME/2025 §3.1 – Thẩm quyền phê duyệt",
+    "CS-TD-SME/2025 §7.1 – LTV và TSBĐ",
+    "CS-TD-SME/2025 §4.2 – Khả năng trả nợ"
+   ],
+   "grade": {
+    "findings": {
+     "cic_expired": true,
+     "requery": true,
+     "total_exposure": false,
+     "ltv": true,
+     "leverage": true
+    },
+    "findings_hit": 4,
+    "findings_total": 5,
+    "citations": {
+     "cite_cic_validity": true,
+     "cite_ltv": true,
+     "cite_authority": true
+    },
+    "citations_hit": 3,
+    "citations_total": 3,
+    "tools": {
+     "get_financials": true,
+     "get_existing_loans": true,
+     "get_cic_status": true,
+     "check_blacklist": true,
+     "get_collateral": true
+    },
+    "tools_hit": 5,
+    "tools_total": 5,
+    "false_findings": [],
+    "false_count": 0,
+    "invalid_citations": [],
+    "grader_version": "v3",
+    "gate": "NEEDS_INFO",
+    "gate_ok": true,
+    "sources_listed": 19,
+    "policy_sources_listed": 8,
+    "policy_sources_used": 8,
+    "citation_precision": 1.0,
+    "report_chars": 4900,
+    "report_chars_body": 3260
+   },
+   "conclusion_text": "Điều kiện vận hành đạt. Đã soạn nội dung bản nháp khoản vay để người có thẩm quyền xem; chưa ghi vào hệ thống\nCần cập nhật CIC còn hiệu lực trước khi quyết định; các ngưỡng tín dụng và LTV hiện tính được đều đạt.\nDoanh nghiệp đang hoạt động, định danh đã xác minh; rà soát không ghi nhận trùng danh sách đen.\nCIC nhóm 1, không có dư nợ quá hạn; báo cáo 06/10/2026 đã 35 ngày tại mốc rà soát 10/11/2026, cần cập nhật theo hiệu lực 30 ngày (§6.3).\nBất động sản đã định giá 25 tỷ đồng, pháp lý rõ; hạn mức bảo đảm tối đa 17,5 tỷ, khoản vay 10 tỷ có LTV 40%, đạt ngưỡng (§7.1).\nBổ sung kết quả CIC mới còn hiệu lực trước khi trình phê duyệt.\nBổ sung thông tin người đại diện trước giải ngân.\nChưa thể kết luận cấp tín dụng do chưa đối chiếu được DSCR; yêu cầu bổ sung lịch trả nợ và lãi suất khoản vay mới để thẩm định khả năng trả nợ.\nTổng cấp tín dụng 10,0 tỷ (dư nợ tại ngân hàng 0,0 + đề xuất 10,0), thuộc ngưỡng ≤20 tỷ; cấp phê duyệt: Giám đốc chi nhánh (cấp 1) (§3.1).\nKiểm toán toàn phần không bắt buộc vì tổng cấp tín dụng không quá 20 tỷ; hồ sơ cung cấp chưa thể hiện BCTC kiểm toán (§4.1, §6.1).\nChưa tính được DSCR để đối chiếu ngưỡng ≥1,25 lần (§4.2): thiếu lịch trả nợ và lãi suất khoản vay mới; chưa kết luận đạt hay vi phạm.\nDòng tiền vào xác minh 342 tỷ, thấp hơn doanh thu BCTC 380 tỷ 38 tỷ (10%); cần làm rõ chênh lệch.\nDoanh thu 380 tỷ thuộc phạm vi SME (§1.2); nợ vay/EBITDA sau cấp 1,92 lần; LTV ≤70% chưa đối chiếu do thiếu định giá (§7.1).\nBổ sung lịch trả nợ và lãi suất khoản vay mới để tính DSCR; chỉ xem xét tiếp nếu đáp ứng ngưỡng chính sách.\nGiải trình chênh lệch giữa dòng tiền vào và doanh thu BCTC; bổ sung hồ sơ pháp lý, định giá TSĐB để đối chiếu LTV và giá trị bảo đảm đủ điều kiện.\nBổ sung ngành hoạt động và hạn mức tập trung ngành do bộ phận Rủi ro cấu hình để đối chiếu §5.2 trước khi phê duyệt.\nCẦN BỔ SUNG: thiếu dữ liệu chặn — Bản CIC tra cứu ngày 2026-10-06 đã quá 30 ngày, hết hiệu lực — phải tra lại trước khi trình (CS-TD-SME/2025 §6.3, §6.4)\nTổng cấp tín dụng 10,0 tỷ (dư nợ tại ngân hàng 0,0 + đề xuất 10,0), thuộc ngưỡng ≤20 tỷ; cấp phê duyệt: Giám đốc chi nhánh (cấp 1) (§3.1).\nKiểm toán toàn phần không bắt buộc vì tổng cấp tín dụng không quá 20 tỷ; hồ sơ cung cấp chưa thể hiện BCTC kiểm toán (§4.1, §6.1).\nChưa tính được DSCR để đối chiếu ngưỡng ≥1,25 lần (§4.2): thiếu lịch trả nợ và lãi suất khoản vay mới; chưa kết luận đạt hay vi phạm.\nDòng tiền vào xác minh 342 tỷ, thấp hơn doanh thu BCTC 380 tỷ 38 tỷ (10%); cần làm rõ chênh lệch.\nDoanh thu 380 tỷ thuộc phạm vi SME (§1.2); nợ vay/EBITDA sau cấp 1,92 lần; LTV ≤70% chưa đối chiếu do thiếu định giá (§7.1).\nDoanh nghiệp đang hoạt động, định danh đã xác minh; rà soát không ghi nhận trùng danh sách đen.\nCIC nhóm 1, không có dư nợ quá hạn; báo cáo 06/10/2026 đã 35 ngày tại mốc rà soát 10/11/2026, cần cập nhật theo hiệu lực 30 ngày (§6.3).\nBất động sản đã định giá 25 tỷ đồng, pháp lý rõ; hạn mức bảo đảm tối đa 17,5 tỷ, khoản vay 10 tỷ có LTV 40%, đạt ngưỡng (§7.1).\nTính lại tổng cấp tín dụng: dư nợ hiện hữu tại ngân hàng 0,0 tỷ + đề xuất 10,0 tỷ = 10,0 tỷ; không vượt 20 tỷ nên chưa bắt buộc BCTC kiểm toán (CS-TD-SME/2025 §4.1, §6.1); cấp phê duyệt: Giám đốc chi nhánh (cấp 1) (CS-TD-SME/2025 §3.1)\nCăn cứ cấp phê duyệt: tổng tại ngân hàng 10,0 tỷ; dư nợ 9,0 tỷ tại tổ chức tín dụng khác không tính vào cấp phê duyệt theo quy tắc tính tổng cấp tín dụng (CS-TD-SME/2025 §3.1), nhưng vẫn tính vào khả năng trả nợ\nTính lại LTV: đề xuất 10,0 tỷ / TSĐB đủ điều kiện 25,0 tỷ = 40,0% (tối đa 70%, tương ứng 17,5 tỷ); trong ngưỡng LTV (CS-TD-SME/2025 §7.1)\nTính lại Nợ vay/EBITDA sau cấp TD (2025): 50,0 tỷ / 26,0 tỷ = 1,92 lần (tối đa 3,5 lần); trong ngưỡng (CS-TD-SME/2025 §4.2)\nBản CIC tra cứu ngày 2026-10-06 đã quá 30 ngày, hết hiệu lực — phải tra lại trước khi trình (CS-TD-SME/2025 §6.3, §6.4)\nBổ sung lịch trả nợ dự phóng để tính DSCR trước giải ngân (không chặn trình)\nBổ sung thông tin người đại diện pháp luật vào hồ sơ trước giải ngân (không chặn trình)\nBổ sung lịch trả nợ và lãi suất khoản vay mới để tính DSCR; chỉ xem xét tiếp nếu đáp ứng ngưỡng chính sách.\nGiải trình chênh lệch giữa dòng tiền vào và doanh thu BCTC; bổ sung hồ sơ pháp lý, định giá TSĐB để đối chiếu LTV và giá trị bảo đảm đủ điều kiện.\nBổ sung ngành hoạt động và hạn mức tập trung ngành do bộ phận Rủi ro cấu hình để đối chiếu §5.2 trước khi phê duyệt.\nBổ sung kết quả CIC mới còn hiệu lực trước khi trình phê duyệt.\nBổ sung thông tin người đại diện trước giải ngân.\nBản CIC tra cứu ngày 2026-10-06 đã quá 30 ngày, hết hiệu lực — phải tra lại trước khi trình (CS-TD-SME/2025 §6.3, §6.4)\nBổ sung lịch trả nợ dự phóng để tính DSCR trước giải ngân (không chặn trình)\nBổ sung thông tin người đại diện pháp luật vào hồ sơ trước giải ngân (không chặn trình)\nCẦN BỔ SUNG: thiếu dữ liệu chặn — Bản CIC tra cứu ngày 2026-10-06 đã quá 30 ngày, hết hiệu lực — phải tra lại trước khi trình (CS-TD-SME/2025 §6.3, §6.4). Điều kiện chính: Bổ sung lịch trả nợ và lãi suất khoản vay mới để tính DSCR; chỉ xem xét tiếp nếu đáp ứng ngưỡng chính sách; Giải trình chênh lệch giữa dòng tiền vào và doanh thu BCTC; bổ sung hồ sơ pháp lý, định giá TSĐB để đối chiếu LTV và giá trị bảo đảm đủ điều kiện; Bổ sung ngành hoạt động và hạn mức tập trung ngành do bộ phận Rủi ro cấu hình để đối chiếu §5.2 trước khi phê duyệt.",
+   "tools_called": [
+    "get_business",
+    "get_cic_status",
+    "get_collateral",
+    "get_existing_loans",
+    "create_loan_draft",
+    "check_blacklist",
+    "get_annual_inflow",
+    "get_financials",
+    "get_bank_exposure"
+   ]
+  }
+ ]
+}
