@@ -625,3 +625,13 @@ Không chỉ số chất lượng nào của multi khác các lượt trước q
 
 ### 18.4 Giới hạn
 Như §17.6: 10 ca, 3 lần mỗi ca, chấm bằng từ khóa, không có người chấm; bộ ca đã đo bốn lượt nên không còn mù chặt; lợi thế "đúng cổng" đến từ cổng quyết định tất định mà single không có.
+
+### 18.5 Thay đổi engine sau lượt đo bốn: không đo lại (14/11/2026)
+Sau lượt đo bốn, engine có một thay đổi duy nhất, ở `agent_engine/gateway/proposals.py` (sửa lỗi T09, T11 của chấm lần 11): thẻ "Yêu cầu khách bổ sung" bỏ việc nội bộ của ngân hàng, câu hiện trạng và mục lặp. Vì vậy mã engine đang chạy khác bản khóa `d58022a` ở đúng tệp này.
+
+Không đo lần năm, theo quyết định của người dùng, vì thay đổi này không thể làm đổi số đo:
+- Đề xuất hành động được dựng **sau** khi đã có kết luận cuối (`orchestrator._propose_actions` nhận `validation` đã xong, chỉ ghi `agent.action_proposal` và sự kiện `action_proposed`).
+- Bộ chạy và bộ chấm benchmark (`agent_engine/scripts/benchmark/`) không đọc đề xuất hành động; chúng chấm quyết định và văn bản kết luận cuối.
+- Chế độ single không dựng đề xuất.
+
+Giới hạn: đây là lập luận từ mã, không phải số đo. Các số ở §18.2 vẫn là số của bản `d58022a`.

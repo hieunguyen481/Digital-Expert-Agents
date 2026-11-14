@@ -89,3 +89,37 @@ def test_ancillary_gaps_become_whole_action_conditions():
     conds = [p["params"]["text"] for p in items if p["kind"] == "add_disbursement_condition"]
     assert len(conds) == len(texts) == len(items)
     assert all(c[:1].isupper() and "chưa có trong hồ sơ" not in c for c in conds)
+
+
+def test_customer_request_excludes_internal_tasks_status_and_repeats():
+    """T09/T11 (chấm lần 11): thẻ gửi khách không lẫn việc nội bộ, câu hiện trạng, vế chung chung hay mục lặp."""
+    got = proposals.customer_items([
+        "Xác nhận giới hạn tập trung ngành theo cấu hình Rủi ro trước khi cấp tín dụng",
+        "Phải có BCTC kiểm toán trước khi trình cấp phê duyệt (CS-TD-SME/2025 §4.1, §6.1)",
+        "Bổ sung chứng thư định giá hợp lệ và hoàn tất xác minh tài sản",
+        "Hạn mức bảo đảm hiện tính bằng 0 do chưa có giá trị định giá đủ điều kiện",
+        "Yêu cầu bổ sung hồ sơ định giá trước khi áp dụng LTV",
+        "Đối chiếu thời hạn hiệu lực CIC tại ngày trình phê duyệt",
+        "Bổ sung BCTC kiểm toán theo yêu cầu; trình Cấp 2 Hội sở phê duyệt.",
+        "Cần hoàn thiện hồ sơ bắt buộc trước khi xem xét phê duyệt",
+        "đối chiếu inflow với doanh thu theo kỳ",
+        "Hạn mức có bảo đảm tối đa 0 đồng",
+    ])
+    assert got == [
+        "Phải có BCTC kiểm toán trước khi trình cấp phê duyệt (CS-TD-SME/2025 §4.1, §6.1)",
+        "Bổ sung chứng thư định giá hợp lệ và hoàn tất xác minh tài sản",
+        "Đối chiếu dòng tiền vào với doanh thu theo kỳ",
+    ]
+    # tên tài liệu trần (không động từ) và việc khách tự làm được vẫn giữ
+    assert proposals.customer_items(["Giấy phép kinh doanh", "Điều chỉnh khoản vay xuống tối đa 28 tỷ"]) == [
+        "Giấy phép kinh doanh", "Điều chỉnh khoản vay xuống tối đa 28 tỷ"]
+
+
+def test_same_topic_conditions_become_one_card():
+    items = [{"kind": "add_disbursement_condition", "title": f"Điều kiện trước giải ngân: {t}", "params": {"text": t}}
+             for t in ("Bổ sung thông tin người đại diện pháp luật vào hồ sơ trước giải ngân (không chặn trình)",
+                       "Bổ sung, xác minh thông tin người đại diện và giấy tờ định danh trước giải ngân")]
+    assert len(proposals.dedupe_items(items)) == 1
+    flag = {"kind": "add_risk_flag", "title": "Tín dụng: CIC ghi nợ nhóm 3", "params": {"severity": "HIGH"}}
+    req = {"kind": "request_documents", "title": "t", "params": {"documents": ["Bổ sung báo cáo CIC"]}}
+    assert len(proposals.dedupe_items([req, flag])) == 2  # cờ rủi ro không bị gộp theo đối tượng

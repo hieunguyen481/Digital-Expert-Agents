@@ -57,6 +57,42 @@ def is_pre_decision(text: str) -> bool:
     return not is_disbursement_condition(text)
 
 
+# "Yêu cầu khách bổ sung" chỉ gồm thứ KHÁCH nộp/giải trình được (rules.md Q6, F6). Việc nội bộ của ngân hàng (trình cấp
+# phê duyệt, tra CIC/AML — F5: ngân hàng tự tra lại, đối chiếu hạn mức do Rủi ro cấu hình) và câu hiện trạng không vào thẻ;
+# chúng vẫn nằm nguyên trong báo cáo cuối của đội agent.
+_INTERNAL = re.compile(
+    r"^\s*(?:đề nghị\s+)?trình\b|cấu hình|bộ phận rủi ro|\bcic\b|\baml\b|sàng lọc|danh sách đen|"
+    r"^\s*(?:xác nhận|kiểm tra|đối chiếu)\s+(?:giới hạn|hạn mức|mức độ)\s+tập trung ngành", re.I)
+_TAIL_INTERNAL = re.compile(r"\s*(?:,|và)\s+(?:đề nghị\s+)?trình\s+cấp\b.*$", re.I)
+_ASK = (r"bổ sung|cung cấp|nộp|giải trình|làm rõ|hoàn thiện|hoàn tất|xác minh|xác nhận|đối chiếu|đối soát|cập nhật|"
+        r"điều chỉnh|giảm")
+_LEAD_FILLER = re.compile(r"^\s*(?:(?:yêu cầu|đề nghị)\s+(?:khách\s+(?:hàng\s+)?)?|(?:cần|nên)\s+)(?=" + _ASK + r")", re.I)
+_CUSTOMER_LEAD = re.compile(r"^(?:phải có|" + _ASK + r")\b", re.I)
+_STATUS = re.compile(r"\b(?:hiện|còn chờ|chưa|chỉ (?:tính|ghi nhận)|đồng thời|bằng 0|tối đa|đang|đã|là|không)\b|^\s*nếu\b", re.I)
+_VAGUE = re.compile(
+    r"(?:hồ sơ|dữ liệu|thông tin|tài liệu|đối chiếu)\s+(?:bắt buộc|chặn|trọng yếu|cần thiết|còn thiếu)\b(?!\s*(?:gồm|như|:))|"
+    r"^(?:bổ sung|hoàn thiện|cung cấp)\s+(?:hồ sơ|dữ liệu|thông tin|tài liệu)(?:\s+(?:trước|để)\b|$)", re.I)
+
+
+def customer_items(texts: list[str]) -> list[str]:
+    """Chuẩn hóa danh sách gửi khách: tách vế ghép bằng ';', bỏ việc nội bộ, câu hiện trạng và vế chung chung không nêu
+    thứ cần nộp; mỗi mục viết hoa đầu câu, không lặp."""
+    out: list[str] = []
+    for raw in texts:
+        for part in re.split(r";\s+", raw):
+            t = _TAIL_INTERNAL.sub("", part.strip(" .")).strip(" .")
+            t = _LEAD_FILLER.sub("", t)
+            t = re.sub(r"\binflow\b", "dòng tiền vào", t, flags=re.I)
+            if not t or _INTERNAL.search(t) or _VAGUE.search(t):
+                continue
+            if not _CUSTOMER_LEAD.match(t) and _STATUS.search(t):
+                continue  # câu hiện trạng/nhận xét ("Hạn mức bảo đảm hiện tính bằng 0...", "Định giá còn chờ xác minh")
+            t = t[:1].upper() + t[1:]
+            if not same_task(t, out):
+                out.append(t)
+    return out
+
+
 _STOP = {"và", "của", "các", "cho", "khi", "là", "có", "được", "theo", "bổ", "sung", "cung", "cấp", "hoàn", "thiện", "nộp",
          "xác", "minh", "đối", "soát", "chiếu", "trước", "giải", "ngân",
          # chữ khung của câu điều kiện (không nói về đối tượng): "thông tin ... hoàn tất", "(không chặn trình)", "chưa có trong hồ sơ"
@@ -74,6 +110,26 @@ def similar(a: str, b: str, thr: float = 0.7) -> bool:
         return False
     inter = len(ta & tb)
     return inter / len(ta | tb) >= thr or (inter >= 3 and inter / min(len(ta), len(tb)) >= 0.6)
+
+
+# Cùng một đối tượng nghiệp vụ thì là cùng một việc dù viết khác chữ ("chứng thư định giá" / "hồ sơ định giá").
+_TOPICS = {"người đại diện": r"người đại diện", "định giá": r"định giá", "kiểm toán": r"kiểm toán",
+           "lịch trả nợ": r"lịch trả nợ", "tài khoản thanh toán": r"tài khoản thanh toán",
+           "dòng tiền/doanh thu": r"(?:dòng tiền vào|inflow)[^.;]*doanh thu|doanh thu[^.;]*(?:dòng tiền vào|inflow)",
+           "tập trung ngành": r"tập trung ngành", "cic": r"\bcic\b"}
+_TOPIC_RE = {k: re.compile(v, re.I) for k, v in _TOPICS.items()}
+
+
+def _topics(t: str) -> set[str]:
+    return {k for k, rx in _TOPIC_RE.items() if rx.search(t)}
+
+
+def same_task(text: str, seen: list[str], thr: float = 0.7) -> bool:
+    """`text` đã có trong `seen`: gần giống chữ với một mục, hoặc mọi đối tượng nó nêu đều đã được các mục trước nêu."""
+    if any(similar(text, k, thr) for k in seen):
+        return True
+    tp = _topics(text)
+    return bool(tp) and tp <= {x for k in seen for x in _topics(k)}
 
 
 def _evidence(v: Verdict, n: int = 4) -> list[dict]:
@@ -131,7 +187,9 @@ def dedupe_items(items: list[dict], have: list[dict] | None = None) -> list[dict
         texts = _texts(it)
         # điều kiện giải ngân đội agent nêu rõ "không chặn trình" không bị nuốt bởi yêu cầu bổ sung nói gần giống
         ref = seen_cond if it["kind"] == "add_disbursement_condition" and all(_EXPLICIT_STAGE.search(t) for t in texts) else seen
-        fresh = [t for t in texts if not any(similar(_strip(t), k, 0.6) for k in ref)]
+        dup = (lambda t: any(similar(_strip(t), k, 0.6) for k in ref)) if it["kind"] == "add_risk_flag" \
+            else (lambda t: same_task(_strip(t), ref, 0.6))  # cờ rủi ro là nhận định, không gộp theo đối tượng
+        fresh = [t for t in texts if not dup(t)]
         if not fresh:
             continue
         if it["kind"] == "request_documents" and len(fresh) != len(texts):
@@ -167,7 +225,7 @@ def derive(validation: Verdict, final_verdicts: list[Verdict], report: dict) -> 
             if v.decision == VerdictDecision.NEED_MORE_INFO:
                 docs += [c for c in v.conditions if c not in docs]
                 evidence += _evidence(v, 2)
-        docs = docs[:MAX_DOCUMENTS]
+        docs = customer_items(docs)[:MAX_DOCUMENTS]
         if docs:
             out.append({"kind": "request_documents", "source_agent": "validation", "evidence": evidence[:6],
                         "title": f"Yêu cầu khách bổ sung {len(docs)} mục",
@@ -178,15 +236,16 @@ def derive(validation: Verdict, final_verdicts: list[Verdict], report: dict) -> 
         conds: list[str] = []
         parts = [p.strip(" .") for c in dict.fromkeys(report.get("conditions") or []) for p in re.split(r";\s+", c) if p.strip(" .")]
         for c in dict.fromkeys(p for p in parts if is_actionable(p)):
-            if not any(similar(c, k) for k in conds):
+            if not same_task(c, conds):
                 conds.append(c)
-        pre = [c for c in conds if is_pre_decision(c)]  # chưa gộp với yêu cầu bổ sung của chuyên gia: dedupe_items lo
+        pre_raw = [c for c in conds if is_pre_decision(c)]  # chưa gộp với yêu cầu bổ sung của chuyên gia: dedupe_items lo
+        pre = customer_items(pre_raw)
         if pre:  # việc phải làm trước quyết định: yêu cầu bổ sung (người dùng xác nhận gửi khách), không phải điều kiện giải ngân
             out.append({"kind": "request_documents", "source_agent": "validation", "evidence": _expert_evidence(validation, 3),
                         "title": f"Yêu cầu khách bổ sung {len(pre[:MAX_DOCUMENTS])} mục",
                         "rationale": "Điều kiện tiên quyết: phải hoàn tất trước khi trình cấp phê duyệt (khác điều kiện trước giải ngân); nêu trong báo cáo cuối của đội agent.",
                         "params": {"documents": pre[:MAX_DOCUMENTS]}})
-        for cond in (c for c in conds if c not in pre):
+        for cond in (c for c in conds if c not in pre_raw):
             out.append({"kind": "add_disbursement_condition", "source_agent": "validation",
                         "evidence": _expert_evidence(validation, 3),
                         "title": f"Điều kiện trước giải ngân: {cond[:140]}",
