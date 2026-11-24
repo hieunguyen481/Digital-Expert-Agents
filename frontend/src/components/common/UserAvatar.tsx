@@ -30,8 +30,8 @@ export function UserAvatar({ user, size = 'default' }: UserAvatarProps) {
     <Avatar
       size={size}
       style={{
-        backgroundColor: shbColors.navy[100],
-        color: shbColors.navy[700],
+        backgroundColor: shbColors.brand[100],
+        color: shbColors.brand[700],
         fontWeight: 600,
       }}
     >

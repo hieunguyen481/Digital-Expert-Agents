@@ -7,7 +7,7 @@ const STROKE = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, strokeL
 
 function Illustration({ kind }: { kind: StateKind }) {
   return (
-    <svg className={styles.stateIll} viewBox="0 0 132 96" aria-hidden role="presentation" style={{ color: kind === 'error' ? 'var(--warn-700)' : 'var(--navy-700)' }}>
+    <svg className={styles.stateIll} viewBox="0 0 132 96" aria-hidden role="presentation" style={{ color: kind === 'error' ? 'var(--warn-700)' : 'var(--brand-700)' }}>
       <rect x="14" y="70" width="104" height="2" fill="var(--rule-strong)" stroke="none" />
       {kind === 'forbidden' && (
         <g {...STROKE}>

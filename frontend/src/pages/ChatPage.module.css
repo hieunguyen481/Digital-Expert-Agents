@@ -50,11 +50,11 @@
 }
 
 .resizer:hover {
-  background: rgba(42, 74, 128, 0.06);
+  background: rgba(26, 110, 126, 0.06);
 }
 
 .resizer:hover::after {
-  background: var(--bronze-500);
+  background: var(--amber-500);
 }
 
 /* Khung trò chuyện nằm trong AppLayout: danh sách hội thoại + vùng chat. */

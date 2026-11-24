@@ -24,8 +24,8 @@
 .bubble {
   padding: var(--s3) var(--s4);
   border-radius: var(--r-lg) var(--r-lg) 2px var(--r-lg);
-  background: var(--navy-700);
-  border: 1px solid var(--navy-700);
+  background: var(--brand-700);
+  border: 1px solid var(--brand-700);
   color: var(--ink-inv);
   font-size: var(--fs-14);
   line-height: var(--lh-body);

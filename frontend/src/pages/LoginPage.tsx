@@ -58,7 +58,7 @@ export default function LoginPage() {
           </div>
           <div className={`${styles.sample} ${styles.sampleHm}`}>
             <span className={styles.tagHm}>Người quyết định</span>
-            <span>Viền liền, thanh navy bên trái: quyết định của Cấp phê duyệt hoặc Hội đồng.</span>
+            <span>Viền liền, thanh xanh đậm bên trái: quyết định của Cấp phê duyệt hoặc Hội đồng.</span>
           </div>
           <div className={`${styles.sample} ${styles.sampleTeam}`}>
             <span>Đội agent, cùng một sơ đồ ở mọi màn hình:</span>

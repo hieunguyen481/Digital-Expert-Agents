@@ -1,8 +1,8 @@
 /* Thành phần dùng chung (mockup 21). Nguồn màu: styles/tokens.css. */
 /* ---- Nút: biến thể phủ lên Ant Design Button ---- */
-.gold:global(.ant-btn) { background: var(--bronze-500); border-color: var(--bronze-500); color: #1B1405; font-weight: 500; }
-.gold:global(.ant-btn):not(:disabled):hover { background: var(--bronze-700) !important; border-color: var(--bronze-700) !important; color: #fff !important; }
-.gold:global(.ant-btn):not(:disabled):active { background: var(--bronze-800) !important; border-color: var(--bronze-800) !important; color: #fff !important; }
+.gold:global(.ant-btn) { background: var(--amber-500); border-color: var(--amber-500); color: #1B1405; font-weight: 500; }
+.gold:global(.ant-btn):not(:disabled):hover { background: var(--amber-700) !important; border-color: var(--amber-700) !important; color: #fff !important; }
+.gold:global(.ant-btn):not(:disabled):active { background: var(--amber-800) !important; border-color: var(--amber-800) !important; color: #fff !important; }
 .aiBtn:global(.ant-btn) { background: var(--ai-700); border-color: var(--ai-700); color: #fff; }
 .aiBtn:global(.ant-btn):not(:disabled):hover { background: #3E2877 !important; border-color: #3E2877 !important; color: #fff !important; }
 .locked:global(.ant-btn), .locked:global(.ant-btn):hover {
@@ -15,7 +15,7 @@
 
 /* ---- Thẻ chỉ số ---- */
 .kpi { padding: var(--s4) var(--s5); background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); box-shadow: var(--sh-1); }
-.kpiHero { border-top: 3px solid var(--bronze-700); }
+.kpiHero { border-top: 3px solid var(--amber-700); }
 .kpiLabel { font-size: var(--fs-12); color: var(--ink-3); }
 .kpiValue { font: 500 var(--fs-26)/1.2 var(--font-num); margin-top: var(--s1); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .kpiHero .kpiValue { font-size: var(--fs-34); }
@@ -31,7 +31,7 @@
 .badge.outlined { background: transparent; box-shadow: inset 0 0 0 1px currentColor; }
 .info { background: var(--info-100); color: var(--info-700); }
 .ai { background: var(--ai-100); color: var(--ai-700); }
-.human { background: var(--navy-700); color: #fff; }
+.human { background: var(--brand-700); color: #fff; }
 .flag { display: inline-flex; white-space: nowrap; align-items: center; gap: 6px; font-size: var(--fs-12); font-weight: 600; }
 .flag i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; transform: rotate(45deg); background: currentColor; }
 .flagG { color: var(--ok-700); }
@@ -40,14 +40,14 @@
 .flagR i { border-radius: 50%; transform: none; }
 .tagAi, .tagHm, .tagMe { display: inline-flex; gap: 4px; align-items: center; font-size: var(--fs-12); font-weight: 600; padding: 1px 7px; border-radius: var(--r-sm); white-space: nowrap; }
 .tagAi { color: var(--ai-700); background: var(--ai-100); }
-.tagHm { color: #fff; background: var(--navy-700); }
-.tagMe { color: var(--navy-900); background: var(--surface); border: 1px solid var(--navy-500); padding: 0 7px; }
+.tagHm { color: #fff; background: var(--brand-700); }
+.tagMe { color: var(--brand-900); background: var(--surface); border: 1px solid var(--brand-500); padding: 0 7px; }
 
 /* ---- Khối AI và khối người quyết định ---- */
 .aib { border: 1.5px dashed var(--ai-500); background: var(--ai-50); border-radius: var(--r-md); }
 .aibHead { display: flex; align-items: center; gap: var(--s2); padding: var(--s3) var(--s4); border-bottom: 1px dashed #BFB2E3; color: var(--ai-700); font-weight: 600; font-size: var(--fs-13); }
-.hmb { border: 1px solid var(--navy-700); border-left: 5px solid var(--navy-700); background: var(--surface); border-radius: var(--r-md); }
-.hmbHead { display: flex; align-items: center; gap: var(--s2); padding: var(--s3) var(--s4); border-bottom: 1px solid var(--rule); color: var(--navy-900); font-weight: 600; font-size: var(--fs-13); }
+.hmb { border: 1px solid var(--brand-700); border-left: 5px solid var(--brand-700); background: var(--surface); border-radius: var(--r-md); }
+.hmbHead { display: flex; align-items: center; gap: var(--s2); padding: var(--s3) var(--s4); border-bottom: 1px solid var(--rule); color: var(--brand-900); font-weight: 600; font-size: var(--fs-13); }
 .blockAct { margin-left: auto; display: inline-flex; gap: var(--s2); align-items: center; }
 .blockBody { padding: var(--s4); }
 
@@ -56,21 +56,21 @@
 .st { display: flex; align-items: center; gap: var(--s2); font-size: var(--fs-12); color: var(--ink-3); white-space: nowrap; }
 .st b { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--font-num); background: var(--surface); border: 1.5px solid var(--rule-strong); }
 .stDone { color: var(--ink-2); }
-.stDone b { background: var(--navy-700); border-color: var(--navy-700); color: #fff; }
+.stDone b { background: var(--brand-700); border-color: var(--brand-700); color: #fff; }
 .stCur { color: var(--ink); font-weight: 600; }
-.stCur b { border-color: var(--bronze-700); background: var(--bronze-100); color: var(--bronze-800); box-shadow: 0 0 0 3px rgba(176, 138, 62, .25); }
+.stCur b { border-color: var(--amber-700); background: var(--amber-100); color: var(--amber-800); box-shadow: 0 0 0 3px rgba(210, 154, 46, .25); }
 .stBack { color: var(--ink); font-weight: 600; }
 .stBack b { border-color: var(--warn-700); background: var(--warn-100); color: var(--warn-700); box-shadow: 0 0 0 3px rgba(143, 84, 0, .2); }
 .ln { flex: 1; min-width: 16px; height: 2px; background: var(--rule); margin: 0 var(--s2); }
-.lnDone { background: var(--navy-700); }
+.lnDone { background: var(--brand-700); }
 
 /* ---- Dòng thời gian ---- */
 .tl { list-style: none; margin: 0; padding: 0; position: relative; }
 .tl::before { content: ''; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px; background: var(--rule); }
 .tl li { position: relative; padding: 0 0 var(--s4) 28px; }
-.tl li::before { content: ''; position: absolute; left: 0; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 2px solid var(--navy-700); }
+.tl li::before { content: ''; position: absolute; left: 0; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 2px solid var(--brand-700); }
 .tlAi::before { border-color: var(--ai-500) !important; border-style: dashed !important; }
-.tlCur::before { background: var(--navy-700) !important; }
+.tlCur::before { background: var(--brand-700) !important; }
 .tlAi.tlCur::before { background: var(--ai-100) !important; }
 .tlTime { font: 400 12px var(--font-num); color: var(--ink-3); display: block; }
 .tlHead { font-weight: 600; font-size: var(--fs-13); }
@@ -86,8 +86,8 @@
 .at { display: grid; gap: var(--s2); min-width: 0; }
 .atFrame { border: 1.5px dashed var(--ai-500); border-radius: var(--r-md); padding: var(--s2); min-width: 0; }
 .atHm { display: flex; align-items: center; gap: var(--s2); font-size: var(--fs-12); color: var(--ink-2); }
-.atArr { color: var(--navy-700); font-weight: 700; }
-.atHn { border: 1px solid var(--navy-700); border-left: 5px solid var(--navy-700); border-radius: var(--r-md); padding: 2px var(--s3); background: var(--surface); font-weight: 600; color: var(--navy-900); }
+.atArr { color: var(--brand-700); font-weight: 700; }
+.atHn { border: 1px solid var(--brand-700); border-left: 5px solid var(--brand-700); border-radius: var(--r-md); padding: 2px var(--s3); background: var(--surface); font-weight: 600; color: var(--brand-900); }
 .flow { display: grid; grid-template-columns: 112px 36px minmax(0, 1fr) 36px 112px; align-items: stretch; padding: var(--s1) 0; }
 .col { display: grid; grid-auto-rows: 1fr; }
 .col > div { padding: 4px 0; display: flex; }
@@ -130,8 +130,8 @@
 /* ---- Bảng kiểu sổ cái: dùng className trên Table của Ant Design ---- */
 .ledger :global(.ant-table-thead > tr > th) { font-family: var(--font-body); font-variant-numeric: normal; border-bottom: 3px double var(--rule-strong) !important; font-size: var(--fs-12); white-space: nowrap; }
 .ledger :global(.ant-table-tbody > tr:hover > td) { background: var(--surface-2) !important; }
-.ledger :global(.ant-table-tbody > tr.ant-table-row-selected > td) { background: var(--navy-50) !important; }
-.ledger :global(.ant-table-tbody > tr.ant-table-row-selected > td:first-child) { box-shadow: inset 3px 0 0 var(--navy-700); }
+.ledger :global(.ant-table-tbody > tr.ant-table-row-selected > td) { background: var(--brand-50) !important; }
+.ledger :global(.ant-table-tbody > tr.ant-table-row-selected > td:first-child) { box-shadow: inset 3px 0 0 var(--brand-700); }
 .ledger :global(.ant-table-summary > tr > td) { font-weight: 600; border-top: 2px solid var(--rule-strong); background: var(--surface-2); }
 .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .gold:global(.ant-btn):disabled, .aiBtn:global(.ant-btn):disabled {

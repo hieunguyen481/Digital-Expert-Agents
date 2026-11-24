@@ -1,9 +1,9 @@
 .card {
   padding: 18px;
-  border: 1px solid var(--bronze-100);
+  border: 1px solid var(--amber-100);
   border-radius: var(--r-lg);
   /* Nền cam rất nhạt: nhấn nhẹ vào con số quan trọng nhất. */
-  background: linear-gradient(180deg, var(--bronze-100) 0%, var(--surface) 62%);
+  background: linear-gradient(180deg, var(--amber-100) 0%, var(--surface) 62%);
 }
 
 .badgeRow {
@@ -30,7 +30,7 @@
   font-weight: 680;
   line-height: 1.2;
   letter-spacing: -0.02em;
-  color: var(--bronze-700);
+  color: var(--amber-700);
 }
 
 .headlineUnit {
@@ -44,7 +44,7 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   padding-top: 14px;
-  border-top: 1px solid var(--bronze-100);
+  border-top: 1px solid var(--amber-100);
 }
 
 .item {
@@ -63,7 +63,7 @@
 .itemValue {
   font-size: 14.5px;
   font-weight: 600;
-  color: var(--navy-900);
+  color: var(--brand-900);
   line-height: 1.4;
 }
 

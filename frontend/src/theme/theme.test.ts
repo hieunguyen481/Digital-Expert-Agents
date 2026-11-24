@@ -38,19 +38,19 @@ describe('token Sổ Tín Dụng: một nguồn', () => {
 });
 
 describe('theme Ant Design', () => {
-  it('token chung đúng thiết kế v2', () => {
+  it('token chung đúng bảng màu v3 (xanh dầu + hổ phách)', () => {
     expect(appTheme.token).toMatchObject({
-      colorPrimary: '#14284B',
+      colorPrimary: '#0E4D5A',
       colorInfo: '#1D4F91',
       colorSuccess: '#1B6A3F',
       colorWarning: '#8F5400',
       colorError: '#A8281D',
-      colorBgLayout: '#F1F2EE',
-      colorBgContainer: '#FBFBF8',
-      colorText: '#1B2430',
-      colorTextSecondary: '#434C5A',
-      colorBorder: '#6F7660',
-      colorBorderSecondary: '#D3D7CC',
+      colorBgLayout: '#F3F5F6',
+      colorBgContainer: '#FFFFFF',
+      colorText: '#172229',
+      colorTextSecondary: '#3D4A52',
+      colorBorder: '#66757B',
+      colorBorderSecondary: '#DAE1E4',
       borderRadius: 6,
       fontSize: 14,
       controlHeight: 36,
@@ -63,14 +63,14 @@ describe('theme Ant Design', () => {
     for (const name of ['Button', 'Input', 'Select', 'Table', 'Tabs', 'Tag', 'Badge', 'Steps', 'Segmented', 'Modal', 'Drawer', 'Message', 'Alert']) {
       expect(c[name], name).toBeTruthy();
     }
-    expect(c.Table.headerBg).toBe('#F5F6F2');
-    expect(c.Tabs.inkBarColor).toBe('#B08A3E');
+    expect(c.Table.headerBg).toBe('#F7F9FA');
+    expect(c.Tabs.inkBarColor).toBe('#D29A2E');
   });
 
   it('phông tự lưu: fonts.css không trỏ ra ngoài', () => {
     const css = readFileSync(resolve(__dirname, '../styles/fonts.css'), 'utf8');
     expect(css).not.toMatch(/https?:\/\//);
-    expect(css).toContain('Newsreader');
+    expect(css).toContain('Be Vietnam Pro');
     expect(css).toContain('IBM Plex Mono');
     expect(css).toMatch(/vietnamese/);
   });

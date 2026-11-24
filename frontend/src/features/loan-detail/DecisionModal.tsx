@@ -28,7 +28,7 @@ interface Props {
   onSubmit: (fn: () => Promise<unknown>) => void;
 }
 
-/** Modal quyết định của cấp phê duyệt (mockup 12b, 12c): 4 thẻ lựa chọn, nút cam kết vàng chỉ cho phê duyệt (từ chối: đỏ, trả lại: navy), bước xác nhận không hoàn tác. */
+/** Modal quyết định của cấp phê duyệt (mockup 12b, 12c): 4 thẻ lựa chọn, nút cam kết vàng chỉ cho phê duyệt (từ chối: đỏ, trả lại: brand), bước xác nhận không hoàn tác. */
 export function DecisionModal({ open, loanId, applicationNumber, requestedAmount, requestedTerm, state, busy, error, onCancel, onSubmit }: Props) {
   const [type, setType] = useState<DecisionType>('APPROVED');
   const [amount, setAmount] = useState(requestedAmount);

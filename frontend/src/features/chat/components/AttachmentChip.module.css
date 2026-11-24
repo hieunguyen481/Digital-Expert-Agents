@@ -22,8 +22,8 @@
   width: 28px;
   height: 28px;
   border-radius: var(--r-md);
-  background: var(--bronze-100);
-  color: var(--bronze-700);
+  background: var(--amber-100);
+  color: var(--amber-700);
   font-size: 14px;
   flex-shrink: 0;
 }
@@ -44,7 +44,7 @@
   font-size: 13px;
   font-weight: 500;
   line-height: 1.3;
-  color: var(--navy-900);
+  color: var(--brand-900);
   /* Tên file dài -> cắt bằng ellipsis, không phá layout. */
   overflow: hidden;
   text-overflow: ellipsis;

@@ -4,7 +4,7 @@ import styles from './ui.module.css';
 
 export const CASE_STEPS = ['Soạn đề xuất', 'Kiểm tra', 'Thẩm định', 'Rủi ro', 'Phê duyệt', 'Hoàn tất'] as const;
 
-/** Bước hồ sơ: đã xong (navy, dấu tick), đang ở (đồng), bị trả lại (vàng). `current` tính từ 0. */
+/** Bước hồ sơ: đã xong (brand, dấu tick), đang ở (đồng), bị trả lại (vàng). `current` tính từ 0. */
 export function CaseStepper({ current, returned = false, stopped, steps = CASE_STEPS, backAt, notes }: {
   current: number; returned?: boolean; steps?: readonly string[];
   /** Hồ sơ dừng ở bước hiện tại (rút, từ chối, bị giữ): ghi lý do dừng ngay cạnh tên bước. */

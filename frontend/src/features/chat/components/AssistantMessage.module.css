@@ -61,7 +61,7 @@
   margin: 0;
   font-size: 15px;
   font-weight: 620;
-  color: var(--navy-700);
+  color: var(--brand-700);
 }
 
 .blockDescription {
@@ -119,7 +119,7 @@
   height: 1em;
   margin-left: 2px;
   vertical-align: text-bottom;
-  background: var(--bronze-500);
+  background: var(--amber-500);
   animation: blink 1s step-end infinite;
 }
 

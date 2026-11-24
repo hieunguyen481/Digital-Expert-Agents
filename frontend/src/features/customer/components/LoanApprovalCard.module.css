@@ -12,7 +12,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 16px 18px 12px;
-  background: linear-gradient(180deg, var(--bronze-100) 0%, transparent 100%);
+  background: linear-gradient(180deg, var(--amber-100) 0%, transparent 100%);
 }
 
 .headerLeft {
@@ -34,7 +34,7 @@
   font-size: 16px;
   font-weight: 650;
   line-height: 1.35;
-  color: var(--navy-700);
+  color: var(--brand-700);
 }
 
 .customer {
@@ -65,7 +65,7 @@
 .itemValue {
   font-size: 14.5px;
   font-weight: 600;
-  color: var(--navy-900);
+  color: var(--brand-900);
   line-height: 1.4;
 }
 
@@ -79,7 +79,7 @@
   margin: 0 0 9px;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--navy-700);
+  color: var(--brand-700);
 }
 
 .checkList {
@@ -124,7 +124,7 @@
   gap: 7px;
   font-size: 13px;
   font-weight: 550;
-  color: var(--navy-900);
+  color: var(--brand-900);
   line-height: 1.45;
   flex-wrap: wrap;
 }

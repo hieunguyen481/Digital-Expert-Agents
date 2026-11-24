@@ -30,12 +30,12 @@
   font-weight: 680;
   line-height: 1.18;
   letter-spacing: -0.025em;
-  color: var(--navy-900);
+  color: var(--brand-900);
 }
 
 /* Chỉ tô đồng cụm cuối của tiêu đề — nhấn bằng màu đồng, không lạm dụng. */
 .headingAccent {
-  color: var(--bronze-700);
+  color: var(--amber-700);
 }
 
 .description {

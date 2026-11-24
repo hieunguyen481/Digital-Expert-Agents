@@ -66,7 +66,7 @@ export function CustomerProfileDrawer({
             <Avatar
               size={48}
               icon={customer.segment === 'business' ? <ShopOutlined /> : <UserOutlined />}
-              style={{ background: shbColors.navy[100], color: shbColors.navy[700] }}
+              style={{ background: shbColors.brand[100], color: shbColors.brand[700] }}
             />
             <div className={styles.identityBody}>
               <h3 className={styles.name}>{customer.fullName}</h3>

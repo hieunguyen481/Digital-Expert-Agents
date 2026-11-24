@@ -100,7 +100,7 @@ export function MessageList({
               <Avatar
                 size={48}
                 icon={<MessageOutlined />}
-                style={{ background: 'var(--bronze-100)', color: 'var(--bronze-700)' }}
+                style={{ background: 'var(--amber-100)', color: 'var(--amber-700)' }}
               />
             }
             title="Cuộc trò chuyện này chưa có nội dung"

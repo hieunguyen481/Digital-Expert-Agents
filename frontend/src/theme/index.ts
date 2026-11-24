@@ -8,16 +8,16 @@ import { colors, fonts, radius } from './tokens';
  */
 export const appTheme: ThemeConfig = {
   token: {
-    colorPrimary: colors.navy700,
-    colorPrimaryHover: colors.navy900,
-    colorPrimaryActive: colors.navy900,
-    colorPrimaryBg: colors.navy50,
-    colorPrimaryBgHover: colors.navy100,
-    colorPrimaryBorder: colors.navy500, // vòng focus của Antd: ≥3:1 trên nền giấy
+    colorPrimary: colors.brand700,
+    colorPrimaryHover: colors.brand900,
+    colorPrimaryActive: colors.brand900,
+    colorPrimaryBg: colors.brand50,
+    colorPrimaryBgHover: colors.brand100,
+    colorPrimaryBorder: colors.brand500, // vòng focus của Antd: ≥3:1 trên nền giấy
 
-    colorLink: colors.navy500,
-    colorLinkHover: colors.navy900,
-    colorLinkActive: colors.navy900,
+    colorLink: colors.brand500,
+    colorLinkHover: colors.brand900,
+    colorLinkActive: colors.brand900,
 
     colorText: colors.ink,
     colorTextSecondary: colors.ink2,
@@ -31,7 +31,7 @@ export const appTheme: ThemeConfig = {
     colorBgLayout: colors.paper,
     colorBgContainer: colors.surface,
     colorBgElevated: colors.surface,
-    colorBgSpotlight: colors.navy900,
+    colorBgSpotlight: colors.brand900,
     colorBgContainerDisabled: colors.paper2,
     colorFillSecondary: colors.paper2,
     colorFillTertiary: colors.surface2,
@@ -76,7 +76,7 @@ export const appTheme: ThemeConfig = {
     motionEaseOut: 'cubic-bezier(.2,.7,.2,1)',
 
     lineWidthFocus: 2,
-    controlOutline: 'rgba(42, 74, 128, 0.6)',
+    controlOutline: 'rgba(26, 110, 126, 0.6)',
     controlOutlineWidth: 2,
 
     wireframe: false,

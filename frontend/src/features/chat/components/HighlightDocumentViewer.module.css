@@ -59,7 +59,7 @@
  */
 .region {
   position: absolute;
-  border: 2px solid var(--bronze-500);
+  border: 2px solid var(--amber-500);
   border-radius: 3px;
   background: rgb(243 112 33 / 12%);
   cursor: pointer;
@@ -100,7 +100,7 @@
   height: 20px;
   padding: 0 5px;
   border-radius: 10px;
-  background: var(--bronze-500);
+  background: var(--amber-500);
   color: #fff;
   font-size: 12px;
   font-weight: 700;

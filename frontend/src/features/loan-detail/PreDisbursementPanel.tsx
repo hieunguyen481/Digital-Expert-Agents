@@ -41,7 +41,7 @@ export function PreDisbursementPanel({ status, decisionConditions, confirmed = [
         {shownDecision.map((c) => <span key={`d-${c}`} data-testid="pre-disbursement-decision">Từ quyết định: {cleanAiLine(c)}</span>)}
         {total > COLLAPSE_AFTER && (
           <button type="button" className={styles.note} data-testid="pre-disbursement-toggle" aria-expanded={all} onClick={() => setAll((v) => !v)}
-            style={{ justifySelf: 'start', background: 'none', border: 0, padding: 0, color: 'var(--navy-500)', cursor: 'pointer', textDecoration: 'underline' }}>
+            style={{ justifySelf: 'start', background: 'none', border: 0, padding: 0, color: 'var(--brand-500)', cursor: 'pointer', textDecoration: 'underline' }}>
             {all ? 'Thu gọn' : `Xem thêm ${total - COLLAPSE_AFTER} điều kiện`}
           </button>
         )}

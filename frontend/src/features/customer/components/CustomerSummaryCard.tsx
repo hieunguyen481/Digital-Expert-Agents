@@ -23,7 +23,7 @@ export function CustomerSummaryCard({ customer, onViewDetail }: CustomerSummaryC
       <Avatar
         size={40}
         icon={customer.segment === 'business' ? <ShopOutlined /> : <UserOutlined />}
-        style={{ background: shbColors.navy[100], color: shbColors.navy[700], flexShrink: 0 }}
+        style={{ background: shbColors.brand[100], color: shbColors.brand[700], flexShrink: 0 }}
       />
 
       <div className={styles.body}>

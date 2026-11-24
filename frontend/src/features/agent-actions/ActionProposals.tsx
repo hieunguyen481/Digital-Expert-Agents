@@ -100,7 +100,7 @@ function ProposalCard({ proposal: p, caseId, loanId, shared }: { proposal: Actio
         <ul style={{ margin: 0, paddingLeft: 18, fontSize: 'var(--fs-12)', color: 'var(--ink-2)' }}>
           {own.map((e, i) => (typeof e === 'string'
             ? <li key={i}>{cleanAiLine(e)}</li>
-            : <li key={i}><b>{sourceLabel(e.source)}</b>{(() => { const { rest, joined } = sourceQuoteParts(sourceLabel(e.source), e.quote); return rest ? `${joined ? ' ' : ': '}${rest}` : ''; })()}</li>))}
+            : <li key={i}><b>{cleanAiLine(sourceLabel(e.source))}</b>{(() => { const { rest, joined } = sourceQuoteParts(cleanAiLine(sourceLabel(e.source)), e.quote); return rest ? `${joined ? ' ' : ': '}${rest}` : ''; })()}</li>))}
         </ul>
       )}
       {p.status !== 'PROPOSED' && p.decided_reason && <div style={{ fontSize: 'var(--fs-12)' }}>Lý do của người xử lý: {p.decided_reason}</div>}

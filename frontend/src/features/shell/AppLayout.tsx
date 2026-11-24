@@ -58,7 +58,7 @@ export function AppLayout() {
         ) : (
           <div className={styles.side} style={{ gridRow: '1 / -1' }}>
             <div className={styles.brand}>
-              <SHBLogo variant="white" showProductName />
+              <SHBLogo showProductName />
             </div>
           </div>
         )}

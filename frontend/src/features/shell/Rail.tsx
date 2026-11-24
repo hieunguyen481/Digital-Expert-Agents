@@ -40,14 +40,14 @@ interface RailProps {
   onOpenAi: () => void;
 }
 
-/** Thanh bên theo vai (§6 "Thanh bên theo vai", §11.4): nền navy, mục chọn nền giấy + vạch đồng. */
+/** Thanh bên theo vai (§6 "Thanh bên theo vai", §11.4): nền sáng, mục chọn nền xanh dầu nhạt + vạch xanh dầu. */
 export function Rail({ role, badge, onOpenAi }: RailProps) {
   const items = RAIL_ITEMS[role];
   const separatorBefore = items.findIndex((i) => i.page === COMMON_GROUP_START_PAGE);
   return (
     <nav className={styles.side} aria-label="Điều hướng chính">
       <div className={styles.brand}>
-        <SHBLogo variant="white" showProductName />
+        <SHBLogo showProductName />
       </div>
       <div className={styles.navRole}>{UI_ROLE_LABEL[role]}</div>
       {items.map((entry, index) => {

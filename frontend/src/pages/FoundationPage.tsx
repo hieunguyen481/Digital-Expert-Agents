@@ -69,7 +69,7 @@ export default function FoundationPage() {
           {(['default', 'primary', 'gold', 'ai', 'danger'] as const).map((v) => (
             <div key={v}>
               <div className={styles.secT}>
-                {{ default: 'Nút thường', primary: 'Nút chính (navy)', gold: 'Nút chốt (đồng), tối đa một nút mỗi màn hình, góc trên phải', ai: 'Nút AI', danger: 'Nút nguy hiểm' }[v]}
+                {{ default: 'Nút thường', primary: 'Nút chính (xanh dầu)', gold: 'Nút chốt (hổ phách), tối đa một nút mỗi màn hình, góc trên phải', ai: 'Nút AI', danger: 'Nút nguy hiểm' }[v]}
               </div>
               <div className={styles.gal}>
                 {BUTTON_STATES.map(([label, disabled, loading]) => (

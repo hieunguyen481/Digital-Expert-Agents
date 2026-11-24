@@ -16,7 +16,7 @@ export function AiBlock({ title, children, tag = 'AI đề xuất', actions }: {
   );
 }
 
-/** Khối quyết định của người có thẩm quyền: viền liền, thanh navy bên trái, nhãn "Người quyết định". */
+/** Khối quyết định của người có thẩm quyền: viền liền, thanh brand bên trái, nhãn "Người quyết định". */
 export function HumanBlock({ title, children, tag = 'Người quyết định', actions }: { title: ReactNode; children: ReactNode; tag?: string; actions?: ReactNode }) {
   return (
     <section className={styles.hmb}>

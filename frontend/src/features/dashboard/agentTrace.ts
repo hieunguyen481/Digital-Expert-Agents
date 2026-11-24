@@ -696,7 +696,8 @@ export function cleanConditionList(list: unknown[] | null | undefined): string[]
   const merged: string[] = [];
   for (const raw of Array.isArray(list) ? list : []) {
     const x = typeof raw === 'string' ? raw : (raw && typeof (raw as { text?: unknown }).text === 'string' ? (raw as { text: string }).text : '');
-    const t = scrubInternal(x).trim().replace(/[\s.;:,]+$/, '');
+    // Gạch ngang nối nhãn với ghi chú ("Dữ liệu thẩm định — ghi chú AML: …") viết thành dấu phẩy như mọi dòng chữ AI khác
+    const t = scrubInternal(x).replace(/\s+[—–]\s+/g, ', ').trim().replace(/[\s.;:,]+$/, '');
     if (!t) continue;
     if (/^\p{Ll}/u.test(t) && merged.length) merged[merged.length - 1] += `; ${t}`;
     else merged.push(upFirst(t));

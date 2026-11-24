@@ -62,7 +62,7 @@ export function AttachmentChip({ attachment, readOnly = false, onRemove, onRetry
               percent={attachment.progress ?? 0}
               size="small"
               showInfo={false}
-              strokeColor="var(--navy-500)"
+              strokeColor="var(--brand-500)"
             />
           </span>
         )}

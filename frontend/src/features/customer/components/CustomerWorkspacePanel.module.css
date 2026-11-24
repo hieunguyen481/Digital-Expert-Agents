@@ -33,7 +33,7 @@
 .headerName {
   font-size: 14.5px;
   font-weight: 650;
-  color: var(--navy-900);
+  color: var(--brand-900);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -86,12 +86,12 @@
 .statValue {
   font-size: 16px;
   font-weight: 680;
-  color: var(--navy-900);
+  color: var(--brand-900);
   line-height: 1.25;
 }
 
 .statAccent {
-  color: var(--bronze-700);
+  color: var(--amber-700);
 }
 
 .sectionTitle {
@@ -113,7 +113,7 @@
 .backTitle {
   font-size: 14px;
   font-weight: 600;
-  color: var(--navy-700);
+  color: var(--brand-700);
 }
 
 /* Bảng so sánh */
@@ -138,8 +138,8 @@
 }
 
 .compareTable th {
-  background: var(--bronze-100);
-  color: var(--navy-700);
+  background: var(--amber-100);
+  color: var(--brand-700);
   font-weight: 600;
   position: sticky;
   left: 0;

@@ -40,7 +40,7 @@
 .title {
   font-size: 14.5px;
   font-weight: 600;
-  color: var(--shb-navy-800);
+  color: var(--shb-brand-800);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;

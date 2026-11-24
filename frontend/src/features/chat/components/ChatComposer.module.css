@@ -32,17 +32,17 @@
   background: rgba(255, 255, 255, 0.96);
   box-shadow:
     0 12px 36px rgba(35, 34, 79, 0.08),
-    0 2px 8px rgba(42, 74, 128, 0.05);
+    0 2px 8px rgba(26, 110, 126, 0.05);
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease;
 }
 
 .composerShell:focus-within {
-  border-color: var(--bronze-500);
+  border-color: var(--amber-500);
   box-shadow:
     0 14px 42px rgba(35, 34, 79, 0.1),
-    0 0 0 4px rgba(42, 74, 128, 0.1);
+    0 0 0 4px rgba(26, 110, 126, 0.1);
 }
 
 /* Ant Design X Sender nằm trong shell -> bỏ viền/nền riêng của nó. */

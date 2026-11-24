@@ -1,4 +1,4 @@
-/* Thẻ kết quả đội agent trong câu trả lời: khối AI (nét đứt tím) lồng trong tin trợ lý; quyết định của người là khối navy viền liền. */
+/* Thẻ kết quả đội agent trong câu trả lời: khối AI (nét đứt tím) lồng trong tin trợ lý; quyết định của người là khối brand viền liền. */
 .panel { margin-top: var(--s3); padding: var(--s3) var(--s4); background: var(--surface); border: 1.5px dashed var(--ai-500); border-radius: var(--r-md); font-size: var(--fs-13); }
 .head { display: flex; align-items: center; gap: var(--s2); color: var(--ai-700); }
 .head strong { font-size: var(--fs-13); font-weight: 600; margin-right: auto; }
@@ -14,7 +14,7 @@
 .sources { margin-top: var(--s3); color: var(--ink-2); }
 .sources summary { cursor: pointer; font-weight: 600; color: var(--ai-700); }
 .sources ul { margin: var(--s2) 0 0; padding-left: 18px; }
-.srcTag { font-family: var(--font-num); font-size: 12px; font-weight: 600; color: var(--navy-700); }
+.srcTag { font-family: var(--font-num); font-size: 12px; font-weight: 600; color: var(--brand-700); }
 .raw { font-family: var(--font-num); font-size: 12px; color: var(--ink-3); }
-.confirm { margin-top: var(--s3); padding: var(--s3) var(--s4); background: var(--surface); border: 1px solid var(--navy-700); border-left: 4px solid var(--navy-700); border-radius: var(--r-md); }
-.confirmLead { margin: var(--s2) 0; font-weight: 600; color: var(--navy-700); }
+.confirm { margin-top: var(--s3); padding: var(--s3) var(--s4); background: var(--surface); border: 1px solid var(--brand-700); border-left: 4px solid var(--brand-700); border-radius: var(--r-md); }
+.confirmLead { margin: var(--s2) 0; font-weight: 600; color: var(--brand-700); }

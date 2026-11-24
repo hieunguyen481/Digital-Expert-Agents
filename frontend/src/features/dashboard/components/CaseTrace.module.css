@@ -1,4 +1,4 @@
-/* Dấu vết một lượt chạy: AI = khung nét đứt tím, người quyết định = khối navy ngoài khung. */
+/* Dấu vết một lượt chạy: AI = khung nét đứt tím, người quyết định = khối brand ngoài khung. */
 .body { display: grid; gap: var(--s5); }
 .head { display: flex; gap: var(--s3); align-items: center; flex-wrap: wrap; font-size: var(--fs-12); color: var(--ink-3); }
 .live { color: var(--ai-700); font-weight: 600; }
@@ -16,7 +16,7 @@
 .frame { display: flex; align-items: stretch; gap: var(--s2); border: 1.5px dashed var(--ai-500); background: var(--ai-50); border-radius: var(--r-lg); padding: var(--s3); flex: 1; min-width: 0; overflow-x: auto; }
 .col { display: grid; gap: var(--s2); align-content: center; flex: 1; min-width: 200px; }
 .arr { align-self: center; color: var(--ai-700); font-weight: 700; flex: none; }
-.arrHm { align-self: center; color: var(--navy-700); font-weight: 700; flex: none; }
+.arrHm { align-self: center; color: var(--brand-700); font-weight: 700; flex: none; }
 .node { border: 1.5px dashed var(--ai-500); background: var(--surface); border-radius: var(--r-md); padding: var(--s2) var(--s3); display: grid; gap: var(--s1); min-width: 0; }
 .node.done { border-style: solid; }
 .node.running { box-shadow: 0 0 0 3px var(--ai-100); }
@@ -27,8 +27,8 @@
 .nodeSum { font-size: var(--fs-12); color: var(--ink-2); line-height: 1.4; }
 .nodeDep { font-size: var(--fs-12); color: var(--ink-3); }
 .tm { font: 400 var(--fs-12) var(--font-num); color: var(--ink-2); }
-.hm { border: 1px solid var(--navy-700); border-left: 5px solid var(--navy-700); background: var(--surface); border-radius: var(--r-md); padding: var(--s2) var(--s3); align-self: center; font-size: var(--fs-12); color: var(--ink-2); max-width: 170px; }
-.hm b { display: block; color: var(--navy-700); font-size: var(--fs-13); }
+.hm { border: 1px solid var(--brand-700); border-left: 5px solid var(--brand-700); background: var(--surface); border-radius: var(--r-md); padding: var(--s2) var(--s3); align-self: center; font-size: var(--fs-12); color: var(--ink-2); max-width: 170px; }
+.hm b { display: block; color: var(--brand-700); font-size: var(--fs-13); }
 
 /* Danh sách */
 .flowList, .plainList { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--s2); }

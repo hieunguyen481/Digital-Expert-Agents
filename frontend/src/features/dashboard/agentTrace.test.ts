@@ -357,3 +357,11 @@ describe('scrubInternal: lời dặn mô hình và chữ viết tắt sai', () =
     expect(scrubInternal('Hoàn thiện pháp lý TSBĐ')).toBe('Hoàn thiện pháp lý TSĐB');
   });
 });
+
+describe('cleanConditionList: gạch ngang nối nhãn', () => {
+  it('đổi " — " thành dấu phẩy', async () => {
+    const { cleanConditionList } = await import('./agentTrace');
+    expect(cleanConditionList(['Dữ liệu thẩm định — ghi chú AML: Chưa có đánh giá KYC/AML trong hệ thống; cần tra cứu trước khi trình.']))
+      .toEqual(['Dữ liệu thẩm định, ghi chú AML: Chưa có đánh giá KYC/AML trong hệ thống; cần tra cứu trước khi trình']);
+  });
+});

@@ -97,7 +97,7 @@ export function CustomerWorkspacePanel({
           className={styles.headerAvatar}
           size={38}
           icon={customer.segment === 'business' ? <ShopOutlined /> : <UserOutlined />}
-          style={{ background: shbColors.navy[100], color: shbColors.navy[700] }}
+          style={{ background: shbColors.brand[100], color: shbColors.brand[700] }}
         />
         <div className={styles.headerBody}>
           <span className={styles.headerName}>{customer.fullName}</span>

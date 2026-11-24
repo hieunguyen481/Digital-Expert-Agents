@@ -1,7 +1,7 @@
 import styles from './BrandLogo.module.css';
 
 export interface BrandLogoProps {
-  /** `white`: chữ sáng, dùng trên nền navy. */
+  /** `white`: chữ sáng, dùng trên nền brand. */
   variant?: 'default' | 'white';
   size?: 'small' | 'medium' | 'large';
   /** Hiện tên "Sổ Tín Dụng" và mô tả bên cạnh logo vuông. */
@@ -16,7 +16,7 @@ const SIZE_CLASS: Record<NonNullable<BrandLogoProps['size']>, string> = {
 };
 
 /**
- * Logo "Sổ Tín Dụng": ô vuông giấy, chữ S navy, gạch chân đồng (§5.7).
+ * Logo "Sổ Tín Dụng": ô vuông giấy, chữ S brand, gạch chân đồng (§5.7).
  */
 export function BrandLogo({ variant = 'default', size = 'medium', showProductName = false, className }: BrandLogoProps) {
   const rootClassName = [styles.logo, SIZE_CLASS[size], variant === 'white' ? styles.white : '', className]

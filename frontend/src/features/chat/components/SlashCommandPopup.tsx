@@ -84,7 +84,7 @@ export function SlashCommandPopup({
               className={styles.avatar}
               size={30}
               icon={customer.segment === 'business' ? <ShopOutlined /> : <UserOutlined />}
-              style={{ background: 'var(--navy-100)', color: 'var(--navy-700)' }}
+              style={{ background: 'var(--brand-100)', color: 'var(--brand-700)' }}
             />
 
             <span className={styles.body}>

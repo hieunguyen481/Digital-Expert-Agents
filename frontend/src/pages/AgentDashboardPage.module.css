@@ -29,8 +29,8 @@
 /* So sánh */
 .banner { display: flex; gap: var(--s3); padding: var(--s3) var(--s4); border: 1px solid var(--info-100); border-left: 4px solid var(--info-700); background: var(--info-100); color: var(--ink); border-radius: var(--r-md); font-size: var(--fs-13); line-height: var(--lh-body); }
 .banner b { color: var(--info-700); }
-.headline { padding: var(--s4) var(--s5); border: 1px solid var(--rule); border-left: 4px solid var(--navy-700); background: var(--surface); border-radius: var(--r-md); font: 500 var(--fs-14)/var(--lh-body) var(--font-body); color: var(--ink); }
-.headline b { color: var(--navy-700); }
+.headline { padding: var(--s4) var(--s5); border: 1px solid var(--rule); border-left: 4px solid var(--brand-700); background: var(--surface); border-radius: var(--r-md); font: 500 var(--fs-14)/var(--lh-body) var(--font-body); color: var(--ink); }
+.headline b { color: var(--brand-700); }
 .note { padding: var(--s3) var(--s4); border: 1px solid var(--rule); background: var(--surface-2); border-radius: var(--r-md); font-size: var(--fs-13); line-height: var(--lh-body); color: var(--ink-2); }
 .note b { color: var(--ink); }
 .techDet { margin-top: var(--s2); font: 400 var(--fs-12) var(--font-body); color: var(--ink-3); }

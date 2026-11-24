@@ -3,7 +3,7 @@
 .list { list-style: none; margin: 0; padding: 0; }
 .row { display: flex; align-items: center; gap: var(--s4); padding: var(--s3) var(--s5); border-bottom: 1px solid var(--rule); }
 .row:last-child { border-bottom: 0; }
-.row[data-status='UNREAD'] { background: var(--navy-50); }
+.row[data-status='UNREAD'] { background: var(--brand-50); }
 .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; border: 0; background: transparent; padding: var(--s1) 0; font: inherit; cursor: pointer; color: var(--ink); }
 .body b { font-weight: 600; font-size: var(--fs-14); }
 .body span { color: var(--ink-2); font-size: var(--fs-13); }

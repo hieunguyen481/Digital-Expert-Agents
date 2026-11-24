@@ -57,11 +57,11 @@
 }
 
 .item:hover {
-  background: rgba(42, 74, 128, 0.06);
+  background: rgba(26, 110, 126, 0.06);
 }
 
 .itemActive {
-  background: var(--bronze-100);
+  background: var(--amber-100);
 }
 
 .avatar {
@@ -79,7 +79,7 @@
 .name {
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--navy-900);
+  color: var(--brand-900);
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
