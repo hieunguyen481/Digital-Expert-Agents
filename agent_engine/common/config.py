@@ -88,6 +88,9 @@ DATABASE_URL = os.getenv("DATABASE_URL", "")
 # Khóa dịch vụ nội bộ: ký danh tính gateway -> agent -> MCP và bảo vệ /internal/*.
 ENGINE_SERVICE_TOKEN = os.getenv("ENGINE_SERVICE_TOKEN", "")
 KEYCLOAK_ISSUER_URL = os.getenv("KEYCLOAK_ISSUER_URL", "http://localhost:8080/realms/bank-ai")
+# Issuer khác cũng hợp lệ (dấu phẩy), như backend: link demo công khai, gọi Keycloak từ trong mạng nội bộ.
+KEYCLOAK_ISSUERS = [i.strip().rstrip("/") for i in [KEYCLOAK_ISSUER_URL, *os.getenv("KEYCLOAK_EXTRA_ISSUERS", "").split(",")]
+                    if i.strip()]
 KEYCLOAK_JWKS_URL = os.getenv(
     "KEYCLOAK_JWKS_INTERNAL_URL",
     "http://keycloak:8080/realms/bank-ai/protocol/openid-connect/certs")

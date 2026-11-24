@@ -70,7 +70,8 @@ def create_app(
                 ttl_seconds=runtime_settings.oidc_jwks_cache_ttl_seconds,
             )
             runtime_validator = JWTValidator(
-                issuer=runtime_settings.keycloak_issuer_url,
+                issuer=[runtime_settings.keycloak_issuer_url,
+                        *(i.strip() for i in runtime_settings.keycloak_extra_issuers.split(",") if i.strip())],
                 audience=runtime_settings.oidc_expected_audience,
                 jwks_provider=jwks_client,
                 algorithms=runtime_settings.oidc_allowed_algorithms,

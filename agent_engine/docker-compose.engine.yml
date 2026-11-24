@@ -15,6 +15,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_APP_USER:-bank_app}:${POSTGRES_APP_PASSWORD:?Generate infra/.env.local}@postgres:5432/bank_ai
       ENGINE_SERVICE_TOKEN: ${ENGINE_SERVICE_TOKEN:?Add ENGINE_SERVICE_TOKEN to infra/.env.local}
       KEYCLOAK_ISSUER_URL: http://localhost:8080/realms/bank-ai
+      KEYCLOAK_EXTRA_ISSUERS: ${KEYCLOAK_EXTRA_ISSUERS:-http://keycloak:8080/realms/bank-ai}
       KEYCLOAK_JWKS_INTERNAL_URL: http://keycloak:8080/realms/bank-ai/protocol/openid-connect/certs
       OIDC_EXPECTED_AUDIENCE: bank-ai-api
       LLM_MODE: ${ENGINE_LLM_MODE:-rules}

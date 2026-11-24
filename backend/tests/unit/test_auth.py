@@ -227,3 +227,21 @@ async def test_admin_principal_has_admin_manage() -> None:
     assert principal.has_permissions("admin:manage") is True
     require_permission(principal, "admin:manage")
     assert await require_permissions("admin:manage")(principal) is principal
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_extra_issuers_are_accepted_and_others_rejected() -> None:
+    """Link demo công khai: Keycloak ghi `iss` theo địa chỉ được gọi; chỉ issuer trong danh sách mới hợp lệ."""
+    private_key, jwk = _key_material()
+    validator = JWTValidator(
+        issuer=["http://issuer.local/realms/bank-ai", "https://demo.example/realms/bank-ai/"],
+        audience="bank-ai-api",
+        jwks_provider=FakeJwksProvider({"unit-key": jwk}),
+        leeway_seconds=0,
+    )
+
+    ok = await validator.validate(_token(private_key, iss="https://demo.example/realms/bank-ai"))
+    assert ok.issuer == "https://demo.example/realms/bank-ai"
+    with pytest.raises(AuthenticationError):
+        await validator.validate(_token(private_key, iss="https://other.example/realms/bank-ai"))

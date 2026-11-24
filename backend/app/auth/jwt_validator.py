@@ -94,7 +94,7 @@ class JWTValidator:
     def __init__(
         self,
         *,
-        issuer: str,
+        issuer: str | Sequence[str],
         audience: str,
         jwks_provider: JwksProvider,
         algorithms: Sequence[str] = ("RS256",),
@@ -102,7 +102,10 @@ class JWTValidator:
     ) -> None:
         if not algorithms or any(algorithm != "RS256" for algorithm in algorithms):
             raise ValueError("Only RS256 is supported")
-        self._issuer = issuer.rstrip("/")
+        issuers = [issuer] if isinstance(issuer, str) else list(issuer)
+        if not issuers:
+            raise ValueError("At least one issuer is required")
+        self._issuer = [i.rstrip("/") for i in issuers]
         self._audience = audience
         self._jwks_provider = jwks_provider
         self._algorithms = tuple(algorithms)

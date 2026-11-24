@@ -1,0 +1,36 @@
+# Một cổng cho cả web, API, đăng nhập và tài liệu, để mở ra internet bằng một link (infra/scripts/public-demo.sh).
+{
+	auto_https off
+	admin off
+	servers {
+		# cloudflared đứng trước trong mạng nội bộ: giữ X-Forwarded-Proto/Host của nó để Keycloak ghi đúng địa chỉ https
+		trusted_proxies static private_ranges
+	}
+}
+
+:80 {
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy backend-api:8000 {
+			flush_interval -1
+		}
+	}
+	# Chỉ realm bank-ai đi qua; realm master (quản trị) và /admin của Keycloak không mở ra ngoài
+	handle /realms/bank-ai/* {
+		reverse_proxy keycloak:8080
+	}
+	handle /resources/* {
+		reverse_proxy keycloak:8080
+	}
+	# URL ký sẵn của MinIO (tải lên, xem tài liệu): giữ nguyên Host để chữ ký khớp
+	@minio path /upload-quarantine/* /customer-doc-original/* /customer-doc-derived/* /generated-reports/* /policy-documents/*
+	handle @minio {
+		reverse_proxy minio:9000
+	}
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

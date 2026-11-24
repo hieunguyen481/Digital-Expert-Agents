@@ -283,8 +283,10 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
       KC_HTTP_ENABLED: "true"
-      KC_HOSTNAME: localhost
+      # Không cố định hostname: Keycloak lấy địa chỉ theo yêu cầu (localhost:8080, hoặc link công khai sau proxy),
+      # nên `iss` của token theo địa chỉ đó; backend/engine nhận danh sách issuer (KEYCLOAK_EXTRA_ISSUERS).
       KC_HOSTNAME_STRICT: "false"
+      KC_PROXY_HEADERS: xforwarded
       KC_LOG_CONSOLE_OUTPUT: json
     command: start-dev --import-realm
     ports:

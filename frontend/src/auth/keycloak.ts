@@ -7,7 +7,8 @@ let keycloak: Keycloak | null = null;
 function getKeycloak(): Keycloak {
   if (!keycloak) {
     keycloak = new Keycloak({
-      url: import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080',
+      // 'same-origin': bản dựng cho link công khai, Keycloak nằm sau cùng proxy với web (infra/public/Caddyfile)
+      url: import.meta.env.VITE_KEYCLOAK_URL === 'same-origin' ? window.location.origin : import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080',
       realm: import.meta.env.VITE_KEYCLOAK_REALM || 'bank-ai',
       clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'bank-ai-frontend',
     });

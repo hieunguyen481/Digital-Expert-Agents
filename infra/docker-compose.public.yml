@@ -1,0 +1,24 @@
+# Link demo công khai: dùng kèm các file compose của stack, qua infra/scripts/public-demo.sh (không chạy riêng).
+services:
+  edge:
+    build:
+      context: ./public
+      args:
+        CADDY_IMAGE: ${CADDY_IMAGE:?Set CADDY_IMAGE via versions.env}
+    image: bank-ai-edge:local
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:8088:80
+    networks:
+      - bank-edge
+    profiles: [public]
+
+  tunnel:
+    image: ${CLOUDFLARED_IMAGE:?Set CLOUDFLARED_IMAGE via versions.env}
+    # Quick tunnel: không cần tài khoản Cloudflare; link https://<tên-ngẫu-nhiên>.trycloudflare.com đổi mỗi lần tạo lại
+    command: tunnel --no-autoupdate --url http://edge:80
+    restart: unless-stopped
+    depends_on: [edge]
+    networks:
+      - bank-edge
+    profiles: [public]

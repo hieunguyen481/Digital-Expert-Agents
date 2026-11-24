@@ -90,7 +90,7 @@ class Authenticator:
                 raise ValueError("header")
             key = await self.jwks.get_key(header["kid"])
             claims = jwt.decode(
-                token, key=key, algorithms=["RS256"], issuer=config.KEYCLOAK_ISSUER_URL.rstrip("/"),
+                token, key=key, algorithms=["RS256"], issuer=config.KEYCLOAK_ISSUERS,
                 audience=config.OIDC_AUDIENCE, leeway=30,
                 options={"require": ["iss", "aud", "exp", "iat", "sub"]})
         except Exception as e:  # noqa: BLE001 - mọi lỗi token đều là 401, không lộ chi tiết

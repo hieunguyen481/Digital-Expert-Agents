@@ -101,6 +101,9 @@ class Settings(BaseSettings):
     keycloak_public_url: str
     keycloak_realm: str = "bank-ai"
     keycloak_issuer_url: str
+    # Issuer khác cũng hợp lệ (cách nhau dấu phẩy): Keycloak ghi `iss` theo địa chỉ người dùng gọi tới, nên khi mở demo
+    # qua link công khai (infra/scripts/public-demo.sh) token mang issuer của link đó. Chữ ký vẫn kiểm bằng JWKS nội bộ.
+    keycloak_extra_issuers: str = ""
     keycloak_jwks_internal_url: str
     keycloak_token_url: str
     oidc_expected_audience: str
