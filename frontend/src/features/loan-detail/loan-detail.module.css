@@ -59,7 +59,6 @@
 .todoList li + li::before { content: ''; position: absolute; left: var(--s3); right: var(--s3); top: 0; height: 1px; background: var(--line-soft); }
 .todoList li:hover { background: var(--surface-2); }
 .todoList li:hover::before, .todoList li:hover + li::before { opacity: 0; }
-.todoList li > span:first-child { color: var(--warn-700); }
 .todoList li a { margin-left: auto; white-space: nowrap; font-weight: 600; }
 .count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--warn-100); color: var(--warn-700); font-size: var(--fs-12); font-weight: 600; margin-left: var(--s1); }
 .todoTitle { margin: 0; font: 600 var(--fs-14)/1.4 var(--font-body); display: flex; align-items: center; }
@@ -137,7 +136,27 @@
 /* Nút dạng liên kết trong danh sách (xử lý cờ…): không viền, sát lề trái */
 .linkBtn:global(.ant-btn) { padding-inline: 0; height: auto; font-weight: 600; color: var(--brand-700); }
 .linkBtn:global(.ant-btn):not(:disabled):hover { color: var(--brand-500) !important; background: transparent !important; }
-.flagTitle { font-weight: 500; color: var(--ink); line-height: 1.45; }
+.flagTitle { font-size: var(--fs-13); font-weight: 500; color: var(--ink); line-height: 1.45; }
 .progress { margin: 0; display: flex; flex-wrap: wrap; gap: 0 var(--s2); font-size: var(--fs-13); color: var(--ink-3); }
 .progress > span + span::before { content: '·'; margin-right: var(--s2); color: var(--ink-3); }
 .pOk { color: var(--ok-700); } .pBad { color: var(--danger-700); font-weight: 600; } .pRun { color: var(--ai-700); font-weight: 600; }
+/* Nhóm trong một thẻ: nhãn nhỏ thay cho khung lồng */
+.group { display: grid; }
+.group + .group { margin-top: var(--s4); padding-top: var(--s4); border-top: 1px solid var(--line-soft); }
+.groupLabel { margin: 0 0 var(--s1); font-size: var(--fs-12); font-weight: 600; color: var(--ink-3); }
+.groupAi { color: var(--ai-700); margin-right: var(--s1); }
+.group > .item:first-of-type { border-top: 0; }
+.memoDone, .memoTodo { margin-left: var(--s2); font-size: var(--fs-12); font-weight: 500; }
+.memoDone { color: var(--ok-700); }
+.memoTodo { color: var(--ink-3); }
+.cardPad { padding: var(--s5); }
+.cardPad :global(h5.ant-typography) { margin-top: 0; font-size: 15px; }
+/* Bảng trong thẻ: thẳng lề với tiêu đề thẻ, đầu bảng không tô nền */
+.card :global(.ant-table-wrapper) { margin-top: var(--s3); }
+.card :global(.ant-table-thead > tr > th) { background: transparent !important; color: var(--ink-3); font-weight: 500; }
+.card :global(.ant-table-thead > tr > th:first-child), .card :global(.ant-table-tbody > tr > td:first-child) { padding-left: var(--s5) !important; }
+.card :global(.ant-table-thead > tr > th:last-child), .card :global(.ant-table-tbody > tr > td:last-child) { padding-right: var(--s5) !important; }
+.card :global(.ant-table) { background: transparent; border-radius: 0 0 var(--r-card) var(--r-card); }
+.srcOk { color: var(--ok-700); }
+.srcTodo { color: var(--warn-700); }
+.srcNote { display: block; margin-top: 2px; color: var(--ink-2); }

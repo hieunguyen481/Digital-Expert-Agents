@@ -1,6 +1,6 @@
 import { stripSampleMark } from '@/utils/sampleMark';
 import { Table } from 'antd';
-import { AiBlock, Flag as FlagMark, Timeline, ledgerNum, ledgerTable, type TimelineEntry } from '@/components/ui';
+import { Flag as FlagMark, Timeline, ledgerNum, ledgerTable, type TimelineEntry } from '@/components/ui';
 import { conclusionLabel, flagSourceLabel, flagStatusLabel, fmtDate, fmtMoney, ownershipLabel, severityLabel, stepResultLabel, valuationLabel } from './format';
 import { cleanAiLine } from '@/features/dashboard/agentTrace';
 import { stepLabel } from '@/features/my-work/format';
@@ -23,7 +23,7 @@ function FlagRow({ f }: { f: Flag }) {
   );
 }
 
-/** Cờ do AI sinh nằm trong khối AI (khối xám nhạt); cờ do hệ thống hoặc người đặt ở ngoài. */
+/** Cờ chia hai nhóm trong cùng một thẻ (không lồng khung): nhóm do AI sinh có nhãn "AI đề xuất", nhóm do hệ thống hoặc người đặt. */
 export function FlagsPanel({ flags }: { flags: Flag[] }) {
   const ai = flags.filter((f) => f.source.startsWith('AI_'));
   const other = flags.filter((f) => !f.source.startsWith('AI_'));
@@ -33,11 +33,17 @@ export function FlagsPanel({ flags }: { flags: Flag[] }) {
       <div className={styles.cardB}>
         {flags.length === 0 && <span className={styles.note}>Không có cờ.</span>}
         {ai.length > 0 && (
-          <AiBlock title="Cờ do AI kiểm tra tài liệu">
-            <div className={styles.stackTight}>{ai.map((f) => <FlagRow key={f.id} f={f} />)}</div>
-          </AiBlock>
+          <div className={styles.group} data-testid="flags-ai">
+            <p className={styles.groupLabel}><span className={styles.groupAi}>AI đề xuất</span> Cờ do AI kiểm tra tài liệu · {ai.length}</p>
+            {ai.map((f) => <FlagRow key={f.id} f={f} />)}
+          </div>
         )}
-        {other.map((f) => <FlagRow key={f.id} f={f} />)}
+        {other.length > 0 && (
+          <div className={styles.group}>
+            {ai.length > 0 && <p className={styles.groupLabel}>Cờ do hệ thống hoặc người đặt · {other.length}</p>}
+            {other.map((f) => <FlagRow key={f.id} f={f} />)}
+          </div>
+        )}
       </div>
     </section>
   );

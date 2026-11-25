@@ -46,7 +46,6 @@ export function TodoPanel({ items, ready, caseId }: { items: TodoItem[]; ready: 
           <ul className={styles.todoList}>
             {items.map((t) => (
               <li key={t.key}>
-                <ExclamationCircleOutlined />
                 <span>{t.text}</span>
                 {t.to && <Link to={t.to} aria-label={`Mở: ${t.text}`}>Mở</Link>}
                 {t.anchor && <a href={`#${t.anchor}`} onClick={(e) => { e.preventDefault(); goTo(t.anchor!); }} aria-label={`Mở: ${t.text}`}>Mở</a>}

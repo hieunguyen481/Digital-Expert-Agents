@@ -191,6 +191,9 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
           <div className={styles.readText}>{o.content}</div>
         </div>
       ))}
+      {overview.flags.some((f) => flagButtons(f).length > 0) && (
+        <p className={styles.groupLabel} style={{ marginTop: 'var(--s2)' }}>Cờ cần xử lý · {overview.flags.filter((f) => flagButtons(f).length > 0).length}</p>
+      )}
       {overview.flags.filter((f) => flagButtons(f).length > 0).map((f) => (
         <div key={f.id} className={styles.item} data-testid="flag-actions">
           <span className={styles.flagTitle}>{cleanAiLine(f.title)}</span> <Space wrap size={12}>{flagButtons(f)}</Space>

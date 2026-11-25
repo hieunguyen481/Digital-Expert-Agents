@@ -5,12 +5,16 @@ import styles from './loan-detail.module.css';
 
 function Source({ loanId, m }: { loanId: string; m: MetricValue }) {
   // Mọi số đều có tài liệu nguồn (backend bỏ số không có nguồn); trang 05 mở theo hồ sơ.
+  // Dòng 1: tài liệu + trang + trạng thái xác nhận (người và ngày ở chú thích khi rê chuột). Dòng 2: ghi chú, nếu có.
+  const who = m.verified_by_name ? `${sourceTypeLabel(m.source_type)} · ${m.verified_by_name} xác nhận ${fmtDate(m.verified_at)}` : `${sourceTypeLabel(m.source_type)} · chưa người xác nhận`;
   return (
     <span className={styles.src} data-testid="metric-source">
-      Nguồn: <Link to={`/doi-chieu/${loanId}`}>{m.document_title ?? 'Tài liệu'}</Link>
-      {m.page_number != null ? `, trang ${m.page_number}` : ''} · {sourceTypeLabel(m.source_type)}
-      {m.verified_by_name ? ` · ${m.verified_by_name} xác nhận ${fmtDate(m.verified_at)}` : ' · chưa người xác nhận'}
-      {m.note ? ` · ${m.note}` : ''}
+      <span title={who}>
+        Nguồn: <Link to={`/doi-chieu/${loanId}`}>{m.document_title ?? 'Tài liệu'}</Link>
+        {m.page_number != null ? `, trang ${m.page_number}` : ''}
+        {' · '}<span className={m.verified_by_name ? styles.srcOk : styles.srcTodo}>{m.verified_by_name ? 'đã xác nhận' : 'chưa xác nhận'}</span>
+      </span>
+      {m.note && <span className={styles.srcNote}>{m.note}</span>}
     </span>
   );
 }

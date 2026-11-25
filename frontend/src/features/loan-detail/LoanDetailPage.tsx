@@ -66,7 +66,7 @@ export default function LoanDetailPage() {
             {!isEmpty('flags') && <FlagsPanel flags={flags} />}
             {!isEmpty('conditions') && <PreDisbursementPanel loanId={loanId} status={loan.status} decisionConditions={loan.conditions} confirmed={q.data.disbursement_conditions} />}
             <MemoPanel key={loan.status} loanId={loanId} />
-            {loan.status === 'APPRAISAL' && actions.data?.can_write && <RelatedPartiesReview loanId={loanId} />}
+            {loan.status === 'APPRAISAL' && actions.data?.can_write && <div className={`${styles.card} ${styles.cardPad}`}><RelatedPartiesReview loanId={loanId} /></div>}
             {!isEmpty('collaterals') && <CollateralPanel items={collaterals} />}
           </div>
           <aside className={`${styles.stack} ${readOnly ? styles.asideWide : ''}`} aria-label="Việc và hành động">

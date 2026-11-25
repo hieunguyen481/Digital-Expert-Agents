@@ -94,7 +94,7 @@ export function MemoPanel({ loanId }: { loanId: string }) {
           )}
           {NOS.map((n) => (
             <div key={n} className={styles.memoSec}>
-              <label htmlFor={`memo-${n}`}><b>{n}. {view.titles[n]}</b> {view.progress?.[n] ? <StatusPill tone="ok">Đã điền</StatusPill> : <StatusPill>Chưa điền</StatusPill>}</label>
+              <label htmlFor={`memo-${n}`}><b>{n}. {view.titles[n]}</b> <span className={view.progress?.[n] ? styles.memoDone : styles.memoTodo}>{view.progress?.[n] ? 'Đã điền' : 'Chưa điền'}</span></label>
               <Input.TextArea id={`memo-${n}`} autoSize={{ minRows: 2, maxRows: 10 }} value={m.bodies[n] ?? ''}
                 onChange={(e) => m.change(n, e.target.value)} onBlur={() => void m.saveNow()} />
               {(view.draft?.sections[n]?.ai_blocks ?? []).map((b) => (
