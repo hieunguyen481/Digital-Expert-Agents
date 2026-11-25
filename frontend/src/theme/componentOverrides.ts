@@ -122,8 +122,8 @@ export const componentOverrides: ThemeConfig['components'] = {
   },
   Table: {
     borderRadiusLG: radius.md,
-    headerBg: colors.surface2,
-    headerColor: colors.ink,
+    headerBg: colors.surface,
+    headerColor: colors.ink3,
     headerSplitColor: 'transparent',
     borderColor: colors.rule,
     rowHoverBg: colors.surface2,

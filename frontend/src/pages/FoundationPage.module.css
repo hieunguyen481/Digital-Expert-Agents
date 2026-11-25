@@ -10,6 +10,6 @@
 .sw i { display: block; height: 40px; }
 .sw span { display: block; padding: 4px 8px; font-family: var(--font-num); }
 .row { display: flex; gap: var(--s3); flex-wrap: wrap; align-items: center; }
-.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); box-shadow: var(--sh-1); }
+.card { background: var(--surface); border-radius: var(--r-card); box-shadow: var(--sh-card); }
 .stateCard { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); }
 .note { color: var(--ink-3); font-size: var(--fs-12); }

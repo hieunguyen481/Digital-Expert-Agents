@@ -130,7 +130,9 @@
 @keyframes ui-pulse { 50% { box-shadow: 0 0 0 6px rgba(26, 110, 126, .08); } }
 
 /* ---- Bảng kiểu sổ cái: dùng className trên Table của Ant Design ---- */
-.ledger :global(.ant-table-thead > tr > th) { font-family: var(--font-body); font-variant-numeric: normal; border-bottom: 1px solid var(--rule-strong) !important; font-size: var(--fs-12); white-space: nowrap; }
+.ledger :global(.ant-table-thead > tr > th) { font-family: var(--font-body); font-variant-numeric: normal; background: transparent !important; color: var(--ink-3) !important; font-weight: 500 !important; border-bottom: 1px solid var(--rule) !important; font-size: var(--fs-12); white-space: nowrap; }
+.ledger :global(.ant-table-tbody > tr > td) { border-bottom-color: var(--line-soft) !important; }
+.ledger :global(.ant-table-tbody > tr:last-child > td) { border-bottom: 0 !important; }
 .ledger :global(.ant-table-tbody > tr:hover > td) { background: var(--surface-2) !important; }
 .ledger :global(.ant-table-tbody > tr.ant-table-row-selected > td) { background: var(--brand-50) !important; }
 .ledger :global(.ant-table-tbody > tr.ant-table-row-selected > td:first-child) { box-shadow: inset 3px 0 0 var(--brand-700); }
@@ -144,3 +146,7 @@
 /* Hạn xử lý trong bảng: chữ màu, không nhãn (chỉ quá hạn mới thành nhãn đỏ). */
 .dueText { font-size: var(--fs-13); color: var(--ink-2); white-space: nowrap; }
 .dueWarn { color: var(--warn-700); font-weight: 600; }
+/* v5: bảng thẳng lề với tiêu đề thẻ (lề trong 20px ở cột đầu và cột cuối) */
+.ledger :global(.ant-table-thead > tr > th:first-child), .ledger :global(.ant-table-tbody > tr > td:first-child) { padding-left: var(--s5) !important; }
+.ledger :global(.ant-table-thead > tr > th:last-child), .ledger :global(.ant-table-tbody > tr > td:last-child) { padding-right: var(--s5) !important; }
+.ledger :global(.ant-table) { background: transparent; }

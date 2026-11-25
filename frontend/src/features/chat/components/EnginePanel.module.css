@@ -1,14 +1,14 @@
 /* Thẻ kết quả đội agent trong câu trả lời: khối AI (xám nhạt, viền liền) lồng trong tin trợ lý; quyết định của người là khối brand viền liền. */
-.panel { margin-top: var(--s3); padding: var(--s3) var(--s4); background: var(--surface); border: 1px solid var(--rule-strong); border-radius: var(--r-md); font-size: var(--fs-13); }
+.panel { margin-top: var(--s3); padding: var(--s4); background: var(--surface); border: 0; box-shadow: 0 0 0 1px var(--line-soft); border-radius: var(--r-card); font-size: var(--fs-13); }
 .head { display: flex; align-items: center; gap: var(--s2); color: var(--ai-700); }
 .head strong { font-size: var(--fs-13); font-weight: 600; margin-right: auto; }
 .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: var(--s3); }
 .step { display: inline-flex; align-items: center; gap: 4px; }
 .arrow { color: var(--ink-3); }
-.planner, .agent { padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid var(--rule); background: var(--paper); color: var(--ink-2); }
-.planner { background: var(--ai-100); border-color: var(--ai-500); color: var(--ai-700); }
+.planner, .agent { padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; border: 0; background: var(--surface-2); color: var(--ink-2); }
+.planner { background: var(--ai-100); color: var(--ai-700); }
 .verdicts { list-style: none; margin: var(--s3) 0 0; padding: 0; display: grid; gap: var(--s2); }
-.verdicts li { display: grid; gap: 2px; padding-top: var(--s2); border-top: 1px solid var(--rule); }
+.verdicts li { display: grid; gap: 2px; padding-top: var(--s2); border-top: 1px solid var(--line-soft); }
 .vhead { display: flex; align-items: center; gap: var(--s2); }
 .vtext { color: var(--ink); line-height: 1.55; max-width: 72ch; }
 .sources { margin-top: var(--s3); color: var(--ink-2); }
@@ -16,5 +16,5 @@
 .sources ul { margin: var(--s2) 0 0; padding-left: 18px; }
 .srcTag { font-family: var(--font-num); font-size: 12px; font-weight: 600; color: var(--brand-700); }
 .raw { font-family: var(--font-num); font-size: 12px; color: var(--ink-3); }
-.confirm { margin-top: var(--s3); padding: var(--s3) var(--s4); background: var(--surface); border: 1px solid var(--brand-700); border-left: 4px solid var(--brand-700); border-radius: var(--r-md); }
+.confirm { margin-top: var(--s3); padding: var(--s4); background: var(--brand-50); border-radius: var(--r-card); }
 .confirmLead { margin: var(--s2) 0; font-weight: 600; color: var(--brand-700); }

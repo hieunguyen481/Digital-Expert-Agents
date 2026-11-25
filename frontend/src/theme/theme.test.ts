@@ -63,7 +63,7 @@ describe('theme Ant Design', () => {
     for (const name of ['Button', 'Input', 'Select', 'Table', 'Tabs', 'Tag', 'Badge', 'Steps', 'Segmented', 'Modal', 'Drawer', 'Message', 'Alert']) {
       expect(c[name], name).toBeTruthy();
     }
-    expect(c.Table.headerBg).toBe('#F7F9FA');
+    expect(c.Table.headerBg).toBe('#FFFFFF'); // v5: đầu bảng không tô nền
     expect(c.Tabs.inkBarColor).toBe('#D29A2E');
   });
 

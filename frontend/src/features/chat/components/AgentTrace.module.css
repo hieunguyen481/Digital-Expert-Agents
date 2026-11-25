@@ -1,6 +1,7 @@
 .wrapper {
-  border: 1px solid var(--rule);
-  border-radius: var(--r-lg);
+  border: 0;
+  box-shadow: 0 0 0 1px var(--line-soft);
+  border-radius: var(--r-card);
   background: var(--surface);
   overflow: hidden;
 }

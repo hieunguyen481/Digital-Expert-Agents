@@ -23,7 +23,7 @@
 
 .card:hover {
   border-color: var(--amber-100);
-  box-shadow: var(--sh-1);
+  box-shadow: var(--sh-card);
 }
 
 .card:focus-visible {
@@ -113,9 +113,9 @@
   margin-top: 12px;
   padding: 11px 12px;
   border: 1px solid var(--amber-100);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-card);
   background: var(--surface-2);
-  box-shadow: var(--sh-1);
+  box-shadow: var(--sh-card);
 }
 
 .actionCount {

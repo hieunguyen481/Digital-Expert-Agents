@@ -110,9 +110,15 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
         const a = rowAction(r, readOnly);
         return (
           <div className={styles.rowAct}>
-            <Button size="small" type={r.loan_application_id === firstMine ? 'primary' : 'default'} onClick={() => navigate(a.to)} aria-label={`${a.label} ${loanCodeLabel(r.application_number, r.status)}`}>
-              {a.label}
-            </Button>
+            {r.loan_application_id === firstMine ? (
+              <Button size="small" type="primary" onClick={() => navigate(a.to)} aria-label={`${a.label} ${loanCodeLabel(r.application_number, r.status)}`}>
+                {a.label}
+              </Button>
+            ) : (
+              <Link to={a.to} className={styles.rowLink} aria-label={`${a.label} ${loanCodeLabel(r.application_number, r.status)}`}>
+                {a.label} <span aria-hidden>→</span>
+              </Link>
+            )}
             {hasAi && (
               <Button
                 size="small"
@@ -149,7 +155,11 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
         dataSource={items}
         loading={loading}
         pagination={false}
-        rowClassName={(r) => (r.mine ? '' : styles.dim)}
+        rowClassName={(r) => `${styles.clickRow} ${r.mine ? '' : styles.dim}`}
+        // Bấm vào bất kỳ chỗ nào trên dòng để mở hồ sơ (trừ khi bấm vào nút hoặc liên kết trong dòng).
+        onRow={(r) => ({
+          onClick: (e) => { if (!(e.target as HTMLElement).closest('a,button')) navigate(rowAction(r, readOnly).to); },
+        })}
         locale={{
           emptyText: (
             <StateBlock

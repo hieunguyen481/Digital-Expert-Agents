@@ -8,9 +8,8 @@
   padding: 18px;
   text-align: left;
   background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-1);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
   cursor: pointer;
   /* Hover/focus đơn giản -> CSS transition, không dùng Motion. */
   transition:

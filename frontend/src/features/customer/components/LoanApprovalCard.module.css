@@ -1,9 +1,8 @@
 .card {
-  border: 1px solid var(--rule);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-card);
   background: var(--surface);
   overflow: hidden;
-  box-shadow: var(--sh-1);
+  box-shadow: var(--sh-card);
 }
 
 .header {

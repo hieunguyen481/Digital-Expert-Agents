@@ -2,10 +2,9 @@
   position: relative;
   overflow: hidden;
   padding: 18px 18px 18px 21px;
-  border: 1px solid var(--rule);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-card);
   background: var(--surface);
-  box-shadow: var(--sh-1);
+  box-shadow: var(--sh-card);
 }
 
 /* Dải cam mảnh bên trái — dấu hiệu thương hiệu, không phải banner. */

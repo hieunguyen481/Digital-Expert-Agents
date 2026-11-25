@@ -34,7 +34,7 @@
 
 .card:hover {
   border-color: var(--amber-500);
-  box-shadow: var(--sh-1);
+  box-shadow: var(--sh-card);
 }
 
 .cardHeader {
