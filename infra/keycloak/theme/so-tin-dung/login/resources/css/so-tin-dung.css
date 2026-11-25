@@ -1,125 +1,159 @@
-/* Theme đăng nhập "Sổ Tín Dụng" (mockup 22): nền giấy, thẻ phẳng viền mảnh, nút navy, chữ Be Vietnam Pro.
-   Phủ lên keycloak.v2 (PatternFly v5). Màu lấy từ docs/design/mockups-v2/tokens.css. */
+/* Theme đăng nhập "Sổ Tín Dụng" (v5): cùng bố cục và màu với trang /login của ứng dụng (frontend LoginPage).
+   Bên trái nền brand trơn: logo, một tiêu đề, một đoạn giới thiệu, dòng chân. Bên phải: form không khung, ô nhập 44px.
+   Phủ lên keycloak.v2 (PatternFly v5). Màu lấy từ frontend/src/styles/tokens.css. */
 :root {
-  --sk-paper: #F1F2EE; --sk-surface: #FBFBF8; --sk-navy: #14284B; --sk-navy-900: #14284B;
-  --sk-ink: #1B2430; --sk-ink-3: #5E6573; --sk-rule: #D3D7CC; --sk-control: #6F7660; --sk-danger: #A8281D;
-  --pf-v5-global--primary-color--100: var(--sk-navy);
-  --pf-v5-global--primary-color--200: var(--sk-navy-900);
-  --pf-v5-global--primary-color--dark-100: var(--sk-navy-900);
-  --pf-v5-global--link--Color: var(--sk-navy);
-  --pf-v5-global--link--Color--hover: var(--sk-navy-900);
+  --sk-paper: #F3F5F6; --sk-surface: #FFFFFF; --sk-brand-900: #0A3640; --sk-brand-700: #0E4D5A; --sk-brand-500: #1A6E7E;
+  --sk-amber: #D29A2E; --sk-ink: #172229; --sk-ink-3: #57646B; --sk-input: #B1BDC2; --sk-input-hover: #8C9AA0;
+  --sk-danger: #A8281D; --sk-tint-bad: #FBEBE8; --sk-tint-warn: #FBF3E2; --sk-tint-info: #EAF1FA;
+  --pf-v5-global--primary-color--100: var(--sk-brand-700);
+  --pf-v5-global--primary-color--200: var(--sk-brand-900);
+  --pf-v5-global--primary-color--dark-100: var(--sk-brand-900);
+  --pf-v5-global--link--Color: var(--sk-brand-700);
+  --pf-v5-global--link--Color--hover: var(--sk-brand-900);
   --pf-v5-global--FontFamily--text: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --pf-v5-global--FontFamily--heading: 'Newsreader', Georgia, serif;
+  --pf-v5-global--FontFamily--heading: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --keycloak-bg-logo-url: none;
   --keycloak-card-top-color: transparent;
 }
-.login-pf body { background: var(--sk-paper) !important; color: var(--sk-ink); font-family: var(--pf-v5-global--FontFamily--text); }
-.pf-v5-c-login__container { max-width: 440px; }
-.pf-v5-c-login__header { text-align: left; }
-.pf-v5-c-login__container > header, #kc-header, #kc-header-wrapper { text-align: left !important; justify-content: flex-start; }
+.login-pf body {
+  background: var(--sk-paper) !important; color: var(--sk-ink);
+  font-family: var(--pf-v5-global--FontFamily--text); -webkit-font-smoothing: antialiased;
+}
+.pf-v5-c-login { background: transparent !important; }
+.pf-v5-c-login__container { max-width: 380px; width: 100%; padding: 0 16px; box-sizing: content-box; }
+
+/* Logo: ô brand, chữ S trắng, gạch chân vàng đồng; tên sản phẩm và dòng mô tả bên cạnh. */
+.pf-v5-c-login__header {
+  display: grid; grid-template-columns: 40px auto; column-gap: 10px; align-items: center;
+  margin: 0 0 32px; padding: 0; text-align: left;
+}
 .pf-v5-c-login__header::before {
-  content: ''; display: block; width: 36px; height: 36px; margin-bottom: 12px;
+  content: ''; width: 40px; height: 40px; grid-row: 1 / span 2;
   background: url('../img/so-tin-dung-mark.svg') no-repeat center / contain;
 }
-#kc-header-wrapper, .pf-v5-c-brand { color: var(--sk-ink) !important; font: 600 20px 'Newsreader', Georgia, serif; letter-spacing: 0; text-transform: none; }
-.pf-v5-c-login__main {
-  background: var(--sk-surface); border: 1px solid var(--sk-rule); border-radius: 6px; box-shadow: none; overflow: hidden;
-  color: var(--sk-ink);
+#kc-header-wrapper, .pf-v5-c-brand {
+  grid-column: 2; margin: 0; padding: 0; text-align: left !important;
+  color: var(--sk-ink) !important; font: 700 20px/1.15 'Be Vietnam Pro', system-ui, sans-serif;
+  letter-spacing: -0.01em; text-transform: none; white-space: nowrap;
 }
-#kc-page-title, .pf-v5-c-login__main .pf-v5-c-title { font: 600 26px/1.2 'Newsreader', Georgia, serif; color: var(--sk-ink); }
+#kc-header-wrapper::after {
+  content: 'Tín dụng doanh nghiệp'; display: block; margin-top: 2px;
+  font: 400 12px/1.3 'Be Vietnam Pro', system-ui, sans-serif; letter-spacing: 0; color: var(--sk-ink-3);
+}
+
+/* Form không khung: không viền, không bóng, nằm thẳng trên nền. */
+.pf-v5-c-login__main {
+  background: transparent !important; border: 0 !important; box-shadow: none !important; border-radius: 0;
+  margin: 0; padding: 0; color: var(--sk-ink); overflow: visible;
+}
+.pf-v5-c-login__main-header, .pf-v5-c-login__main-body, .pf-v5-c-login__main-footer { padding-left: 0 !important; padding-right: 0 !important; }
+.pf-v5-c-login__main-header { padding-top: 0 !important; padding-bottom: 0 !important; display: block; }
+.pf-v5-c-login__main-body { padding-top: 24px !important; padding-bottom: 0 !important; }
+.pf-v5-c-login__main-footer { padding-top: 0 !important; padding-bottom: 0 !important; }
+#kc-page-title, .pf-v5-c-login__main .pf-v5-c-title {
+  font: 600 30px/1.2 'Be Vietnam Pro', system-ui, sans-serif; letter-spacing: -0.02em; color: var(--sk-ink); margin: 0;
+}
+#kc-page-title::after {
+  content: 'Dùng tài khoản nội bộ của ngân hàng.'; display: block; margin-top: 8px;
+  font: 400 14px/1.5 'Be Vietnam Pro', system-ui, sans-serif; letter-spacing: 0; color: var(--sk-ink-3);
+}
+
+/* Nhãn và ô nhập. */
+.pf-v5-c-form { gap: 18px; }
+.pf-v5-c-form__group-label { padding-bottom: 6px !important; }
 .pf-v5-c-form__label-text { color: var(--sk-ink); font-weight: 500; font-size: 13px; }
-.pf-v5-c-form-control { background: #fff; border-radius: 6px; --pf-v5-c-form-control--BorderColor: var(--sk-control); }
-.pf-v5-c-button.pf-m-primary { background-color: var(--sk-navy); border-radius: 6px; font-weight: 600; min-height: 44px; }
-.pf-v5-c-button.pf-m-primary:hover { background-color: var(--sk-navy-900); }
-.pf-v5-c-button:focus-visible, a:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 5px var(--sk-navy); }
-.pf-v5-c-alert.pf-m-danger, .pf-v5-c-alert.pf-m-warning, .pf-v5-c-alert.pf-m-info { border-radius: 6px; }
+.pf-v5-c-form__label-required { display: none; }
+.pf-v5-c-form-control::before, .pf-v5-c-form-control::after { display: none !important; }
+.pf-v5-c-form-control {
+  background: var(--sk-surface); border: 1px solid var(--sk-input); border-radius: 8px; min-height: 44px;
+  transition: border-color .12s ease, box-shadow .12s ease;
+}
+.pf-v5-c-form-control > input { font-size: 15px; padding: 10px 12px; color: var(--sk-ink); }
+.pf-v5-c-form-control:hover { border-color: var(--sk-input-hover); }
+.pf-v5-c-form-control > input, .pf-v5-c-form-control > input:focus, .pf-v5-c-form-control > input:focus-visible { outline: none !important; box-shadow: none !important; border: 0 !important; }
+.pf-v5-c-form-control.pf-m-error, .pf-v5-c-form-control:has(> input[aria-invalid='true']) { --pf-v5-c-form-control--focus--BorderBottomColor: transparent; }
+.pf-v5-c-form-control:focus-within {
+  border-color: var(--sk-brand-500); box-shadow: 0 0 0 3px rgba(26, 110, 126, .18); outline: none;
+}
+/* Ô mật khẩu: viền nằm ở nhóm, nút con mắt nằm trong ô. */
+.pf-v5-c-input-group {
+  background: var(--sk-surface); border: 1px solid var(--sk-input); border-radius: 8px; align-items: stretch;
+  transition: border-color .12s ease, box-shadow .12s ease;
+}
+.pf-v5-c-input-group:hover { border-color: var(--sk-input-hover); }
+.pf-v5-c-input-group:focus-within { border-color: var(--sk-brand-500); box-shadow: 0 0 0 3px rgba(26, 110, 126, .18); }
+.pf-v5-c-input-group .pf-v5-c-form-control { border: 0; box-shadow: none !important; background: transparent; }
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control {
+  border: 0; background: transparent; color: var(--sk-ink-3); border-radius: 0 8px 8px 0; min-width: 44px;
+}
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control:hover { color: var(--sk-ink); text-decoration: none; }
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control::before, .pf-v5-c-input-group .pf-v5-c-button.pf-m-control::after { display: none !important; }
+.pf-v5-c-form-control.pf-m-error, .pf-v5-c-form-control:has(> input[aria-invalid='true']),
+.pf-v5-c-input-group:has([aria-invalid='true']) { border-color: var(--sk-danger); }
+.pf-v5-c-form-control:has(> input[aria-invalid='true']):focus-within { box-shadow: 0 0 0 3px rgba(168, 40, 29, .15); }
 .pf-v5-c-helper-text__item.pf-m-error, .kc-feedback-text { color: var(--sk-danger); }
 
-/* Focus ô nhập: viền navy 3px; nút con mắt không gạch chân. */
-.pf-v5-c-form-control:focus-within, .pf-v5-c-input-group:focus-within { box-shadow: 0 0 0 3px var(--sk-navy); border-color: var(--sk-navy); outline: none; }
-.pf-v5-c-input-group .pf-v5-c-form-control:focus-within { box-shadow: none; }
-.pf-v5-c-input-group .pf-v5-c-button.pf-m-control, .pf-v5-c-input-group .pf-v5-c-button.pf-m-control:hover, .pf-v5-c-input-group .pf-v5-c-button.pf-m-control:focus { text-decoration: none; }
-.pf-v5-c-input-group .pf-v5-c-button.pf-m-control::before, .pf-v5-c-input-group .pf-v5-c-button.pf-m-control::after { display: none !important; }
+/* Nút chính và lời nhắc bên dưới. */
+.pf-v5-c-form__actions { margin: 6px 0 0 !important; display: block; }
+.pf-v5-c-form__actions > * { margin: 0 !important; width: 100%; }
+.pf-v5-c-button.pf-m-primary {
+  background-color: var(--sk-brand-700); border-radius: 8px; font-weight: 600; font-size: 15px; min-height: 44px;
+  transition: background-color .12s ease;
+}
+.pf-v5-c-button.pf-m-primary:hover { background-color: var(--sk-brand-900); }
+.pf-v5-c-button:focus-visible, a:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--sk-paper), 0 0 0 4px var(--sk-brand-500); }
+#kc-form-login::after {
+  content: 'Quên mật khẩu hoặc bị khóa tài khoản: liên hệ Quản trị hệ thống.'; display: block;
+  font: 400 12px/1.5 'Be Vietnam Pro', system-ui, sans-serif; color: var(--sk-ink-3);
+}
 
-/* Một tiêu đề duy nhất: tên sản phẩm ở đầu thẻ, "Đăng nhập" là h1; logo và tên cùng trục trái. */
-#kc-header-wrapper::after { content: 'Tín dụng doanh nghiệp'; display: block; margin-top: 2px; font: 400 13px 'Be Vietnam Pro', system-ui, sans-serif; color: var(--sk-ink-3); }
-#kc-page-title::after { content: 'Dùng tài khoản nội bộ.'; display: block; margin: 8px 0 4px; font: 400 14px 'Be Vietnam Pro', system-ui, sans-serif; color: var(--sk-ink-3); }
-/* Ghi rõ trường bắt buộc bằng chữ, không chỉ dấu sao. */
-.pf-v5-c-form__label-required { font-size: 0; }
-.pf-v5-c-form__label-required::before { content: ' (bắt buộc)'; font-size: 12px; font-weight: 400; color: var(--sk-ink-3); }
-/* Hai ô nhập cùng một kiểu viền đủ bốn cạnh, nút hiện mật khẩu nằm trong ô. */
-.pf-v5-c-form-control, .pf-v5-c-input-group .pf-v5-c-form-control { border: 1px solid var(--sk-control); border-radius: 6px; }
-.pf-v5-c-form-control::before, .pf-v5-c-form-control::after { display: none !important; }
-.pf-v5-c-input-group { border: 1px solid var(--sk-control); border-radius: 6px; background: #fff; align-items: stretch; }
-.pf-v5-c-input-group .pf-v5-c-form-control { border: 0; }
-.pf-v5-c-input-group .pf-v5-c-button.pf-m-control { border: 0; background: transparent; border-radius: 0 6px 6px 0; }
-.pf-v5-c-form-control.pf-m-error, .pf-v5-c-form-control[aria-invalid='true'] { border-color: var(--sk-danger); }
+/* Thông báo lỗi/cảnh báo: nền nhạt, không viền, như các trang trong ứng dụng. */
+.pf-v5-c-alert {
+  border: 0 !important; border-radius: 8px; box-shadow: none; padding: 10px 12px; margin-bottom: 4px;
+  --pf-v5-c-alert--BorderTopWidth: 0; font-size: 13px;
+}
+.pf-v5-c-alert::before { display: none !important; }
+.pf-v5-c-alert.pf-m-danger { background: var(--sk-tint-bad); }
+.pf-v5-c-alert.pf-m-warning { background: var(--sk-tint-warn); }
+.pf-v5-c-alert.pf-m-info { background: var(--sk-tint-info); }
+.pf-v5-c-alert__title { font-weight: 500; color: var(--sk-ink); }
 
-/* Bố cục chia đôi giống trang đăng nhập của ứng dụng (frontend LoginPage): cột trái 1,1fr/1fr (52,38vw), panel navy có logo,
-   tiêu đề 3 dòng, đoạn giới thiệu, sơ đồ "AI đề xuất → người quyết định", ba thẻ (AI đề xuất, Người quyết định, đội agent),
-   dòng kẻ sổ và đường lề vàng đồng; bên phải chỉ còn thẻ đăng nhập.
-   Chỉ có từ 960px; màn hẹp giữ thẻ căn giữa trên nền giấy. Chỉ CSS: dùng ::before/::after của html, body và .pf-v5-c-login làm các khối chữ.
-   Vị trí dọc lấy theo trang đăng nhập của ứng dụng ở 1366x768; dưới 1070px đoạn giới thiệu dài 4 dòng nên các khối dưới dịch --sh. */
+/* Màn rộng: chia đôi như trang /login của ứng dụng; panel trái dựng bằng ::before/::after (chỉ CSS). */
 @media (min-width: 960px) {
-  :root { --lm: 72px; --pw: 52.38vw; --cw: min(calc(var(--pw) - var(--lm) - 56px), 414px); --sh: 24px; }
+  :root { --lm: 72px; --pw: 52.38vw; }
   .login-pf body::before {
-    content: 'Mỗi hồ sơ vay có một người chịu trách nhiệm.';
-    position: fixed; inset: 0 auto 0 0; width: var(--pw); box-sizing: border-box; z-index: 0;
-    padding: 137px calc(var(--pw) - var(--lm) - 360px) 0 var(--lm);
-    background:
-      linear-gradient(to right, transparent 72px, rgba(176, 138, 62, .55) 72px 74px, transparent 74px),
-      repeating-linear-gradient(to bottom, transparent 0 35px, rgba(255, 255, 255, .06) 35px 36px),
-      var(--sk-navy);
-    color: #fff; font: 600 40px/1.15 'Newsreader', Georgia, serif;
+    content: ''; position: fixed; inset: 0 auto 0 0; width: var(--pw); z-index: 0; background: var(--sk-brand-900);
   }
+  /* Tiêu đề và đoạn giới thiệu, căn giữa theo chiều dọc. */
   .login-pf body::after {
-    content: 'Đội agent đọc hồ sơ, tính chỉ số và nêu rủi ro để người phụ trách hồ sơ làm nhanh hơn. Người có thẩm quyền vẫn là người quyết định.';
-    position: fixed; left: 0; top: 294px; width: min(var(--pw), 560px); box-sizing: border-box; padding: 0 56px 0 var(--lm); z-index: 0;
-    color: #DCE4F1; font: 400 15px/1.55 'Be Vietnam Pro', system-ui, sans-serif;
+    content: 'Thẩm định hồ sơ\A vay doanh nghiệp';
+    white-space: pre-line; position: fixed; left: var(--lm); top: calc(50% - 96px); z-index: 1;
+    color: #fff; font: 700 40px/1.15 'Be Vietnam Pro', system-ui, sans-serif; letter-spacing: -0.02em;
   }
   .login-pf::before {
-    content: 'AI đề xuất  →  Chuyên viên xem và sửa\A →  Người có thẩm quyền quyết định';
-    white-space: pre-line;
-    position: fixed; left: 0; top: calc(382px + var(--sh)); width: min(var(--pw), 560px); box-sizing: border-box; padding: 0 56px 0 var(--lm); z-index: 1;
-    color: #fff; font: 600 13px/28px 'Be Vietnam Pro', system-ui, sans-serif;
-  }
-  /* Ba thẻ: AI đề xuất (nét đứt, nền tím nhạt), Người quyết định (viền liền, thanh navy bên trái), đội agent. */
-  .login-pf::after, .pf-v5-c-login::before, .pf-v5-c-login::after {
-    position: fixed; left: var(--lm); width: var(--cw); box-sizing: border-box; z-index: 1;
-    padding: 10px 14px; border-radius: 6px; color: var(--sk-ink); font: 400 13px/1.5 'Be Vietnam Pro', system-ui, sans-serif;
+    content: 'Đội agent đọc báo cáo tài chính, CIC và tài sản bảo đảm, tính chỉ số và nêu rủi ro. Chuyên viên kiểm tra, người có thẩm quyền quyết định.';
+    position: fixed; left: var(--lm); top: calc(50% + 22px); z-index: 1;
+    width: min(calc(var(--pw) - var(--lm) - 56px), 480px);
+    color: #C9DEE2; font: 400 16px/1.6 'Be Vietnam Pro', system-ui, sans-serif;
   }
   .login-pf::after {
-    content: 'Viền nét đứt, nền tím nhạt: nội dung do AI sinh, chưa xác nhận.';
-    top: calc(443px + var(--sh)); height: 60px; display: flex; align-items: center; padding-left: 108px; z-index: 0; /* dưới khung đăng nhập để chip của nó nằm trên */
-    border: 1.5px dashed #6B4FB8; background: #F3F0FA;
+    content: 'Hệ thống nội bộ · chỉ dành cho cán bộ tín dụng';
+    position: fixed; left: var(--lm); bottom: 48px; z-index: 1;
+    color: #9FBFC6; font: 400 13px/1.4 'Be Vietnam Pro', system-ui, sans-serif;
   }
-  .pf-v5-c-login::before {
-    content: 'Viền liền, thanh navy: quyết định của Cấp phê duyệt hoặc Hội đồng.';
-    top: calc(513px + var(--sh)); height: 60px; display: flex; align-items: center; padding-left: 150px;
-    border: 1px solid var(--sk-rule); border-left: 4px solid var(--sk-navy); background: var(--sk-surface);
+  /* Logo lên góc trên trái của panel, chữ trắng. */
+  .pf-v5-c-login__header { position: fixed; top: 48px; left: var(--lm); z-index: 2; margin: 0; }
+  .pf-v5-c-login__header::before { background-image: url('../img/so-tin-dung-mark-dark.svg'); }
+  #kc-header-wrapper, .pf-v5-c-brand { color: #fff !important; }
+  #kc-header-wrapper::after { color: #A9CBD2; }
+  .pf-v5-c-login {
+    position: relative; z-index: 1; margin-left: var(--pw); min-height: 100vh;
+    display: grid; place-items: center; padding: 32px;
   }
-  .pf-v5-c-login::after {
-    content: 'Đội agent, cùng một sơ đồ ở mọi màn hình:\A Planner → Credit · Compliance · Operations\A Document → Validation\A → Người quyết định, ngoài khung AI';
-    white-space: pre-line; top: calc(582px + var(--sh)); border: 1px solid var(--sk-rule); background: var(--sk-surface); line-height: 1.7;
-  }
-  /* Chip của hai thẻ như trang đăng nhập của ứng dụng: "AI đề xuất" tím nhạt, "Người quyết định" navy đặc. Dùng ::before/::after của khung chứa. */
-  .pf-v5-c-login__container::before, .pf-v5-c-login__container::after {
-    position: fixed; z-index: 2; box-sizing: border-box; padding: 1px 7px; border-radius: 4px;
-    font: 600 12px/20px 'Be Vietnam Pro', system-ui, sans-serif; white-space: nowrap;
-  }
-  .pf-v5-c-login__container::before { content: 'AI đề xuất'; left: calc(var(--lm) + 14px); top: calc(463px + var(--sh)); color: #4F3590; background: #E9E3F6; }
-  .pf-v5-c-login__container::after { content: 'Người quyết định'; left: calc(var(--lm) + 18px); top: calc(533px + var(--sh)); color: #fff; background: #14284B; }
-  /* Logo và tên sản phẩm chuyển sang góc trên trái của panel navy, như trang đăng nhập của ứng dụng. */
-  .pf-v5-c-login__header {
-    position: fixed; top: 48px; left: var(--lm); z-index: 2; margin: 0;
-    display: grid; grid-template-columns: 36px auto; column-gap: 12px; align-items: start; padding: 0;
-  }
-  .pf-v5-c-login__header::before { margin: 0; grid-row: 1; grid-column: 1; }
-  #kc-header-wrapper { grid-column: 2; grid-row: 1; margin: 0; padding: 0; color: #fff !important; }
-  #kc-header-wrapper::after { color: #C9D3E6; }
-  .pf-v5-c-login { position: relative; z-index: 1; margin-left: var(--pw); background: transparent !important; }
 }
-@media (min-width: 1070px) { :root { --sh: 0px; } }
-/* Màn thấp: bỏ thẻ cuối rồi thẻ giữa để không tràn khỏi panel. */
-@media (min-width: 960px) and (max-height: 760px) { .pf-v5-c-login::after { display: none; } }
-@media (min-width: 960px) and (max-height: 680px) { .pf-v5-c-login::before, .pf-v5-c-login__container::after { display: none; } }
+/* Màn thấp: bỏ đoạn giới thiệu để không đè lên logo hay dòng chân. */
+@media (min-width: 960px) and (max-height: 600px) { .login-pf::before { display: none; } }
+/* Màn hẹp: căn giữa trên nền giấy, logo trên tiêu đề. */
+@media (max-width: 959px) {
+  .pf-v5-c-login { min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 48px 0 32px; }
+}
