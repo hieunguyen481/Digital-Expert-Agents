@@ -54,7 +54,7 @@ export function OverviewTab() {
           <div><dt>{TERM.toolCalls}</dt><dd>{fmtInt(s.tool_calls)} lần</dd></div>
           <div><dt>{TERM.challenge}</dt><dd>{fmtInt(s.challenges)} lần</dd></div>
           {avg && <div><dt>Thời gian trung bình</dt><dd>{avg[0]} {avg[1]}</dd></div>}
-          {s.cost_usd != null && <div><dt>Chi phí LLM</dt><dd>{fmtDec(s.cost_usd, 2)} USD <small>· {fmtInt(s.llm_calls)} lượt gọi</small></dd></div>}
+          {s.cost_usd != null && <div><dt>Chi phí LLM</dt><dd>{fmtDec(s.cost_usd, 2)} USD <small>{fmtInt(s.llm_calls)} lượt gọi</small></dd></div>}
         </dl>
       </section>
 

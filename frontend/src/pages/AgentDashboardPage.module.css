@@ -12,7 +12,7 @@
 .summaryList { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--s4) var(--s5); border-left: 1px solid var(--rule); padding-left: var(--s6); }
 .summaryList dt { font-size: var(--fs-12); color: var(--ink-3); }
 .summaryList dd { margin: 2px 0 0; font-size: var(--fs-16); font-weight: 600; color: var(--ink); }
-.summaryList small { font-size: var(--fs-12); font-weight: 400; color: var(--ink-3); }
+.summaryList small { display: block; font-size: var(--fs-12); font-weight: 400; color: var(--ink-3); }
 
 .card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-lg); box-shadow: var(--sh-1); min-width: 0; }
 .cardHead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; padding: var(--s4) var(--s5); border-bottom: 1px solid var(--rule); }
