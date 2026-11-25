@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 # Mo demo ra internet bang mot link https (Cloudflare quick tunnel), chay tren chinh may nay.
-# Dung:  public-demo.sh on | off | url
+# Dung:  public-demo.sh on | off | url | pages
 #   on  : dung web ban "cung nguon" -> proxy mot cong (localhost:8088) -> tunnel; dang ky link vao Keycloak,
 #         backend va engine nhan token cap qua link do. Chay lai bat cu luc nao (vd. sau khi khoi dong lai may).
 #   off : tat proxy + tunnel, dua backend/engine/Keycloak ve cau hinh chi chay local.
 #   url : in link dang mo.
 # Luu y: khi dang bat, URL ky san cua MinIO tro ve link cong khai, nen hay dung link cong khai (khong dung localhost:3000)
-#        de tai tai lieu; chay e2e thi tat truoc. Link doi moi lan tunnel duoc tao lai.
+#        de tai tai lieu; chay e2e thi tat truoc. Link tunnel doi moi lan tunnel duoc tao lai.
+# Link CO DINH: neu infra/.env.local co CF_API_TOKEN va CF_ACCOUNT_ID, script dang mot trang chuyen huong len
+#        Cloudflare Pages (https://<CF_PAGES_PROJECT>.pages.dev, mac dinh duskdash-demo) tro toi link tunnel hien tai.
+#        Gui/ghi link .pages.dev nay; moi lan "on" no tu cap nhat. "off" thay bang trang bao demo dang tat.
 set -euo pipefail
 infra_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 repo_dir="$(cd "$infra_dir/.." && pwd)"
@@ -48,6 +51,40 @@ print(json.dumps({"redirectUris": r, "webOrigins": w, "attributes": {"post.logou
       --config /tmp/kcadm-public.config -r bank-ai -f /tmp/patch.json && rm -f /tmp/patch.json /tmp/client.json"
 }
 
+# Doc mot bien tu .env.local (khong in ra man hinh).
+env_get() { grep -m1 "^$1=" "$infra_dir/.env.local" 2>/dev/null | cut -d= -f2- | sed -e 's/^["'"'"']//' -e 's/["'"'"']$//' || true; }
+
+# Cap nhat trang chuyen huong co dinh tren Cloudflare Pages. $1 = link tunnel, hoac "-" khi tat demo.
+pages_update() {
+  local token account project site
+  token="$(env_get CF_API_TOKEN)"; account="$(env_get CF_ACCOUNT_ID)"; project="$(env_get CF_PAGES_PROJECT)"; project="${project:-duskdash-demo}"
+  if [ -z "$token" ] || [ -z "$account" ]; then echo "   (bo qua link co dinh: chua co CF_API_TOKEN / CF_ACCOUNT_ID trong infra/.env.local)"; return 0; fi
+  site="$(mktemp -d)"
+  if [ "$1" = "-" ]; then
+    cat > "$site/index.html" <<'HTML'
+<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sổ Tín Dụng · demo</title><body style="font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:90vh;color:#172229">
+<div style="text-align:center"><h1 style="font-size:22px">Demo đang tạm tắt</h1><p style="color:#57646B">Vui lòng thử lại sau.</p></div></body></html>
+HTML
+  else
+    printf '/* %s/:splat 302\n' "$1" > "$site/_redirects"
+    cat > "$site/index.html" <<HTML
+<!doctype html><html lang="vi"><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=$1/">
+<title>Sổ Tín Dụng · demo</title><script>location.replace("$1/"+location.search+location.hash)</script>
+<body style="font-family:system-ui,sans-serif"><p>Đang mở demo… <a href="$1/">bấm vào đây nếu không tự chuyển</a>.</p></body></html>
+HTML
+  fi
+  local w="npx --yes wrangler@3.114.0"
+  export CLOUDFLARE_API_TOKEN="$token" CLOUDFLARE_ACCOUNT_ID="$account"
+  $w pages project list 2>/dev/null | grep -q " $project " || $w pages project create "$project" --production-branch main >/dev/null 2>&1 || true
+  if $w pages deploy "$site" --project-name "$project" --branch main --commit-dirty=true >/tmp/.pages-deploy.log 2>&1; then
+    echo "   link co dinh: https://$project.pages.dev"
+  else
+    echo "   cap nhat link co dinh LOI (xem /tmp/.pages-deploy.log)" >&2
+  fi
+  unset CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; rm -rf "$site"
+}
+
 recreate_services() {
   # Bien moi truong doc khi tao container: compose chi tao lai service co cau hinh doi
   dc up -d --no-deps keycloak backend-api backend-document-worker backend-outbox-publisher engine
@@ -83,6 +120,8 @@ case "${1:-url}" in
       [ "$code" = 200 ] && break; sleep 3
     done
     echo "Link demo: $url   (kiem tra Keycloak qua link: HTTP $code)"
+    echo "5/5 cap nhat link co dinh (Cloudflare Pages)"
+    pages_update "$url"
     ;;
   off)
     dc --profile public stop edge tunnel >/dev/null 2>&1 || true
@@ -91,6 +130,7 @@ case "${1:-url}" in
     recreate_services
     keycloak_origin "-"
     rm -f "$url_file"
+    pages_update "-"
     echo "Da tat link cong khai; he thong chi chay local."
     ;;
   url)
@@ -100,5 +140,10 @@ case "${1:-url}" in
       echo "Chua bat link cong khai (chay: $0 on)"
     fi
     ;;
-  *) echo "dung: $0 on|off|url" >&2; exit 2 ;;
+  pages)
+    # Chi cap nhat link co dinh theo link tunnel dang mo (khong dung lai gi khac).
+    [ -f "$url_file" ] || { echo "Chua bat link cong khai (chay: $0 on)" >&2; exit 1; }
+    pages_update "$(cat "$url_file")"
+    ;;
+  *) echo "dung: $0 on|off|url|pages" >&2; exit 2 ;;
 esac
