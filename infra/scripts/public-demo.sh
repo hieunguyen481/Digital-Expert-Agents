@@ -7,7 +7,7 @@
 #   url : in link dang mo.
 # Luu y: khi dang bat, URL ky san cua MinIO tro ve link cong khai, nen hay dung link cong khai (khong dung localhost:3000)
 #        de tai tai lieu; chay e2e thi tat truoc. Link tunnel doi moi lan tunnel duoc tao lai.
-# Link CO DINH: neu infra/.env.local co CF_API_TOKEN va CF_ACCOUNT_ID, script dang mot trang chuyen huong len
+# Link CO DINH: neu infra/.env.local co CF_ACCOUNT_ID (va CF_API_TOKEN co quyen Pages, hoac da "npx wrangler login"), script dang mot trang chuyen huong len
 #        Cloudflare Pages (https://<CF_PAGES_PROJECT>.pages.dev, mac dinh duskdash-demo) tro toi link tunnel hien tai.
 #        Gui/ghi link .pages.dev nay; moi lan "on" no tu cap nhat. "off" thay bang trang bao demo dang tat.
 set -euo pipefail
@@ -58,7 +58,7 @@ env_get() { grep -m1 "^$1=" "$infra_dir/.env.local" 2>/dev/null | cut -d= -f2- |
 pages_update() {
   local token account project site
   token="$(env_get CF_API_TOKEN)"; account="$(env_get CF_ACCOUNT_ID)"; project="$(env_get CF_PAGES_PROJECT)"; project="${project:-duskdash-demo}"
-  if [ -z "$token" ] || [ -z "$account" ]; then echo "   (bo qua link co dinh: chua co CF_API_TOKEN / CF_ACCOUNT_ID trong infra/.env.local)"; return 0; fi
+  [ -n "$account" ] || { echo "   (bo qua link co dinh: chua co CF_ACCOUNT_ID trong infra/.env.local)"; return 0; }
   site="$(mktemp -d)"
   if [ "$1" = "-" ]; then
     cat > "$site/index.html" <<'HTML'
@@ -75,7 +75,9 @@ HTML
 HTML
   fi
   local w="npx --yes wrangler@3.114.0"
-  export CLOUDFLARE_API_TOKEN="$token" CLOUDFLARE_ACCOUNT_ID="$account"
+  export CLOUDFLARE_ACCOUNT_ID="$account"
+  # Uu tien token trong .env.local neu no co quyen Cloudflare Pages; neu khong, dung phien "wrangler login" (OAuth) da dang nhap.
+  if [ -n "$token" ] && CLOUDFLARE_API_TOKEN="$token" $w pages project list >/dev/null 2>&1; then export CLOUDFLARE_API_TOKEN="$token"; fi
   $w pages project list 2>/dev/null | grep -q " $project " || $w pages project create "$project" --production-branch main >/dev/null 2>&1 || true
   if $w pages deploy "$site" --project-name "$project" --branch main --commit-dirty=true >/tmp/.pages-deploy.log 2>&1; then
     echo "   link co dinh: https://$project.pages.dev"
