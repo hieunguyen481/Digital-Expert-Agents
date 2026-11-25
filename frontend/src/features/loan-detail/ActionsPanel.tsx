@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Button, Input, Modal, Radio, Space } from 'antd';
-import { LockOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined, LockOutlined } from '@ant-design/icons';
 import { ActionButton, HumanBlock, StatusPill } from '@/components/ui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMe } from '@/auth/session';
@@ -154,14 +154,14 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
     const out: React.ReactNode[] = [];
     if (status === 'APPRAISAL' && has('credit_appraiser') && f.status === 'OPEN') {
       if (f.code === 'cickh') {
-        out.push(<Button key="warn" size="small" disabled={!!f.early_warned_at} onClick={() => reasonAction('Báo sớm Tuân thủ', 'Ghi chú (không bắt buộc)', 'Gửi báo sớm', (t) => earlyWarning(loanId, f.id, t), false)}>{f.early_warned_at ? 'Đã báo sớm' : 'Báo sớm Tuân thủ'}</Button>);
+        out.push(<Button key="warn" type="link" size="small" className={styles.linkBtn} disabled={!!f.early_warned_at} onClick={() => reasonAction('Báo sớm Tuân thủ', 'Ghi chú (không bắt buộc)', 'Gửi báo sớm', (t) => earlyWarning(loanId, f.id, t), false)}>{f.early_warned_at ? 'Đã báo sớm' : 'Báo sớm Tuân thủ'}</Button>);
       } else {
         const title = cleanAiLine(f.title);
-        out.push(<Button key="handle" size="small" aria-label={`Xử lý cờ: ${title}`} onClick={() => reasonAction(`Xử lý cờ: ${title}`, 'Ghi chú xử lý', 'Đã xử lý', (t) => handleFlag(loanId, f.id, t))}>Xử lý cờ này</Button>);
+        out.push(<Button key="handle" type="link" size="small" className={styles.linkBtn} aria-label={`Xử lý cờ: ${title}`} onClick={() => reasonAction(`Xử lý cờ: ${title}`, 'Ghi chú xử lý', 'Đã xử lý', (t) => handleFlag(loanId, f.id, t))}>Xử lý cờ này</Button>);
       }
     }
     if (status === 'RISK_REVIEW' && has('compliance_officer') && f.code === 'cickh' && f.status !== 'CONCLUDED') {
-      out.push(<Button key="conclude" size="small" onClick={() => open({ kind: 'conclude', flag: f })}>Kết luận cờ</Button>);
+      out.push(<Button key="conclude" type="link" size="small" className={styles.linkBtn} onClick={() => open({ kind: 'conclude', flag: f })}>Kết luận cờ</Button>);
     }
     return out;
   };
@@ -178,8 +178,10 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
       <HumanBlock title="Hành động" tag={decider ? 'Người quyết định' : uiRoleFromRoles(me.roles) === 'kiemtoan' ? 'Chỉ đọc' : null}>
       <div className={styles.stackTight}>
       {state.blockers.length > 0 && totalActions > 0 && (
-        <Alert type="warning" showIcon message="Chưa đủ điều kiện để trình"
-          description={<ul style={{ margin: 0, paddingLeft: 18 }}>{state.blockers.map((b) => <li key={b}>{BLOCKERS[b] ?? b}</li>)}</ul>} />
+        // Các điều kiện còn thiếu đã liệt kê ở khối Việc cần làm; ở đây chỉ một dòng nhắc, không lặp danh sách.
+        <span className={styles.warnLine} data-testid="actions-blocked" title={state.blockers.map((b) => BLOCKERS[b] ?? b).join('; ')}>
+          <ExclamationCircleOutlined aria-hidden /> Chưa trình được: còn {state.blockers.length} điều kiện ở khối Việc cần làm.
+        </span>
       )}
       {notHolderWhy && lockedByHolder && <Alert type="info" showIcon message={notHolderWhy} data-testid="not-holder-notice" />}
       {state.excluded && has('loan_approver') && status === 'APPROVAL' && <Alert type="error" showIcon message={E8_TEXT} data-testid="e8-notice" />}
@@ -191,7 +193,7 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
       ))}
       {overview.flags.filter((f) => flagButtons(f).length > 0).map((f) => (
         <div key={f.id} className={styles.item} data-testid="flag-actions">
-          <b>{cleanAiLine(f.title)}</b> <Space wrap>{flagButtons(f)}</Space>
+          <span className={styles.flagTitle}>{cleanAiLine(f.title)}</span> <Space wrap size={12}>{flagButtons(f)}</Space>
         </div>
       ))}
       {rework && status === 'DRAFT' && <span className={styles.note}>Đề xuất đang là bản nháp. Nút “Tiếp tục soạn đề xuất” ở đầu trang mở lại bản nháp để hoàn thiện và trình.</span>}

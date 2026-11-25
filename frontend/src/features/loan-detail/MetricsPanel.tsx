@@ -1,6 +1,5 @@
-import { KpiCard, StatusPill } from '@/components/ui';
 import { Link } from 'react-router-dom';
-import { KIND_LABEL, currencyWord, fmtDate, fmtNum, sourceTypeLabel } from './format';
+import { fmtDate, fmtNum, sourceTypeLabel } from './format';
 import type { Metric, MetricValue } from './types';
 import styles from './loan-detail.module.css';
 
@@ -20,10 +19,11 @@ function ValueCell({ loanId, metric, v }: { loanId: string; metric: Metric; v: M
   const chosen = metric.chosen?.field_id === v.field_id;
   return (
     <div className={styles.mVal} data-testid={`metric-${metric.code}-${v.kind}`}>
-      <span>{KIND_LABEL[v.kind]}: </span>
-      <span className={styles.mNum}>{v.kind === 'RECOMPUTED' ? '≈ ' : ''}{fmtNum(v.value_number, metric.unit)}</span>
-      {v.result && <>{' '}<StatusPill tone={v.result === 'PASS' ? 'ok' : 'bad'}>{v.result === 'PASS' ? 'Đạt' : 'Không đạt'}</StatusPill></>}
-      {chosen && <>{' '}<StatusPill tone="info">Nguồn đã chốt khi đối chiếu</StatusPill></>}
+      <span className={styles.mLine}>
+        <span className={styles.mNum}>{v.kind === 'RECOMPUTED' ? '≈ ' : ''}{fmtNum(v.value_number, metric.unit)}</span>
+        {v.result && <span className={v.result === 'PASS' ? styles.mPass : styles.mFail}>{v.result === 'PASS' ? 'Đạt' : 'Không đạt'}</span>}
+        {chosen && <span className={styles.mChosen}>Nguồn đã chốt</span>}
+      </span>
       <Source loanId={loanId} m={v} />
     </div>
   );
@@ -37,24 +37,6 @@ export function kpiNote(m: Metric, v: MetricValue): string | undefined {
   return `Số tái tính từ tài liệu; khách khai ${fmtNum(other.value_number)}. Xem Chỉ số tài chính.`;
 }
 
-/** Dải chỉ số chính: chỉ lấy số có thật của hồ sơ (đề nghị, kỳ hạn) và chỉ số đã có nguồn; thiếu thì không hiện. */
-export function KpiStrip({ amountBillion, currency, termMonths, metrics }: { amountBillion: number; currency: string; termMonths: number | null; metrics: Metric[] }) {
-  const pick = (code: string) => {
-    const m = metrics.find((x) => x.code === code);
-    const v = m?.values.find((x) => x.field_id === m.chosen?.field_id) ?? m?.values.find((x) => x.kind === 'RECOMPUTED') ?? m?.values[0];
-    return m && v ? { m, v } : null;
-  };
-  const dscr = pick('dscr');
-  const ltv = pick('ltv');
-  return (
-    <div className={styles.strip} role="group" aria-label="Chỉ số chính">
-      <KpiCard label={`Đề nghị, tỷ ${currencyWord(currency)}`} value={fmtNum(amountBillion)} />
-      {termMonths != null && <KpiCard label="Kỳ hạn, tháng" value={String(termMonths)} />}
-      {[dscr, ltv].map((x) => x && <KpiCard key={x.m.code} label={`${x.m.label}${x.m.unit ? `, ${x.m.unit}` : ''}`} value={`${x.v.kind === 'RECOMPUTED' ? '≈ ' : ''}${fmtNum(x.v.value_number)}`} note={kpiNote(x.m, x.v)} />)}
-    </div>
-  );
-}
-
 export function MetricsPanel({ loanId, metrics }: { loanId: string; metrics: Metric[] }) {
   return (
     <section id="chi-so" className={styles.card} aria-label="Chỉ số tài chính">
@@ -63,24 +45,31 @@ export function MetricsPanel({ loanId, metrics }: { loanId: string; metrics: Met
         {metrics.length === 0 && <span className={styles.note}>Chưa có chỉ số nào có tài liệu nguồn.</span>}
         {metrics.length > 0 && <table className={styles.mTable} data-testid="metrics-table">
           <thead>
-            <tr><th scope="col">Chỉ số</th><th scope="col">Giá trị và nguồn</th><th scope="col">Ngưỡng chính sách</th></tr>
+            <tr><th scope="col">Chỉ số</th><th scope="col">Khách khai báo</th><th scope="col">Tính lại từ tài liệu</th></tr>
           </thead>
           <tbody>
-            {metrics.map((m) => (
-              <tr key={m.code} data-testid={`metric-row-${m.code}`}>
-                <td><b>{m.label}</b></td>
-                <td>
-                  {m.values.map((v) => <ValueCell key={v.kind} loanId={loanId} metric={m} v={v} />)}
-                  {m.chosen && (
-                    <span className={styles.src}>
-                      Đã chốt: {m.chosen.resolved_by_name ?? '—'}{m.chosen.reason ? ` — ${m.chosen.reason}` : ''}
-                    </span>
-                  )}
-                  {m.conflict_id && !m.chosen && <StatusPill tone="warn">Mâu thuẫn chưa chốt · <Link to={`/doi-chieu/${loanId}`}>Đối chiếu tài liệu</Link></StatusPill>}
-                </td>
-                <td className={styles.num}>{m.threshold ? `${m.threshold.op === '>=' ? '≥' : '≤'} ${fmtNum(m.threshold.value, m.unit)}` : 'Không có ngưỡng trong chính sách'}</td>
-              </tr>
-            ))}
+            {metrics.map((m) => {
+              const declared = m.values.filter((v) => v.kind !== 'RECOMPUTED');
+              const recomputed = m.values.filter((v) => v.kind === 'RECOMPUTED');
+              return (
+                <tr key={m.code} data-testid={`metric-row-${m.code}`}>
+                  <th scope="row">
+                    <span className={styles.mName}>{m.label}</span>
+                    <span className={styles.mRule}>{m.threshold ? `Ngưỡng ${m.threshold.op === '>=' ? '≥' : '≤'} ${fmtNum(m.threshold.value, m.unit)}` : 'Chính sách không đặt ngưỡng'}</span>
+                  </th>
+                  <td>{declared.length ? declared.map((v) => <ValueCell key={v.kind} loanId={loanId} metric={m} v={v} />) : <span className={styles.mNone}>—</span>}</td>
+                  <td>
+                    {recomputed.length ? recomputed.map((v) => <ValueCell key={v.kind} loanId={loanId} metric={m} v={v} />) : <span className={styles.mNone}>—</span>}
+                    {m.chosen && (
+                      <span className={styles.src}>
+                        Đã chốt: {m.chosen.resolved_by_name ?? '—'}{m.chosen.reason ? `, ${m.chosen.reason}` : ''}
+                      </span>
+                    )}
+                    {m.conflict_id && !m.chosen && <span className={styles.mConflict}>Hai số còn mâu thuẫn, chưa chốt · <Link to={`/doi-chieu/${loanId}`}>Đối chiếu tài liệu</Link></span>}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>}
       </div>

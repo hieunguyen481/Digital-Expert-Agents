@@ -178,3 +178,11 @@ a {
 /* UX-08: badge trạng thái dùng cặp màu chữ/nền đạt tương phản ≥ 4,5:1 */
 .ant-tag-success { color: var(--success); background: var(--success-bg); border-color: color-mix(in srgb, var(--success) 35%, transparent); }
 .ant-tag-warning { color: var(--warning); background: var(--warning-bg); border-color: color-mix(in srgb, var(--warning) 35%, transparent); }
+
+/* v5: tiêu đề của chú thích (Alert) đậm vừa, mô tả màu chữ phụ */
+.ant-alert .ant-alert-title { font-weight: 600; }
+.ant-alert-with-description .ant-alert-title { margin-bottom: 2px; }
+.ant-alert-with-description .ant-alert-description { color: var(--ink-2); }
+/* v5: thẻ AntD dùng cùng công thức với thẻ của trang (viền mờ + bóng nhẹ) */
+.ant-card.ant-card-bordered { border-color: transparent; box-shadow: var(--sh-card); }
+.ant-card .ant-card-head { border-bottom: 0; min-height: 0; padding-top: var(--s4); }

@@ -234,8 +234,7 @@ function RunBody({ caseId, currency, decider, startedAt, isDecider, retry, retry
       {failed.length > 0 && (
         <Alert type="error" showIcon role="alert" data-testid="agent-run-failed"
           message={`${failed.map((t) => agentName(t.agent)).join(', ')} gặp lỗi khi chạy.`}
-          description={`${okAgents.length > 0 ? `${okAgents.map((t) => agentName(t.agent)).join(', ')} đã xong và kết quả từng phần đã lưu, còn xem được trong tab Dấu vết. ` : ''}${pkg ? '' : 'Chưa có kết luận vì Validation chưa thể kiểm chứng. '}Dữ liệu hồ sơ không bị mất. Chạy lại đội agent; nếu vẫn lỗi, kiểm tra tài liệu ở mục Đối chiếu tài liệu.`}
-          action={retry && <Button size="small" loading={retrying} onClick={retry}>Chạy lại đội agent</Button>} />
+          description={`${okAgents.length > 0 ? `${okAgents.map((t) => agentName(t.agent)).join(', ')} đã xong và kết quả từng phần đã lưu, còn xem được trong tab Dấu vết. ` : ''}${pkg ? '' : 'Chưa có kết luận vì Validation chưa thể kiểm chứng. '}Dữ liệu hồ sơ không bị mất. ${retry ? 'Bấm "Chạy lại đội agent" ở đầu khối' : 'Chạy lại đội agent'}; nếu vẫn lỗi, kiểm tra tài liệu ở mục Đối chiếu tài liệu.`} />
       )}
       {!finished && Number.isFinite(startMs) && (
         <Alert type="info" showIcon role="status" data-testid="agent-run-elapsed"
@@ -290,14 +289,14 @@ function RunBody({ caseId, currency, decider, startedAt, isDecider, retry, retry
         </details>
       </div>
       {plan && (
-        <div data-testid="agent-progress" className={styles.btnRow}>
+        <p data-testid="agent-progress" className={styles.progress}>
           {plan.tasks.map((t) => {
             const st = states[t.task_id]?.state ?? 'waiting';
-            return <StatusPill key={t.task_id} tone={st === 'done' ? 'ok' : st === 'running' ? 'ai' : st === 'error' ? 'bad' : 'neutral'}>
-              {agentName(t.agent)}: {TASK_LABEL[st]}
-            </StatusPill>;
+            return <span key={t.task_id} className={st === 'done' ? styles.pOk : st === 'error' ? styles.pBad : st === 'running' ? styles.pRun : undefined}>
+              {agentName(t.agent)}: {TASK_LABEL[st].toLowerCase()}
+            </span>;
           })}
-        </div>
+        </p>
       )}
       {!plan && !finished && <span className={styles.note}>Đang chờ Planner lập kế hoạch…</span>}
       {sources.length > 0 && (

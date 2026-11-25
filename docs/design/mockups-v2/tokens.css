@@ -24,6 +24,10 @@
   /* Bo góc, đổ bóng, chuyển động */
   --r-sm:3px; --r-md:6px; --r-lg:10px; --r-pill:999px;
   --sh-1:0 1px 2px rgba(23,34,41,.06); --sh-2:0 4px 14px rgba(23,34,41,.08); --sh-3:0 12px 32px rgba(10,54,64,.16);
+  /* Thẻ v5: phân lớp bằng nền + viền mờ + bóng rất nhẹ (không viền xám rõ); chú thích nền nhạt không viền */
+  --r-card:10px; --line-soft:rgba(23,34,41,.08);
+  --sh-card:0 0 0 1px rgba(23,34,41,.07),0 1px 2px rgba(23,34,41,.04),0 6px 16px -8px rgba(23,34,41,.08);
+  --tint-warn:#FBF3E2; --tint-bad:#FBEBE8; --tint-info:#EAF1FA; --tint-ok:#E8F4EC; --tint-ai:#F4F6F7;
   --focus:0 0 0 2px var(--surface),0 0 0 4px var(--brand-500);
   --t-fast:120ms; --t-base:200ms; --ease:cubic-bezier(.2,.7,.2,1);
   --sidebar-w:216px; --topbar-h:52px; --demo-h:34px;

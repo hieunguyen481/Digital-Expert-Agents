@@ -19,13 +19,14 @@ describe('LoanHeader – L04/L10', () => {
   });
   it('hồ sơ được duyệt hiện số tiền được duyệt', () => {
     mount({ status: 'APPROVED', decision_type: 'APPROVED', approved_amount: '3000000000', approved_term_months: 24 });
-    expect(screen.getByTestId('loan-header').textContent).toContain('Được duyệt: 3 tỷ');
+    // Dòng dữ kiện v5: nhãn nhỏ ở trên, giá trị ở dưới (không còn dấu hai chấm).
+    expect(screen.getByText('Được duyệt').nextElementSibling?.textContent).toMatch(/^3 tỷ/);
   });
   it('không có người giữ thì không hiện "Đang giữ"', () => {
     mount({ assignee_name: null });
     expect(screen.getByTestId('loan-header').textContent).not.toContain('Đang giữ');
   });
-  it('không còn liên kết cuộn "Tới phần hành động"; việc còn lại là viên trung tính', () => {
+  it('không còn liên kết cuộn "Tới phần hành động"; việc còn lại là một liên kết chữ dưới nút chính', () => {
     render(<MemoryRouter><LoanHeader overview={overview({ status: 'APPROVAL' })} todoCount={2} /></MemoryRouter>);
     const h = screen.getByTestId('loan-header').textContent ?? '';
     expect(h).not.toContain('Tới phần hành động');

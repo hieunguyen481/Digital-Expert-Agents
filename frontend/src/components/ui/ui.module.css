@@ -6,7 +6,7 @@
 .aiBtn:global(.ant-btn) { background: var(--ai-700); border-color: var(--ai-700); color: #fff; }
 .aiBtn:global(.ant-btn):not(:disabled):hover { background: #2B373E !important; border-color: #2B373E !important; color: #fff !important; }
 .locked:global(.ant-btn), .locked:global(.ant-btn):hover {
-  background: var(--paper-2) !important; border: 1px dashed var(--rule-strong) !important; color: var(--ink-3) !important;
+  background: var(--surface-2) !important; border: 1px solid var(--rule) !important; color: var(--ink-3) !important;
   cursor: not-allowed; box-shadow: none;
 }
 .lockWrap { display: inline-block; max-width: 300px; }
@@ -14,7 +14,7 @@
 .lockWhy svg, .lockWhy :global(.anticon) { flex: none; margin-top: 2px; }
 
 /* ---- Thẻ chỉ số ---- */
-.kpi { padding: var(--s4) var(--s5); background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); box-shadow: var(--sh-1); }
+.kpi { padding: var(--s4) var(--s5); background: var(--surface); border-radius: var(--r-card); box-shadow: var(--sh-card); }
 .kpiLabel { font-size: var(--fs-12); color: var(--ink-3); }
 .kpiValue { font: 600 var(--fs-26)/1.2 var(--font-num); margin-top: var(--s1); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .kpiHero .kpiValue { font-size: var(--fs-34); }
@@ -37,17 +37,21 @@
 .flagR { color: var(--danger-700); }
 .flagR i { border-radius: 50%; transform: none; }
 .tagAi, .tagHm, .tagMe { display: inline-flex; gap: 4px; align-items: center; font-size: var(--fs-12); font-weight: 600; padding: 1px 7px; border-radius: var(--r-sm); white-space: nowrap; }
-.tagAi { color: var(--ai-700); background: var(--ai-100); }
+.tagAi { color: var(--ai-700); background: var(--ai-100); font-weight: 600; }
 .tagHm { color: #fff; background: var(--brand-700); }
 .tagMe { color: var(--brand-900); background: var(--surface); border: 1px solid var(--brand-500); padding: 0 7px; }
 
 /* ---- Khối AI và khối người quyết định ---- */
-.aib { border: 1px solid var(--rule-strong); background: var(--surface); border-radius: var(--r-md); }
-.aibHead { display: flex; align-items: center; gap: var(--s2); padding: var(--s3) var(--s4); border-bottom: 1px solid var(--rule); background: var(--ai-50); border-radius: var(--r-md) var(--r-md) 0 0; color: var(--ai-700); font-weight: 600; font-size: var(--fs-13); }
-.hmb { border: 1px solid var(--brand-700); border-left: 5px solid var(--brand-700); background: var(--surface); border-radius: var(--r-md); }
-.hmbHead { display: flex; align-items: center; gap: var(--s2); padding: var(--s3) var(--s4); border-bottom: 1px solid var(--rule); color: var(--brand-900); font-weight: 600; font-size: var(--fs-13); }
+.aib { background: var(--surface); border-radius: var(--r-card); box-shadow: var(--sh-card); min-width: 0; }
+.aibHead { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); padding: var(--s5) var(--s5) 0; color: var(--ink); font-weight: 600; font-size: 15px; line-height: 1.35; }
+.hmb { background: var(--surface); border-radius: var(--r-card); box-shadow: var(--sh-card); min-width: 0; }
+.hmbHead { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); padding: var(--s5) var(--s5) 0; color: var(--ink); font-weight: 600; font-size: 15px; line-height: 1.35; }
+.blockTitle { display: grid; gap: 2px; min-width: 0; }
+.eyebrowAi, .eyebrowHm { font-size: var(--fs-12); font-weight: 600; letter-spacing: .01em; line-height: 1.3; }
+.eyebrowAi { color: var(--ai-700); }
+.eyebrowHm { color: var(--brand-700); }
 .blockAct { margin-left: auto; display: inline-flex; gap: var(--s2); align-items: center; }
-.blockBody { padding: var(--s4); }
+.blockBody { padding: var(--s4) var(--s5) var(--s5); }
 
 /* ---- Stepper hồ sơ ---- */
 .stepper { display: flex; align-items: center; margin: var(--s3) 0; list-style: none; padding: 0; }
@@ -64,7 +68,7 @@
 
 /* ---- Dòng thời gian ---- */
 .tl { list-style: none; margin: 0; padding: 0; position: relative; }
-.tl::before { content: ''; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px; background: var(--rule); }
+.tl::before { content: ''; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 1px; background: var(--rule); }
 .tl li { position: relative; padding: 0 0 var(--s4) 28px; }
 .tl li::before { content: ''; position: absolute; left: 0; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 2px solid var(--brand-700); }
 .tlAi::before { border-color: var(--ai-500) !important; }
@@ -82,10 +86,10 @@
 
 /* ---- Đội agent: một thành phần, ba biến thể ---- */
 .at { display: grid; gap: var(--s2); min-width: 0; }
-.atFrame { border: 1px solid var(--rule-strong); border-radius: var(--r-md); padding: var(--s2); min-width: 0; }
+.atFrame { background: var(--surface-2); border-radius: 8px; padding: var(--s2) var(--s3); min-width: 0; }
 .atHm { display: flex; align-items: center; gap: var(--s2); font-size: var(--fs-12); color: var(--ink-2); }
 .atArr { color: var(--brand-700); font-weight: 700; }
-.atHn { border: 1px solid var(--brand-700); border-left: 5px solid var(--brand-700); border-radius: var(--r-md); padding: 2px var(--s3); background: var(--surface); font-weight: 600; color: var(--brand-900); }
+.atHn { border: 0; border-radius: 6px; box-shadow: 0 0 0 1px rgba(14,77,90,.35); padding: 2px var(--s3); background: var(--surface); font-weight: 600; color: var(--brand-900); }
 .flow { display: grid; grid-template-columns: 112px 36px minmax(0, 1fr) 36px 112px; align-items: stretch; padding: var(--s1) 0; }
 .col { display: grid; grid-auto-rows: 1fr; }
 .col > div { padding: 4px 0; display: flex; }
@@ -94,15 +98,15 @@
 .one > .fn { flex: 1; }
 .cx svg { display: block; width: 100%; height: 100%; }
 .cx path { fill: none; stroke: var(--ai-500); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-.fn { border: 1px solid var(--rule-strong); background: var(--surface); border-radius: var(--r-md); padding: var(--s2) var(--s3); min-width: 0; width: 100%; }
+.fn { border: 0; background: var(--surface); box-shadow: 0 0 0 1px var(--line-soft); border-radius: 8px; padding: var(--s2) var(--s3); min-width: 0; width: 100%; }
 .fn b { display: block; font-size: var(--fs-13); line-height: 1.3; }
 .fnRole { display: block; font-size: var(--fs-12); color: var(--ink-3); line-height: 1.35; margin-top: 2px; }
 .fn .badge { margin-bottom: 6px; }
-.fnDone { border-style: solid; background: var(--ai-50); }
+.fnDone { background: var(--surface); }
 .fnRun { background: var(--ai-50); box-shadow: 0 0 0 3px rgba(26, 110, 126, .18); }
-.fnErr { border: 1.5px solid var(--danger-700); background: var(--danger-100); }
+.fnErr { background: var(--tint-bad); box-shadow: 0 0 0 1px rgba(168,40,29,.35); }
 .fnErr .fnRole { color: #86190F; }
-.fnIdle { background: var(--paper-2); }
+.fnIdle { background: var(--surface-2); }
 .fnHoriz { display: flex; gap: var(--s3); align-items: center; justify-content: space-between; }
 .fnRight { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
 .fnRight .badge { margin: 0; }

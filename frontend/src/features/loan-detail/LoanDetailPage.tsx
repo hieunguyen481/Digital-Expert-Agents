@@ -14,7 +14,7 @@ import { AgentTeamPanel } from './AgentTeamPanel';
 import { ActionsPanel } from './ActionsPanel';
 import { CollateralPanel, FlagsPanel, TimelinePanel } from './InfoPanels';
 import { MemoPanel } from './MemoPanel';
-import { KpiStrip, MetricsPanel } from './MetricsPanel';
+import { MetricsPanel } from './MetricsPanel';
 import { fetchOverview } from './loanDetailService';
 import { LoanHeader } from './LoanHeader';
 import { TodoPanel, buildTodos } from './TodoPanel';
@@ -61,7 +61,6 @@ export default function LoanDetailPage() {
         <div className={`${styles.grid} ${readOnly ? styles.gridWide : ''}`} data-testid="loan-grid" data-readonly={readOnly}>
           <div className={styles.stack}>
             <AgentTeamPanel loanId={loanId} currency={loan.currency} status={loan.status} />
-            <KpiStrip amountBillion={Number(loan.requested_amount) / 1e9} currency={loan.currency} termMonths={loan.requested_term_months ?? null} metrics={metrics} />
             {empties.length >= 2 && <EmptyBlocksNote labels={empties.filter((e) => e.key !== 'conditions' || ['APPROVED', 'APPROVED_WITH_CONDITIONS'].includes(loan.status)).map((e) => e.label)} />}
             {!isEmpty('metrics') && <MetricsPanel loanId={loanId} metrics={metrics} />}
             {!isEmpty('flags') && <FlagsPanel flags={flags} />}
