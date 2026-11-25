@@ -146,7 +146,7 @@
 /* Hạn xử lý trong bảng: chữ màu, không nhãn (chỉ quá hạn mới thành nhãn đỏ). */
 .dueText { font-size: var(--fs-13); color: var(--ink-2); white-space: nowrap; }
 .dueWarn { color: var(--warn-700); font-weight: 600; }
-/* v5: bảng thẳng lề với tiêu đề thẻ (lề trong 20px ở cột đầu và cột cuối) */
+/* v5: bảng thẳng lề với tiêu đề thẻ (thẻ không lề trong: cột đầu/cuối lề 20px). Thẻ có lề trong tự đặt lại về 0 (xem admin.module.css). */
+.ledger :global(.ant-table) { background: transparent; }
 .ledger :global(.ant-table-thead > tr > th:first-child), .ledger :global(.ant-table-tbody > tr > td:first-child) { padding-left: var(--s5) !important; }
 .ledger :global(.ant-table-thead > tr > th:last-child), .ledger :global(.ant-table-tbody > tr > td:last-child) { padding-right: var(--s5) !important; }
-.ledger :global(.ant-table) { background: transparent; }
