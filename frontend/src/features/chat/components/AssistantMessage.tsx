@@ -9,7 +9,7 @@ import {
   LikeOutlined,
   ReloadOutlined,
   ShareAltOutlined,
-  ThunderboltOutlined,
+  CommentOutlined,
 } from '@ant-design/icons';
 import { motion, useReducedMotion } from 'motion/react';
 import { MarkdownContent } from './MarkdownContent';
@@ -97,7 +97,7 @@ export function AssistantMessage({
       transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
     >
       <span className={styles.avatar} aria-hidden="true">
-        <ThunderboltOutlined />
+        <CommentOutlined />
       </span>
 
       <div className={styles.body}>
@@ -170,7 +170,6 @@ export function AssistantMessage({
           <EnginePanel caseId={message.engine.caseId} loanApplicationId={message.engine.loanApplicationId} decisionRelated={message.engine.decisionRelated} />
         )}
 
-        {isComplete && <p className={styles.limit}>Chỉ để tham khảo. Quyết định thuộc người có thẩm quyền.</p>}
         {(isComplete || isStopped) && (
           <div className={styles.actions}>
             <Tooltip title="Sao chép">

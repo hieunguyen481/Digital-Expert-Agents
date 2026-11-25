@@ -3,27 +3,12 @@
   background: var(--brand-900); color: #fff; padding: var(--s12) 72px; display: flex; flex-direction: column;
   position: relative; overflow: hidden;
 }
-.left::before {
-  content: ''; position: absolute; inset: 0;
-  background: repeating-linear-gradient(to bottom, transparent 0 35px, rgba(255, 255, 255, .06) 35px 36px);
-}
-.left::after { content: ''; position: absolute; left: 72px; top: 0; bottom: 0; width: 2px; background: rgba(210, 154, 46, .7); }
 .left > * { position: relative; }
 .brand { color: #fff; }
-.lead { font: 700 38px/1.18 var(--font-display); letter-spacing: -0.015em; margin: var(--s12) 0 0; max-width: 15ch; color: #fff; }
-.intro { margin: var(--s4) 0 0; max-width: 46ch; color: #D2E7EB; font-size: 15px; }
-.legend { margin-top: var(--s6); display: grid; gap: var(--s2); max-width: 46ch; font-size: var(--fs-13); }
-.flow { display: flex; gap: var(--s2); align-items: center; flex-wrap: wrap; color: #D2E7EB; font-size: var(--fs-13); }
-.flow b { color: #fff; }
-/* Mũi tên đi liền với bước đứng sau: xuống dòng thì mũi tên mở đầu dòng mới, không rơi cuối dòng. */
-.step { white-space: nowrap; }
-.step > span { margin-right: var(--s1); }
-.sample { background: var(--surface); color: var(--ink); border-radius: var(--r-md); padding: var(--s3) var(--s4); display: flex; gap: var(--s3); align-items: center; font-size: var(--fs-12); }
-.sampleAi { border: 1.5px dashed var(--ai-500); background: var(--ai-50); }
-.sampleHm { border: 1px solid var(--brand-700); border-left: 5px solid var(--brand-700); }
-.tagAi, .tagHm { display: inline-flex; gap: 4px; align-items: center; font-size: var(--fs-12); font-weight: 600; padding: 1px 7px; border-radius: var(--r-sm); white-space: nowrap; }
-.tagAi { color: var(--ai-700); background: var(--ai-100); }
-.tagHm { color: #fff; background: var(--brand-700); }
+.copy { margin-top: auto; margin-bottom: auto; padding-bottom: var(--s12); }
+.lead { font: 700 40px/1.15 var(--font-display); letter-spacing: -0.02em; margin: 0; max-width: 14ch; color: #fff; }
+.intro { margin: var(--s5) 0 0; max-width: 44ch; color: #C9DEE2; font-size: var(--fs-16); line-height: 1.6; }
+.foot { margin: 0; color: #9FBFC6; font-size: var(--fs-13); }
 .right { display: grid; place-items: center; padding: var(--s8); }
 .box { width: 100%; max-width: 380px; }
 .title { font: 600 30px/1.2 var(--font-display); margin: 0; color: var(--ink); }
@@ -38,6 +23,4 @@
 @media (max-width: 900px) {
   .login { grid-template-columns: 1fr; }
   .left { padding: var(--s8); }
-  .left::after { left: var(--s8); }
 }
-.sampleTeam { flex-direction: column; align-items: stretch; gap: 8px; border-radius: 6px; color: var(--ink-2); }

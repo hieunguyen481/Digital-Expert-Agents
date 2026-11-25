@@ -286,7 +286,7 @@ function RunBody({ caseId, currency, decider, startedAt, isDecider, retry, retry
         <AgentTeam variant="compact" states={agentSt} human={{ who: decider }} />
         <details className={styles.det}>
           <summary>Xem sơ đồ đầy đủ</summary>
-          <AgentTeam states={agentSt} human={{ who: decider, note: 'Người quyết định, ngoài khung AI · AI chỉ đề xuất' }} />
+          <AgentTeam states={agentSt} human={{ who: decider, note: 'Người quyết định, ngoài khung AI' }} />
         </details>
       </div>
       {plan && (

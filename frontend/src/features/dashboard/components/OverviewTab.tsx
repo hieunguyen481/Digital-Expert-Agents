@@ -2,7 +2,7 @@ import { Button } from 'antd';
 import { PageSkeleton } from '@/components/common/PageSkeleton';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable } from '@/components/tables/DataTable';
-import { AgentTeam, AGENTS, KpiCard, StateBlock, StatusPill, ledgerNum, ledgerTable } from '@/components/ui';
+import { AgentTeam, AGENTS, StateBlock, StatusPill, ledgerNum, ledgerTable } from '@/components/ui';
 import { fmtDec, fmtInt } from '@/utils/format';
 import { TERM } from '@/utils/glossary';
 import { getAgentCaseStats } from '@/services/agentCaseService';
@@ -41,18 +41,22 @@ export function OverviewTab() {
   const pct = s.cases > 0 ? ` (${fmtDec((done / s.cases) * 100, 1)}%)` : '';
   const avg = s.avg_seconds != null ? fmtSeconds(s.avg_seconds).split(' ') : null;
 
-  const tiles = 3 + (avg ? 1 : 0) + (s.cost_usd != null ? 1 : 0);
-
   return (
     <div className={styles.stack} data-testid="overview">
-      <div className={styles.kpiGrid} style={{ gridTemplateColumns: `1.3fr repeat(${tiles}, minmax(0, 1fr))` }}>
-        <KpiCard hero label="Đã có kết luận" value={fmtInt(done)} note={`trên ${fmtInt(s.cases)} lượt${pct}`} />
-        <KpiCard label={TERM.totalRuns} value={fmtInt(s.cases)} note="lượt" />
-        <KpiCard label={TERM.toolCalls} value={fmtInt(s.tool_calls)} note="lần" />
-        <KpiCard label={TERM.challenge} value={fmtInt(s.challenges)} note="lần; phản biện số liệu xem ở từng lượt" />
-        {avg && <KpiCard label="Thời gian trung bình" value={avg[0]} note={avg[1]} />}
-        {s.cost_usd != null && <KpiCard label="Chi phí LLM" value={fmtDec(s.cost_usd, 2)} note={`USD, ${fmtInt(s.llm_calls)} lượt gọi`} />}
-      </div>
+      <section className={styles.summary} aria-label="Tóm tắt các lượt chạy">
+        <div className={styles.summaryMain}>
+          <span className={styles.summaryLabel}>Đã có kết luận</span>
+          <span className={styles.summaryValue}>{fmtInt(done)}</span>
+          <span className={styles.summaryNote}>trên {fmtInt(s.cases)} lượt{pct}</span>
+        </div>
+        <dl className={styles.summaryList}>
+          <div><dt>{TERM.totalRuns}</dt><dd>{fmtInt(s.cases)} lượt</dd></div>
+          <div><dt>{TERM.toolCalls}</dt><dd>{fmtInt(s.tool_calls)} lần</dd></div>
+          <div><dt>{TERM.challenge}</dt><dd>{fmtInt(s.challenges)} lần</dd></div>
+          {avg && <div><dt>Thời gian trung bình</dt><dd>{avg[0]} {avg[1]}</dd></div>}
+          {s.cost_usd != null && <div><dt>Chi phí LLM</dt><dd>{fmtDec(s.cost_usd, 2)} USD <small>· {fmtInt(s.llm_calls)} lượt gọi</small></dd></div>}
+        </dl>
+      </section>
 
       <section className={styles.card} aria-labelledby="ov-flow">
         <div className={styles.cardHead}><h2 id="ov-flow">Mỗi lượt chạy theo sơ đồ này</h2></div>

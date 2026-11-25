@@ -15,7 +15,7 @@
 .meta dt { color: var(--ink-3); }
 .meta dd { margin: 0; font-weight: 500; color: var(--ink); }
 .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
-.headRow { display: flex; align-items: flex-end; gap: var(--s4); margin: 0 var(--s8) var(--s5); padding-bottom: var(--s4); border-bottom: 3px double var(--rule-strong); }
+.headRow { display: flex; align-items: flex-end; gap: var(--s4); margin: 0 var(--s8) var(--s5); padding-bottom: var(--s4); border-bottom: 1px solid var(--rule-strong); }
 .headTitle { min-width: 0; flex: 1; }
 .headTitle h1 { margin: 0 !important; font: 700 30px/1.2 var(--font-display) !important; letter-spacing: -0.015em; color: var(--ink) !important; }
 .headAct { flex: none; display: flex; align-items: center; gap: var(--s3); }
@@ -54,7 +54,7 @@
 /* Chỉ số */
 .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--s3); }
 .mTable { width: 100%; border-collapse: collapse; font-size: var(--fs-13); }
-.mTable th { text-align: left; font-size: var(--fs-12); color: var(--ink-3); font-weight: 600; padding: 0 var(--s3) var(--s2) 0; border-bottom: 3px double var(--rule-strong); }
+.mTable th { text-align: left; font-size: var(--fs-12); color: var(--ink-3); font-weight: 600; padding: 0 var(--s3) var(--s2) 0; border-bottom: 1px solid var(--rule-strong); }
 .mTable td { padding: var(--s3) var(--s3) var(--s3) 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
 .mTable tr:last-child td { border-bottom: 0; }
 .mVal { display: grid; justify-items: start; gap: 2px; padding-bottom: var(--s2); }
@@ -77,7 +77,7 @@
 .memoSec { display: grid; gap: var(--s2); padding: var(--s3) 0; border-top: 1px solid var(--rule); }
 .memoSec:first-of-type { border-top: 0; }
 .memoSec > label, .memoSec > b { font-size: var(--fs-13); font-weight: 600; }
-.aiInline { border: 1.5px dashed var(--ai-500); background: var(--ai-50); border-radius: var(--r-md); padding: var(--s3); display: grid; gap: var(--s2); }
+.aiInline { border: 1px solid var(--rule-strong); background: var(--ai-50); border-radius: var(--r-md); padding: var(--s3); display: grid; gap: var(--s2); }
 .aiInlineDone { border-style: solid; border-color: var(--rule-strong); background: var(--surface-2); }
 
 /* Dòng thời gian trong cột phải */

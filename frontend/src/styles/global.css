@@ -79,6 +79,7 @@ html {
 }
 
 body {
+  font-variant-numeric: tabular-nums;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body);

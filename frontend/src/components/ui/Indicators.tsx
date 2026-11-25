@@ -1,4 +1,3 @@
-import { ThunderboltOutlined } from '@ant-design/icons';
 import type { ReactNode } from 'react';
 import styles from './ui.module.css';
 
@@ -13,9 +12,14 @@ const PILL: Record<PillTone, string> = {
   human: styles.human,
 };
 
-/** Badge trạng thái: chấm màu + nhãn chữ (không dùng riêng màu làm tín hiệu). */
+/** Badge trạng thái: nhãn chữ trên nền màu nhạt (không dùng riêng màu làm tín hiệu). */
 export function StatusPill({ tone = 'neutral', outlined = false, children }: { tone?: PillTone; outlined?: boolean; children: ReactNode }) {
   return <span className={[styles.badge, PILL[tone], outlined ? styles.outlined : ''].filter(Boolean).join(' ')}>{children}</span>;
+}
+
+/** Trạng thái dạng chữ (không nhãn), cho các cột thông tin trong bảng; `warn` in đậm màu cảnh báo. */
+export function StatusText({ warn = false, children }: { warn?: boolean; children: ReactNode }) {
+  return <span className={[styles.dueText, warn ? styles.dueWarn : ''].filter(Boolean).join(' ')}>{children}</span>;
 }
 
 const FLAG_CLASS = { g: styles.flagG, y: styles.flagY, r: styles.flagR } as const;
@@ -29,7 +33,7 @@ export function Flag({ level, children }: { level: 'g' | 'y' | 'r'; children: Re
   );
 }
 
-/** Thẻ chỉ số; `hero` = chỉ số chính của trang (viền đồng), mỗi trang một thẻ. */
+/** Thẻ chỉ số; `hero` = chỉ số chính của trang (số lớn hơn), mỗi trang một thẻ. */
 export function KpiCard({ label, value, note, delta, hero }: { label: string; value: ReactNode; note?: ReactNode; delta?: ReactNode; hero?: boolean }) {
   return (
     <div className={`${styles.kpi} ${hero ? styles.kpiHero : ''}`}>
@@ -46,7 +50,6 @@ export function KpiCard({ label, value, note, delta, hero }: { label: string; va
 export function AiTag({ children = 'AI đề xuất' }: { children?: ReactNode }) {
   return (
     <span className={styles.tagAi}>
-      <ThunderboltOutlined aria-hidden />
       {children}
     </span>
   );

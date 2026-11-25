@@ -83,7 +83,7 @@ export function WelcomeState({ onSelectPrompt, staffName }: WelcomeStateProps) {
             </motion.div>
           ))}
         </div>
-        <p className={styles.hint}>Câu hỏi về một hồ sơ cần chọn khách hàng trước: gõ / rồi tên khách. Trợ lý chỉ đề xuất, không quyết định.</p>
+        <p className={styles.hint}>Câu hỏi về một hồ sơ cần chọn khách hàng trước: gõ / rồi tên khách.</p>
       </div>
     </div>
   );

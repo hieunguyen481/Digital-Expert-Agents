@@ -1,7 +1,6 @@
 import {
   AuditOutlined,
   BankOutlined,
-  BarChartOutlined,
   BellOutlined,
   BookOutlined,
   FileDoneOutlined,
@@ -9,7 +8,8 @@ import {
   PlusOutlined,
   SettingOutlined,
   TeamOutlined,
-  ThunderboltOutlined,
+  CommentOutlined,
+  ApartmentOutlined,
 } from '@ant-design/icons';
 import { message } from 'antd';
 import type { ReactNode } from 'react';
@@ -28,9 +28,9 @@ const ICONS: Record<RailItem['icon'], ReactNode> = {
   book: <BookOutlined />,
   clock: <AuditOutlined />,
   gear: <SettingOutlined />,
-  spark: <ThunderboltOutlined />,
+  spark: <CommentOutlined />,
   bell: <BellOutlined />,
-  dash: <BarChartOutlined />,
+  dash: <ApartmentOutlined />,
 };
 
 interface RailProps {

@@ -52,14 +52,14 @@
 }
 
 .list li::marker {
-  color: var(--amber-500);
+  color: var(--ink-3);
   font-weight: 600;
 }
 
 .quote {
   margin: 0;
   padding: 10px 16px;
-  border-left: 3px solid var(--amber-500);
+  border-left: 3px solid var(--rule-strong);
   border-radius: 0 var(--r-md) var(--r-md) 0;
   background: var(--surface-2);
   color: var(--ink-2);
@@ -95,7 +95,7 @@
 }
 
 .link {
-  color: var(--amber-700);
+  color: var(--brand-700);
   text-decoration: underline;
   text-underline-offset: 2px;
   text-decoration-thickness: 1px;
@@ -103,7 +103,7 @@
 }
 
 .link:hover {
-  color: var(--amber-500);
+  color: var(--brand-500);
 }
 
 .strong {
@@ -133,7 +133,7 @@
 }
 
 .table th {
-  background: var(--amber-100);
+  background: var(--surface-2);
   color: var(--brand-700);
   font-weight: 600;
 }

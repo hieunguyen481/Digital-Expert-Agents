@@ -18,8 +18,9 @@ test('ô tìm kiếm: combobox, mũi tên, Enter, mã mono', async ({ page }) =>
   const id = await box.getAttribute('aria-activedescendant');
   expect(id).toBeTruthy();
   await expect(page.locator(`#${id}`)).toHaveAttribute('aria-selected', 'true');
-  const font = await page.getByRole('option').first().locator('b').evaluate((e) => getComputedStyle(e).fontFamily);
-  expect(font).toContain('Plex Mono');
+  // v4: mã hồ sơ dùng phông chữ chính với chữ số bảng (không còn phông máy đánh chữ).
+  const num = await page.getByRole('option').first().locator('b').evaluate((e) => getComputedStyle(e).fontVariantNumeric);
+  expect(num).toContain('tabular-nums');
   await page.screenshot({ path: `${OUT}/search-1366.png` });
   await box.press('ArrowDown');
   expect(await box.getAttribute('aria-activedescendant')).not.toBe(id);

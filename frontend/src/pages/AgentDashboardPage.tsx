@@ -16,7 +16,7 @@ export default function AgentDashboardPage() {
 
   return (
     <div className={styles.page}>
-      <PageHead title="Đội agent" facts={['Giám sát các lượt chạy của đội agent. AI chỉ đề xuất, người quyết định.']} />
+      <PageHead title="Đội agent" facts={['Các lượt chạy của đội agent trên hồ sơ vay']} />
       <div className={styles.body}>
       <Tabs
         activeKey={tab}

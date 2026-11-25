@@ -1,4 +1,4 @@
-import { ThunderboltOutlined } from '@ant-design/icons';
+import { CommentOutlined } from '@ant-design/icons';
 import { Button, Typography } from 'antd';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
@@ -41,7 +41,7 @@ export function PageHead({ title, facts = [], actions, onAskAi, askLabel = 'Hỏ
       </div>
       <div className={styles.pageActions}>
         {onAskAi && (
-          <Button icon={<ThunderboltOutlined />} onClick={onAskAi}>
+          <Button icon={<CommentOutlined />} onClick={onAskAi}>
             {askLabel}
           </Button>
         )}

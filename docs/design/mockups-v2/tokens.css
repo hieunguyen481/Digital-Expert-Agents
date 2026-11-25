@@ -7,8 +7,8 @@
   --brand-900:#0A3640; --brand-700:#0E4D5A; --brand-500:#1A6E7E; --brand-100:#D2E7EB; --brand-50:#EAF4F6;
   /* Nhấn hổ phách (điểm nhấn duy nhất, không dùng cho trạng thái) */
   --amber-800:#6A4708; --amber-700:#8C5E0E; --amber-500:#D29A2E; --amber-100:#F8EBCF;
-  /* AI đề xuất = tím mực (chỉ dành cho nội dung do AI sinh) */
-  --ai-700:#4F3590; --ai-500:#6B4FB8; --ai-100:#E9E3F6; --ai-50:#F3F0FA;
+  /* AI đề xuất = xám than (nội dung do AI sinh: thẻ xám nhạt viền liền, có nhãn; không dùng tím) */
+  --ai-700:#3B4A53; --ai-500:#73838C; --ai-100:#E2E8EB; --ai-50:#F4F6F7;
   /* Ngữ nghĩa trạng thái */
   --ok-700:#1B6A3F; --ok-100:#DDEFE4; --warn-700:#8F5400; --warn-100:#F8E8C8;
   --danger-700:#A8281D; --danger-100:#F7DDD9; --info-700:#1D4F91; --info-100:#DCE7F6;
@@ -16,7 +16,7 @@
   /* Chữ */
   --font-display:'Be Vietnam Pro',system-ui,'Segoe UI',sans-serif;
   --font-body:'Be Vietnam Pro',system-ui,'Segoe UI',sans-serif;
-  --font-num:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --font-num:'Be Vietnam Pro',system-ui,'Segoe UI',sans-serif;
   --fs-12:12px; --fs-13:13px; --fs-14:14px; --fs-16:16px; --fs-20:20px; --fs-26:26px; --fs-34:34px;
   --lh-tight:1.25; --lh-body:1.5; --lh-serif:1.3;
   /* Khoảng cách (lưới 4) */

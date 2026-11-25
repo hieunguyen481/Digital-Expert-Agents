@@ -23,7 +23,7 @@ function FlagRow({ f }: { f: Flag }) {
   );
 }
 
-/** Cờ do AI sinh nằm trong khối AI (viền nét đứt tím); cờ do hệ thống hoặc người đặt ở ngoài. */
+/** Cờ do AI sinh nằm trong khối AI (khối xám nhạt); cờ do hệ thống hoặc người đặt ở ngoài. */
 export function FlagsPanel({ flags }: { flags: Flag[] }) {
   const ai = flags.filter((f) => f.source.startsWith('AI_'));
   const other = flags.filter((f) => !f.source.startsWith('AI_'));

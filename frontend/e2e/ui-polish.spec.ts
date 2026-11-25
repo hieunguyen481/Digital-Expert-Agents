@@ -38,13 +38,13 @@ test('hạn đối chiếu: cùng ngày thì cùng ngưỡng màu, có ghi số 
   for (const [, colors] of byDay) expect(colors.size).toBe(1);
 });
 
-test('tiêu đề cột số dùng chữ sans, ô số dùng mono', async ({ page }) => {
+test('tiêu đề cột số dùng chữ sans, ô số dùng chữ số bảng (v4: không còn mono)', async ({ page }) => {
   await loginAs(page, 'qhkh');
   await page.goto('/viec-cua-toi');
   const th = page.locator('thead th', { hasText: 'Số tiền' }).first();
   await expect(th).toBeVisible();
   expect(await th.evaluate((e) => getComputedStyle(e).fontFamily)).not.toMatch(/mono/i);
-  expect(await page.locator('tbody td', { hasText: /tỷ|triệu/ }).first().evaluate((e) => getComputedStyle(e).fontFamily)).toMatch(/mono/i);
+  expect(await page.locator('tbody td', { hasText: /tỷ|triệu/ }).first().evaluate((e) => getComputedStyle(e).fontVariantNumeric)).toContain('tabular-nums');
 });
 
 test('ô nhập của chat có tên truy cập', async ({ page }) => {

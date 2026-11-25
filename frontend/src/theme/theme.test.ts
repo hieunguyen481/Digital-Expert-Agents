@@ -71,7 +71,6 @@ describe('theme Ant Design', () => {
     const css = readFileSync(resolve(__dirname, '../styles/fonts.css'), 'utf8');
     expect(css).not.toMatch(/https?:\/\//);
     expect(css).toContain('Be Vietnam Pro');
-    expect(css).toContain('IBM Plex Mono');
     expect(css).toMatch(/vietnamese/);
   });
 });

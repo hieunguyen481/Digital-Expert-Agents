@@ -122,7 +122,7 @@ export function AgentTrace({ trace, running = false }: AgentTraceProps) {
             style={{ overflow: 'hidden' }}
           >
             <div className={styles.body}>
-              <ThoughtChain items={items} line="dashed" />
+              <ThoughtChain items={items} line="solid" />
 
               {!running && (
                 <div className={styles.doneRow}>

@@ -1,5 +1,5 @@
-/* Thẻ kết quả đội agent trong câu trả lời: khối AI (nét đứt tím) lồng trong tin trợ lý; quyết định của người là khối brand viền liền. */
-.panel { margin-top: var(--s3); padding: var(--s3) var(--s4); background: var(--surface); border: 1.5px dashed var(--ai-500); border-radius: var(--r-md); font-size: var(--fs-13); }
+/* Thẻ kết quả đội agent trong câu trả lời: khối AI (xám nhạt, viền liền) lồng trong tin trợ lý; quyết định của người là khối brand viền liền. */
+.panel { margin-top: var(--s3); padding: var(--s3) var(--s4); background: var(--surface); border: 1px solid var(--rule-strong); border-radius: var(--r-md); font-size: var(--fs-13); }
 .head { display: flex; align-items: center; gap: var(--s2); color: var(--ai-700); }
 .head strong { font-size: var(--fs-13); font-weight: 600; margin-right: auto; }
 .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: var(--s3); }
@@ -8,7 +8,7 @@
 .planner, .agent { padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid var(--rule); background: var(--paper); color: var(--ink-2); }
 .planner { background: var(--ai-100); border-color: var(--ai-500); color: var(--ai-700); }
 .verdicts { list-style: none; margin: var(--s3) 0 0; padding: 0; display: grid; gap: var(--s2); }
-.verdicts li { display: grid; gap: 2px; padding-top: var(--s2); border-top: 1px dashed #BFB2E3; }
+.verdicts li { display: grid; gap: 2px; padding-top: var(--s2); border-top: 1px solid var(--rule); }
 .vhead { display: flex; align-items: center; gap: var(--s2); }
 .vtext { color: var(--ink); line-height: 1.55; max-width: 72ch; }
 .sources { margin-top: var(--s3); color: var(--ink-2); }

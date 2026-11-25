@@ -294,14 +294,6 @@ export function ConversationSidebar({
       </div>
 
       <div className={styles.footer}>
-        <div className={styles.supportCard} data-testid="chat-reference-note">
-          <span className={styles.supportBody}>
-            <span className={styles.supportText}>
-              Câu trả lời là tham khảo. Số liệu chính thức xem ở hồ sơ.
-            </span>
-          </span>
-        </div>
-
         <div className={styles.footerLinks}>
           <button type="button" className={styles.footerLink}>
             <QuestionCircleOutlined aria-hidden="true" />

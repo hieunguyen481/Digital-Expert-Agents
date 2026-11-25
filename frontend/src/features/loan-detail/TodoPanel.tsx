@@ -38,7 +38,7 @@ export function TodoPanel({ items, ready, caseId }: { items: TodoItem[]; ready: 
   const needsInfo = caseQ.data?.state === 'Needs Info';
   return (
     <div id="viec-can-lam" aria-label="Việc cần làm" data-testid="todo-panel">
-      <HumanBlock tag="Việc của bạn" title={<>Việc cần làm {ready && items.length > 0 && <span className={styles.count}>{items.length}</span>}</>}>
+      <HumanBlock tag={null} title={<>Việc cần làm {ready && items.length > 0 && <span className={styles.count}>{items.length}</span>}</>}>
         {ready && items.length === 0 && (aiConditions > 0 || needsInfo) && <span className={styles.warnLine} data-testid="todo-ai-needs"><ExclamationCircleOutlined /> {aiConditions > 0 ? `AI nêu ${aiConditions} điểm cần bổ sung` : 'AI nêu điểm cần bổ sung'}; xem khối Đội agent. Chưa có điều kiện hệ thống nào chặn bước này.</span>}
         {ready && items.length === 0 && aiConditions === 0 && !needsInfo && <span className={styles.ok}><CheckCircleOutlined /> Không còn điều kiện nào đang chặn ở bước này.</span>}
         {!ready && <span className={styles.note}>Đang kiểm tra điều kiện…</span>}

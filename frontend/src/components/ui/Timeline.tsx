@@ -6,7 +6,7 @@ export interface TimelineEntry {
   time: string;
   title: ReactNode;
   body?: ReactNode;
-  /** Mục do AI sinh: chấm nét đứt tím. */
+  /** Mục do AI sinh: chấm xám. */
   ai?: boolean;
   /** Mục hiện tại: chấm đặc. */
   current?: boolean;

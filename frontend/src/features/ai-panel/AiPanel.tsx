@@ -1,4 +1,4 @@
-import { CloseOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { CloseOutlined, CommentOutlined } from '@ant-design/icons';
 import { Button, Tag } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChatComposer } from '@/features/chat/components/ChatComposer';
@@ -101,7 +101,7 @@ export function AiPanel() {
       }}
     >
       <div className={styles.head}>
-        <ThunderboltOutlined aria-hidden />
+        <CommentOutlined aria-hidden />
         <b>Trợ lý AI</b>
         <Button type="text" aria-label="Đóng Trợ lý AI" icon={<CloseOutlined />} onClick={close} />
       </div>

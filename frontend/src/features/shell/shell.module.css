@@ -119,7 +119,7 @@
 .crumbs a { color: var(--ink-3); }
 .pageHead {
   display: flex; align-items: flex-end; gap: var(--s4); margin: var(--s6) var(--s8) var(--s6); padding-bottom: var(--s4);
-  border-bottom: 3px double var(--rule-strong);
+  border-bottom: 1px solid var(--rule);
 }
 .crumbs + .pageHead { margin-top: var(--s2); }
 .pageTitleBox { min-width: 0; flex: 1; }

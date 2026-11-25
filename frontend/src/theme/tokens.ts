@@ -29,10 +29,10 @@ export const colors = {
   amber700: '#8C5E0E',
   amber500: '#D29A2E',
   amber100: '#F8EBCF',
-  ai700: '#4F3590',
-  ai500: '#6B4FB8',
-  ai100: '#E9E3F6',
-  ai50: '#F3F0FA',
+  ai700: '#3B4A53',
+  ai500: '#73838C',
+  ai100: '#E2E8EB',
+  ai50: '#F4F6F7',
   ok700: '#1B6A3F',
   ok100: '#DDEFE4',
   warn700: '#8F5400',
@@ -84,7 +84,7 @@ export const colorVars: Record<keyof typeof colors, string> = {
 export const fonts = {
   display: "'Be Vietnam Pro', system-ui, 'Segoe UI', sans-serif",
   body: "'Be Vietnam Pro', system-ui, 'Segoe UI', sans-serif",
-  num: "'IBM Plex Mono', ui-monospace, Consolas, monospace",
+  num: "'Be Vietnam Pro', system-ui, 'Segoe UI', sans-serif",
 } as const;
 
 export const radius = { sm: 3, md: 6, lg: 10, pill: 999 } as const;

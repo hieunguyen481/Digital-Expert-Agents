@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { ThunderboltOutlined } from '@ant-design/icons';
+import { CommentOutlined } from '@ant-design/icons';
 import { AI_PHASE_LABEL, type AIProcessingPhase } from '@/types/chat';
 import styles from './ThinkingIndicator.module.css';
 
@@ -30,7 +30,7 @@ export function ThinkingIndicator({ phase }: ThinkingIndicatorProps) {
           />
         )}
         <span className={styles.pulseCore} aria-hidden="true">
-          <ThunderboltOutlined />
+          <CommentOutlined />
         </span>
       </span>
 

@@ -1,5 +1,5 @@
 import { LoanCode, loanCodeLabel } from '@/components/common/CodeText';
-import { ThunderboltOutlined } from '@ant-design/icons';
+import { CommentOutlined } from '@ant-design/icons';
 import { Button, Segmented, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { Link, useNavigate } from 'react-router-dom';
@@ -117,7 +117,7 @@ export function QueueTable({ title, items, filter, onFilter, loading, counts, ha
               <Button
                 size="small"
                 type="text"
-                icon={<ThunderboltOutlined />}
+                icon={<CommentOutlined />}
                 aria-label={`Hỏi trợ lý về ${loanCodeLabel(r.application_number, r.status)}`}
                 title="Hỏi trợ lý"
                 onClick={() =>

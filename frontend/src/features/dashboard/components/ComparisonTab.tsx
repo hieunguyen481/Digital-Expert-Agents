@@ -394,7 +394,7 @@ export function ComparisonTab() {
               yField: 'value',
               colorField: 'series',
               group: true,
-              scale: { color: { range: ['#6F7660', '#6B4FB8'] } },
+              scale: { color: { range: ['#9AA6AC', '#0E4D5A'] } },
               legend: { color: { position: 'top' } },
               style: { radiusTopLeft: 3, radiusTopRight: 3, maxWidth: 46 },
               axis: { y: { title: '%' } },

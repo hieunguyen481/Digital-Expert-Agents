@@ -1,15 +1,15 @@
 .panel {
   display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden;
-  background: var(--ai-50); border-left: 1.5px dashed var(--ai-500);
+  background: var(--ai-50); border-left: 1px solid var(--rule-strong);
 }
 .panel[data-open='false'] { visibility: hidden; border-left: 0; }
 .head {
   height: var(--topbar-h); flex: none; display: flex; align-items: center; gap: var(--s2); padding: 0 var(--s3) 0 var(--s4);
-  color: var(--ai-700); border-bottom: 1px dashed var(--ai-500); font: 600 var(--fs-14)/1.4 var(--font-body);
+  color: var(--ai-700); border-bottom: 1px solid var(--rule); font: 600 var(--fs-14)/1.4 var(--font-body);
 }
 .head b { flex: 1; }
 .chipRow { padding: var(--s2) var(--s4); flex: none; position: relative; z-index: 1; background: var(--ai-50); border-bottom: 1px solid var(--rule); box-shadow: 0 6px 6px -6px rgba(15, 28, 51, 0.16); }
-.chip { background: var(--surface); border: 1px dashed var(--ai-500); color: var(--ai-700); margin: 0; }
+.chip { background: var(--surface); border: 1px solid var(--rule); color: var(--ai-700); margin: 0; }
 .error { margin: var(--s2) var(--s4) 0; color: var(--danger-700); font-size: var(--fs-13); }
 .body { flex: 1; min-height: 0; overflow: auto; }
 

@@ -3,7 +3,6 @@ import { Alert, Button } from 'antd';
 import { useState } from 'react';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { isAuthenticated, login } from '@/auth/keycloak';
-import { AgentTeam } from '@/components/ui';
 import { SHBLogo } from '@/components/common/SHBLogo';
 import styles from './LoginPage.module.css';
 
@@ -13,7 +12,7 @@ function sanitizeReturnTo(raw: string | null): string {
   return raw;
 }
 
-/** Trang đăng nhập (mockup 01): giới thiệu cách làm việc bên trái, một nút sang trang xác thực bên phải. */
+/** Trang đăng nhập: bên trái nền thương hiệu trơn với một câu giới thiệu, bên phải một nút sang trang xác thực. */
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
   const [redirecting, setRedirecting] = useState(false);
@@ -41,30 +40,14 @@ export default function LoginPage() {
       <a href="#main" className={styles.skip}>Bỏ qua tới nội dung</a>
       <section className={styles.left} aria-label="Giới thiệu">
         <SHBLogo variant="white" size="large" showProductName className={styles.brand} />
-        <h2 className={styles.lead}>Mỗi hồ sơ vay có một người chịu trách nhiệm.</h2>
-        <p className={styles.intro}>
-          Đội agent đọc hồ sơ, tính chỉ số và nêu rủi ro để người phụ trách hồ sơ làm nhanh hơn. Người có thẩm quyền vẫn là
-          người quyết định.
-        </p>
-        <div className={styles.legend}>
-          <div className={styles.flow} aria-label="Quy trình: AI đề xuất, chuyên viên xem và sửa, người có thẩm quyền quyết định">
-            <b>AI đề xuất</b>
-            <span className={styles.step}><span aria-hidden>→</span><b>Chuyên viên xem và sửa</b></span>
-            <span className={styles.step}><span aria-hidden>→</span><b>Người có thẩm quyền quyết định</b></span>
-          </div>
-          <div className={`${styles.sample} ${styles.sampleAi}`}>
-            <span className={styles.tagAi}>AI đề xuất</span>
-            <span>Viền nét đứt, nền tím nhạt: nội dung do AI sinh, chưa xác nhận.</span>
-          </div>
-          <div className={`${styles.sample} ${styles.sampleHm}`}>
-            <span className={styles.tagHm}>Người quyết định</span>
-            <span>Viền liền, thanh xanh đậm bên trái: quyết định của Cấp phê duyệt hoặc Hội đồng.</span>
-          </div>
-          <div className={`${styles.sample} ${styles.sampleTeam}`}>
-            <span>Đội agent, cùng một sơ đồ ở mọi màn hình:</span>
-            <AgentTeam variant="compact" human={{ who: 'Người quyết định', note: 'ngoài khung AI' }} />
-          </div>
+        <div className={styles.copy}>
+          <h2 className={styles.lead}>Thẩm định hồ sơ vay doanh nghiệp</h2>
+          <p className={styles.intro}>
+            Đội agent đọc báo cáo tài chính, CIC và tài sản bảo đảm, tính chỉ số và nêu rủi ro. Chuyên viên kiểm tra,
+            người có thẩm quyền quyết định.
+          </p>
         </div>
+        <p className={styles.foot}>Hệ thống nội bộ · chỉ dành cho cán bộ tín dụng</p>
       </section>
       <main id="main" tabIndex={-1} className={styles.right}>
         <div className={styles.box}>

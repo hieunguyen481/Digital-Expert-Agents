@@ -2,7 +2,7 @@ import { shbColors, shbTypography } from './tokens';
 
 /**
  * Palette cho Ant Design Charts: brand làm chuỗi chính, đồng làm điểm nhấn (cột
- * cuối, chuỗi nổi bật), tím mực chỉ cho số liệu do AI sinh. Không rainbow.
+ * cuối, chuỗi nổi bật), xám than chỉ cho số liệu do AI sinh. Không rainbow.
  */
 export const shbChartPalette = [
   shbColors.brand[700],

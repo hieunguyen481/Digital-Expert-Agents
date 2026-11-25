@@ -2,7 +2,7 @@ import { uiRoleFromRoles } from '@/auth/roleFromMe';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Alert, Button, Input, Modal, Radio, Space, Typography } from 'antd';
+import { Alert, Button, Input, Modal, Radio, Space } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
 import { ActionButton, HumanBlock, StatusPill } from '@/components/ui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -175,9 +175,8 @@ export function ActionsPanel({ loanId, overview }: { loanId: string; overview: L
   return (
     <section id="hanh-dong" aria-label="Hành động trên hồ sơ" data-testid="actions-panel">
       {slot && headNode && createPortal(headNode, slot)}
-      <HumanBlock title="Hành động" tag={decider ? 'Người quyết định' : uiRoleFromRoles(me.roles) === 'kiemtoan' ? 'Chỉ đọc' : 'Việc của bạn'}>
+      <HumanBlock title="Hành động" tag={decider ? 'Người quyết định' : uiRoleFromRoles(me.roles) === 'kiemtoan' ? 'Chỉ đọc' : null}>
       <div className={styles.stackTight}>
-      <Typography.Text type="secondary">AI chỉ đề xuất; người có thẩm quyền quyết định. Mọi hành động đều kiểm lại ở máy chủ.</Typography.Text>
       {state.blockers.length > 0 && totalActions > 0 && (
         <Alert type="warning" showIcon message="Chưa đủ điều kiện để trình"
           description={<ul style={{ margin: 0, paddingLeft: 18 }}>{state.blockers.map((b) => <li key={b}>{BLOCKERS[b] ?? b}</li>)}</ul>} />
