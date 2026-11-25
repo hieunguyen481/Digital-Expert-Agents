@@ -4,35 +4,13 @@
   width: 100%;
 }
 
-.avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--ai-100);
-  border: 1px solid var(--ai-500);
-  color: var(--ai-700);
-  font-size: 14px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
 .body {
   display: flex;
   flex-direction: column;
   gap: 10px;
   min-width: 0;
-  /* Độ rộng đọc tối ưu cho văn bản dài. */
-  max-width: 820px;
   flex: 1;
-  /* Nội dung do AI sinh: thẻ trắng viền mờ (không bao giờ là khối quyết định). */
-  padding: var(--s4);
-  border: 0;
-  box-shadow: var(--sh-card);
-  background: var(--surface);
-  border-radius: var(--r-card) var(--r-card) var(--r-card) 4px;
+  /* Câu trả lời là chữ trên nền trang (kiểu ChatGPT/Claude): không khung, không bóng. */
 }
 
 .name {
@@ -83,8 +61,8 @@
   flex-direction: column;
   gap: 10px;
   padding: 16px;
-  border: 1px solid var(--rule);
-  border-radius: var(--r-lg);
+  border: 0; box-shadow: 0 0 0 1px var(--line-soft);
+  border-radius: var(--r-card);
   background: var(--surface);
 }
 
@@ -100,8 +78,8 @@
   gap: 8px;
   padding: 11px 14px;
   border-radius: var(--r-md);
-  background: var(--paper);
-  border: 1px solid var(--rule);
+  background: var(--surface-2);
+  border: 0;
   font-size: 12.5px;
   line-height: 1.55;
   color: var(--ink-2);
@@ -120,7 +98,7 @@
   height: 1em;
   margin-left: 2px;
   vertical-align: text-bottom;
-  background: var(--amber-500);
+  background: var(--ink-2);
   animation: blink 1s step-end infinite;
 }
 
@@ -176,3 +154,7 @@
   line-height: 1.45;
   color: var(--ink-3);
 }
+
+.actions :global(.ant-btn) { color: var(--ink-3); }
+.actions :global(.ant-btn:hover) { color: var(--ink) !important; }
+.aiNote { margin-left: var(--s2); font-size: 12px; color: var(--ink-3); }

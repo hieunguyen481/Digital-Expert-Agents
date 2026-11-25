@@ -15,7 +15,9 @@
   flex-shrink: 0;
 }
 
-/* Vòng sáng cam pulse chậm quanh icon AI. */
+/* Kiểu ChatGPT/Claude: không biểu tượng, chỉ chữ trạng thái + chấm. */
+.pulseRing, .pulseCore { display: none !important; }
+
 .pulseRing {
   position: absolute;
   inset: 0;
@@ -53,5 +55,5 @@
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: var(--amber-500);
+  background: var(--ink-3);
 }

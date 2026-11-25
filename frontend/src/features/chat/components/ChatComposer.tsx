@@ -251,7 +251,7 @@ export function ChatComposer({
             )}
           </AnimatePresence>
 
-          <div className={styles.composerShell} ref={shellRef}>
+          <div className={styles.composerShell} data-focus-ring ref={shellRef}>
           <Sender
             className={styles.sender}
             value={value}

@@ -6,15 +6,15 @@
   /* Fade mềm để nội dung chat trôi vào composer, không cắt ngang đột ngột. */
   background: linear-gradient(
     180deg,
-    rgba(247, 245, 241, 0) 0%,
-    var(--paper) 26%,
-    var(--paper) 100%
+    rgba(255, 255, 255, 0) 0%,
+    var(--surface) 26%,
+    var(--surface) 100%
   );
 }
 
 .inner {
   width: 100%;
-  max-width: 880px;
+  max-width: 760px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -27,22 +27,19 @@
 }
 
 .composerShell {
+  /* Ô nhập kiểu ChatGPT/Claude: bo tròn lớn, viền mảnh, bóng rất nhẹ; focus chỉ đậm viền, không quầng màu. */
   border: 1px solid var(--rule);
-  border-radius: var(--r-lg);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow:
-    0 12px 36px rgba(35, 34, 79, 0.08),
-    0 2px 8px rgba(26, 110, 126, 0.05);
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease;
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(23, 34, 41, 0.04), 0 4px 16px rgba(23, 34, 41, 0.05);
+  transition: none; /* vòng focus hiện ngay, không chạy từ 0px */
 }
 
 .composerShell:focus-within {
-  border-color: var(--amber-500);
-  box-shadow:
-    0 14px 42px rgba(35, 34, 79, 0.1),
-    0 0 0 4px rgba(26, 110, 126, 0.1);
+  /* Một vòng focus duy nhất ở viền ô (đủ tương phản cho bàn phím), không vòng vuông bên trong. */
+  border-color: var(--brand-500);
+  /* Vòng 1px cùng màu viền: tổng 2px, đủ tương phản (5,9:1) để người dùng bàn phím thấy ô đang được chọn. */
+  box-shadow: 0 0 0 1px var(--brand-500), 0 6px 20px rgba(23, 34, 41, 0.07);
 }
 
 /* Ant Design X Sender nằm trong shell -> bỏ viền/nền riêng của nó. */
@@ -50,7 +47,7 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  border-radius: var(--r-lg) !important;
+  border-radius: 24px !important;
 }
 
 /*
@@ -74,3 +71,6 @@
     padding: 6px 12px calc(10px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+.composerShell :global(textarea.ant-input:focus-visible),
+.composerShell :global(.ant-input:focus-visible) { outline: none !important; }

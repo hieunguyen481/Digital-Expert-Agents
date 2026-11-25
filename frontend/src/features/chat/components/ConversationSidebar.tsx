@@ -178,7 +178,7 @@ export function ConversationSidebar({
       <div className={styles.section}>
         <Button
           className={styles.newChatBtn}
-          type="primary"
+          type="default"
           icon={<PlusOutlined />}
           onClick={onCreateConversation}
           size="large"

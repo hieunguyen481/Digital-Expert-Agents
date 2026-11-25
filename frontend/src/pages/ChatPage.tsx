@@ -496,7 +496,8 @@ export default function ChatPage() {
             ) : (
               <h1 className={styles.toolbarTitle}>{activeConversation?.title ?? 'Trợ lý AI'}</h1>
             )}
-            <Button onClick={() => void handleCreateConversation()}>Cuộc trò chuyện mới</Button>
+            {/* Nút này chỉ cần trên điện thoại; máy tính đã có nút ở danh sách hội thoại bên trái. */}
+            {isMobile && <Button onClick={() => void handleCreateConversation()}>Cuộc trò chuyện mới</Button>}
           </div>
         {/* Split-view: chat bên trái, panel hồ sơ khách hàng bên phải (desktop). */}
         <div className={styles.splitRow}>

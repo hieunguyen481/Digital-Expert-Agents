@@ -9,7 +9,6 @@ import {
   LikeOutlined,
   ReloadOutlined,
   ShareAltOutlined,
-  CommentOutlined,
 } from '@ant-design/icons';
 import { motion, useReducedMotion } from 'motion/react';
 import { MarkdownContent } from './MarkdownContent';
@@ -20,7 +19,6 @@ import { ThinkingIndicator } from './ThinkingIndicator';
 import { AgentTrace } from './AgentTrace';
 import { scrubAnswer } from '@/features/chat/utils/humanizeCodes';
 import { EnginePanel } from './EnginePanel';
-import { AiTag } from '@/components/ui';
 import type { ChatMessage, MessageFeedback } from '@/types/chat';
 import type { LoanApplication, LoanApplicationStatus } from '@/types/customer';
 import styles from './AssistantMessage.module.css';
@@ -96,15 +94,10 @@ export function AssistantMessage({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
     >
-      <span className={styles.avatar} aria-hidden="true">
-        <CommentOutlined />
-      </span>
-
+      {/* Kiểu ChatGPT/Claude: câu trả lời là chữ trên nền trang, không biểu tượng, không khung.
+          Tên người nói chỉ dành cho trình đọc màn hình; nhãn "AI đề xuất" nằm ở hàng nút bên dưới. */}
       <div className={styles.body}>
-        <span className={styles.name}>
-          Trợ lý AI
-          <AiTag>AI đề xuất</AiTag>
-        </span>
+        <span className="sr-only">Trợ lý AI trả lời:</span>
 
         {/*
           Agent trace đứng TRƯỚC nội dung: chuyên viên thấy hệ chuyên gia số đã
@@ -228,6 +221,7 @@ export function AssistantMessage({
                 </Button>
               </Tooltip>
             )}
+            <span className={styles.aiNote}>AI đề xuất · kiểm tra lại trước khi dùng</span>
           </div>
         )}
 

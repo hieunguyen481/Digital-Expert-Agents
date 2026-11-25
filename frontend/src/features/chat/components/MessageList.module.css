@@ -9,9 +9,9 @@
 .inner {
   display: flex;
   flex-direction: column;
-  gap: 26px;
+  gap: 32px;
   width: 100%;
-  max-width: 880px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 26px 24px 8px;
 }
