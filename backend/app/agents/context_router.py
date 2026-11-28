@@ -125,6 +125,33 @@ _CASE_RESULT_TERMS = (
     "tài sản bảo đảm",
     "tsđb",
 )
+# Câu hỏi về QUY ĐỊNH CHUNG (ngưỡng, mức tối thiểu/tối đa, khi nào bắt buộc, cấp nào duyệt một mức tiền): trả lời từ
+# điều khoản chính sách, không cần chọn khách/hồ sơ. Chỉ khi câu không nhắc tới hồ sơ/khách cụ thể (`_THIS_CASE_TERMS`).
+_POLICY_RULE_TERMS = (
+    "tối thiểu",
+    "tối đa",
+    "ngưỡng",
+    "theo chính sách",
+    "chính sách quy định",
+    "quy định",
+    "bắt buộc",
+    "điều khoản",
+    "cấp nào phê duyệt",
+    "do cấp nào",
+    "thẩm quyền phê duyệt",
+)
+_THIS_CASE_TERMS = (
+    "hồ sơ này",
+    "hồ sơ đang",
+    "của hồ sơ",
+    "khách này",
+    "khách hàng này",
+    "của khách",
+    "khoản vay này",
+    "công ty này",
+    "doanh nghiệp này",
+    "đề xuất này",
+)
 # Yêu cầu chạy lại phân tích: không phải câu tra cứu kết quả đã có.
 _RERUN_TERMS = ("phân tích lại", "thẩm định lại", "đánh giá lại", "chạy lại", "làm mới", "phân tích mới", "từ đầu", "rerun", "re-run")
 # Xin dữ liệu định danh cá nhân: từ chối vì bảo mật bằng câu trả lời thường, không định tuyến thành yêu cầu phân tích.
@@ -215,6 +242,12 @@ class ContextRouter:
         is_definition = (
             _contains_any(lowered, _DEFINITION_TERMS)
             and bool(domain_agents or _contains_any(lowered, _REPAYMENT_TERMS))
+        ) or (
+            # câu hỏi quy định chung: như câu hỏi khái niệm, trả lời từ chính sách, không đòi khách/hồ sơ
+            not is_rerun
+            and _contains_any(lowered, _POLICY_RULE_TERMS)
+            and not _contains_any(lowered, _THIS_CASE_TERMS)
+            and not _contains_any(lowered, _ANALYSIS_VERBS)
         )
         requires_loan = (
             is_rerun

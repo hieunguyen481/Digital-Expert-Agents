@@ -90,3 +90,23 @@ test('"phân tích lại" với vai được phép (tdinh giữ bước): chạy
   expect(a.answer).not.toMatch(OUT_OF_SCOPE);
   expect(a.answer).toMatch(/Kết luận của đội agent|Trạng thái hồ sơ phân tích|vẫn đang phân tích/);
 });
+
+test('câu hỏi chính sách chung (chưa chọn khách) trả lời đúng ngưỡng và số điều khoản', async ({ page }) => {
+  test.setTimeout(300_000);
+  await loginAs(page, 'tdinh');
+  await page.goto('/chat');
+  const box = page.getByPlaceholder(/Hỏi Trợ lý AI/);
+  const cases: [string, RegExp, RegExp][] = [
+    ['Điều kiện tối thiểu về DSCR khi cấp tín dụng doanh nghiệp là bao nhiêu?', /1[,.]25/, /§\s?4\.2/],
+    ['LTV tối đa theo chính sách là bao nhiêu?', /70\s?%/, /§\s?7\.1/],
+    ['Khoản vay 30 tỷ do cấp nào phê duyệt?', /Cấp 2 Hội sở|Hội sở/i, /§\s?3\.1/],
+  ];
+  for (const [q, value, clause] of cases) {
+    await page.getByRole('button', { name: /Cuộc trò chuyện mới/ }).first().click();
+    const a = await ask({ page, box }, 'tdinh', q);
+    expect(a.status).toBeLessThan(300);
+    expect(a.answer, q).toMatch(value);
+    expect(a.answer, q).toMatch(clause);
+    expect(a.answer, q).not.toMatch(/chưa đủ để trả lời|ngoài phạm vi/i);
+  }
+});

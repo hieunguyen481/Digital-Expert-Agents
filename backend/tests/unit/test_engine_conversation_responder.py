@@ -385,3 +385,27 @@ def test_why_and_document_questions_reuse_team_result() -> None:
     for q in ("Vì sao hồ sơ này cần BCTC kiểm toán?", "Tại sao phải bổ sung tài liệu?", "Lý do chưa trình được là gì?"):
         assert _METRIC_Q.search(q), q
     assert not _METRIC_Q.search("Hôm nay thời tiết thế nào?")
+
+
+class _TopicEngine(_Engine):
+    def __init__(self):
+        super().__init__()
+        self.queries: list[str] = []
+
+    async def policy_search(self, q, k=3):
+        self.queries.append(q)
+        if "DSCR dự phóng" in q:  # truy vấn theo chủ đề tra được §4.2
+            return [{"source": "CS-TD-SME/2025 §4.2 – Khả năng trả nợ", "text": "DSCR dự phóng ≥ 1,25 lần"}]
+        return [{"source": "CS-TD-SME/2025 §6.1 – Danh mục hồ sơ", "text": "Gồm giấy đề nghị cấp tín dụng"}]
+
+
+@pytest.mark.asyncio
+async def test_general_dscr_question_gets_section_4_2_without_customer() -> None:
+    """Câu hỏi chính sách chung (chưa chọn khách): tra thêm theo chủ đề để §4.2 có ngưỡng DSCR đứng đầu."""
+    inner, engine = _CapInner(), _TopicEngine()
+    await EngineConversationResponder(inner, engine).respond(
+        principal=_principal(), conversation={},
+        message="Điều kiện tối thiểu về DSCR khi cấp tín dụng doanh nghiệp là bao nhiêu?",
+        route={"route_type": "DIRECT", "intent": "DIRECT_QUERY"})
+    assert "§4.2" in inner.message and "1,25" in inner.message
+    assert inner.message.index("§4.2") < inner.message.index("§6.1")

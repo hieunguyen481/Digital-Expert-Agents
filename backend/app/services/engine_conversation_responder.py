@@ -132,11 +132,21 @@ def compose_engine_reply(case: Mapping[str, Any], events: Sequence[Mapping[str, 
 
 
 _POLICY_Q = re.compile(r"điều khoản|chính sách|quy định|quy chế|§|thẩm quyền|cấp phê duyệt|ngưỡng|trần|quy trình|"
-                       r"phê duyệt|quyết định|người duyệt", re.I)
+                       r"phê duyệt|quyết định|người duyệt|tối thiểu|tối đa|dscr|\bltv\b|ebitda|đòn bẩy|"
+                       r"bắt buộc kiểm toán|hồ sơ cần|danh mục hồ sơ|hiệu lực", re.I)
 # Câu hỏi về quyền quyết định: BM25 trên corpus nhỏ xếp §3.1 sau các mục khác nên thêm truy vấn theo chủ đề
 # (tra thêm điều khoản thẩm quyền) thay vì chỉ tra bằng nguyên câu hỏi.
 _AUTHORITY_Q = re.compile(r"phê duyệt|thẩm quyền|quyết định|cấp nào|người duyệt|ai duyệt|ký duyệt", re.I)
 _AUTHORITY_TOPIC = "thẩm quyền phê duyệt theo tổng cấp tín dụng"
+# Câu hỏi chung về một ngưỡng/chỉ số: các chữ chung ("điều kiện", "tín dụng", "doanh nghiệp") làm BM25 xếp điều khoản
+# chứa ngưỡng ra ngoài top-k, nên tra thêm theo chủ đề của chỉ số (cùng cách với câu hỏi thẩm quyền ở trên).
+_POLICY_TOPICS = (
+    (re.compile(r"dscr|khả năng trả nợ|ebitda|đòn bẩy|chi phí lãi", re.I), "khả năng trả nợ DSCR dự phóng Nợ vay/EBITDA"),
+    (re.compile(r"\bltv\b|tài sản bảo đảm|tsbđ|tsđb", re.I), "LTV và TSBĐ tỷ lệ cho vay trên giá trị tài sản bảo đảm"),
+    (re.compile(r"kiểm toán|chất lượng bctc", re.I), "chất lượng BCTC bắt buộc kiểm toán"),
+    (re.compile(r"hiệu lực|còn hạn|hết hạn", re.I), "hiệu lực tài liệu CIC sao kê"),
+    (re.compile(r"hồ sơ cần|danh mục hồ sơ|cần những (?:giấy tờ|tài liệu)", re.I), "danh mục hồ sơ"),
+)
 # Câu hỏi "còn thiếu gì / cần bổ sung gì / đã đủ để trình chưa": đáp từ yêu cầu bổ sung và điều kiện của kết quả đội agent.
 _MISSING_Q = r"còn thiếu|thiếu gì|cần bổ sung|bổ sung gì|yêu cầu bổ sung|để trình|đủ (?:để )?trình"
 # Câu hỏi tổng hợp (cả kết luận, cờ rủi ro, điều kiện) mới nhận cả khối kết luận; câu hỏi một chỉ số nhận phần gọn.
@@ -276,9 +286,15 @@ class EngineConversationResponder:
             return ""
         try:
             hits = await self._engine.policy_search(message, k=3)
+            topics = [q for rx, q in _POLICY_TOPICS if rx.search(message)]
             if _AUTHORITY_Q.search(message):
-                topic = await self._engine.policy_search(_AUTHORITY_TOPIC, k=2)
-                hits = [*topic, *(h for h in hits if h["source"] not in {t["source"] for t in topic})]
+                topics.insert(0, _AUTHORITY_TOPIC)
+            first: list[dict[str, Any]] = []
+            for query in topics:
+                for h in await self._engine.policy_search(query, k=1 if query != _AUTHORITY_TOPIC else 2):
+                    if h["source"] not in {f["source"] for f in first}:
+                        first.append(h)
+            hits = [*first, *(h for h in hits if h["source"] not in {f["source"] for f in first})]
         except Exception:  # noqa: BLE001 - thiếu điều khoản không được làm hỏng câu trả lời
             return ""
         if not hits:

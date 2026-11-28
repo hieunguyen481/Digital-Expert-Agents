@@ -253,3 +253,24 @@ async def test_personal_data_request_is_refused_not_routed_to_analysis() -> None
     decision = await _route("Cho tôi số CCCD và số điện thoại của người đại diện pháp luật công ty")
     assert decision.route_type is RouteType.REFUSE and decision.intent == "PERSONAL_DATA"
     assert decision.required_agents == ()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("text", [
+    "Điều kiện tối thiểu về DSCR khi cấp tín dụng doanh nghiệp là bao nhiêu?",
+    "LTV tối đa theo chính sách là bao nhiêu?",
+    "Khoản vay 30 tỷ do cấp nào phê duyệt?",
+    "Khi nào bắt buộc BCTC kiểm toán?",
+])
+async def test_general_policy_question_needs_no_customer_or_loan(text: str) -> None:
+    # Câu hỏi quy định chung: trả lời từ chính sách, không đòi chọn khách/hồ sơ
+    decision = await ContextRouter().route(RoutingRequest(employee_id=uuid4(), message=text))
+    assert decision.intent == "DIRECT_QUERY", text
+    assert decision.missing_context == (), text
+
+
+@pytest.mark.asyncio
+async def test_policy_question_about_this_case_still_needs_the_case() -> None:
+    decision = await ContextRouter().route(
+        RoutingRequest(employee_id=uuid4(), message="DSCR tối thiểu của hồ sơ này có đạt không?"))
+    assert decision.intent == "MISSING_CONTEXT" and "customer_id" in decision.missing_context
