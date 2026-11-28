@@ -304,7 +304,7 @@ export default function ChatPage() {
         });
         activeConversationIdRef.current = created.id;
         setActiveConversationId(created.id);
-        setComposerValue('');
+        // Không xóa ô nhập ở đây: ô đã xóa "/tên khách" lúc chọn; xóa sau khi mở xong sẽ mất câu người dùng vừa gõ.
       } catch (error) {
         messageApi.error(getErrorMessage(error));
       }
